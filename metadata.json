@@ -1,0 +1,8 @@
+{
+  "name": " Final FastPay Global 2026",
+  "description": "A high-end, modern fintech landing page and management system with dedicated dashboards for Developers, Merchants, and Users. Features complete site customization and user management for the Developer role.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
