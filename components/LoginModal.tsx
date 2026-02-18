@@ -1,7 +1,5 @@
-
+import { supabase } from '../lib/supabase';
 import React, { useState, useEffect } from 'react';
-import { Role, User } from '../types';
-
 interface Props {
   onClose: () => void;
   onLogin: (user: User) => void;
@@ -15,8 +13,25 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  
-  // Authentication animation states
+  const handleRegister = async () => {
+    const { data, error: supabaseError } = await supabase
+      .from('accounts')
+      .insert([
+        { 
+          username: username, 
+          password: password, 
+          role: selectedRole,
+          fullName: username 
+        }
+      ]);
+
+    if (supabaseError) {
+      alert("فشل في Supabase: " + supabaseError.message);
+    } else {
+      alert("✅ تم الحفظ الفعلي لـ " + username);
+    }
+  };
+  // Authentication animation stateslo
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authProgress, setAuthProgress] = useState(0);
   const [authStep, setAuthStep] = useState(0);
@@ -105,7 +120,15 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
       <div className="relative bg-[#0f172a]/95 border border-white/10 w-full max-w-lg rounded-[2.5rem] md:rounded-[4rem] shadow-[0_0_100px_rgba(0,0,0,0.4)] overflow-hidden animate-in fade-in zoom-in duration-500 backdrop-blur-3xl max-h-[90vh] flex flex-col">
         <div className="overflow-y-auto custom-scrollbar p-8 sm:p-12 md:p-16 text-center">
           {!isAuthenticating && (
-            <button onClick={onClose} className="absolute top-6 right-6 md:top-10 md:right-10 text-slate-500 hover:text-white transition bg-white/5 p-2 md:p-3 rounded-full z-10">
+<button
+  type="button"
+  onClick={handleRegister}
+  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-lg transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center space-x-2"
+>
+  <span>إضافة عضو جديد للنظام ✅</span>
+</button>
+
+
               <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           )}
