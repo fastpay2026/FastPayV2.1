@@ -2,6 +2,8 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, APIKey } from '../types';
 
+import MerchantDealCreator from './MerchantDealCreator';
+
 interface Props {
   user: User;
   onLogout: () => void;
@@ -20,7 +22,7 @@ const MerchantDashboard: React.FC<Props> = ({
   user, onLogout, siteConfig, accounts, setAccounts, rechargeCards, setRechargeCards, 
   transactions, setTransactions, addNotification, onUpdateUser
 }) => {
-  const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'deals'>('main');
   const [modalType, setModalType] = useState<'send' | 'cards' | 'new_key' | null>(null);
   
   // States for Transfer Animation
@@ -58,7 +60,7 @@ const MerchantDashboard: React.FC<Props> = ({
 
   const bankingPhrases = [
     "جاري فتح قناة اتصال مشفرة مع السجل التجاري المركزي...",
-    "التحقق من كفاية السيولة في محفظة التاجر السيادية...",
+    "التحقق من كفاية السيولة في محفظة الموزع السيادية...",
     "توليد توقيع رقمي فريد للمعاملة عبر بروتوكول FastPay-Secure...",
     "فحص معايير الامتثال الدولية (KYC/AML) ومكافحة غسيل الأموال...",
     "تأمين التحويل عبر بروتوكول التشفير العسكري AES-256...",
@@ -77,7 +79,7 @@ const MerchantDashboard: React.FC<Props> = ({
 
   const handleGenerateCards = () => {
     const totalCost = cardAmount * cardQuantity;
-    if (totalCost > user.balance) return alert('الرصيد غير كافٍ في محفظة التاجر');
+    if (totalCost > user.balance) return alert('الرصيد غير كافٍ في محفظة الموزع');
     
     const newCards: RechargeCard[] = [];
     const now = new Date();
@@ -238,7 +240,7 @@ const MerchantDashboard: React.FC<Props> = ({
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    addNotification('أمن الحساب', 'تم تحديث كلمة المرور للتاجر بنجاح.', 'security');
+    addNotification('أمن الحساب', 'تم تحديث كلمة المرور للموزع بنجاح.', 'security');
     setTimeout(() => setPasswordSuccess(false), 3000);
   };
 
@@ -314,10 +316,11 @@ header('Location: ' . $payment->checkout_url);`
               </div>
             )}
             <div className="space-y-1">
-               <h1 className="text-2xl font-black tracking-tighter">بوابة التاجر</h1>
+               <h1 className="text-2xl font-black tracking-tighter">بوابة الموزع</h1>
                <nav className="flex gap-6">
                  {[
                    { id: 'main', l: 'الرئيسية' },
+                   { id: 'deals', l: 'منصة الصفقات (LC)' },
                    { id: 'gateway', l: 'بوابة المطورين & API' },
                    { id: 'settings', l: 'إعدادات الحساب' }
                  ].map((view) => (
@@ -335,7 +338,7 @@ header('Location: ' . $payment->checkout_url);`
          <div className="flex items-center gap-6">
             <div className="text-left hidden lg:block border-l border-white/10 pl-6 mr-6">
                <p className="font-black text-white text-lg">{user.fullName}</p>
-               <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">المستوى: تاجر معتمد</p>
+               <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">المستوى: موزع معتمد</p>
             </div>
             <button onClick={onLogout} className="px-8 py-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl font-black hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg">خروج</button>
          </div>
@@ -349,7 +352,7 @@ header('Location: ' . $payment->checkout_url);`
                     <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
                     <div className="relative z-10 space-y-12">
                        <div>
-                          <p className="text-sky-400 font-black text-xs uppercase tracking-[0.3em] mb-4">السيولة التجارية المتوفرة</p>
+                          <p className="text-sky-400 font-black text-xs uppercase tracking-[0.3em] mb-4">السيولة المتوفرة للموزع</p>
                           <h2 className="text-6xl md:text-8xl font-black tracking-tighter">${user.balance.toLocaleString()}</h2>
                        </div>
                        <div className="flex flex-wrap gap-6">
@@ -564,9 +567,17 @@ header('Location: ' . $payment->checkout_url);`
             </div>
          )}
 
+         {activeView === 'deals' && (
+            <MerchantDealCreator 
+              user={user} 
+              addNotification={addNotification} 
+              onUpdateUser={onUpdateUser} 
+            />
+         )}
+
          {activeView === 'settings' && (
            <div className="max-w-4xl mx-auto animate-in slide-in-from-bottom duration-500 space-y-12">
-              <h2 className="text-6xl font-black tracking-tighter">إعدادات حساب التاجر</h2>
+              <h2 className="text-6xl font-black tracking-tighter">إعدادات حساب الموزع</h2>
               
               <div className="bg-[#0f172a]/60 backdrop-blur-3xl p-12 border border-white/5 rounded-[4rem] shadow-2xl space-y-12">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -583,7 +594,7 @@ header('Location: ' . $payment->checkout_url);`
                        <p className="text-2xl font-black text-white" dir="ltr">{user.phoneNumber || 'غير محدد'}</p>
                     </div>
                     <div className="p-8 bg-white/5 rounded-3xl border border-white/5 space-y-2">
-                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">معرف التاجر</p>
+                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">معرف الموزع</p>
                        <p className="text-xl font-mono text-sky-400">ID: {user.id.toUpperCase()}</p>
                     </div>
                  </div>

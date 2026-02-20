@@ -1,26 +1,19 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 import LandingPage from './components/LandingPage';
 import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
 import DeveloperDashboard from './components/DeveloperDashboard';
 import MerchantDashboard from './components/MerchantDashboard';
+import MerchantDealCreator from './components/MerchantDealCreator';
 import UserDashboard from './components/UserDashboard';
 import { Role, User, SiteConfig, LandingService, Transaction, Notification, CustomPage, SalaryFinancing, TradeAsset, WithdrawalRequest, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit } from './types';
-
-// إعداد عميل Supabase - سيتم جلب القيم من متغيرات البيئة عند الرفع
-const SUPABASE_URL = (process.env.SUPABASE_URL as string) || '';
-const SUPABASE_ANON_KEY = (process.env.SUPABASE_ANON_KEY as string) || '';
-const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY) ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const App: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState('home');
-  const [forcedRole, setForcedRole] = useState<Role | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   
   const professionalLogo = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MDAgMTYwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iaWNvbkdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMGVhNWU5IiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMzYjgyZjYiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMCwgMTApIj4KICAgIDxwYXRoIGQ9Ik03MCAwIEM4MCAwIDE0MCAyMCAxNDAgNzAgQzE0MCAxMjAgNzAgMTQwIDcwIDE0MCBDNzAgMTQwIDAgMTIwIDAgNzAgQzAgMjAgNjAgMCA3MCAwIFoiIGZpbGw9InVybCgjaWNvbkdyYWQpIiAvPgogICAgPHBhdGggZD0iTTQwIDcwIEw3MCA3MCBMNjAgMTEwIEwxMDAgNjAgTDcwIDYwIEw4MCAyMCBaIiBmaWxsPSJ3aGl0ZSIgLz4KICAgIDxwYXRoIGQ9Ik0xMCA5MCBDMzAgNzAgNjAgOTAgOTAgNTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjYiIC8+CiAgPC9nPgogIDx0ZXh0IHg9IjE4MCIgeT0iMTAwIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IidUYWphd2FsJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI5NCIgZm9udC13ZWlnaHQ9IjkwMCIgbGV0dGVyLXNwYWNpbmc9Ii00Ij5GYXN0UGF5PC90ZXh0PgogIDx0ZXh0IHg9IjE4NSIgeT0iMTQwIiBmaWxsPSIjMzhidGY4IiBmb250LWZhbWlseT0iJ1RhamF3YWwnLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI4IiBmb250LXdlaWdodD0iODAwIiBsZXR0ZXItc3BhY2luZz0iMjIiPk5FVFdPUks8L3RleHQ+Cjwvc3ZnPg==`;
 
@@ -67,7 +60,7 @@ const App: React.FC = () => {
     tradingAdTitle: 'محرك التداول الاحترافي',
     tradingAdDesc: 'لا تنتظر السوق، بل كن أنت المحرك. منصتنا توفر لك وصولاً مباشراً للسيولة العالمية مع أدوات تحليل ذكية ومخططات بيانية فورية.',
     tradingAdImage: 'https://images.unsplash.com/photo-1642790106117-e829e14a795f?q=80&w=2000&auto=format&fit=crop',
-    raffleAdTitle: 'مهرجان جوائز FastPay Network: حلم الفخامة والروحانية',
+    raffleAdTitle: 'مهرجان جوائز النخبة: حلم الفخامة والروحانية',
     raffleAdDesc: 'استعد للربح الأكبر في مسيرتك! شارك الآن في سحب FastPay الشهري للفوز بسيارة رياضية خارقة أحدث طراز، أو رحلة عمرة VIP شاملة لأقدس البقاع بضيافة ملكية كاملة.',
     raffleAdImage: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1470&auto=format&fit=crop',
     transferAdTitle: 'جسر السيولة العالمي: Swift وفورية بلا حدود',
@@ -77,6 +70,9 @@ const App: React.FC = () => {
     gatewayAdDesc: 'حوّل متجرك الإلكتروني إلى منصة دفع عالمية رائدة. بوابتنا توفر لك دمجاً برمجياً بضغطة زر، عمولات تنافسية تبدأ من 0.8%، وتسوية فورية للأرباح مع حماية سيبرانية شاملة تضمن استمرارية نمو أعمالك.',
     gatewayAdImage: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?q=80&w=1470&auto=format&fit=crop',
     raffleEntryCost: 100,
+    rafflePrizeType: 'سيارة بورش 911 GT3',
+    showRaffleCountdown: true,
+    raffleEndDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
     isTradingEnabled: true
   });
 
@@ -97,97 +93,50 @@ const App: React.FC = () => {
   const [salaryPlans, setSalaryPlans] = useState<SalaryFinancing[]>([]);
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
   const [accounts, setAccounts] = useState<User[]>([
-    { id: '1', username: 'admin', fullName: 'مدير العمليات التنفيذي', email: 'admin@fastpay.com', password: 'Crazytownn@@201594ir', role: 'DEVELOPER', balance: 0, status: 'active', createdAt: '2023-01-01', linkedCards: [], assets: [] },
+    { id: '1', username: 'admin', fullName: 'مدير العمليات التنفيذي', email: 'admin@fastpay.com', password: 'ubnt', role: 'DEVELOPER', balance: 0, status: 'active', createdAt: '2023-01-01', linkedCards: [], assets: [] },
   ]);
   const [services, setServices] = useState<LandingService[]>([]);
   const [pages, setPages] = useState<CustomPage[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // مراقبة الرابط السري للإدارة
   useEffect(() => {
-    const handleHashChange = () => {
-      if (window.location.hash === '#/admin-gate') {
-        setForcedRole('DEVELOPER');
-        setIsLoginModalOpen(true);
-      } else {
-        setForcedRole(null);
-      }
+    const loadData = () => {
+      try {
+        const config = localStorage.getItem('fp_v21_config');
+        if (config) setSiteConfig(prev => ({ ...prev, ...JSON.parse(config) }));
+        const storedAccounts = localStorage.getItem('fp_v21_accounts');
+        if (storedAccounts) setAccounts(JSON.parse(storedAccounts));
+        const storedTrans = localStorage.getItem('fp_v21_trans');
+        if (storedTrans) setTransactions(JSON.parse(storedTrans));
+        const storedSalary = localStorage.getItem('fp_v21_salary');
+        if (storedSalary) setSalaryPlans(JSON.parse(storedSalary));
+        const storedOrders = localStorage.getItem('fp_v21_trade_orders');
+        if (storedOrders) setTradeOrders(JSON.parse(storedOrders));
+        const storedWithdrawals = localStorage.getItem('fp_v21_withdrawals');
+        if (storedWithdrawals) setWithdrawalRequests(JSON.parse(storedWithdrawals));
+        const storedCards = localStorage.getItem('fp_v21_recharge_cards');
+        if (storedCards) setRechargeCards(JSON.parse(storedCards));
+        const storedRaffleEntries = localStorage.getItem('fp_v21_raffle_entries');
+        if (storedRaffleEntries) setRaffleEntries(JSON.parse(storedRaffleEntries));
+        const storedRaffleWinners = localStorage.getItem('fp_v21_raffle_winners');
+        if (storedRaffleWinners) setRaffleWinners(JSON.parse(storedRaffleWinners));
+        const storedFixedDeposits = localStorage.getItem('fp_v21_fixed_deposits');
+        if (storedFixedDeposits) setFixedDeposits(JSON.parse(storedFixedDeposits));
+      } catch (e) { console.error("Data load error", e); }
     };
-    window.addEventListener('hashchange', handleHashChange);
-    handleHashChange();
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    loadData();
   }, []);
 
-  // جلب كافة البيانات من Supabase عند التحميل
-  useEffect(() => {
-    const fetchAllData = async () => {
-      setIsLoading(true);
-      if (supabase) {
-        try {
-          // محاولة جلب الإعدادات (أو إنشاء أول صف إذا لم يوجد)
-          const { data: config, error: configError } = await supabase.from('site_config').select('*').limit(1).single();
-          if (config) setSiteConfig(prev => ({ ...prev, ...config }));
-          else if (configError) {
-             console.log("Initializing first config row...");
-             await supabase.from('site_config').insert([{ id: 1, ...siteConfig }]);
-          }
-
-          const { data: accs } = await supabase.from('accounts').select('*');
-          if (accs && accs.length > 0) setAccounts(accs);
-
-          const { data: trans } = await supabase.from('transactions').select('*');
-          if (trans) setTransactions(trans);
-
-          const { data: servs } = await supabase.from('services').select('*');
-          if (servs && servs.length > 0) setServices(servs);
-
-          const { data: pgs } = await supabase.from('pages').select('*');
-          if (pgs && pgs.length > 0) setPages(pgs);
-
-          const { data: rCards } = await supabase.from('recharge_cards').select('*');
-          if (rCards) setRechargeCards(rCards);
-
-          const { data: wRequests } = await supabase.from('withdrawal_requests').select('*');
-          if (wRequests) setWithdrawalRequests(wRequests);
-
-          const { data: sPlans } = await supabase.from('salary_plans').select('*');
-          if (sPlans) setSalaryPlans(sPlans);
-
-        } catch (error) {
-          console.warn("Supabase fetch failed, relying on defaults", error);
-        }
-      }
-      setIsLoading(false);
-    };
-    fetchAllData();
-  }, []);
-
-  // دالة المزامنة السحابية (UPSERT)
-  const syncToCloud = async (table: string, data: any, idField: string = 'id') => {
-    if (!supabase) return;
-    try {
-      if (Array.isArray(data)) {
-        // نستخدم upsert لضمان تحديث الصفوف الموجودة وإضافة الجديدة دون مسح الكل
-        const { error } = await supabase.from(table).upsert(data, { onConflict: idField });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from(table).upsert({ id: 1, ...data }, { onConflict: 'id' });
-        if (error) throw error;
-      }
-    } catch (e) {
-      console.error(`Cloud Sync Error [${table}]:`, e);
-    }
-  };
-
-  // مراقبي التغيير للحفظ التلقائي الفوري
-  useEffect(() => { if (!isLoading) syncToCloud('site_config', siteConfig); }, [siteConfig, isLoading]);
-  useEffect(() => { if (!isLoading) syncToCloud('accounts', accounts); }, [accounts, isLoading]);
-  useEffect(() => { if (!isLoading) syncToCloud('transactions', transactions); }, [transactions, isLoading]);
-  useEffect(() => { if (!isLoading) syncToCloud('services', services); }, [services, isLoading]);
-  useEffect(() => { if (!isLoading) syncToCloud('pages', pages); }, [pages, isLoading]);
-  useEffect(() => { if (!isLoading) syncToCloud('recharge_cards', rechargeCards, 'code'); }, [rechargeCards, isLoading]);
-  useEffect(() => { if (!isLoading) syncToCloud('withdrawal_requests', withdrawalRequests); }, [withdrawalRequests, isLoading]);
-  useEffect(() => { if (!isLoading) syncToCloud('salary_plans', salaryPlans); }, [salaryPlans, isLoading]);
+  useEffect(() => localStorage.setItem('fp_v21_config', JSON.stringify(siteConfig)), [siteConfig]);
+  useEffect(() => localStorage.setItem('fp_v21_accounts', JSON.stringify(accounts)), [accounts]);
+  useEffect(() => localStorage.setItem('fp_v21_trans', JSON.stringify(transactions)), [transactions]);
+  useEffect(() => localStorage.setItem('fp_v21_salary', JSON.stringify(salaryPlans)), [salaryPlans]);
+  useEffect(() => localStorage.setItem('fp_v21_trade_orders', JSON.stringify(tradeOrders)), [tradeOrders]);
+  useEffect(() => localStorage.setItem('fp_v21_withdrawals', JSON.stringify(withdrawalRequests)), [withdrawalRequests]);
+  useEffect(() => localStorage.setItem('fp_v21_recharge_cards', JSON.stringify(rechargeCards)), [rechargeCards]);
+  useEffect(() => localStorage.setItem('fp_v21_raffle_entries', JSON.stringify(raffleEntries)), [raffleEntries]);
+  useEffect(() => localStorage.setItem('fp_v21_raffle_winners', JSON.stringify(raffleWinners)), [raffleWinners]);
+  useEffect(() => localStorage.setItem('fp_v21_fixed_deposits', JSON.stringify(fixedDeposits)), [fixedDeposits]);
 
   const currentUser = useMemo(() => accounts.find(acc => acc.id === currentUserId) || null, [accounts, currentUserId]);
 
@@ -199,12 +148,10 @@ const App: React.FC = () => {
     setNotifications(prev => [newNotify, ...prev]);
   }, []);
 
-  const handleUpdateUser = (updatedUser: User) => {
-    setAccounts(prev => prev.map(acc => acc.id === updatedUser.id ? updatedUser : acc));
-  };
+  const handleUpdateUser = (updatedUser: User) => setAccounts(prev => prev.map(acc => acc.id === updatedUser.id ? updatedUser : acc));
 
   const commonProps = { 
-    user: currentUser!, onLogout: () => { setCurrentUserId(null); window.location.hash = ""; }, siteConfig, onUpdateConfig: setSiteConfig, 
+    user: currentUser!, onLogout: () => setCurrentUserId(null), siteConfig, onUpdateConfig: setSiteConfig, 
     accounts, setAccounts, transactions, setTransactions, 
     addNotification, salaryPlans, setSalaryPlans, onUpdateUser: handleUpdateUser, 
     services, setServices, pages, setPages, notifications, setNotifications,
@@ -214,22 +161,11 @@ const App: React.FC = () => {
     fixedDeposits, setFixedDeposits
   };
 
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-[#020617] flex flex-col items-center justify-center space-y-8 z-[200]">
-        <div className="w-24 h-24 border-t-4 border-sky-500 border-solid rounded-full animate-spin shadow-[0_0_50px_rgba(14,165,233,0.3)]"></div>
-        <div className="text-center space-y-2">
-          <h2 className="text-3xl font-black text-white tracking-widest uppercase">FastPay Global</h2>
-          <p className="text-slate-500 text-sm animate-pulse tracking-[0.3em]">Connecting to Secure Cloud Nodes...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (currentUser) {
     switch (currentUser.role) {
       case 'DEVELOPER': return <DeveloperDashboard {...commonProps} />;
-      case 'MERCHANT': return <MerchantDashboard {...commonProps} />;
+      case 'DISTRIBUTOR': return <MerchantDashboard {...commonProps} />;
+      case 'MERCHANT': return <MerchantDealCreator {...commonProps} />;
       case 'USER': return <UserDashboard {...commonProps} />;
       default: return null;
     }
@@ -237,16 +173,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => { setForcedRole(null); setIsLoginModalOpen(true); }} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
-      {isLoginModalOpen && (
-        <LoginModal 
-          onClose={() => { setIsLoginModalOpen(false); window.location.hash = ""; }} 
-          onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} 
-          accounts={accounts} 
-          forcedRole={forcedRole}
-          onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} 
-        />
-      )}
+      <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
+      {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} accounts={accounts} onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} />}
       {isRegisterModalOpen && <RegisterModal onClose={() => setIsRegisterModalOpen(false)} accounts={accounts} onRegister={(u) => { setAccounts(p => [...p, u]); setCurrentUserId(u.id); setIsRegisterModalOpen(false); }} onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); }} />}
     </div>
   );

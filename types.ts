@@ -1,5 +1,5 @@
 
-export type Role = 'DEVELOPER' | 'MERCHANT' | 'USER' | 'ACCOUNTANT' | 'GUEST';
+export type Role = 'DEVELOPER' | 'MERCHANT' | 'USER' | 'ACCOUNTANT' | 'DISTRIBUTOR' | 'GUEST';
 
 export interface BankCard {
   id: string;
@@ -110,6 +110,9 @@ export interface Transaction {
   relatedUser?: string; 
   relatedId?: string; 
   timestamp: string;
+  status?: 'pending' | 'completed' | 'shipped' | 'escrow';
+  hash?: string;
+  notes?: string;
 }
 
 export interface LandingService {
@@ -236,5 +239,8 @@ export interface SiteConfig {
   gatewayAdDesc: string;
   gatewayAdImage: string;
   raffleEntryCost: number;
+  rafflePrizeType: string;
+  showRaffleCountdown: boolean;
+  raffleEndDate: string;
   isTradingEnabled: boolean;
 }

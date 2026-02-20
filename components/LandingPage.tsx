@@ -23,6 +23,46 @@ interface MarketAsset {
   flash?: 'up' | 'down' | null;
 }
 
+const Countdown: React.FC<{ targetDate: string }> = ({ targetDate }) => {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = new Date(targetDate).getTime() - now;
+
+      if (distance < 0) {
+        clearInterval(timer);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      } else {
+        setTimeLeft({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000)
+        });
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [targetDate]);
+
+  return (
+    <div className="flex gap-4 justify-center" dir="ltr">
+      {[
+        { label: 'Days', value: timeLeft.days },
+        { label: 'Hours', value: timeLeft.hours },
+        { label: 'Min', value: timeLeft.minutes },
+        { label: 'Sec', value: timeLeft.seconds }
+      ].map((item, idx) => (
+        <div key={idx} className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-2xl w-24 text-center">
+          <p className="text-3xl font-black text-amber-500 font-mono">{String(item.value).padStart(2, '0')}</p>
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{item.label}</p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const LandingPage: React.FC<Props> = ({ 
   siteConfig, 
   services, 
@@ -146,8 +186,8 @@ const LandingPage: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center gap-8">
-            <button onClick={onLoginClick} className="px-10 py-4 rounded-3xl text-white bg-sky-600 font-black text-base hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40">الدخول</button>
-            <button onClick={onRegisterClick} className="px-10 py-4 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-base hover:bg-white/10 transition-all hidden sm:block">انظم معنا</button>
+            <button onClick={onLoginClick} className="px-10 py-4 rounded-3xl text-white bg-sky-600 font-black text-base hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40">دخول النخبة</button>
+            <button onClick={onRegisterClick} className="px-10 py-4 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-base hover:bg-white/10 transition-all hidden sm:block">عضوية جديدة</button>
           </div>
         </div>
       </nav>
@@ -277,6 +317,13 @@ const LandingPage: React.FC<Props> = ({
                   <h2 className="text-6xl md:text-9xl font-black text-white leading-tight tracking-tighter group-hover:text-amber-400 transition-all duration-700">{siteConfig.raffleAdTitle}</h2>
                   <p className="text-2xl md:text-3xl text-slate-200 font-bold leading-relaxed border-r-8 border-amber-500 pr-10">{siteConfig.raffleAdDesc}</p>
                   
+                  {siteConfig.showRaffleCountdown && siteConfig.raffleEndDate && (
+                    <div className="py-6">
+                       <p className="text-center text-amber-500 font-black text-sm uppercase tracking-[0.3em] mb-4">الوقت المتبقي للسحب الكبير</p>
+                       <Countdown targetDate={siteConfig.raffleEndDate} />
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-6">
                      <div className="p-8 bg-white/5 rounded-3xl border border-white/5 space-y-4">
                         <span className="text-5xl">🏎️</span>

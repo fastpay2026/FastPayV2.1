@@ -55,48 +55,40 @@ const TradingViewWidget: React.FC<{ symbol: string }> = ({ symbol }) => {
   return <div className="tradingview-widget-container" ref={container} style={{ height: "100%", width: "100%" }}></div>;
 };
 
-// مكون العد التنازلي الفرعي
-const RaffleCountdown: React.FC = () => {
+const Countdown: React.FC<{ targetDate: string }> = ({ targetDate }) => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const calculateTimeLeft = () => {
-      const now = new Date();
-      // نهاية الشهر الحالي الساعة 23:59:59
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-      const difference = endOfMonth.getTime() - now.getTime();
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = new Date(targetDate).getTime() - now;
 
-      if (difference > 0) {
+      if (distance < 0) {
+        clearInterval(timer);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      } else {
         setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60)
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000)
         });
       }
-    };
-
-    const timer = setInterval(calculateTimeLeft, 1000);
-    calculateTimeLeft();
+    }, 1000);
     return () => clearInterval(timer);
-  }, []);
-
-  const timeBlocks = [
-    { label: 'يوم', val: timeLeft.days },
-    { label: 'ساعة', val: timeLeft.hours },
-    { label: 'دقيقة', val: timeLeft.minutes },
-    { label: 'ثانية', val: timeLeft.seconds }
-  ];
+  }, [targetDate]);
 
   return (
-    <div className="flex justify-center gap-4 md:gap-8">
-      {timeBlocks.map((block, idx) => (
-        <div key={idx} className="flex flex-col items-center">
-          <div className="w-16 h-16 md:w-24 md:h-24 bg-black/40 border border-amber-500/30 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.1)] relative overflow-hidden group">
-             <div className="absolute inset-0 bg-gradient-to-t from-amber-500/10 to-transparent"></div>
-             <span className="text-2xl md:text-5xl font-black font-mono text-amber-500 animate-pulse">{block.val.toString().padStart(2, '0')}</span>
-          </div>
-          <span className="text-[10px] md:text-xs font-black text-slate-500 mt-2 uppercase tracking-widest">{block.label}</span>
+    <div className="flex gap-4 justify-center" dir="ltr">
+      {[
+        { label: 'Days', value: timeLeft.days },
+        { label: 'Hours', value: timeLeft.hours },
+        { label: 'Min', value: timeLeft.minutes },
+        { label: 'Sec', value: timeLeft.seconds }
+      ].map((item, idx) => (
+        <div key={idx} className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-2xl w-20 text-center">
+          <p className="text-2xl font-black text-amber-500 font-mono">{String(item.value).padStart(2, '0')}</p>
+          <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest">{item.label}</p>
         </div>
       ))}
     </div>
@@ -446,45 +438,32 @@ const UserDashboard: React.FC<Props> = ({
           {activeTab === 'raffle' && (
              <div className="flex-1 p-12 overflow-y-auto custom-scrollbar animate-in fade-in duration-500 text-center pb-40">
                 <div className="max-w-4xl mx-auto space-y-16">
-                   <div className="bg-amber-500/10 p-12 md:p-20 rounded-[5rem] border border-amber-500/20 shadow-3xl space-y-12">
-                      <div className="space-y-4">
-                        <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-amber-500">مهرجان جوائز FastPay</h2>
-                        <p className="text-xl md:text-2xl text-slate-300 font-bold">تذكرتك نحو الرفاهية. شارك في السحب الأكبر!</p>
-                      </div>
-
-                      {/* عداد القرعة الجديد */}
-                      <div className="space-y-6">
-                         <p className="text-xs md:text-sm font-black text-slate-400 uppercase tracking-[0.4em]">المتبقي على السحب المباشر</p>
-                         <RaffleCountdown />
-                      </div>
-
-                      <button onClick={handleJoinRaffle} className="bg-amber-600 px-12 md:px-20 py-6 md:py-8 rounded-[3rem] font-black text-2xl md:text-3xl shadow-3xl hover:bg-amber-500 transition-all active:scale-95">احجز تذكرتك (${siteConfig.raffleEntryCost})</button>
+                   <div className="bg-amber-500/10 p-20 rounded-[5rem] border border-amber-500/20 shadow-3xl space-y-10">
+                      <h2 className="text-7xl font-black tracking-tighter text-amber-500">مهرجان جوائز FastPay</h2>
+                      <p className="text-2xl text-slate-300 font-bold">تذكرتك نحو الرفاهية. شارك في السحب الأكبر!</p>
+                      
+                      {siteConfig.showRaffleCountdown && siteConfig.raffleEndDate && (
+                        <div className="py-4">
+                           <p className="text-amber-500 font-black text-xs uppercase tracking-[0.2em] mb-4">موعد السحب القادم</p>
+                           <Countdown targetDate={siteConfig.raffleEndDate} />
+                        </div>
+                      )}
+                      <button onClick={handleJoinRaffle} className="bg-amber-600 px-20 py-8 rounded-[3rem] font-black text-3xl shadow-3xl hover:bg-amber-500 transition-all">احجز تذكرتك (${siteConfig.raffleEntryCost})</button>
                    </div>
-                   
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                      <div className="bg-[#0f172a] p-10 rounded-[3rem] border border-white/5 text-right shadow-xl">
+                      <div className="bg-[#0f172a] p-10 rounded-[3rem] border border-white/5 text-right">
                          <h3 className="text-2xl font-black mb-6">تذاكري في السحب</h3>
-                         <div className="space-y-3">
-                            {raffleEntries.filter(e=>e.userId===user.id).map(e => (
-                               <div key={e.id} className="p-4 bg-white/5 rounded-2xl border border-white/5 flex justify-between items-center group hover:border-amber-500/40 transition-all">
-                                  <span className="font-mono text-amber-500 font-black tracking-widest">{e.ticketNumber}</span>
-                                  <span className="text-[10px] text-slate-500 uppercase font-black">{e.enteredAt}</span>
-                               </div>
-                            ))}
-                            {raffleEntries.filter(e=>e.userId===user.id).length === 0 && <p className="opacity-20 italic py-10 text-center">لم تشارك في أي سحب بعد</p>}
-                         </div>
+                         {raffleEntries.filter(e=>e.userId===user.id).map(e => (
+                            <div key={e.id} className="p-4 bg-white/5 rounded-xl border border-white/5 mb-3 flex justify-between items-center"><span className="font-mono text-sky-400 font-black">{e.ticketNumber}</span><span className="text-[10px] text-slate-500">{e.enteredAt}</span></div>
+                         ))}
+                         {raffleEntries.filter(e=>e.userId===user.id).length === 0 && <p className="opacity-20 italic">لم تشارك في أي سحب بعد</p>}
                       </div>
-                      <div className="bg-[#0f172a] p-10 rounded-[3rem] border border-white/5 text-right shadow-xl">
-                         <h3 className="text-2xl font-black mb-6 text-emerald-400">آخر الفائزين الملكيين</h3>
-                         <div className="space-y-3">
-                            {raffleWinners.slice(0, 5).map(w => (
-                               <div key={w.id} className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 flex justify-between items-center group">
-                                  <span className="font-black text-white">@{w.username}</span>
-                                  <span className="text-xs font-black text-emerald-500">{w.prizeTitle}</span>
-                               </div>
-                            ))}
-                            {raffleWinners.length === 0 && <p className="opacity-20 italic py-10 text-center">بانتظار السحب القادم...</p>}
-                         </div>
+                      <div className="bg-[#0f172a] p-10 rounded-[3rem] border border-white/5 text-right">
+                         <h3 className="text-2xl font-black mb-6 text-emerald-400">آخر الفائزين</h3>
+                         {raffleWinners.slice(0, 5).map(w => (
+                            <div key={w.id} className="p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/10 mb-3 flex justify-between"><span className="font-black">@{w.username}</span><span>{w.prizeTitle}</span></div>
+                         ))}
+                         {raffleWinners.length === 0 && <p className="opacity-20 italic">بانتظار السحب القادم...</p>}
                       </div>
                    </div>
                 </div>
