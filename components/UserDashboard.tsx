@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing } from '../types';
+import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing, AdExchangeItem, AdNegotiation } from '../types';
+import { AdExchange } from './AdExchange';
 
 interface Props {
   user: User;
@@ -24,6 +25,10 @@ interface Props {
   setWithdrawalRequests: React.Dispatch<React.SetStateAction<WithdrawalRequest[]>>;
   salaryPlans: SalaryFinancing[];
   setSalaryPlans: React.Dispatch<React.SetStateAction<SalaryFinancing[]>>;
+  adExchangeItems: AdExchangeItem[];
+  setAdExchangeItems: React.Dispatch<React.SetStateAction<AdExchangeItem[]>>;
+  adNegotiations: AdNegotiation[];
+  setAdNegotiations: React.Dispatch<React.SetStateAction<AdNegotiation[]>>;
 }
 
 const TradingViewWidget: React.FC<{ symbol: string }> = ({ symbol }) => {
@@ -99,9 +104,9 @@ const UserDashboard: React.FC<Props> = ({
   user, onLogout, siteConfig, accounts, setAccounts, rechargeCards, setRechargeCards, 
   transactions, setTransactions, addNotification, onUpdateUser, fixedDeposits, setFixedDeposits, tradeAssets,
   raffleEntries, setRaffleEntries, raffleWinners, withdrawalRequests, setWithdrawalRequests,
-  salaryPlans, setSalaryPlans
+  salaryPlans, setSalaryPlans, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads'>('dashboard');
   const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | null>(null);
   
   // Logic States
@@ -345,6 +350,7 @@ const UserDashboard: React.FC<Props> = ({
                   { id: 'trading', l: 'التداول', i: '📈' },
                   { id: 'investment', l: 'الاستثمار', i: '💎' },
                   { id: 'raffle', l: 'القرعة', i: '🎁' },
+                  { id: 'ads', l: 'بورصة الإعلانات', i: '📢' },
                   { id: 'salary', l: 'تمويل الرواتب', i: '🏦' },
                   { id: 'profile', l: 'الملف الشخصي', i: '⚙️' }
                 ].map(t => (
@@ -568,6 +574,25 @@ const UserDashboard: React.FC<Props> = ({
                    </form>
                 </div>
              </div>
+          )}
+
+          {activeTab === 'ads' && (
+            <div className="flex-1 p-8 md:p-12 overflow-y-auto custom-scrollbar pb-40">
+              <AdExchange 
+                user={user} 
+                adExchangeItems={adExchangeItems} 
+                setAdExchangeItems={setAdExchangeItems} 
+                adNegotiations={adNegotiations} 
+                setAdNegotiations={setAdNegotiations} 
+                accounts={accounts} 
+                setAccounts={setAccounts} 
+                transactions={transactions} 
+                setTransactions={setTransactions} 
+                addNotification={addNotification} 
+                onUpdateUser={onUpdateUser}
+                siteConfig={siteConfig}
+              />
+            </div>
           )}
        </main>
 

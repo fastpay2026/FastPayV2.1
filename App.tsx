@@ -7,7 +7,7 @@ import DeveloperDashboard from './components/DeveloperDashboard';
 import MerchantDashboard from './components/MerchantDashboard';
 import MerchantDealCreator from './components/MerchantDealCreator';
 import UserDashboard from './components/UserDashboard';
-import { Role, User, SiteConfig, LandingService, Transaction, Notification, CustomPage, SalaryFinancing, TradeAsset, WithdrawalRequest, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit } from './types';
+import { Role, User, SiteConfig, LandingService, Transaction, Notification, CustomPage, SalaryFinancing, TradeAsset, WithdrawalRequest, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from './types';
 
 const App: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -89,6 +89,9 @@ const App: React.FC = () => {
   const [raffleEntries, setRaffleEntries] = useState<RaffleEntry[]>([]);
   const [raffleWinners, setRaffleWinners] = useState<RaffleWinner[]>([]);
   const [fixedDeposits, setFixedDeposits] = useState<FixedDeposit[]>([]);
+  const [adExchangeItems, setAdExchangeItems] = useState<AdExchangeItem[]>([]);
+  const [adNegotiations, setAdNegotiations] = useState<AdNegotiation[]>([]);
+  const [verificationRequests, setVerificationRequests] = useState<VerificationRequest[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [salaryPlans, setSalaryPlans] = useState<SalaryFinancing[]>([]);
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
@@ -122,6 +125,12 @@ const App: React.FC = () => {
         if (storedRaffleWinners) setRaffleWinners(JSON.parse(storedRaffleWinners));
         const storedFixedDeposits = localStorage.getItem('fp_v21_fixed_deposits');
         if (storedFixedDeposits) setFixedDeposits(JSON.parse(storedFixedDeposits));
+        const storedVerifications = localStorage.getItem('fp_v21_verifications');
+        if (storedVerifications) setVerificationRequests(JSON.parse(storedVerifications));
+        const storedAds = localStorage.getItem('fp_v21_ad_exchange');
+        if (storedAds) setAdExchangeItems(JSON.parse(storedAds));
+        const storedOffers = localStorage.getItem('fp_v21_ad_offers');
+        if (storedOffers) setAdNegotiations(JSON.parse(storedOffers));
       } catch (e) { console.error("Data load error", e); }
     };
     loadData();
@@ -137,6 +146,9 @@ const App: React.FC = () => {
   useEffect(() => localStorage.setItem('fp_v21_raffle_entries', JSON.stringify(raffleEntries)), [raffleEntries]);
   useEffect(() => localStorage.setItem('fp_v21_raffle_winners', JSON.stringify(raffleWinners)), [raffleWinners]);
   useEffect(() => localStorage.setItem('fp_v21_fixed_deposits', JSON.stringify(fixedDeposits)), [fixedDeposits]);
+  useEffect(() => localStorage.setItem('fp_v21_verifications', JSON.stringify(verificationRequests)), [verificationRequests]);
+  useEffect(() => localStorage.setItem('fp_v21_ad_exchange', JSON.stringify(adExchangeItems)), [adExchangeItems]);
+  useEffect(() => localStorage.setItem('fp_v21_ad_offers', JSON.stringify(adNegotiations)), [adNegotiations]);
 
   const currentUser = useMemo(() => accounts.find(acc => acc.id === currentUserId) || null, [accounts, currentUserId]);
 
@@ -158,7 +170,8 @@ const App: React.FC = () => {
     tradeAssets, setTradeAssets, tradeOrders, setTradeOrders,
     withdrawalRequests, setWithdrawalRequests,
     rechargeCards, setRechargeCards, raffleEntries, setRaffleEntries, raffleWinners, setRaffleWinners,
-    fixedDeposits, setFixedDeposits
+    fixedDeposits, setFixedDeposits, verificationRequests, setVerificationRequests,
+    adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
   };
 
   if (currentUser) {

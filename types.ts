@@ -37,6 +37,9 @@ export interface User {
   balance: number;
   status: 'active' | 'suspended' | 'disabled';
   statusReason?: string;
+  isVerified?: boolean;
+  verificationStatus?: 'none' | 'pending' | 'verified' | 'rejected';
+  verificationReason?: string;
   createdAt: string;
   linkedCards?: BankCard[];
   assets?: UserAsset[];
@@ -172,6 +175,19 @@ export interface FixedDeposit {
   status: 'active' | 'matured' | 'cancelled';
 }
 
+export interface VerificationRequest {
+  id: string;
+  userId: string;
+  username: string;
+  fullName: string;
+  idFront: string; // base64
+  idBack: string; // base64
+  commercialRegister: string; // base64
+  submittedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+}
+
 export interface RaffleEntry {
   id: string;
   userId: string;
@@ -188,6 +204,28 @@ export interface RaffleWinner {
   fullName: string;
   prizeTitle: string;
   wonAt: string;
+}
+
+export interface NegotiationOffer {
+  id: string;
+  buyerId: string;
+  buyerName: string;
+  amount: number;
+  status: 'pending' | 'accepted' | 'rejected';
+  timestamp: string;
+}
+
+export interface MarketplaceAd {
+  id: string;
+  sellerId: string;
+  sellerName: string;
+  title: string;
+  description: string;
+  price: number;
+  isNegotiable: boolean;
+  status: 'active' | 'blocked' | 'sold';
+  createdAt: string;
+  offers: NegotiationOffer[];
 }
 
 export interface SiteConfig {

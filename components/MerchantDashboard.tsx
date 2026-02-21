@@ -1,8 +1,10 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { User, SiteConfig, RechargeCard, Transaction, Notification, APIKey } from '../types';
+import { User, SiteConfig, RechargeCard, Transaction, Notification, APIKey, VerificationRequest, AdExchangeItem, AdNegotiation } from '../types';
 
 import MerchantDealCreator from './MerchantDealCreator';
+import { MerchantVerification } from './VerificationManager';
+import { AdExchange } from './AdExchange';
 
 interface Props {
   user: User;
@@ -14,15 +16,23 @@ interface Props {
   setRechargeCards: React.Dispatch<React.SetStateAction<RechargeCard[]>>;
   transactions: Transaction[];
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+  verificationRequests: VerificationRequest[];
+  setVerificationRequests: React.Dispatch<React.SetStateAction<VerificationRequest[]>>;
+  adExchangeItems: AdExchangeItem[];
+  setAdExchangeItems: React.Dispatch<React.SetStateAction<AdExchangeItem[]>>;
+  adNegotiations: AdNegotiation[];
+  setAdNegotiations: React.Dispatch<React.SetStateAction<AdNegotiation[]>>;
   addNotification: (title: string, message: string, type: Notification['type']) => void;
   onUpdateUser: (updatedUser: User) => void;
 }
 
 const MerchantDashboard: React.FC<Props> = ({ 
   user, onLogout, siteConfig, accounts, setAccounts, rechargeCards, setRechargeCards, 
-  transactions, setTransactions, addNotification, onUpdateUser
+  transactions, setTransactions, verificationRequests, setVerificationRequests,
+  adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations,
+  addNotification, onUpdateUser
 }) => {
-  const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'deals'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'verification' | 'ads'>('main');
   const [modalType, setModalType] = useState<'send' | 'cards' | 'new_key' | null>(null);
   
   // States for Transfer Animation
@@ -217,6 +227,38 @@ const MerchantDashboard: React.FC<Props> = ({
     addNotification('أمن الـ API', 'تم إلغاء مفتاح ربط برمجي.', 'security');
   };
 
+  const handleCancelCard = (card: RechargeCard) => {
+    if (!card || card.isUsed) {
+      alert('خطأ: لا يمكن إلغاء هذه البطاقة');
+      return;
+    }
+    
+    if (!confirm(`هل أنت متأكد من إلغاء البطاقة (${card.code})؟ سيتم حذفها واسترجاع قيمتها ($${card.amount}) إلى رصيدك.`)) return;
+
+    const refundAmount = card.amount;
+    const cardCode = card.code;
+    const ts = new Date().toLocaleString('ar-SA');
+
+    // 1. Remove the card from the global list
+    setRechargeCards(prev => prev.filter(c => c.code !== cardCode));
+
+    // 2. Update the distributor's balance
+    const updatedUser = { ...user, balance: user.balance + refundAmount };
+    onUpdateUser(updatedUser);
+
+    // 3. Record the transaction
+    setTransactions(prev => [{
+      id: Math.random().toString(36).substr(2, 9),
+      userId: user.id,
+      type: 'receive',
+      amount: refundAmount,
+      timestamp: ts,
+      relatedUser: `إلغاء بطاقة: ${cardCode}`
+    }, ...prev]);
+
+    addNotification('إلغاء بطاقة', `تم إلغاء البطاقة بنجاح واسترجاع $${refundAmount} إلى محفظتك.`, 'money');
+  };
+
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError('');
@@ -318,11 +360,12 @@ header('Location: ' . $payment->checkout_url);`
             <div className="space-y-1">
                <h1 className="text-2xl font-black tracking-tighter">بوابة الموزع</h1>
                <nav className="flex gap-6">
-                 {[
-                   { id: 'main', l: 'الرئيسية' },
-                   { id: 'deals', l: 'منصة الصفقات (LC)' },
-                   { id: 'gateway', l: 'بوابة المطورين & API' },
-                   { id: 'settings', l: 'إعدادات الحساب' }
+                  {[
+                    { id: 'main', l: 'الرئيسية' },
+                    { id: 'gateway', l: 'بوابة المطورين & API' },
+                    { id: 'ads', l: 'بورصة الإعلانات' },
+                    { id: 'verification', l: 'توثيق الحساب' },
+                    { id: 'settings', l: 'إعدادات الحساب' }
                  ].map((view) => (
                    <button 
                      key={view.id}
@@ -337,7 +380,10 @@ header('Location: ' . $payment->checkout_url);`
          </div>
          <div className="flex items-center gap-6">
             <div className="text-left hidden lg:block border-l border-white/10 pl-6 mr-6">
-               <p className="font-black text-white text-lg">{user.fullName}</p>
+               <p className="font-black text-white text-lg flex items-center gap-2">
+                 {user.fullName}
+                 {user.isVerified && <span className="text-sky-400 text-sm" title="حساب موثق">☑️</span>}
+               </p>
                <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">المستوى: موزع معتمد</p>
             </div>
             <button onClick={onLogout} className="px-8 py-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl font-black hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg">خروج</button>
@@ -414,12 +460,13 @@ header('Location: ' . $payment->checkout_url);`
                                <th className="p-10">المستفيد</th>
                                <th className="p-10">توقيت الإنشاء</th>
                                <th className="p-10">توقيت الاستخدام</th>
+                               <th className="p-10 text-center">التحكم</th>
                             </tr>
                          </thead>
                          <tbody className="divide-y divide-white/5 font-bold">
                             {myGeneratedCards.length > 0 ? (
-                              myGeneratedCards.slice().reverse().map((c, i) => (
-                                 <tr key={i} className="group hover:bg-white/5 transition-all">
+                              myGeneratedCards.slice().reverse().map((c) => (
+                                 <tr key={c.code} className="group hover:bg-white/5 transition-all">
                                     <td className="p-10">
                                        <div className="flex items-center gap-4">
                                           <code className="bg-black/60 px-6 py-3 rounded-xl text-sky-400 font-black tracking-[0.2em] text-sm border border-white/5 shadow-inner group-hover:text-white group-hover:bg-sky-600 transition-all">{c.code}</code>
@@ -447,11 +494,22 @@ header('Location: ' . $payment->checkout_url);`
                                     <td className="p-10 text-xs font-mono">
                                        {c.isUsed ? <span className="text-emerald-400">{c.usedAt}</span> : <span className="text-slate-600">...</span>}
                                     </td>
+                                    <td className="p-10 text-center">
+                                       {!c.isUsed && (
+                                         <button 
+                                           onClick={() => handleCancelCard(c)}
+                                           className="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl font-black text-[10px] hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                                           title="إلغاء البطاقة واسترجاع المبلغ"
+                                         >
+                                           إلغاء البطاقة
+                                         </button>
+                                       )}
+                                    </td>
                                  </tr>
                               ))
                             ) : (
                               <tr>
-                                 <td colSpan={6} className="p-40 text-center opacity-30">
+                                 <td colSpan={7} className="p-40 text-center opacity-30">
                                     <div className="text-[8rem]">📋</div>
                                     <p className="font-black text-2xl">لا توجد بطاقات حتى الآن</p>
                                  </td>
@@ -567,12 +625,32 @@ header('Location: ' . $payment->checkout_url);`
             </div>
          )}
 
-         {activeView === 'deals' && (
-            <MerchantDealCreator 
-              user={user} 
-              addNotification={addNotification} 
-              onUpdateUser={onUpdateUser} 
-            />
+
+         {activeView === 'verification' && (
+           <MerchantVerification 
+             user={user} 
+             onUpdateUser={onUpdateUser} 
+             verificationRequests={verificationRequests} 
+             setVerificationRequests={setVerificationRequests} 
+             addNotification={addNotification} 
+           />
+         )}
+
+         {activeView === 'ads' && (
+           <AdExchange 
+             user={user} 
+             adExchangeItems={adExchangeItems} 
+             setAdExchangeItems={setAdExchangeItems} 
+             adNegotiations={adNegotiations} 
+             setAdNegotiations={setAdNegotiations} 
+             accounts={accounts} 
+             setAccounts={setAccounts} 
+             transactions={transactions} 
+             setTransactions={setTransactions} 
+             addNotification={addNotification} 
+             onUpdateUser={onUpdateUser}
+             siteConfig={siteConfig}
+           />
          )}
 
          {activeView === 'settings' && (

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit } from '../types';
+import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation } from '../types';
 
 // Sub-components
 import StatsOverview from './developer/StatsOverview';
@@ -13,6 +13,8 @@ import InvestmentPlans from './developer/InvestmentPlans';
 import DrawManager from './developer/DrawManager';
 import SiteIdentity from './developer/SiteIdentity';
 import MerchantEscrowManager from './developer/MerchantEscrowManager';
+import { AdminVerificationReview } from './VerificationManager';
+import { AdExchange } from './AdExchange';
 
 interface Props {
   user: User;
@@ -46,6 +48,12 @@ interface Props {
   setRaffleWinners: React.Dispatch<React.SetStateAction<RaffleWinner[]>>;
   fixedDeposits: FixedDeposit[];
   setFixedDeposits: React.Dispatch<React.SetStateAction<FixedDeposit[]>>;
+  verificationRequests: VerificationRequest[];
+  setVerificationRequests: React.Dispatch<React.SetStateAction<VerificationRequest[]>>;
+  adExchangeItems: AdExchangeItem[];
+  setAdExchangeItems: React.Dispatch<React.SetStateAction<AdExchangeItem[]>>;
+  adNegotiations: AdNegotiation[];
+  setAdNegotiations: React.Dispatch<React.SetStateAction<AdNegotiation[]>>;
 }
 
 const DeveloperDashboard: React.FC<Props> = ({ 
@@ -54,9 +62,11 @@ const DeveloperDashboard: React.FC<Props> = ({
   transactions, setTransactions, notifications, setNotifications, tradeAssets, setTradeAssets,
   withdrawalRequests, setWithdrawalRequests, salaryPlans, setSalaryPlans,
   tradeOrders, setTradeOrders, rechargeCards, setRechargeCards, raffleEntries, setRaffleEntries,
-  raffleWinners, setRaffleWinners, fixedDeposits, setFixedDeposits
+  raffleWinners, setRaffleWinners, fixedDeposits, setFixedDeposits,
+  verificationRequests, setVerificationRequests,
+  adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'trading' | 'raffle' | 'content' | 'escrow'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'trading' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads'>('home');
 
   return (
     <div className="fixed inset-0 z-[150] flex bg-[#020617] text-white text-right font-sans overflow-hidden" dir="rtl">
@@ -76,6 +86,8 @@ const DeveloperDashboard: React.FC<Props> = ({
             { id: 'cards', l: 'توليد البطاقات', i: '🎫' },
             { id: 'invest', l: 'خطط الاستثمار', i: '💎' },
             { id: 'escrow', l: 'اعتمادات التاجر', i: '🏪' },
+            { id: 'ads', l: 'بورصة الإعلانات', i: '📢' },
+            { id: 'verification', l: 'توثيق الهوية', i: '🛡️' },
             { id: 'raffle', l: 'إدارة القرعة', i: '🎁' },
             { id: 'content', l: 'هوية الموقع', i: '⚙️' }
           ].map(t => (
@@ -97,6 +109,30 @@ const DeveloperDashboard: React.FC<Props> = ({
         {activeTab === 'cards' && <CardGenerator rechargeCards={rechargeCards} setRechargeCards={setRechargeCards} user={user} />}
         {activeTab === 'invest' && <InvestmentPlans siteConfig={siteConfig} onUpdateConfig={onUpdateConfig} />}
         {activeTab === 'escrow' && <MerchantEscrowManager transactions={transactions} setTransactions={setTransactions} setAccounts={setAccounts} addNotification={addNotification} />}
+        {activeTab === 'ads' && (
+          <AdExchange 
+            user={user} 
+            adExchangeItems={adExchangeItems} 
+            setAdExchangeItems={setAdExchangeItems} 
+            adNegotiations={adNegotiations} 
+            setAdNegotiations={setAdNegotiations} 
+            accounts={accounts} 
+            setAccounts={setAccounts} 
+            transactions={transactions} 
+            setTransactions={setTransactions} 
+            addNotification={addNotification} 
+            onUpdateUser={(u) => setAccounts(prev => prev.map(acc => acc.id === u.id ? u : acc))}
+            siteConfig={siteConfig}
+          />
+        )}
+        {activeTab === 'verification' && (
+          <AdminVerificationReview 
+            verificationRequests={verificationRequests} 
+            setVerificationRequests={setVerificationRequests} 
+            setAccounts={setAccounts} 
+            addNotification={addNotification} 
+          />
+        )}
         {activeTab === 'raffle' && (
           <DrawManager 
             raffleEntries={raffleEntries} 

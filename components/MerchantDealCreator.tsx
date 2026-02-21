@@ -1,6 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
-import { User, Transaction, Notification } from '../types';
+import { User, Transaction, Notification, VerificationRequest, AdExchangeItem, AdNegotiation, SiteConfig } from '../types';
+import { MerchantVerification } from './VerificationManager';
+import { AdExchange } from './AdExchange';
 
 interface Props {
   user: User;
@@ -10,12 +12,21 @@ interface Props {
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
   transactions: Transaction[];
   accounts: User[];
+  setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
+  verificationRequests: VerificationRequest[];
+  setVerificationRequests: React.Dispatch<React.SetStateAction<VerificationRequest[]>>;
+  adExchangeItems: AdExchangeItem[];
+  setAdExchangeItems: React.Dispatch<React.SetStateAction<AdExchangeItem[]>>;
+  adNegotiations: AdNegotiation[];
+  setAdNegotiations: React.Dispatch<React.SetStateAction<AdNegotiation[]>>;
+  siteConfig: SiteConfig;
 }
 
 const MerchantDealCreator: React.FC<Props> = ({ 
-  user, onLogout, addNotification, onUpdateUser, setTransactions, transactions, accounts 
+  user, onLogout, addNotification, onUpdateUser, setTransactions, transactions, accounts, setAccounts,
+  verificationRequests, setVerificationRequests, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations, siteConfig
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'create' | 'history'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'create' | 'history' | 'verification' | 'ads'>('overview');
   const [dealForm, setDealForm] = useState({
     buyerName: '',
     goodsType: 'معادن تجارية',
@@ -175,6 +186,8 @@ const MerchantDealCreator: React.FC<Props> = ({
             { id: 'overview', label: 'نظرة عامة', icon: '📊' },
             { id: 'create', label: 'إنشاء صفقة جديدة', icon: '➕' },
             { id: 'history', label: 'سجل الصفقات', icon: '📜' },
+            { id: 'ads', label: 'بورصة الإعلانات', icon: '📢' },
+            { id: 'verification', label: 'توثيق الحساب', icon: '🛡️' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -217,7 +230,10 @@ const MerchantDealCreator: React.FC<Props> = ({
           </div>
           <div className="flex items-center gap-6">
             <div className="text-left border-l border-white/10 pl-6">
-              <p className="font-black text-white">{user.fullName}</p>
+              <p className="font-black text-white flex items-center gap-2">
+                {user.fullName}
+                {user.isVerified && <span className="text-sky-400 text-sm" title="حساب موثق">☑️</span>}
+              </p>
               <p className="text-[10px] text-teal-500 font-black uppercase">تاجر معتمد لدى FastPay</p>
             </div>
             <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
@@ -447,6 +463,33 @@ const MerchantDealCreator: React.FC<Props> = ({
                 </table>
               </div>
             </div>
+          )}
+
+          {activeTab === 'verification' && (
+            <MerchantVerification 
+              user={user} 
+              onUpdateUser={onUpdateUser} 
+              verificationRequests={verificationRequests} 
+              setVerificationRequests={setVerificationRequests} 
+              addNotification={addNotification} 
+            />
+          )}
+
+          {activeTab === 'ads' && (
+            <AdExchange 
+              user={user} 
+              adExchangeItems={adExchangeItems} 
+              setAdExchangeItems={setAdExchangeItems} 
+              adNegotiations={adNegotiations} 
+              setAdNegotiations={setAdNegotiations} 
+              accounts={accounts} 
+              setAccounts={setAccounts} 
+              transactions={transactions} 
+              setTransactions={setTransactions} 
+              addNotification={addNotification} 
+              onUpdateUser={onUpdateUser}
+              siteConfig={siteConfig}
+            />
           )}
         </div>
 

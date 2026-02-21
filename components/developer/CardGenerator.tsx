@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, RechargeCard } from '../types';
+import { User, RechargeCard } from '../../types';
 
 interface Props {
   rechargeCards: RechargeCard[];

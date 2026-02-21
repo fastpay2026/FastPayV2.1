@@ -10,10 +10,18 @@ interface Props {
 const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
   const [userSearch, setUserSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [userForm, setUserForm] = useState({ fullName: '', username: '', password: '', role: 'USER' as Role, balance: 0 });
+  const [userForm, setUserForm] = useState({ fullName: '', username: '', password: '', role: 'USER' as Role, balance: 0, phoneNumber: '' });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+
+  // Action Modal States
+  const [actionModal, setActionModal] = useState<{
+    isOpen: boolean;
+    type: 'recharge' | 'reset' | 'suspend' | 'delete' | null;
+    user: User | null;
+    value: string;
+  }>({ isOpen: false, type: null, user: null, value: '' });
 
   const handleSaveUser = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +29,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
       id: Math.random().toString(36).substr(2, 9),
       username: userForm.username.trim(),
       fullName: userForm.fullName,
+      phoneNumber: userForm.phoneNumber,
       password: userForm.password || 'FastPay123', // Default temporary password if empty
       role: userForm.role,
       balance: userForm.balance,
@@ -30,30 +39,33 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
     };
     setAccounts(prev => [...prev, newUser]);
     setIsModalOpen(false);
-    setUserForm({ fullName: '', username: '', password: '', role: 'USER', balance: 0 });
+    setUserForm({ fullName: '', username: '', password: '', role: 'USER', balance: 0, phoneNumber: '' });
     alert(`تمت إضافة ${newUser.role} بنجاح ✅\nكلمة المرور المؤقتة: ${newUser.password}`);
   };
 
-  const adjustBalance = (id: string) => {
-    const amt = prompt('أدخل المبلغ (موجب للإضافة، سالب للخصم):', '0');
-    if (amt) {
-      const p = parseFloat(amt);
-      if (!isNaN(p)) setAccounts(prev => prev.map(u => u.id === id ? { ...u, balance: u.balance + p } : u));
-    }
-  };
+  const handleActionConfirm = () => {
+    if (!actionModal.user || !actionModal.type) return;
+    const userId = actionModal.user.id;
 
-  const zeroBalance = (id: string) => {
-    if (confirm('هل أنت متأكد من تصفير رصيد هذا الحساب؟')) {
-      setAccounts(prev => prev.map(u => u.id === id ? { ...u, balance: 0 } : u));
+    switch (actionModal.type) {
+      case 'recharge':
+        const p = parseFloat(actionModal.value);
+        if (!isNaN(p)) {
+          setAccounts(prev => prev.map(u => u.id === userId ? { ...u, balance: u.balance + p } : u));
+        }
+        break;
+      case 'reset':
+        setAccounts(prev => prev.map(u => u.id === userId ? { ...u, balance: 0 } : u));
+        break;
+      case 'suspend':
+        const newStatus = actionModal.user.status === 'active' ? 'suspended' : 'active';
+        setAccounts(prev => prev.map(u => u.id === userId ? { ...u, status: newStatus as any } : u));
+        break;
+      case 'delete':
+        setAccounts(prev => prev.filter(u => u.id !== userId));
+        break;
     }
-  };
-
-  const toggleStatus = (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
-    const action = newStatus === 'active' ? 'تفعيل' : 'تعليق';
-    if (confirm(`هل تريد ${action} هذا الحساب؟`)) {
-      setAccounts(prev => prev.map(u => u.id === id ? { ...u, status: newStatus as any } : u));
-    }
+    setActionModal({ isOpen: false, type: null, user: null, value: '' });
   };
 
   const handleChangePassword = (e: React.FormEvent) => {
@@ -66,7 +78,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
     setEditingUser(null);
   };
 
-  const filteredUsers = accounts.filter(u => u.username.includes(userSearch) || u.fullName.includes(userSearch));
+  const filteredUsers = accounts.filter(u => u.username.toLowerCase().includes(userSearch.toLowerCase()) || u.fullName.toLowerCase().includes(userSearch.toLowerCase()));
 
   return (
     <div className="space-y-10 animate-in slide-in-from-bottom pb-20">
@@ -98,8 +110,12 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
                         {u.fullName.charAt(0)}
                       </div>
                       <div>
-                        <p className="text-white">{u.fullName}</p>
+                        <p className="text-white flex items-center gap-2">
+                          {u.fullName}
+                          {u.isVerified && <span className="text-sky-400 text-xs" title="موثق">☑️</span>}
+                        </p>
                         <p className="text-xs text-sky-400 font-mono">@{u.username}</p>
+                        {u.phoneNumber && <p className="text-[10px] text-slate-500">{u.phoneNumber}</p>}
                       </div>
                     </div>
                   </td>
@@ -112,13 +128,13 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
                   </td>
                   <td className="p-8">
                     <div className="flex justify-center gap-2 flex-wrap max-w-[400px]">
-                      <button onClick={() => adjustBalance(u.id)} className="bg-sky-600/20 text-sky-400 border border-sky-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-sky-600 hover:text-white transition-all">شحن</button>
-                      <button onClick={() => zeroBalance(u.id)} className="bg-amber-600/20 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-amber-600 hover:text-white transition-all">تصفير</button>
-                      <button onClick={() => toggleStatus(u.id, u.status)} className={`${u.status === 'active' ? 'bg-red-600/20 text-red-400 border-red-500/20' : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/20'} px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:opacity-80 transition-all`}>
+                      <button onClick={() => setActionModal({ isOpen: true, type: 'recharge', user: u, value: '' })} className="bg-sky-600/20 text-sky-400 border border-sky-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-sky-600 hover:text-white transition-all">شحن</button>
+                      <button onClick={() => setActionModal({ isOpen: true, type: 'reset', user: u, value: '' })} className="bg-amber-600/20 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-amber-600 hover:text-white transition-all">تصفير</button>
+                      <button onClick={() => setActionModal({ isOpen: true, type: 'suspend', user: u, value: '' })} className={`${u.status === 'active' ? 'bg-red-600/20 text-red-400 border-red-500/20' : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/20'} px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:opacity-80 transition-all`}>
                         {u.status === 'active' ? 'تعليق' : 'تفعيل'}
                       </button>
                       <button onClick={() => { setEditingUser(u); setIsPasswordModalOpen(true); }} className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-indigo-600 hover:text-white transition-all">كلمة المرور</button>
-                      <button onClick={() => { if (confirm('حذف الحساب نهائياً؟')) setAccounts(p => p.filter(x => x.id !== u.id)) }} className="bg-red-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase shadow-lg hover:bg-red-500 transition-all">حذف</button>
+                      <button onClick={() => setActionModal({ isOpen: true, type: 'delete', user: u, value: '' })} className="bg-red-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase shadow-lg hover:bg-red-500 transition-all">حذف</button>
                     </div>
                   </td>
                 </tr>
@@ -136,6 +152,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
             <div className="space-y-4">
               <input required value={userForm.fullName} onChange={e => setUserForm({ ...userForm, fullName: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white" placeholder="الاسم الثلاثي الكامل" />
               <input required value={userForm.username} onChange={e => setUserForm({ ...userForm, username: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all font-mono text-white" placeholder="اسم المستخدم" />
+              <input value={userForm.phoneNumber} onChange={e => setUserForm({ ...userForm, phoneNumber: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white" placeholder="رقم الهاتف" />
               <div className="space-y-1 text-right">
                 <label className="text-[10px] text-slate-500 mr-6 font-black uppercase">كلمة مرور مؤقتة (اختياري)</label>
                 <input type="text" value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white font-mono" placeholder="FastPay123" />
@@ -160,6 +177,56 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
               <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-6 bg-white/5 border border-white/10 rounded-3xl font-black text-xl hover:bg-white/10 transition-all">إلغاء</button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Action Modal (Recharge, Reset, Suspend, Delete) */}
+      {actionModal.isOpen && actionModal.user && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
+          <div className="bg-[#111827] border border-white/10 w-full max-w-md rounded-[3rem] p-12 space-y-8 animate-in zoom-in text-center shadow-3xl">
+            <h3 className="text-3xl font-black tracking-tighter">
+              {actionModal.type === 'recharge' && 'شحن رصيد الحساب'}
+              {actionModal.type === 'reset' && 'تصفير رصيد الحساب'}
+              {actionModal.type === 'suspend' && (actionModal.user.status === 'active' ? 'تعليق الحساب' : 'تفعيل الحساب')}
+              {actionModal.type === 'delete' && 'حذف الحساب نهائياً'}
+            </h3>
+            <p className="text-slate-500 font-bold">للعضو: {actionModal.user.fullName}</p>
+            
+            {actionModal.type === 'recharge' && (
+              <div className="space-y-4">
+                <label className="text-xs text-slate-500 font-black uppercase">أدخل المبلغ (موجب للإضافة، سالب للخصم)</label>
+                <input 
+                  type="number" 
+                  autoFocus
+                  value={actionModal.value} 
+                  onChange={e => setActionModal({ ...actionModal, value: e.target.value })} 
+                  className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-emerald-400 text-center text-3xl" 
+                  placeholder="0.00" 
+                />
+              </div>
+            )}
+
+            {(actionModal.type === 'reset' || actionModal.type === 'suspend' || actionModal.type === 'delete') && (
+              <p className="text-white text-lg">هل أنت متأكد من تنفيذ هذا الإجراء؟</p>
+            )}
+
+            <div className="flex gap-4 pt-4">
+              <button 
+                onClick={handleActionConfirm} 
+                className={`flex-1 py-4 rounded-2xl font-black text-lg shadow-xl transition-all ${
+                  actionModal.type === 'delete' ? 'bg-red-600 hover:bg-red-500' : 'bg-sky-600 hover:bg-sky-500'
+                }`}
+              >
+                تأكيد
+              </button>
+              <button 
+                onClick={() => setActionModal({ isOpen: false, type: null, user: null, value: '' })} 
+                className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-lg hover:bg-white/10 transition-all"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

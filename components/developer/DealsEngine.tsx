@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, TradeAsset, TradeOrder } from '../types';
+import { User, TradeAsset, TradeOrder } from '../../types';
 
 interface Props {
   tradeAssets: TradeAsset[];
