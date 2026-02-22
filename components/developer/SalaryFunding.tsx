@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, SalaryFinancing } from '../types';
+import { User, SalaryFinancing } from '../../types';
 
 interface Props {
   salaryPlans: SalaryFinancing[];

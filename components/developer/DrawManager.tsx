@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { SiteConfig, RaffleEntry, RaffleWinner, Notification } from '../types';
+import { SiteConfig, RaffleEntry, RaffleWinner, Notification } from '../../types';
 
 interface Props {
   raffleEntries: RaffleEntry[];

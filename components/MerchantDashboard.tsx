@@ -22,7 +22,7 @@ interface Props {
   setAdExchangeItems: React.Dispatch<React.SetStateAction<AdExchangeItem[]>>;
   adNegotiations: AdNegotiation[];
   setAdNegotiations: React.Dispatch<React.SetStateAction<AdNegotiation[]>>;
-  addNotification: (title: string, message: string, type: Notification['type']) => void;
+  addNotification: (title: string, message: string, type: Notification['type'], targetUserId?: string) => void;
   onUpdateUser: (updatedUser: User) => void;
 }
 

@@ -12,7 +12,7 @@ interface Props {
   setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
   transactions: Transaction[];
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
-  addNotification: (title: string, message: string, type: Notification['type']) => void;
+  addNotification: (title: string, message: string, type: Notification['type'], targetUserId?: string) => void;
   onUpdateUser: (updatedUser: User) => void;
   siteConfig: SiteConfig;
 }
@@ -182,6 +182,9 @@ export const AdExchange: React.FC<Props> = ({
   };
 
   const handleNegotiate = (adId: string) => {
+    const ad = adExchangeItems.find(a => a.id === adId);
+    if (!ad) return;
+
     const amount = parseFloat(negotiationAmount);
     if (isNaN(amount) || amount <= 0) return alert('يرجى إدخال مبلغ صحيح');
 
@@ -197,6 +200,10 @@ export const AdExchange: React.FC<Props> = ({
 
     setAdNegotiations(prev => [newOffer, ...prev]);
     addNotification('إرسال عرض', 'تم إرسال عرضك السعري للتاجر.', 'system');
+    
+    // Notify the merchant
+    addNotification('اهتمام بالإعلان', `هناك شخص مهتم بإعلانك "${ad.title}" وقد أرسل عرضاً سعرياً بقيمة $${amount.toLocaleString()}`, 'user', ad.merchantId);
+    
     setNegotiationAmount('');
   };
 
@@ -293,9 +300,42 @@ export const AdExchange: React.FC<Props> = ({
               )}
 
               {view === 'my_ads' && (
-                <div className="space-y-3">
+                <div className="space-y-4">
+                  {/* Offers Section */}
+                  <div className="pt-4 border-t border-white/5 space-y-3">
+                    <p className="text-[10px] font-black text-sky-400 uppercase tracking-widest">العروض السعرية الواردة</p>
+                    <div className="space-y-2">
+                      {adNegotiations.filter(n => n.adId === ad.id).length > 0 ? (
+                        adNegotiations.filter(n => n.adId === ad.id).map(offer => (
+                          <div key={offer.id} className="p-3 bg-white/5 rounded-xl border border-white/5 flex justify-between items-center group/offer">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-black text-white">{offer.buyerName}</span>
+                              <span className="text-[9px] text-slate-500">{offer.createdAt}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-black text-emerald-400">${offer.offerAmount.toLocaleString()}</span>
+                              {offer.status === 'pending' && (
+                                <button 
+                                  onClick={() => handleAcceptOffer(offer)}
+                                  className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-[9px] font-black hover:bg-emerald-500 transition-all"
+                                >
+                                  قبول
+                                </button>
+                              )}
+                              {offer.status === 'accepted' && (
+                                <span className="text-[9px] font-black text-emerald-500">مقبول ✅</span>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-[10px] text-slate-600 italic">لا توجد عروض حالياً</p>
+                      )}
+                    </div>
+                  </div>
+
                   {ad.promotionStatus === 'none' && (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2 pt-2">
                       <button onClick={() => handlePromoteRequest(ad.id, 'network')} className="py-3 bg-sky-600/10 text-sky-400 border border-sky-600/20 rounded-xl text-[10px] font-black hover:bg-sky-600 hover:text-white transition-all">ترويج داخلي</button>
                       <button onClick={() => handlePromoteRequest(ad.id, 'network_home')} className="py-3 bg-emerald-600/10 text-emerald-400 border border-emerald-600/20 rounded-xl text-[10px] font-black hover:bg-emerald-600 hover:text-white transition-all">ترويج شامل</button>
                     </div>
@@ -428,20 +468,27 @@ export const AdExchange: React.FC<Props> = ({
                           type="number" 
                           value={negotiationAmount}
                           onChange={e => setNegotiationAmount(e.target.value)}
-                          className="flex-1 p-4 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none"
-                          placeholder="ضع عرضك هنا..."
+                          disabled={selectedAd.merchantId === user.id}
+                          className="flex-1 p-4 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none disabled:opacity-50"
+                          placeholder={selectedAd.merchantId === user.id ? "لا يمكنك التفاوض على إعلانك" : "ضع عرضك هنا..."}
                         />
-                        <button onClick={() => handleNegotiate(selectedAd.id)} className="px-8 py-4 bg-amber-600 text-white rounded-2xl font-black hover:bg-amber-500 transition-all">إرسال عرض</button>
+                        <button 
+                          onClick={() => handleNegotiate(selectedAd.id)} 
+                          disabled={selectedAd.merchantId === user.id}
+                          className="px-8 py-4 bg-amber-600 text-white rounded-2xl font-black hover:bg-amber-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          إرسال عرض
+                        </button>
                       </div>
                     </div>
                   )}
 
                   <button 
                     onClick={() => handleBuyAd(selectedAd)}
-                    disabled={isBuying}
-                    className="w-full py-8 bg-emerald-600 text-white rounded-[2.5rem] font-black text-3xl shadow-2xl hover:bg-emerald-500 transition-all active:scale-95 flex items-center justify-center gap-4"
+                    disabled={isBuying || selectedAd.merchantId === user.id}
+                    className="w-full py-8 bg-emerald-600 text-white rounded-[2.5rem] font-black text-3xl shadow-2xl hover:bg-emerald-500 transition-all active:scale-95 flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isBuying ? 'جاري تأمين المبلغ...' : 'شراء الآن (FPN LC)'}
+                    {selectedAd.merchantId === user.id ? 'إعلانك الخاص' : (isBuying ? 'جاري تأمين المبلغ...' : 'شراء الآن (FPN LC)')}
                     <span className="text-4xl">💳</span>
                   </button>
                   <p className="text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest">نظام الاعتماد المستندي FPN نشط تلقائياً</p>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, WithdrawalRequest } from '../types';
+import { User, WithdrawalRequest } from '../../types';
 
 interface Props {
   withdrawalRequests: WithdrawalRequest[];

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { SiteConfig, DepositPlan } from '../types';
+import { SiteConfig, DepositPlan } from '../../types';
 
 interface Props {
   siteConfig: SiteConfig;

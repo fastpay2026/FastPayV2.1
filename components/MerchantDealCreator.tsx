@@ -7,7 +7,7 @@ import { AdExchange } from './AdExchange';
 interface Props {
   user: User;
   onLogout: () => void;
-  addNotification: (title: string, message: string, type: Notification['type']) => void;
+  addNotification: (title: string, message: string, type: Notification['type'], targetUserId?: string) => void;
   onUpdateUser: (updatedUser: User) => void;
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
   transactions: Transaction[];

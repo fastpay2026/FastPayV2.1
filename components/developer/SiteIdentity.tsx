@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { SiteConfig } from '../types';
+import { SiteConfig } from '../../types';
 
 interface Props {
   siteConfig: SiteConfig;

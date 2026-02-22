@@ -145,6 +145,7 @@ export interface Advertisement {
 
 export interface Notification {
   id: string;
+  userId?: string;
   title: string;
   message: string;
   type: 'user' | 'money' | 'system' | 'security';
@@ -206,26 +207,37 @@ export interface RaffleWinner {
   wonAt: string;
 }
 
-export interface NegotiationOffer {
+export interface AdExchangeItem {
   id: string;
-  buyerId: string;
-  buyerName: string;
-  amount: number;
-  status: 'pending' | 'accepted' | 'rejected';
-  timestamp: string;
-}
-
-export interface MarketplaceAd {
-  id: string;
-  sellerId: string;
-  sellerName: string;
+  merchantId: string;
+  merchantName: string;
   title: string;
   description: string;
   price: number;
   isNegotiable: boolean;
-  status: 'active' | 'blocked' | 'sold';
+  category: string;
+  imageUrl: string;
+  views: number;
+  status: 'active' | 'suspended' | 'sold';
+  location: {
+    country: string;
+    state: string;
+    city: string;
+  };
+  promotionStatus: 'none' | 'requested' | 'pending_review' | 'active' | 'rejected';
+  promotionType?: 'network' | 'network_home';
+  promotionPrice?: number;
   createdAt: string;
-  offers: NegotiationOffer[];
+}
+
+export interface AdNegotiation {
+  id: string;
+  adId: string;
+  buyerId: string;
+  buyerName: string;
+  offerAmount: number;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string;
 }
 
 export interface SiteConfig {

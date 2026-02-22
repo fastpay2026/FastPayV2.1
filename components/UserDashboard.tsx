@@ -13,7 +13,7 @@ interface Props {
   setRechargeCards: React.Dispatch<React.SetStateAction<RechargeCard[]>>;
   transactions: Transaction[];
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
-  addNotification: (title: string, message: string, type: Notification['type']) => void;
+  addNotification: (title: string, message: string, type: Notification['type'], targetUserId?: string) => void;
   onUpdateUser: (updatedUser: User) => void;
   fixedDeposits: FixedDeposit[];
   setFixedDeposits: React.Dispatch<React.SetStateAction<FixedDeposit[]>>;

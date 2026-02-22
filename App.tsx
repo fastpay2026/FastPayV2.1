@@ -8,6 +8,7 @@ import MerchantDashboard from './components/MerchantDashboard';
 import MerchantDealCreator from './components/MerchantDealCreator';
 import UserDashboard from './components/UserDashboard';
 import { Role, User, SiteConfig, LandingService, Transaction, Notification, CustomPage, SalaryFinancing, TradeAsset, WithdrawalRequest, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from './types';
+import { supabaseService } from './supabaseService';
 
 const App: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -103,39 +104,90 @@ const App: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       try {
-        const config = localStorage.getItem('fp_v21_config');
-        if (config) setSiteConfig(prev => ({ ...prev, ...JSON.parse(config) }));
-        const storedAccounts = localStorage.getItem('fp_v21_accounts');
-        if (storedAccounts) setAccounts(JSON.parse(storedAccounts));
-        const storedTrans = localStorage.getItem('fp_v21_trans');
-        if (storedTrans) setTransactions(JSON.parse(storedTrans));
-        const storedSalary = localStorage.getItem('fp_v21_salary');
-        if (storedSalary) setSalaryPlans(JSON.parse(storedSalary));
+        const [
+          dbConfig,
+          dbUsers,
+          dbTrans,
+          dbNotifs,
+          dbAds,
+          dbOffers,
+          dbWithdrawals,
+          dbSalary,
+          dbDeposits,
+          dbVerifications
+        ] = await Promise.all([
+          supabaseService.getSiteConfig(),
+          supabaseService.getUsers(),
+          supabaseService.getTransactions(),
+          supabaseService.getNotifications(),
+          supabaseService.getAdItems(),
+          supabaseService.getAdNegotiations(),
+          supabaseService.getWithdrawals(),
+          supabaseService.getSalaryFinancing(),
+          supabaseService.getFixedDeposits(),
+          supabaseService.getVerifications()
+        ]);
+
+        if (dbConfig) setSiteConfig(dbConfig);
+        if (dbUsers.length > 0) setAccounts(dbUsers);
+        if (dbTrans.length > 0) setTransactions(dbTrans);
+        if (dbNotifs.length > 0) setNotifications(dbNotifs);
+        if (dbAds.length > 0) setAdExchangeItems(dbAds);
+        if (dbOffers.length > 0) setAdNegotiations(dbOffers);
+        if (dbWithdrawals.length > 0) setWithdrawalRequests(dbWithdrawals);
+        if (dbSalary.length > 0) setSalaryPlans(dbSalary);
+        if (dbDeposits.length > 0) setFixedDeposits(dbDeposits);
+        if (dbVerifications.length > 0) setVerificationRequests(dbVerifications);
+
+        // Fallback to localStorage for others or if DB is empty
         const storedOrders = localStorage.getItem('fp_v21_trade_orders');
         if (storedOrders) setTradeOrders(JSON.parse(storedOrders));
-        const storedWithdrawals = localStorage.getItem('fp_v21_withdrawals');
-        if (storedWithdrawals) setWithdrawalRequests(JSON.parse(storedWithdrawals));
         const storedCards = localStorage.getItem('fp_v21_recharge_cards');
         if (storedCards) setRechargeCards(JSON.parse(storedCards));
         const storedRaffleEntries = localStorage.getItem('fp_v21_raffle_entries');
         if (storedRaffleEntries) setRaffleEntries(JSON.parse(storedRaffleEntries));
         const storedRaffleWinners = localStorage.getItem('fp_v21_raffle_winners');
         if (storedRaffleWinners) setRaffleWinners(JSON.parse(storedRaffleWinners));
-        const storedFixedDeposits = localStorage.getItem('fp_v21_fixed_deposits');
-        if (storedFixedDeposits) setFixedDeposits(JSON.parse(storedFixedDeposits));
-        const storedVerifications = localStorage.getItem('fp_v21_verifications');
-        if (storedVerifications) setVerificationRequests(JSON.parse(storedVerifications));
-        const storedAds = localStorage.getItem('fp_v21_ad_exchange');
-        if (storedAds) setAdExchangeItems(JSON.parse(storedAds));
-        const storedOffers = localStorage.getItem('fp_v21_ad_offers');
-        if (storedOffers) setAdNegotiations(JSON.parse(storedOffers));
-      } catch (e) { console.error("Data load error", e); }
+      } catch (e) { 
+        console.error("Supabase load error, falling back to local", e);
+      }
     };
     loadData();
   }, []);
 
+  // Sync to Supabase on changes
+  useEffect(() => { supabaseService.updateSiteConfig(siteConfig).catch(console.error); }, [siteConfig]);
+  useEffect(() => { 
+    accounts.forEach(acc => supabaseService.updateUser(acc).catch(console.error));
+  }, [accounts]);
+  useEffect(() => {
+    transactions.forEach(t => supabaseService.addTransaction(t).catch(console.error));
+  }, [transactions]);
+  useEffect(() => {
+    notifications.forEach(n => supabaseService.addNotification(n).catch(console.error));
+  }, [notifications]);
+  useEffect(() => {
+    adExchangeItems.forEach(i => supabaseService.upsertAdItem(i).catch(console.error));
+  }, [adExchangeItems]);
+  useEffect(() => {
+    adNegotiations.forEach(n => supabaseService.upsertAdNegotiation(n).catch(console.error));
+  }, [adNegotiations]);
+  useEffect(() => {
+    withdrawalRequests.forEach(w => supabaseService.upsertWithdrawal(w).catch(console.error));
+  }, [withdrawalRequests]);
+  useEffect(() => {
+    salaryPlans.forEach(s => supabaseService.upsertSalaryFinancing(s).catch(console.error));
+  }, [salaryPlans]);
+  useEffect(() => {
+    fixedDeposits.forEach(d => supabaseService.upsertFixedDeposit(d).catch(console.error));
+  }, [fixedDeposits]);
+  useEffect(() => {
+    verificationRequests.forEach(v => supabaseService.upsertVerification(v).catch(console.error));
+  }, [verificationRequests]);
+
+  // Keep localStorage as secondary backup
   useEffect(() => localStorage.setItem('fp_v21_config', JSON.stringify(siteConfig)), [siteConfig]);
   useEffect(() => localStorage.setItem('fp_v21_accounts', JSON.stringify(accounts)), [accounts]);
   useEffect(() => localStorage.setItem('fp_v21_trans', JSON.stringify(transactions)), [transactions]);
@@ -152,13 +204,14 @@ const App: React.FC = () => {
 
   const currentUser = useMemo(() => accounts.find(acc => acc.id === currentUserId) || null, [accounts, currentUserId]);
 
-  const addNotification = useCallback((title: string, message: string, type: Notification['type']) => {
+  const addNotification = useCallback((title: string, message: string, type: Notification['type'], targetUserId?: string) => {
     const newNotify: Notification = {
       id: Math.random().toString(36).substr(2, 9),
+      userId: targetUserId || currentUserId || '',
       title, message, type, timestamp: new Date().toLocaleTimeString('ar-SA'), isRead: false
     };
     setNotifications(prev => [newNotify, ...prev]);
-  }, []);
+  }, [currentUserId]);
 
   const handleUpdateUser = (updatedUser: User) => setAccounts(prev => prev.map(acc => acc.id === updatedUser.id ? updatedUser : acc));
 
@@ -185,7 +238,21 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      {/* Notification Toasts */}
+      <div className="fixed top-6 left-6 z-[1000] flex flex-col gap-4 pointer-events-none">
+        {notifications.filter(n => n.userId === currentUserId && !n.isRead).slice(0, 5).map((n) => (
+          <div key={n.id} className="pointer-events-auto bg-[#0f172a]/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl animate-in slide-in-from-left duration-500 max-w-sm">
+            <div className="flex justify-between items-start mb-2">
+              <h4 className="font-black text-sky-400 text-sm">{n.title}</h4>
+              <button onClick={() => setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isRead: true } : notif))} className="text-white/40 hover:text-white transition-colors">✕</button>
+            </div>
+            <p className="text-xs text-white/80 font-bold leading-relaxed">{n.message}</p>
+            <p className="text-[8px] text-white/40 mt-3 font-mono">{n.timestamp}</p>
+          </div>
+        ))}
+      </div>
+
       <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
       {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} accounts={accounts} onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} />}
       {isRegisterModalOpen && <RegisterModal onClose={() => setIsRegisterModalOpen(false)} accounts={accounts} onRegister={(u) => { setAccounts(p => [...p, u]); setCurrentUserId(u.id); setIsRegisterModalOpen(false); }} onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); }} />}

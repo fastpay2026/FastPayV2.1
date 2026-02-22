@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, SiteConfig, WithdrawalRequest, TradeOrder } from '../types';
+import { User, SiteConfig, WithdrawalRequest, TradeOrder } from '../../types';
 
 interface Props {
   accounts: User[];

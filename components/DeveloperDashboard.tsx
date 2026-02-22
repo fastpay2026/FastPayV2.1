@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation } from '../types';
+import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from '../types';
 
 // Sub-components
 import StatsOverview from './developer/StatsOverview';
@@ -31,7 +31,7 @@ interface Props {
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
   notifications: Notification[];
   setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
-  addNotification: (title: string, message: string, type: Notification['type']) => void;
+  addNotification: (title: string, message: string, type: Notification['type'], targetUserId?: string) => void;
   tradeAssets: TradeAsset[];
   setTradeAssets: React.Dispatch<React.SetStateAction<TradeAsset[]>>;
   withdrawalRequests: WithdrawalRequest[];
