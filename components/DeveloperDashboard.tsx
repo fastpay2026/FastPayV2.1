@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from '../types';
+import { isSupabaseConfigured } from '../supabaseClient';
 
 // Sub-components
 import StatsOverview from './developer/StatsOverview';
@@ -67,6 +68,36 @@ const DeveloperDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'trading' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads'>('home');
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleManualSync = async () => {
+    if (!isSupabaseConfigured) {
+      alert('Supabase غير مهيأ. يرجى ضبط VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY');
+      return;
+    }
+    setIsSyncing(true);
+    try {
+      const { supabaseService } = await import('../supabaseService');
+      await Promise.all([
+        supabaseService.updateSiteConfig(siteConfig),
+        ...accounts.map(acc => supabaseService.updateUser(acc)),
+        ...transactions.map(t => supabaseService.addTransaction(t)),
+        ...notifications.map(n => supabaseService.addNotification(n)),
+        ...adExchangeItems.map(i => supabaseService.upsertAdItem(i)),
+        ...adNegotiations.map(n => supabaseService.upsertAdNegotiation(n)),
+        ...withdrawalRequests.map(w => supabaseService.upsertWithdrawal(w)),
+        ...salaryPlans.map(s => supabaseService.upsertSalaryFinancing(s)),
+        ...fixedDeposits.map(d => supabaseService.upsertFixedDeposit(d)),
+        ...verificationRequests.map(v => supabaseService.upsertVerification(v))
+      ]);
+      alert('تمت المزامنة الكاملة مع Supabase بنجاح ✅');
+    } catch (e) {
+      console.error(e);
+      alert('فشلت المزامنة. تحقق من لوحة التحكم (Console) لمزيد من التفاصيل.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[150] flex bg-[#020617] text-white text-right font-sans overflow-hidden" dir="rtl">
@@ -75,6 +106,12 @@ const DeveloperDashboard: React.FC<Props> = ({
         <div className="p-10 border-b border-white/5 text-center">
            <img src={siteConfig.logoUrl} style={{ width: `120px` }} className="mx-auto mb-4" alt="Logo" />
            <p className="text-[10px] font-black text-sky-400 uppercase tracking-widest">إدارة العمليات السيادية v28.5 Elite</p>
+           <div className="mt-4 flex items-center justify-center gap-2">
+             <div className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
+             <span className={`text-[8px] font-bold ${isSupabaseConfigured ? 'text-emerald-500' : 'text-red-500'}`}>
+               {isSupabaseConfigured ? 'Supabase Connected' : 'Supabase Disconnected'}
+             </span>
+           </div>
         </div>
         <nav className="flex-1 p-6 space-y-2">
           {[
@@ -101,7 +138,7 @@ const DeveloperDashboard: React.FC<Props> = ({
       </aside>
 
       <main className="flex-1 flex flex-col overflow-y-auto p-12 custom-scrollbar relative">
-        {activeTab === 'home' && <StatsOverview accounts={accounts} withdrawalRequests={withdrawalRequests} tradeOrders={tradeOrders} siteConfig={siteConfig} />}
+        {activeTab === 'home' && <StatsOverview accounts={accounts} withdrawalRequests={withdrawalRequests} tradeOrders={tradeOrders} siteConfig={siteConfig} onManualSync={handleManualSync} isSyncing={isSyncing} />}
         {activeTab === 'users' && <UserManagement accounts={accounts} setAccounts={setAccounts} />}
         {activeTab === 'withdrawals' && <SwiftManager withdrawalRequests={withdrawalRequests} setWithdrawalRequests={setWithdrawalRequests} setAccounts={setAccounts} />}
         {activeTab === 'trading' && <DealsEngine tradeAssets={tradeAssets} setTradeAssets={setTradeAssets} tradeOrders={tradeOrders} setTradeOrders={setTradeOrders} setAccounts={setAccounts} />}

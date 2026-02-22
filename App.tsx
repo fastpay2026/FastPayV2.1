@@ -9,6 +9,7 @@ import MerchantDealCreator from './components/MerchantDealCreator';
 import UserDashboard from './components/UserDashboard';
 import { Role, User, SiteConfig, LandingService, Transaction, Notification, CustomPage, SalaryFinancing, TradeAsset, WithdrawalRequest, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from './types';
 import { supabaseService } from './supabaseService';
+import { isSupabaseConfigured } from './supabaseClient';
 
 const App: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -239,6 +240,14 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen relative">
+      {!isSupabaseConfigured && (
+        <div className="fixed bottom-6 right-6 z-[2000] bg-red-600/90 backdrop-blur-xl text-white p-6 rounded-2xl shadow-2xl border border-white/10 max-w-sm animate-in slide-in-from-right duration-500">
+          <h4 className="font-black text-sm mb-2">⚠️ تنبيه: قاعدة البيانات غير متصلة</h4>
+          <p className="text-[10px] font-bold opacity-80 leading-relaxed">
+            لم يتم ضبط إعدادات Supabase بشكل صحيح. سيتم حفظ البيانات في المتصفح فقط (LocalStorage) وقد تفقدها عند المسح. يرجى ضبط VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY في إعدادات البيئة.
+          </p>
+        </div>
+      )}
       {/* Notification Toasts */}
       <div className="fixed top-6 left-6 z-[1000] flex flex-col gap-4 pointer-events-none">
         {notifications.filter(n => n.userId === currentUserId && !n.isRead).slice(0, 5).map((n) => (
