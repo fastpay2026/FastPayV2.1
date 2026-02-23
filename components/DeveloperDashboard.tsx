@@ -70,35 +70,48 @@ const DeveloperDashboard: React.FC<Props> = ({
   const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'trading' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleManualSync = async () => {
+const handleManualSync = async () => {
     if (!isSupabaseConfigured) {
       alert('Supabase غير مهيأ. يرجى ضبط VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY');
       return;
     }
+
     setIsSyncing(true);
     try {
       const { supabaseService } = await import('../supabaseService');
+
       await Promise.all([
-        supabaseService.updateSiteConfig(siteConfig),
-        ...accounts.map(acc => supabaseService.updateUser(acc)),
+        supabaseService.updateSiteConfig({
+          ...siteConfig
+        }),
+
+        ...accounts.map(acc => supabaseService.updateUser({
+          id: acc.id,
+          username: acc.username,
+          full_name: acc.fullName, 
+          role: acc.role,
+          balance: acc.balance,
+          status: acc.status,
+          phone_number: acc.phoneNumber,
+          password: acc.password,
+          status_reason: acc.statusReason,
+          verification_status: acc.verificationStatus
+        })),
+
         ...transactions.map(t => supabaseService.addTransaction(t)),
         ...notifications.map(n => supabaseService.addNotification(n)),
-        ...adExchangeItems.map(i => supabaseService.upsertAdItem(i)),
-        ...adNegotiations.map(n => supabaseService.upsertAdNegotiation(n)),
-        ...withdrawalRequests.map(w => supabaseService.upsertWithdrawal(w)),
         ...salaryPlans.map(s => supabaseService.upsertSalaryFinancing(s)),
-        ...fixedDeposits.map(d => supabaseService.upsertFixedDeposit(d)),
-        ...verificationRequests.map(v => supabaseService.upsertVerification(v))
+        ...fixedDeposits.map(d => supabaseService.upsertFixedDeposit(d))
       ]);
-      alert('تمت المزامنة الكاملة مع Supabase بنجاح ✅');
+
+      alert('✅ تمت المزامنة بنجاح مع Supabase');
     } catch (e) {
       console.error(e);
-      alert('فشلت المزامنة. تحقق من لوحة التحكم (Console) لمزيد من التفاصيل.');
+      alert('❌ فشلت المزامنة. تحقق من الـ Console للمزيد من التفاصيل');
     } finally {
       setIsSyncing(false);
     }
   };
-
   return (
     <div className="fixed inset-0 z-[150] flex bg-[#020617] text-white text-right font-sans overflow-hidden" dir="rtl">
       {/* Sidebar Navigation */}
