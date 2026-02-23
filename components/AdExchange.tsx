@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { User, AdExchangeItem, AdNegotiation, Transaction, Notification, SiteConfig } from '../types';
 
 interface Props {
@@ -65,7 +66,7 @@ export const AdExchange: React.FC<Props> = ({
     }
 
     const newAd: AdExchangeItem = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: uuidv4(),
       merchantId: user.id,
       merchantName: user.fullName,
       title: adForm.title,
@@ -189,7 +190,7 @@ export const AdExchange: React.FC<Props> = ({
     if (isNaN(amount) || amount <= 0) return alert('يرجى إدخال مبلغ صحيح');
 
     const newOffer: AdNegotiation = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: uuidv4(),
       adId,
       buyerId: user.id,
       buyerName: user.fullName,

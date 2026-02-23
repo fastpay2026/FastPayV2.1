@@ -240,6 +240,28 @@ export interface AdNegotiation {
   createdAt: string;
 }
 
+export interface NegotiationOffer {
+  id: string;
+  buyerId: string;
+  buyerName: string;
+  amount: number;
+  status: 'pending' | 'accepted' | 'rejected';
+  timestamp: string;
+}
+
+export interface MarketplaceAd {
+  id: string;
+  sellerId: string;
+  sellerName: string;
+  title: string;
+  description: string;
+  price: number;
+  isNegotiable: boolean;
+  status: 'active' | 'sold' | 'completed' | 'blocked';
+  createdAt: string;
+  offers: NegotiationOffer[];
+}
+
 export interface SiteConfig {
   logoUrl: string;
   logoWidth: number;

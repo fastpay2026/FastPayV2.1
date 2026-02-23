@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import LandingPage from './components/LandingPage';
 import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
@@ -98,7 +99,7 @@ const App: React.FC = () => {
   const [salaryPlans, setSalaryPlans] = useState<SalaryFinancing[]>([]);
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
   const [accounts, setAccounts] = useState<User[]>([
-    { id: '1', username: 'admin', fullName: 'مدير العمليات التنفيذي', email: 'admin@fastpay.com', password: 'ubnt', role: 'DEVELOPER', balance: 0, status: 'active', createdAt: '2023-01-01', linkedCards: [], assets: [] },
+    { id: '00000000-0000-0000-0000-000000000001', username: 'admin', fullName: 'مدير العمليات التنفيذي', email: 'admin@fastpay.com', password: 'ubnt', role: 'DEVELOPER', balance: 0, status: 'active', createdAt: '2023-01-01', linkedCards: [], assets: [] },
   ]);
   const [services, setServices] = useState<LandingService[]>([]);
   const [pages, setPages] = useState<CustomPage[]>([]);
@@ -207,7 +208,7 @@ const App: React.FC = () => {
 
   const addNotification = useCallback((title: string, message: string, type: Notification['type'], targetUserId?: string) => {
     const newNotify: Notification = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: uuidv4(),
       userId: targetUserId || currentUserId || '',
       title, message, type, timestamp: new Date().toLocaleTimeString('ar-SA'), isRead: false
     };

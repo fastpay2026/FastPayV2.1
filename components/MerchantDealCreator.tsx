@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { User, Transaction, Notification, VerificationRequest, AdExchangeItem, AdNegotiation, SiteConfig } from '../types';
 import { MerchantVerification } from './VerificationManager';
 import { AdExchange } from './AdExchange';
@@ -75,7 +76,7 @@ const MerchantDealCreator: React.FC<Props> = ({
       const transactionHash = isLCEnabled ? `0x${Math.random().toString(16).substr(2, 32)}` : undefined;
       
       const newTransaction: Transaction = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: uuidv4(),
         userId: user.id,
         type: 'trade_sell',
         amount: amount,

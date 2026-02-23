@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { User } from '../types';
 
 interface Props {
@@ -61,7 +62,7 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
     }
 
     const newUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: uuidv4(),
       username: formData.username.trim(),
       fullName: formData.fullName,
       email: formData.email,

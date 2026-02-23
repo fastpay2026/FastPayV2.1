@@ -96,8 +96,8 @@ const handleManualSync = async () => {
             verification_status: acc.verificationStatus
           };
 
-          // نتجنب إرسال المعرفات الرقمية البسيطة "1" لحل خطأ UUID
-          if (acc.id && acc.id.length > 10) {
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (acc.id && uuidRegex.test(acc.id)) {
             userData.id = acc.id;
           }
 

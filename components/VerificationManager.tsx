@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { User, VerificationRequest } from '../types';
 
 // AES-256 Simulation (Frontend only)
@@ -56,7 +57,7 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
     // Simulate Encryption and Upload to Riyadh-Node-01
     setTimeout(() => {
       const newRequest: VerificationRequest = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: uuidv4(),
         userId: user.id,
         username: user.username,
         fullName: user.fullName,

@@ -20,8 +20,7 @@ export const supabaseService = {
   },
 
   async updateUser(user: User) {
-    const { error } = await supabase.from('users').upsert({
-      id: user.id,
+    const userData: any = {
       username: user.username,
       full_name: user.fullName,
       email: user.email,
@@ -37,7 +36,15 @@ export const supabaseService = {
       linked_cards: user.linkedCards,
       assets: user.assets,
       api_keys: user.apiKeys
-    });
+    };
+
+    // Only include ID if it's a valid UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (user.id && uuidRegex.test(user.id)) {
+      userData.id = user.id;
+    }
+
+    const { error } = await supabase.from('users').upsert(userData);
     if (error) throw error;
   },
 
@@ -66,7 +73,7 @@ export const supabaseService = {
   },
 
   async addTransaction(t: Transaction) {
-    const { error } = await supabase.from('transactions').insert({
+    const { error } = await supabase.from('transactions').upsert({
       id: t.id,
       user_id: t.userId,
       type: t.type,
@@ -93,7 +100,7 @@ export const supabaseService = {
   },
 
   async addNotification(n: Notification) {
-    const { error } = await supabase.from('notifications').insert({
+    const { error } = await supabase.from('notifications').upsert({
       id: n.id,
       user_id: n.userId,
       title: n.title,

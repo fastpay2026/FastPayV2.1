@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing, AdExchangeItem, AdNegotiation } from '../types';
 import { AdExchange } from './AdExchange';
 
@@ -182,7 +183,7 @@ const UserDashboard: React.FC<Props> = ({
         return acc;
       }));
       onUpdateUser({ ...user, balance: user.balance - amount });
-      setTransactions(prev => [{ id: Math.random().toString(36).substr(2, 9), userId: user.id, type: 'send', amount: -amount, relatedUser: `تحويل إلى @${target.username}`, timestamp: new Date().toLocaleString() }, ...prev]);
+      setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'send', amount: -amount, relatedUser: `تحويل إلى @${target.username}`, timestamp: new Date().toLocaleString() }, ...prev]);
       addNotification('تحويل ناجح', `تم تحويل مبلغ $${amount} إلى ${target.fullName} بنجاح.`, 'money');
       setTransferSuccess(true);
       setTimeout(() => { setModalType(null); setIsTransferring(false); setTransferSuccess(false); setTransferData({ recipient: '', amount: '' }); }, 3000);
@@ -193,7 +194,7 @@ const UserDashboard: React.FC<Props> = ({
     e.preventDefault();
     const deduction = (salaryForm.amount / salaryForm.duration) * 1.05;
     const newPlan: SalaryFinancing = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: uuidv4(),
       userId: user.id,
       username: user.username,
       beneficiaryName: user.fullName,
@@ -216,7 +217,7 @@ const UserDashboard: React.FC<Props> = ({
      if (amount > user.balance || amount <= 0) return alert('الرصيد غير كافٍ');
      
      const newRequest: WithdrawalRequest = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: uuidv4(),
         userId: user.id,
         username: user.username,
         fullName: user.fullName,
@@ -231,7 +232,7 @@ const UserDashboard: React.FC<Props> = ({
      const newBalance = user.balance - amount;
      onUpdateUser({ ...user, balance: newBalance });
      setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
-     setTransactions(prev => [{ id: Math.random().toString(36).substr(2, 9), userId: user.id, type: 'withdrawal', amount: -amount, timestamp: new Date().toLocaleString(), relatedUser: 'سحب Swift بنكي' }, ...prev]);
+     setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'withdrawal', amount: -amount, timestamp: new Date().toLocaleString(), relatedUser: 'سحب Swift بنكي' }, ...prev]);
      addNotification('طلب سحب', `تم طلب سحب مبلغ $${amount} بنجاح.`, 'money');
      setModalType(null);
      alert('تم تقديم طلب السحب بنجاح.');
@@ -245,7 +246,7 @@ const UserDashboard: React.FC<Props> = ({
        const newBalance = user.balance + coupon.amount;
        onUpdateUser({ ...user, balance: newBalance });
        setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
-       setTransactions(prev => [{ id: Math.random().toString(36).substr(2, 9), userId: user.id, type: 'redeem', amount: coupon.amount, timestamp: new Date().toLocaleString(), relatedUser: 'شحن بطاقة' }, ...prev]);
+       setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'redeem', amount: coupon.amount, timestamp: new Date().toLocaleString(), relatedUser: 'شحن بطاقة' }, ...prev]);
        addNotification('شحن رصيد', `تم شحن $${coupon.amount} بنجاح.`, 'money');
        setModalType(null);
        setCouponCode('');
@@ -265,7 +266,7 @@ const UserDashboard: React.FC<Props> = ({
     endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
 
     const newDeposit: FixedDeposit = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: uuidv4(),
       userId: user.id,
       username: user.username,
       amount: investAmount,
@@ -282,7 +283,7 @@ const UserDashboard: React.FC<Props> = ({
     onUpdateUser({ ...user, balance: newBalance });
     setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
     
-    setTransactions(prev => [{ id: Math.random().toString(36).substr(2, 9), userId: user.id, type: 'fixed_deposit', amount: -investAmount, timestamp: new Date().toLocaleString(), relatedUser: `استثمار: ${selectedPlan.name}` }, ...prev]);
+    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'fixed_deposit', amount: -investAmount, timestamp: new Date().toLocaleString(), relatedUser: `استثمار: ${selectedPlan.name}` }, ...prev]);
     addNotification('بدء استثمار', `تم بدء خطة استثمار بقيمة $${investAmount}.`, 'money');
     setModalType(null);
     setSelectedPlan(null);
@@ -294,7 +295,7 @@ const UserDashboard: React.FC<Props> = ({
     if (user.balance < siteConfig.raffleEntryCost) return alert('رصيدك لا يكفي للمشاركة في القرعة');
     
     const newEntry: RaffleEntry = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: uuidv4(),
       userId: user.id,
       username: user.username,
       fullName: user.fullName,
@@ -307,7 +308,7 @@ const UserDashboard: React.FC<Props> = ({
     onUpdateUser({ ...user, balance: newBalance });
     setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
     
-    setTransactions(prev => [{ id: Math.random().toString(36).substr(2, 9), userId: user.id, type: 'raffle_entry', amount: -siteConfig.raffleEntryCost, timestamp: new Date().toLocaleString(), relatedUser: 'دخول سحب القرعة' }, ...prev]);
+    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'raffle_entry', amount: -siteConfig.raffleEntryCost, timestamp: new Date().toLocaleString(), relatedUser: 'دخول سحب القرعة' }, ...prev]);
     addNotification('القرعة السيادية', 'تم حجز تذكرتك في السحب الشهري بنجاح.', 'system');
     alert(`تم الدخول بنجاح! رقم تذكرتك هو: ${newEntry.ticketNumber}`);
   };
@@ -699,7 +700,7 @@ const UserDashboard: React.FC<Props> = ({
              <form onSubmit={(e) => {
                 e.preventDefault();
                 const newCard: BankCard = {
-                   id: Math.random().toString(36).substr(2, 9),
+                   id: uuidv4(),
                    number: (document.getElementById('c_num') as HTMLInputElement).value,
                    holder: (document.getElementById('c_hold') as HTMLInputElement).value,
                    expiry: (document.getElementById('c_exp') as HTMLInputElement).value,
