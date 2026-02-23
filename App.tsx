@@ -160,49 +160,31 @@ const App: React.FC = () => {
   }, []);
 
   // Sync to Supabase on changes
-  useEffect(() => { supabaseService.updateSiteConfig(siteConfig).catch(console.error); }, [siteConfig]);
   useEffect(() => { 
-    accounts.forEach(acc => supabaseService.updateUser(acc).catch(console.error));
-  }, [accounts]);
-  useEffect(() => {
-    transactions.forEach(t => supabaseService.addTransaction(t).catch(console.error));
-  }, [transactions]);
-  useEffect(() => {
-    notifications.forEach(n => supabaseService.addNotification(n).catch(console.error));
-  }, [notifications]);
-  useEffect(() => {
-    adExchangeItems.forEach(i => supabaseService.upsertAdItem(i).catch(console.error));
-  }, [adExchangeItems]);
-  useEffect(() => {
-    adNegotiations.forEach(n => supabaseService.upsertAdNegotiation(n).catch(console.error));
-  }, [adNegotiations]);
-  useEffect(() => {
-    withdrawalRequests.forEach(w => supabaseService.upsertWithdrawal(w).catch(console.error));
-  }, [withdrawalRequests]);
-  useEffect(() => {
-    salaryPlans.forEach(s => supabaseService.upsertSalaryFinancing(s).catch(console.error));
-  }, [salaryPlans]);
-  useEffect(() => {
-    fixedDeposits.forEach(d => supabaseService.upsertFixedDeposit(d).catch(console.error));
-  }, [fixedDeposits]);
-  useEffect(() => {
-    verificationRequests.forEach(v => supabaseService.upsertVerification(v).catch(console.error));
-  }, [verificationRequests]);
+    if (isSupabaseConfigured) {
+      supabaseService.updateSiteConfig(siteConfig).catch(console.error); 
+    }
+  }, [siteConfig]);
 
-  // Keep localStorage as secondary backup
-  useEffect(() => localStorage.setItem('fp_v21_config', JSON.stringify(siteConfig)), [siteConfig]);
-  useEffect(() => localStorage.setItem('fp_v21_accounts', JSON.stringify(accounts)), [accounts]);
-  useEffect(() => localStorage.setItem('fp_v21_trans', JSON.stringify(transactions)), [transactions]);
-  useEffect(() => localStorage.setItem('fp_v21_salary', JSON.stringify(salaryPlans)), [salaryPlans]);
-  useEffect(() => localStorage.setItem('fp_v21_trade_orders', JSON.stringify(tradeOrders)), [tradeOrders]);
-  useEffect(() => localStorage.setItem('fp_v21_withdrawals', JSON.stringify(withdrawalRequests)), [withdrawalRequests]);
-  useEffect(() => localStorage.setItem('fp_v21_recharge_cards', JSON.stringify(rechargeCards)), [rechargeCards]);
-  useEffect(() => localStorage.setItem('fp_v21_raffle_entries', JSON.stringify(raffleEntries)), [raffleEntries]);
-  useEffect(() => localStorage.setItem('fp_v21_raffle_winners', JSON.stringify(raffleWinners)), [raffleWinners]);
-  useEffect(() => localStorage.setItem('fp_v21_fixed_deposits', JSON.stringify(fixedDeposits)), [fixedDeposits]);
-  useEffect(() => localStorage.setItem('fp_v21_verifications', JSON.stringify(verificationRequests)), [verificationRequests]);
-  useEffect(() => localStorage.setItem('fp_v21_ad_exchange', JSON.stringify(adExchangeItems)), [adExchangeItems]);
-  useEffect(() => localStorage.setItem('fp_v21_ad_offers', JSON.stringify(adNegotiations)), [adNegotiations]);
+  const syncUser = useCallback(async (user: User) => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseService.updateUser(user);
+      } catch (e) {
+        console.error("Failed to sync user to Supabase", e);
+      }
+    }
+  }, []);
+
+  const handleUpdateUser = (updatedUser: User) => {
+    setAccounts(prev => prev.map(acc => acc.id === updatedUser.id ? updatedUser : acc));
+    syncUser(updatedUser);
+  };
+
+  const handleAddUser = (newUser: User) => {
+    setAccounts(prev => [...prev, newUser]);
+    syncUser(newUser);
+  };
 
   const currentUser = useMemo(() => accounts.find(acc => acc.id === currentUserId) || null, [accounts, currentUserId]);
 
@@ -214,8 +196,6 @@ const App: React.FC = () => {
     };
     setNotifications(prev => [newNotify, ...prev]);
   }, [currentUserId]);
-
-  const handleUpdateUser = (updatedUser: User) => setAccounts(prev => prev.map(acc => acc.id === updatedUser.id ? updatedUser : acc));
 
   const commonProps = { 
     user: currentUser!, onLogout: () => setCurrentUserId(null), siteConfig, onUpdateConfig: setSiteConfig, 
@@ -265,7 +245,7 @@ const App: React.FC = () => {
 
       <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
       {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} accounts={accounts} onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} />}
-      {isRegisterModalOpen && <RegisterModal onClose={() => setIsRegisterModalOpen(false)} accounts={accounts} onRegister={(u) => { setAccounts(p => [...p, u]); setCurrentUserId(u.id); setIsRegisterModalOpen(false); }} onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); }} />}
+      {isRegisterModalOpen && <RegisterModal onClose={() => setIsRegisterModalOpen(false)} accounts={accounts} onRegister={(u) => { handleAddUser(u); setCurrentUserId(u.id); setIsRegisterModalOpen(false); }} onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); }} />}
     </div>
   );
 };

@@ -83,27 +83,7 @@ const handleManualSync = async () => {
       await Promise.all([
         supabaseService.updateSiteConfig(siteConfig),
 
-        ...accounts.map(acc => {
-          const userData: any = {
-            username: acc.username,
-            full_name: acc.fullName,
-            role: acc.role,
-            balance: acc.balance,
-            status: acc.status,
-            phone_number: acc.phoneNumber,
-            password: acc.password,
-            status_reason: acc.statusReason,
-            verification_status: acc.verificationStatus
-          };
-
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-          if (acc.id && uuidRegex.test(acc.id)) {
-            userData.id = acc.id;
-          }
-
-          return supabaseService.updateUser(userData);
-        }),
-
+        ...accounts.map(acc => supabaseService.updateUser(acc)),
         ...transactions.map(t => supabaseService.addTransaction(t)),
         ...notifications.map(n => supabaseService.addNotification(n))
       ]);

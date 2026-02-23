@@ -21,6 +21,7 @@ export const supabaseService = {
 
   async updateUser(user: User) {
     const userData: any = {
+      id: user.id,
       username: user.username,
       full_name: user.fullName,
       email: user.email,
@@ -38,13 +39,7 @@ export const supabaseService = {
       api_keys: user.apiKeys
     };
 
-    // Only include ID if it's a valid UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (user.id && uuidRegex.test(user.id)) {
-      userData.id = user.id;
-    }
-
-    const { error } = await supabase.from('users').upsert(userData);
+    const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
     if (error) throw error;
   },
 
