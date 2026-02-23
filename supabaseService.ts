@@ -21,32 +21,34 @@ export const supabaseService = {
 
   async updateUser(user: User) {
     try {
+      // تنظيف البيانات لضمان عدم إرسال أي حقل غير موجود في SQL
       const userData = {
         id: user.id,
         username: user.username,
-        full_name: user.fullName || '',
-        email: user.email || '',
-        phone_number: user.phoneNumber || '',
-        password: user.password || '',
-        role: user.role || 'USER',
-        balance: Number(user.balance) || 0,
-        status: user.status || 'active',
-        status_reason: user.statusReason || '',
+        full_name: String(user.fullName || ''),
+        email: String(user.email || ''),
+        phone_number: String(user.phoneNumber || ''),
+        password: String(user.password || ''),
+        role: String(user.role || 'USER'),
+        balance: parseFloat(String(user.balance)) || 0,
+        status: String(user.status || 'active'),
+        status_reason: String(user.statusReason || ''),
         is_verified: Boolean(user.isVerified),
-        verification_status: user.verificationStatus || 'none',
-        verification_reason: user.verificationReason || '',
-        linked_cards: user.linkedCards || [],
-        assets: user.assets || [],
-        api_keys: user.apiKeys || []
+        verification_status: String(user.verificationStatus || 'none'),
+        verification_reason: String(user.verificationReason || ''),
+        linked_cards: Array.isArray(user.linkedCards) ? user.linkedCards : [],
+        assets: Array.isArray(user.assets) ? user.assets : [],
+        api_keys: Array.isArray(user.apiKeys) ? user.apiKeys : []
       };
 
       const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
       if (error) {
-        console.error("Supabase User Upsert Error Details:", error);
-        throw error;
+        console.error("Supabase Error Details:", error);
+        throw new Error(error.message);
       }
-    } catch (err) {
-      console.error("Critical Error in updateUser:", err);
+      return true;
+    } catch (err: any) {
+      console.error("Critical Sync Error:", err);
       throw err;
     }
   },
@@ -65,18 +67,17 @@ export const supabaseService = {
 
   async updateSiteConfig(config: SiteConfig) {
     try {
+      // إرسال الإعدادات ككائن JSON نظيف
       const { error } = await supabase.from('site_config').upsert({ 
         id: 1, 
-        config: config, 
+        config: JSON.parse(JSON.stringify(config)), // ضمان كونه JSON صالح
         updated_at: new Date().toISOString() 
       }, { onConflict: 'id' });
       
-      if (error) {
-        console.error("Supabase Config Upsert Error:", error);
-        throw error;
-      }
-    } catch (err) {
-      console.error("Catch Error in updateSiteConfig:", err);
+      if (error) throw error;
+      return true;
+    } catch (err: any) {
+      console.error("Config Sync Error:", err);
       throw err;
     }
   },
