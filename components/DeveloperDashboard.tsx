@@ -72,7 +72,7 @@ const DeveloperDashboard: React.FC<Props> = ({
 
 const handleManualSync = async () => {
     if (!isSupabaseConfigured) {
-      alert('Supabase غير مهيأ. يرجى ضبط VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY');
+      alert('Supabase غير مهيأ. يرجى ضبط المفاتيح في ملف .env');
       return;
     }
 
@@ -81,30 +81,34 @@ const handleManualSync = async () => {
       const { supabaseService } = await import('../supabaseService');
 
       await Promise.all([
-        supabaseService.updateSiteConfig({
-          ...siteConfig
+        supabaseService.updateSiteConfig(siteConfig),
+
+        ...accounts.map(acc => {
+          const userData: any = {
+            username: acc.username,
+            full_name: acc.fullName,
+            role: acc.role,
+            balance: acc.balance,
+            status: acc.status,
+            phone_number: acc.phoneNumber,
+            password: acc.password,
+            status_reason: acc.statusReason,
+            verification_status: acc.verificationStatus
+          };
+
+          // نتجنب إرسال المعرفات الرقمية البسيطة "1" لحل خطأ UUID
+          if (acc.id && acc.id.length > 10) {
+            userData.id = acc.id;
+          }
+
+          return supabaseService.updateUser(userData);
         }),
 
-        ...accounts.map(acc => supabaseService.updateUser({
-          id: acc.id,
-          username: acc.username,
-          full_name: acc.fullName, 
-          role: acc.role,
-          balance: acc.balance,
-          status: acc.status,
-          phone_number: acc.phoneNumber,
-          password: acc.password,
-          status_reason: acc.statusReason,
-          verification_status: acc.verificationStatus
-        })),
-
         ...transactions.map(t => supabaseService.addTransaction(t)),
-        ...notifications.map(n => supabaseService.addNotification(n)),
-        ...salaryPlans.map(s => supabaseService.upsertSalaryFinancing(s)),
-        ...fixedDeposits.map(d => supabaseService.upsertFixedDeposit(d))
+        ...notifications.map(n => supabaseService.addNotification(n))
       ]);
 
-      alert('✅ تمت المزامنة بنجاح مع Supabase');
+      alert('✅ تمت المزامنة بنجاح!');
     } catch (e) {
       console.error(e);
       alert('❌ فشلت المزامنة. تحقق من الـ Console للمزيد من التفاصيل');
