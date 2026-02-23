@@ -162,7 +162,9 @@ const App: React.FC = () => {
   // Sync to Supabase on changes
   useEffect(() => { 
     if (isSupabaseConfigured) {
-      supabaseService.updateSiteConfig(siteConfig).catch(console.error); 
+      supabaseService.updateSiteConfig(siteConfig).catch(err => {
+        console.error("Site config sync error:", err);
+      }); 
     }
   }, [siteConfig]);
 
@@ -170,8 +172,9 @@ const App: React.FC = () => {
     if (isSupabaseConfigured) {
       try {
         await supabaseService.updateUser(user);
-      } catch (e) {
+      } catch (e: any) {
         console.error("Failed to sync user to Supabase", e);
+        alert(`⚠️ فشل حفظ البيانات في Supabase: ${e.message || 'خطأ غير معروف'}`);
       }
     }
   }, []);
