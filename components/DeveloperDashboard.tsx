@@ -24,6 +24,8 @@ interface Props {
   onUpdateConfig: (config: SiteConfig) => void;
   accounts: User[];
   setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
+  onUpdateUser: (user: User) => void;
+  onAddUser: (user: User) => void;
   services: LandingService[];
   setServices: React.Dispatch<React.SetStateAction<LandingService[]>>;
   pages: CustomPage[];
@@ -58,7 +60,7 @@ interface Props {
 }
 
 const DeveloperDashboard: React.FC<Props> = ({ 
-  user, onLogout, siteConfig, onUpdateConfig, accounts, setAccounts, 
+  user, onLogout, siteConfig, onUpdateConfig, accounts, setAccounts, onUpdateUser, onAddUser,
   services, setServices, pages, setPages, addNotification, 
   transactions, setTransactions, notifications, setNotifications, tradeAssets, setTradeAssets,
   withdrawalRequests, setWithdrawalRequests, salaryPlans, setSalaryPlans,
@@ -136,10 +138,10 @@ const handleManualSync = async () => {
 
       <main className="flex-1 flex flex-col overflow-y-auto p-12 custom-scrollbar relative">
         {activeTab === 'home' && <StatsOverview accounts={accounts} withdrawalRequests={withdrawalRequests} tradeOrders={tradeOrders} siteConfig={siteConfig} onManualSync={handleManualSync} isSyncing={isSyncing} />}
-        {activeTab === 'users' && <UserManagement accounts={accounts} setAccounts={setAccounts} />}
-        {activeTab === 'withdrawals' && <SwiftManager withdrawalRequests={withdrawalRequests} setWithdrawalRequests={setWithdrawalRequests} setAccounts={setAccounts} />}
-        {activeTab === 'trading' && <DealsEngine tradeAssets={tradeAssets} setTradeAssets={setTradeAssets} tradeOrders={tradeOrders} setTradeOrders={setTradeOrders} setAccounts={setAccounts} />}
-        {activeTab === 'salary' && <SalaryFunding salaryPlans={salaryPlans} setSalaryPlans={setSalaryPlans} accounts={accounts} setAccounts={setAccounts} />}
+        {activeTab === 'users' && <UserManagement accounts={accounts} setAccounts={setAccounts} onAddUser={onAddUser} onUpdateUser={onUpdateUser} />}
+        {activeTab === 'withdrawals' && <SwiftManager withdrawalRequests={withdrawalRequests} setWithdrawalRequests={setWithdrawalRequests} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />}
+        {activeTab === 'trading' && <DealsEngine tradeAssets={tradeAssets} setTradeAssets={setTradeAssets} tradeOrders={tradeOrders} setTradeOrders={setTradeOrders} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />}
+        {activeTab === 'salary' && <SalaryFunding salaryPlans={salaryPlans} setSalaryPlans={setSalaryPlans} accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />}
         {activeTab === 'cards' && <CardGenerator rechargeCards={rechargeCards} setRechargeCards={setRechargeCards} user={user} />}
         {activeTab === 'invest' && <InvestmentPlans siteConfig={siteConfig} onUpdateConfig={onUpdateConfig} />}
         {activeTab === 'escrow' && <MerchantEscrowManager transactions={transactions} setTransactions={setTransactions} setAccounts={setAccounts} addNotification={addNotification} />}
@@ -155,7 +157,7 @@ const handleManualSync = async () => {
             transactions={transactions} 
             setTransactions={setTransactions} 
             addNotification={addNotification} 
-            onUpdateUser={(u) => setAccounts(prev => prev.map(acc => acc.id === u.id ? u : acc))}
+            onUpdateUser={onUpdateUser}
             siteConfig={siteConfig}
           />
         )}
@@ -164,6 +166,7 @@ const handleManualSync = async () => {
             verificationRequests={verificationRequests} 
             setVerificationRequests={setVerificationRequests} 
             setAccounts={setAccounts} 
+            onUpdateUser={onUpdateUser}
             addNotification={addNotification} 
           />
         )}

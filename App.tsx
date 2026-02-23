@@ -164,6 +164,7 @@ const App: React.FC = () => {
     if (isSupabaseConfigured) {
       supabaseService.updateSiteConfig(siteConfig).catch(err => {
         console.error("Site config sync error:", err);
+        alert(`⚠️ فشل حفظ إعدادات الموقع: ${err.message || 'خطأ غير معروف'}`);
       }); 
     }
   }, [siteConfig]);
@@ -203,7 +204,7 @@ const App: React.FC = () => {
   const commonProps = { 
     user: currentUser!, onLogout: () => setCurrentUserId(null), siteConfig, onUpdateConfig: setSiteConfig, 
     accounts, setAccounts, transactions, setTransactions, 
-    addNotification, salaryPlans, setSalaryPlans, onUpdateUser: handleUpdateUser, 
+    addNotification, salaryPlans, setSalaryPlans, onUpdateUser: handleUpdateUser, onAddUser: handleAddUser,
     services, setServices, pages, setPages, notifications, setNotifications,
     tradeAssets, setTradeAssets, tradeOrders, setTradeOrders,
     withdrawalRequests, setWithdrawalRequests,

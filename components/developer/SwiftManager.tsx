@@ -6,14 +6,18 @@ interface Props {
   withdrawalRequests: WithdrawalRequest[];
   setWithdrawalRequests: React.Dispatch<React.SetStateAction<WithdrawalRequest[]>>;
   setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
+  onUpdateUser: (user: User) => void;
 }
 
-const SwiftManager: React.FC<Props> = ({ withdrawalRequests, setWithdrawalRequests, setAccounts }) => {
+const SwiftManager: React.FC<Props> = ({ withdrawalRequests, setWithdrawalRequests, setAccounts, onUpdateUser }) => {
   const handleSwiftAction = (id: string, status: 'approved' | 'rejected') => {
     const req = withdrawalRequests.find(r => r.id === id);
     if (!req) return;
     setWithdrawalRequests(prev => prev.map(r => r.id === id ? { ...r, status, processedAt: new Date().toLocaleString() } : r));
-    if (status === 'rejected') setAccounts(prev => prev.map(u => u.id === req.userId ? { ...u, balance: u.balance + req.amount } : u));
+    if (status === 'rejected') {
+      const user = (window as any).accounts?.find((u: User) => u.id === req.userId);
+      if (user) onUpdateUser({ ...user, balance: user.balance + req.amount });
+    }
     alert(status === 'approved' ? 'تم اعتماد الحوالة بنجاح ✅' : 'تم الرفض وإرجاع الرصيد ❌');
   };
 

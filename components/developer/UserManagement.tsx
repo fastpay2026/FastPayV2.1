@@ -1,13 +1,16 @@
 
 import React, { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { User, Role } from '../../types';
 
 interface Props {
   accounts: User[];
   setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
+  onAddUser: (user: User) => void;
+  onUpdateUser: (user: User) => void;
 }
 
-const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
+const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onUpdateUser }) => {
   const [userSearch, setUserSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userForm, setUserForm] = useState({ fullName: '', username: '', password: '', role: 'USER' as Role, balance: 0, phoneNumber: '' });
@@ -26,7 +29,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
   const handleSaveUser = (e: React.FormEvent) => {
     e.preventDefault();
     const newUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: uuidv4(),
       username: userForm.username.trim(),
       fullName: userForm.fullName,
       phoneNumber: userForm.phoneNumber,
@@ -37,7 +40,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
       email: `${userForm.username}@fastpay.com`,
       createdAt: new Date().toLocaleDateString()
     };
-    setAccounts(prev => [...prev, newUser]);
+    onAddUser(newUser);
     setIsModalOpen(false);
     setUserForm({ fullName: '', username: '', password: '', role: 'USER', balance: 0, phoneNumber: '' });
     alert(`تمت إضافة ${newUser.role} بنجاح ✅\nكلمة المرور المؤقتة: ${newUser.password}`);
@@ -51,15 +54,15 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts }) => {
       case 'recharge':
         const p = parseFloat(actionModal.value);
         if (!isNaN(p)) {
-          setAccounts(prev => prev.map(u => u.id === userId ? { ...u, balance: u.balance + p } : u));
+          onUpdateUser({ ...actionModal.user, balance: actionModal.user.balance + p });
         }
         break;
       case 'reset':
-        setAccounts(prev => prev.map(u => u.id === userId ? { ...u, balance: 0 } : u));
+        onUpdateUser({ ...actionModal.user, balance: 0 });
         break;
       case 'suspend':
         const newStatus = actionModal.user.status === 'active' ? 'suspended' : 'active';
-        setAccounts(prev => prev.map(u => u.id === userId ? { ...u, status: newStatus as any } : u));
+        onUpdateUser({ ...actionModal.user, status: newStatus as any });
         break;
       case 'delete':
         setAccounts(prev => prev.filter(u => u.id !== userId));
