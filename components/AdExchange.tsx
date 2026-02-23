@@ -43,6 +43,8 @@ export const AdExchange: React.FC<Props> = ({
     price: '',
     category: 'إلكترونيات',
     imageUrl: '',
+    imageUrl2: '',
+    imageUrl3: '',
     isNegotiable: false,
     country: 'السعودية',
     state: '',
@@ -75,6 +77,8 @@ export const AdExchange: React.FC<Props> = ({
       isNegotiable: adForm.isNegotiable,
       category: adForm.category,
       imageUrl: adForm.imageUrl || 'https://picsum.photos/seed/ads/800/600',
+      imageUrl2: adForm.imageUrl2,
+      imageUrl3: adForm.imageUrl3,
       views: 0,
       status: 'active',
       location: {
@@ -89,7 +93,7 @@ export const AdExchange: React.FC<Props> = ({
     setAdExchangeItems(prev => [newAd, ...prev]);
     addNotification('تم النشر', 'تم نشر إعلانك بنجاح في بورصة FPN.', 'system');
     setIsCreateModalOpen(false);
-    setAdForm({ title: '', description: '', price: '', category: 'إلكترونيات', imageUrl: '', isNegotiable: false, country: 'السعودية', state: '', city: '' });
+    setAdForm({ title: '', description: '', price: '', category: 'إلكترونيات', imageUrl: '', imageUrl2: '', imageUrl3: '', isNegotiable: false, country: 'السعودية', state: '', city: '' });
   };
 
   const handlePromoteRequest = (adId: string, type: 'network' | 'network_home') => {
@@ -425,6 +429,24 @@ export const AdExchange: React.FC<Props> = ({
                 <p className="text-[10px] text-red-500 font-bold">⚠️ ملاحظة: استهداف إسرائيل محظور تماماً من النظام.</p>
               </div>
 
+              <div className="space-y-4">
+                <label className="text-xs font-black text-slate-500 mr-4 uppercase tracking-widest">صور الإعلان (3 صور كحد أقصى)</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-4">
+                    <input type="text" value={adForm.imageUrl} onChange={e => setAdForm({...adForm, imageUrl: e.target.value})} className="w-full p-4 bg-black/40 border border-white/10 rounded-2xl font-bold text-white outline-none focus:border-sky-500 transition-all text-xs" placeholder="رابط الصورة 1" />
+                    {adForm.imageUrl && <div className="aspect-video rounded-xl overflow-hidden border border-white/10"><img src={adForm.imageUrl} className="w-full h-full object-cover" alt="Preview 1" /></div>}
+                  </div>
+                  <div className="space-y-4">
+                    <input type="text" value={adForm.imageUrl2} onChange={e => setAdForm({...adForm, imageUrl2: e.target.value})} className="w-full p-4 bg-black/40 border border-white/10 rounded-2xl font-bold text-white outline-none focus:border-sky-500 transition-all text-xs" placeholder="رابط الصورة 2" />
+                    {adForm.imageUrl2 && <div className="aspect-video rounded-xl overflow-hidden border border-white/10"><img src={adForm.imageUrl2} className="w-full h-full object-cover" alt="Preview 2" /></div>}
+                  </div>
+                  <div className="space-y-4">
+                    <input type="text" value={adForm.imageUrl3} onChange={e => setAdForm({...adForm, imageUrl3: e.target.value})} className="w-full p-4 bg-black/40 border border-white/10 rounded-2xl font-bold text-white outline-none focus:border-sky-500 transition-all text-xs" placeholder="رابط الصورة 3" />
+                    {adForm.imageUrl3 && <div className="aspect-video rounded-xl overflow-hidden border border-white/10"><img src={adForm.imageUrl3} className="w-full h-full object-cover" alt="Preview 3" /></div>}
+                  </div>
+                </div>
+              </div>
+
               <button type="submit" className="w-full py-8 bg-sky-600 text-white rounded-[2.5rem] font-black text-2xl shadow-2xl hover:bg-sky-500 transition-all active:scale-95">تأكيد ونشر الإعلان 🚀</button>
             </form>
           </div>
@@ -445,8 +467,22 @@ export const AdExchange: React.FC<Props> = ({
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               <div className="space-y-8">
-                <div className="aspect-video rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl">
-                  <img src={selectedAd.imageUrl} className="w-full h-full object-cover" alt={selectedAd.title} />
+                <div className="space-y-4">
+                  <div className="aspect-video rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl">
+                    <img src={selectedAd.imageUrl} className="w-full h-full object-cover" alt={selectedAd.title} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedAd.imageUrl2 && (
+                      <div className="aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                        <img src={selectedAd.imageUrl2} className="w-full h-full object-cover" alt="Image 2" />
+                      </div>
+                    )}
+                    {selectedAd.imageUrl3 && (
+                      <div className="aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                        <img src={selectedAd.imageUrl3} className="w-full h-full object-cover" alt="Image 3" />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 space-y-4">
                   <h4 className="text-xl font-black text-white">وصف المنتج</h4>

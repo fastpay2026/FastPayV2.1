@@ -217,6 +217,8 @@ export interface AdExchangeItem {
   isNegotiable: boolean;
   category: string;
   imageUrl: string;
+  imageUrl2?: string;
+  imageUrl3?: string;
   views: number;
   status: 'active' | 'suspended' | 'sold';
   location: {
