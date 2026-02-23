@@ -20,39 +20,65 @@ export const supabaseService = {
   },
 
   async updateUser(user: User) {
-    const userData: any = {
-      id: user.id,
-      username: user.username,
-      full_name: user.fullName,
-      email: user.email,
-      phone_number: user.phoneNumber,
-      password: user.password,
-      role: user.role,
-      balance: user.balance,
-      status: user.status,
-      status_reason: user.statusReason,
-      is_verified: user.isVerified,
-      verification_status: user.verificationStatus,
-      verification_reason: user.verificationReason,
-      linked_cards: user.linkedCards,
-      assets: user.assets,
-      api_keys: user.apiKeys
-    };
+    try {
+      const userData = {
+        id: user.id,
+        username: user.username,
+        full_name: user.fullName || '',
+        email: user.email || '',
+        phone_number: user.phoneNumber || '',
+        password: user.password || '',
+        role: user.role || 'USER',
+        balance: Number(user.balance) || 0,
+        status: user.status || 'active',
+        status_reason: user.statusReason || '',
+        is_verified: Boolean(user.isVerified),
+        verification_status: user.verificationStatus || 'none',
+        verification_reason: user.verificationReason || '',
+        linked_cards: user.linkedCards || [],
+        assets: user.assets || [],
+        api_keys: user.apiKeys || []
+      };
 
-    const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
-    if (error) throw error;
+      const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
+      if (error) {
+        console.error("Supabase User Upsert Error:", error);
+        throw error;
+      }
+    } catch (err) {
+      console.error("Catch Error in updateUser:", err);
+      throw err;
+    }
   },
 
   // Site Config
   async getSiteConfig(): Promise<SiteConfig | null> {
-    const { data, error } = await supabase.from('site_config').select('config').eq('id', 1).single();
-    if (error && error.code !== 'PGRST116') throw error;
-    return data?.config || null;
+    try {
+      const { data, error } = await supabase.from('site_config').select('config').eq('id', 1).maybeSingle();
+      if (error) throw error;
+      return data?.config || null;
+    } catch (err) {
+      console.error("Error fetching site config:", err);
+      return null;
+    }
   },
 
   async updateSiteConfig(config: SiteConfig) {
-    const { error } = await supabase.from('site_config').upsert({ id: 1, config, updated_at: new Date().toISOString() });
-    if (error) throw error;
+    try {
+      const { error } = await supabase.from('site_config').upsert({ 
+        id: 1, 
+        config: config, 
+        updated_at: new Date().toISOString() 
+      }, { onConflict: 'id' });
+      
+      if (error) {
+        console.error("Supabase Config Upsert Error:", error);
+        throw error;
+      }
+    } catch (err) {
+      console.error("Catch Error in updateSiteConfig:", err);
+      throw err;
+    }
   },
 
   // Transactions
