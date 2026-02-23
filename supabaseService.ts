@@ -35,9 +35,9 @@ export const supabaseService = {
         is_verified: Boolean(user.isVerified),
         verification_status: user.verificationStatus || 'none',
         verification_reason: user.verificationReason || '',
-        linked_cards: JSON.stringify(user.linkedCards || []),
-        assets: JSON.stringify(user.assets || []),
-        api_keys: JSON.stringify(user.apiKeys || [])
+        linked_cards: user.linkedCards || [],
+        assets: user.assets || [],
+        api_keys: user.apiKeys || []
       };
 
       const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
