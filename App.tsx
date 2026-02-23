@@ -104,6 +104,7 @@ const App: React.FC = () => {
   const [services, setServices] = useState<LandingService[]>([]);
   const [pages, setPages] = useState<CustomPage[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const isInitialLoad = React.useRef(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -132,7 +133,9 @@ const App: React.FC = () => {
           supabaseService.getVerifications()
         ]);
 
-        if (dbConfig) setSiteConfig(dbConfig);
+        if (dbConfig) {
+          setSiteConfig(dbConfig);
+        }
         if (dbUsers.length > 0) setAccounts(dbUsers);
         if (dbTrans.length > 0) setTransactions(dbTrans);
         if (dbNotifs.length > 0) setNotifications(dbNotifs);
@@ -152,8 +155,11 @@ const App: React.FC = () => {
         if (storedRaffleEntries) setRaffleEntries(JSON.parse(storedRaffleEntries));
         const storedRaffleWinners = localStorage.getItem('fp_v21_raffle_winners');
         if (storedRaffleWinners) setRaffleWinners(JSON.parse(storedRaffleWinners));
+        
+        isInitialLoad.current = false;
       } catch (e) { 
         console.error("Supabase load error, falling back to local", e);
+        isInitialLoad.current = false;
       }
     };
     loadData();
@@ -161,10 +167,9 @@ const App: React.FC = () => {
 
   // Sync to Supabase on changes
   useEffect(() => { 
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && !isInitialLoad.current) {
       supabaseService.updateSiteConfig(siteConfig).catch(err => {
         console.error("Site config sync error:", err);
-        alert(`⚠️ فشل حفظ إعدادات الموقع: ${err.message || 'خطأ غير معروف'}`);
       }); 
     }
   }, [siteConfig]);

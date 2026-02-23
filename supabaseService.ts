@@ -141,7 +141,7 @@ export const supabaseService = {
 
   // Ad Exchange
   async getAdItems(): Promise<AdExchangeItem[]> {
-    const { data, error } = await supabase.from('AdExchangeItems').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('ad_exchange_items').select('*').order('created_at', { ascending: false });
     if (error) throw error;
     return (data || []).map(i => ({
       ...i,
@@ -158,7 +158,7 @@ export const supabaseService = {
   },
 
   async upsertAdItem(item: AdExchangeItem) {
-    const { error } = await supabase.from('AdExchangeItems').upsert({
+    const { error } = await supabase.from('ad_exchange_items').upsert({
       id: item.id,
       merchant_id: item.merchantId,
       merchant_name: item.merchantName,
