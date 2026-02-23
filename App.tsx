@@ -99,7 +99,7 @@ const App: React.FC = () => {
   const [salaryPlans, setSalaryPlans] = useState<SalaryFinancing[]>([]);
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
   const [accounts, setAccounts] = useState<User[]>([
-    { id: '00000000-0000-0000-0000-000000000001', username: 'admin', fullName: 'مدير العمليات التنفيذي', email: 'admin@fastpay.com', password: 'ubnt', role: 'DEVELOPER', balance: 0, status: 'active', createdAt: '2023-01-01', linkedCards: [], assets: [] },
+    { id: 'admin-id-001', username: 'admin', fullName: 'مدير العمليات التنفيذي', email: 'admin@fastpay.com', password: 'ubnt', role: 'DEVELOPER', balance: 0, status: 'active', createdAt: '2023-01-01', linkedCards: [], assets: [] },
   ]);
   const [services, setServices] = useState<LandingService[]>([]);
   const [pages, setPages] = useState<CustomPage[]>([]);
