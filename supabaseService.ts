@@ -35,18 +35,18 @@ export const supabaseService = {
         is_verified: Boolean(user.isVerified),
         verification_status: user.verificationStatus || 'none',
         verification_reason: user.verificationReason || '',
-        linked_cards: user.linkedCards || [],
-        assets: user.assets || [],
-        api_keys: user.apiKeys || []
+        linked_cards: JSON.stringify(user.linkedCards || []),
+        assets: JSON.stringify(user.assets || []),
+        api_keys: JSON.stringify(user.apiKeys || [])
       };
 
       const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
       if (error) {
-        console.error("Supabase User Upsert Error:", error);
+        console.error("Supabase User Upsert Error Details:", error);
         throw error;
       }
     } catch (err) {
-      console.error("Catch Error in updateUser:", err);
+      console.error("Critical Error in updateUser:", err);
       throw err;
     }
   },
