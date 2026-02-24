@@ -236,21 +236,21 @@ export const AdExchange: React.FC<Props> = ({
 
   return (
     <div className="space-y-12 animate-in fade-in duration-700">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <header className="flex justify-between items-end">
         <div className="space-y-2">
-          <h2 className="text-4xl md:text-6xl font-black tracking-tighter">بورصة الإعلانات FPN</h2>
-          <p className="text-slate-500 font-bold text-base md:text-lg">سوق متكامل يربط التجار بالعملاء بضمان الاعتماد المستندي.</p>
+          <h2 className="text-6xl font-black tracking-tighter">بورصة الإعلانات FPN</h2>
+          <p className="text-slate-500 font-bold text-lg">سوق متكامل يربط التجار بالعملاء بضمان الاعتماد المستندي.</p>
         </div>
-        <div className="flex flex-wrap gap-3 md:gap-4 w-full md:w-auto">
-          <button onClick={() => setView('browse')} className={`flex-1 md:flex-none px-4 md:px-8 py-3 rounded-xl md:rounded-2xl font-black text-sm md:text-base transition-all ${view === 'browse' ? 'bg-sky-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>تصفح السوق</button>
+        <div className="flex gap-4">
+          <button onClick={() => setView('browse')} className={`px-8 py-3 rounded-2xl font-black transition-all ${view === 'browse' ? 'bg-sky-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>تصفح السوق</button>
           {user.role === 'MERCHANT' && (
             <>
-              <button onClick={() => setView('my_ads')} className={`flex-1 md:flex-none px-4 md:px-8 py-3 rounded-xl md:rounded-2xl font-black text-sm md:text-base transition-all ${view === 'my_ads' ? 'bg-sky-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>إعلاناتي</button>
-              <button onClick={() => setIsCreateModalOpen(true)} className="w-full md:w-auto px-6 md:px-8 py-3 bg-emerald-600 text-white rounded-xl md:rounded-2xl font-black text-sm md:text-base hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20">نشر إعلان جديد ➕</button>
+              <button onClick={() => setView('my_ads')} className={`px-8 py-3 rounded-2xl font-black transition-all ${view === 'my_ads' ? 'bg-sky-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>إعلاناتي</button>
+              <button onClick={() => setIsCreateModalOpen(true)} className="px-8 py-3 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20">نشر إعلان جديد ➕</button>
             </>
           )}
           {user.role === 'DEVELOPER' && (
-            <button onClick={() => setView('admin_review')} className={`flex-1 md:flex-none px-4 md:px-8 py-3 rounded-xl md:rounded-2xl font-black text-sm md:text-base transition-all ${view === 'admin_review' ? 'bg-red-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>مراجعة الإعلانات</button>
+            <button onClick={() => setView('admin_review')} className={`px-8 py-3 rounded-2xl font-black transition-all ${view === 'admin_review' ? 'bg-red-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>مراجعة الإعلانات</button>
           )}
         </div>
       </header>
@@ -599,38 +599,38 @@ export const AdExchange: React.FC<Props> = ({
 
       {/* Admin Review View */}
       {view === 'admin_review' && (
-        <div className="bg-[#0f172a] border border-white/5 rounded-2xl md:rounded-[4rem] overflow-hidden shadow-2xl overflow-x-auto custom-scrollbar">
-          <table className="w-full text-right font-bold min-w-[800px]">
+        <div className="bg-[#0f172a] border border-white/5 rounded-[4rem] overflow-hidden shadow-2xl">
+          <table className="w-full text-right font-bold">
             <thead className="bg-white/5 text-[10px] text-slate-500 uppercase font-black">
               <tr>
-                <th className="p-6 md:p-8">الإعلان</th>
-                <th className="p-6 md:p-8">التاجر</th>
-                <th className="p-6 md:p-8">نوع الترويج</th>
-                <th className="p-6 md:p-8 text-center">الإجراء</th>
+                <th className="p-8">الإعلان</th>
+                <th className="p-8">التاجر</th>
+                <th className="p-8">نوع الترويج</th>
+                <th className="p-8 text-center">الإجراء</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {filteredAds.map(ad => (
                 <tr key={ad.id} className="hover:bg-white/5 transition-colors">
-                  <td className="p-6 md:p-8">
+                  <td className="p-8">
                     <div className="flex items-center gap-4">
-                      <img src={ad.imageUrl} className="w-10 md:w-12 h-10 md:h-12 rounded-xl object-cover" alt="" />
+                      <img src={ad.imageUrl} className="w-12 h-12 rounded-xl object-cover" alt="" />
                       <div>
-                        <p className="text-white text-sm md:text-base">{ad.title}</p>
-                        <p className="text-[10px] md:text-xs text-emerald-500">${ad.price.toLocaleString()}</p>
+                        <p className="text-white">{ad.title}</p>
+                        <p className="text-xs text-emerald-500">${ad.price.toLocaleString()}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-6 md:p-8 text-slate-400 text-sm md:text-base">{ad.merchantName}</td>
-                  <td className="p-6 md:p-8">
-                    <span className="px-3 md:px-4 py-1 rounded-full bg-sky-500/10 text-sky-400 text-[9px] md:text-[10px] font-black uppercase">
+                  <td className="p-8 text-slate-400">{ad.merchantName}</td>
+                  <td className="p-8">
+                    <span className="px-4 py-1 rounded-full bg-sky-500/10 text-sky-400 text-[10px] font-black uppercase">
                       {ad.promotionType === 'network_home' ? 'شامل' : 'داخلي'}
                     </span>
                   </td>
-                  <td className="p-6 md:p-8 text-center">
-                    <div className="flex justify-center gap-2 md:gap-3">
-                      <button onClick={() => handleAdjustViews(ad.id)} className="bg-white/5 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black hover:bg-white/10 transition-all">تعديل</button>
-                      <button onClick={() => handleSuspendMerchant(ad.merchantId)} className="bg-red-600/10 text-red-500 border border-red-500/20 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black hover:bg-red-600 hover:text-white transition-all">حظر</button>
+                  <td className="p-8 text-center">
+                    <div className="flex justify-center gap-3">
+                      <button onClick={() => handleAdjustViews(ad.id)} className="bg-white/5 px-4 py-2 rounded-xl text-[10px] font-black hover:bg-white/10 transition-all">تعديل المشاهدات</button>
+                      <button onClick={() => handleSuspendMerchant(ad.merchantId)} className="bg-red-600/10 text-red-500 border border-red-500/20 px-4 py-2 rounded-xl text-[10px] font-black hover:bg-red-600 hover:text-white transition-all">حظر التاجر</button>
                       
                       {ad.promotionStatus === 'requested' && !ad.promotionPrice && (
                         <button 
@@ -641,9 +641,9 @@ export const AdExchange: React.FC<Props> = ({
                               addNotification('تم تحديد السعر', `تم تحديد سعر الترويج لإعلان ${ad.title} بـ $${price}`, 'system');
                             }
                           }}
-                          className="bg-sky-600 px-4 md:px-6 py-1.5 md:py-2 rounded-lg md:rounded-xl font-black text-[10px] md:text-xs hover:bg-sky-500 transition-all"
+                          className="bg-sky-600 px-6 py-2 rounded-xl font-black text-xs hover:bg-sky-500 transition-all"
                         >
-                          تسعير
+                          تحديد السعر
                         </button>
                       )}
 
@@ -651,15 +651,15 @@ export const AdExchange: React.FC<Props> = ({
                         <>
                           <button 
                             onClick={() => handleAdminApprovePromotion(ad)}
-                            className="bg-emerald-600 px-4 md:px-6 py-1.5 md:py-2 rounded-lg md:rounded-xl font-black text-[10px] md:text-xs hover:bg-emerald-500 transition-all"
+                            className="bg-emerald-600 px-6 py-2 rounded-xl font-black text-xs hover:bg-emerald-500 transition-all"
                           >
-                            موافقة
+                            موافقة وتفعيل
                           </button>
                           <button 
                             onClick={() => handleAdminRejectPromotion(ad)}
-                            className="bg-red-600/10 text-red-500 border border-red-500/20 px-4 md:px-6 py-1.5 md:py-2 rounded-lg md:rounded-xl font-black text-[10px] md:text-xs hover:bg-red-600 hover:text-white transition-all"
+                            className="bg-red-600/10 text-red-500 border border-red-500/20 px-6 py-2 rounded-xl font-black text-xs hover:bg-red-600 hover:text-white transition-all"
                           >
-                            رفض
+                            رفض واسترداد
                           </button>
                         </>
                       )}
@@ -669,9 +669,9 @@ export const AdExchange: React.FC<Props> = ({
               ))}
               {filteredAds.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="p-10 md:p-20 text-center opacity-30">
-                    <div className="text-4xl md:text-6xl mb-4">✅</div>
-                    <p className="font-black text-lg md:text-xl">لا توجد طلبات معلقة حالياً</p>
+                  <td colSpan={4} className="p-20 text-center opacity-30">
+                    <div className="text-6xl mb-4">✅</div>
+                    <p className="font-black text-xl">لا توجد طلبات معلقة حالياً</p>
                   </td>
                 </tr>
               )}

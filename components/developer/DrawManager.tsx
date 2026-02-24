@@ -46,39 +46,39 @@ const DrawManager: React.FC<Props> = ({
   };
 
   return (
-    <div className="space-y-8 md:space-y-10 animate-in fade-in pb-20">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-amber-500">إدارة القرعة الشهرية</h2>
-        <div className="flex gap-4 w-full sm:w-auto">
+    <div className="space-y-10 animate-in fade-in pb-20">
+      <div className="flex justify-between items-center">
+        <h2 className="text-5xl font-black tracking-tighter text-amber-500">إدارة القرعة الشهرية</h2>
+        <div className="flex gap-4">
           <button 
             disabled={isDrawing || raffleEntries.length === 0}
             onClick={drawRaffleWinner} 
-            className={`flex-1 sm:flex-none bg-amber-600 px-6 md:px-10 py-4 md:py-5 rounded-2xl md:rounded-[2.5rem] font-black text-lg md:text-2xl shadow-2xl transition-all flex items-center justify-center gap-4 ${isDrawing ? 'opacity-50 cursor-not-allowed scale-95' : 'hover:bg-amber-500 hover:scale-105 active:scale-95'}`}
+            className={`bg-amber-600 px-10 py-5 rounded-[2.5rem] font-black text-2xl shadow-2xl transition-all flex items-center gap-4 ${isDrawing ? 'opacity-50 cursor-not-allowed scale-95' : 'hover:bg-amber-500 hover:scale-105 active:scale-95'}`}
           >
             {isDrawing ? (
               <>
-                <span className="text-sm md:text-2xl">جاري السحب...</span>
-                <span className="animate-spin text-xl md:text-3xl">🌀</span>
+                <span>جاري إجراء السحب...</span>
+                <span className="animate-spin text-3xl">🌀</span>
               </>
             ) : (
               <>
-                <span className="text-sm md:text-2xl">سحب فائز 🎰</span>
-                <span className="text-xl md:text-3xl">✨</span>
+                <span>سحب فائز عشوائي 🎰</span>
+                <span className="text-3xl">✨</span>
               </>
             )}
           </button>
         </div>
       </div>
 
-      <div className="bg-slate-900/40 p-6 md:p-10 rounded-2xl md:rounded-[3rem] border border-white/5 shadow-2xl space-y-6 md:space-y-8">
-        <h3 className="text-xl md:text-2xl font-black border-r-4 md:border-r-8 border-amber-500 pr-4 md:pr-6 uppercase tracking-widest">إعدادات القرعة</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      <div className="bg-slate-900/40 p-10 rounded-[3rem] border border-white/5 shadow-2xl space-y-8">
+        <h3 className="text-2xl font-black border-r-8 border-amber-500 pr-6 uppercase tracking-widest">إعدادات القرعة الحالية</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-500 uppercase mr-4">نوع الجائزة</label>
             <input 
               value={siteConfig.rafflePrizeType} 
               onChange={e => onUpdateConfig({ ...siteConfig, rafflePrizeType: e.target.value })} 
-              className="w-full p-4 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black outline-none focus:border-amber-500 transition-all text-sm md:text-base" 
+              className="w-full p-4 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-amber-500 transition-all" 
             />
           </div>
           <div className="space-y-2">
@@ -87,7 +87,7 @@ const DrawManager: React.FC<Props> = ({
               type="number"
               value={siteConfig.raffleEntryCost} 
               onChange={e => onUpdateConfig({ ...siteConfig, raffleEntryCost: parseFloat(e.target.value) })} 
-              className="w-full p-4 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black outline-none focus:border-amber-500 transition-all text-sm md:text-base" 
+              className="w-full p-4 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-amber-500 transition-all" 
             />
           </div>
           <div className="space-y-2">
@@ -96,13 +96,13 @@ const DrawManager: React.FC<Props> = ({
               type="datetime-local"
               value={siteConfig.raffleEndDate ? new Date(siteConfig.raffleEndDate).toISOString().slice(0, 16) : ''} 
               onChange={e => onUpdateConfig({ ...siteConfig, raffleEndDate: new Date(e.target.value).toISOString() })} 
-              className="w-full p-4 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black outline-none focus:border-amber-500 transition-all text-sm md:text-base" 
+              className="w-full p-4 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-amber-500 transition-all" 
             />
           </div>
-          <div className="flex items-center gap-4 pt-4 md:pt-6">
+          <div className="flex items-center gap-4 pt-6">
             <button 
               onClick={() => onUpdateConfig({ ...siteConfig, showRaffleCountdown: !siteConfig.showRaffleCountdown })}
-              className={`flex-1 py-4 rounded-xl md:rounded-2xl font-black text-xs md:text-sm transition-all ${siteConfig.showRaffleCountdown ? 'bg-amber-600 text-white' : 'bg-white/5 text-slate-500 border border-white/10'}`}
+              className={`flex-1 py-4 rounded-2xl font-black text-sm transition-all ${siteConfig.showRaffleCountdown ? 'bg-amber-600 text-white' : 'bg-white/5 text-slate-500 border border-white/10'}`}
             >
               {siteConfig.showRaffleCountdown ? 'إخفاء العداد' : 'إظهار العداد'}
             </button>
@@ -110,36 +110,36 @@ const DrawManager: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
-        <div className="bg-slate-900/40 p-6 md:p-10 rounded-2xl md:rounded-[3rem] border border-white/5 shadow-2xl flex flex-col">
-          <h3 className="text-xl md:text-2xl font-black mb-6 md:mb-8 border-b border-white/5 pb-4">المشاركون ({raffleEntries.length})</h3>
-          <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto custom-scrollbar flex-1">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="bg-slate-900/40 p-10 rounded-[3rem] border border-white/5 shadow-2xl flex flex-col">
+          <h3 className="text-2xl font-black mb-8 border-b border-white/5 pb-4">المشاركون النشطون ({raffleEntries.length})</h3>
+          <div className="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar flex-1">
             {raffleEntries.map(e => (
-              <div key={e.id} className="flex justify-between items-center p-4 md:p-6 bg-white/5 rounded-xl md:rounded-2xl border border-white/5 hover:border-sky-500/30 transition-all">
+              <div key={e.id} className="flex justify-between items-center p-6 bg-white/5 rounded-2xl border border-white/5 hover:border-sky-500/30 transition-all">
                 <div>
-                  <p className="font-black text-white text-base md:text-lg">{e.fullName}</p>
-                  <p className="text-[10px] md:text-xs text-slate-500 font-mono">@{e.username}</p>
+                  <p className="font-black text-white text-lg">{e.fullName}</p>
+                  <p className="text-xs text-slate-500 font-mono">@{e.username}</p>
                 </div>
-                <span className="text-sky-400 font-mono text-xs md:text-sm tracking-widest">{e.ticketNumber}</span>
+                <span className="text-sky-400 font-mono text-sm tracking-widest">{e.ticketNumber}</span>
               </div>
             ))}
-            {raffleEntries.length === 0 && <p className="text-center opacity-20 py-12 md:py-20 italic text-sm md:text-base">لا يوجد مشاركون في السحب الحالي</p>}
+            {raffleEntries.length === 0 && <p className="text-center opacity-20 py-20 italic">لا يوجد مشاركون في السحب الحالي</p>}
           </div>
         </div>
-        <div className="bg-slate-900/40 p-6 md:p-10 rounded-2xl md:rounded-[3rem] border border-white/5 shadow-2xl flex flex-col">
-          <h3 className="text-xl md:text-2xl font-black mb-6 md:mb-8 text-emerald-400 border-b border-white/5 pb-4">سجل الفائزين</h3>
-          <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto custom-scrollbar flex-1">
+        <div className="bg-slate-900/40 p-10 rounded-[3rem] border border-white/5 shadow-2xl flex flex-col">
+          <h3 className="text-2xl font-black mb-8 text-emerald-400 border-b border-white/5 pb-4">سجل الفائزين الملكي</h3>
+          <div className="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar flex-1">
             {raffleWinners.map(w => (
-              <div key={w.id} className="p-6 md:p-8 bg-emerald-500/10 rounded-2xl md:rounded-3xl border border-emerald-500/20 flex justify-between items-center group relative overflow-hidden">
+              <div key={w.id} className="p-8 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 flex justify-between items-center group relative overflow-hidden">
                 <div className="relative z-10">
-                  <p className="text-[8px] md:text-[10px] text-emerald-400 font-black mb-1 uppercase tracking-[0.2em] md:tracking-[0.3em]">فاز بـ {w.prizeTitle}</p>
-                  <p className="text-xl md:text-2xl font-black text-white">{w.fullName}</p>
-                  <p className="text-[8px] md:text-[9px] text-slate-500 mt-2 font-mono uppercase">{w.wonAt}</p>
+                  <p className="text-[10px] text-emerald-400 font-black mb-1 uppercase tracking-[0.3em]">فاز بـ {w.prizeTitle}</p>
+                  <p className="text-2xl font-black text-white">{w.fullName}</p>
+                  <p className="text-[9px] text-slate-500 mt-2 font-mono uppercase">{w.wonAt}</p>
                 </div>
-                <span className="text-4xl md:text-5xl group-hover:scale-125 transition-transform duration-500">👑</span>
+                <span className="text-5xl group-hover:scale-125 transition-transform duration-500">👑</span>
               </div>
             ))}
-            {raffleWinners.length === 0 && <p className="text-center opacity-20 py-12 md:py-20 italic text-sm md:text-base">بانتظار تتويج أول فائز...</p>}
+            {raffleWinners.length === 0 && <p className="text-center opacity-20 py-20 italic">بانتظار تتويج أول فائز لهذا الشهر...</p>}
           </div>
         </div>
       </div>

@@ -81,22 +81,22 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={onClose}></div>
       
-      <div className="relative bg-[#0f172a]/95 border border-white/10 w-full max-w-2xl rounded-[2.5rem] md:rounded-[4rem] shadow-[0_0_100px_rgba(0,0,0,0.6)] overflow-hidden animate-in fade-in zoom-in duration-500 backdrop-blur-3xl max-h-[90vh] flex flex-col">
-        <div className="overflow-y-auto custom-scrollbar p-6 md:p-16 text-center">
-          <button onClick={onClose} className="absolute top-6 right-6 md:top-8 md:right-8 text-slate-500 hover:text-white transition bg-white/5 p-2 md:p-3 rounded-full z-10">
-            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+      <div className="relative bg-[#0f172a]/95 border border-white/10 w-full max-w-2xl rounded-[3rem] md:rounded-[4rem] shadow-[0_0_100px_rgba(0,0,0,0.6)] overflow-hidden animate-in fade-in zoom-in duration-500 backdrop-blur-3xl max-h-[90vh] flex flex-col">
+        <div className="overflow-y-auto custom-scrollbar p-8 md:p-16 text-center">
+          <button onClick={onClose} className="absolute top-8 right-8 text-slate-500 hover:text-white transition bg-white/5 p-3 rounded-full z-10">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
 
-          <div className="mb-8 md:mb-12 pt-4 md:pt-0">
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-sky-600/20 rounded-2xl md:rounded-[2rem] flex items-center justify-center mx-auto mb-4 md:mb-6 border border-sky-500/30">
-              <span className="text-3xl md:text-4xl">✨</span>
+          <div className="mb-12">
+            <div className="w-20 h-20 bg-sky-600/20 rounded-[2rem] flex items-center justify-center mx-auto mb-6 border border-sky-500/30">
+              <span className="text-4xl">✨</span>
             </div>
-            <h2 className="text-2xl md:text-5xl font-black text-white tracking-tighter">انضم للمستقبل المالي</h2>
-            <p className="text-slate-500 font-bold mt-2 text-xs md:text-base">عضوية FastPay Network الرقمية الفاخرة</p>
+            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter">انضم للمستقبل المالي</h2>
+            <p className="text-slate-500 font-bold mt-2">عضوية FastPay Network الرقمية الفاخرة</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8 text-right">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <form onSubmit={handleSubmit} className="space-y-8 text-right">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">الاسم الثلاثي الكامل</label>
                 <input
@@ -105,7 +105,7 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
                   value={formData.fullName}
                   onChange={(e) => setFormData({...formData, fullName: e.target.value})}
                   placeholder="الاسم الثلاثي"
-                  className="w-full p-4 md:p-5 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-base md:text-lg placeholder:text-slate-700"
+                  className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-lg placeholder:text-slate-700"
                 />
               </div>
               <div className="space-y-2">
@@ -116,13 +116,13 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
                   value={formData.username}
                   onChange={(e) => setFormData({...formData, username: e.target.value})}
                   placeholder="Username"
-                  className="w-full p-4 md:p-5 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-base md:text-lg placeholder:text-slate-700"
+                  className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-lg placeholder:text-slate-700"
                   dir="ltr"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">البريد الإلكتروني الموثق</label>
                 <input
@@ -131,7 +131,7 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   placeholder="name@domain.com"
-                  className="w-full p-4 md:p-5 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-base md:text-lg placeholder:text-slate-700"
+                  className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-lg placeholder:text-slate-700"
                   dir="ltr"
                 />
               </div>
@@ -143,13 +143,13 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
                   value={formData.phoneNumber}
                   onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
                   placeholder="+966 5X XXX XXXX"
-                  className="w-full p-4 md:p-5 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-base md:text-lg placeholder:text-slate-700"
+                  className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-lg placeholder:text-slate-700"
                   dir="ltr"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">كلمة المرور المشفرة</label>
                 <input
@@ -158,7 +158,7 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                   placeholder="••••••••"
-                  className="w-full p-4 md:p-5 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-base md:text-lg"
+                  className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-lg"
                 />
               </div>
               <div className="space-y-2">
@@ -169,13 +169,13 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                   placeholder="••••••••"
-                  className="w-full p-4 md:p-5 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-base md:text-lg"
+                  className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-lg"
                 />
               </div>
             </div>
             
             {error && (
-              <div className="bg-red-500/10 text-red-400 p-4 md:p-5 rounded-xl md:rounded-3xl text-xs md:text-sm font-black border border-red-500/20 flex items-center gap-3 animate-shake">
+              <div className="bg-red-500/10 text-red-400 p-5 rounded-3xl text-sm font-black border border-red-500/20 flex items-center gap-3 animate-shake">
                 <span>⚠️</span>
                 <span>{error}</span>
               </div>
@@ -183,13 +183,13 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
             
             <button 
               type="submit"
-              className="w-full py-5 md:py-7 bg-sky-600 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-[0_20px_50px_-10px_rgba(14,165,233,0.5)] hover:bg-sky-500 transition-all active:scale-95 transform mt-4"
+              className="w-full py-7 bg-sky-600 text-white rounded-[2.5rem] font-black text-2xl shadow-[0_20px_50px_-10px_rgba(14,165,233,0.5)] hover:bg-sky-500 transition-all active:scale-95 transform mt-4"
             >
               تأسيس العضوية الرقمية
             </button>
 
-            <div className="mt-6 md:mt-10 pt-6 md:pt-8 border-t border-white/5">
-               <p className="text-slate-500 font-bold text-xs md:text-base">لديك حساب مفعل مسبقاً؟ <button onClick={onSwitchToLogin} type="button" className="text-sky-400 font-black hover:text-sky-300 transition-all">سجل دخولك من هنا</button></p>
+            <div className="mt-10 pt-8 border-t border-white/5">
+               <p className="text-slate-500 font-bold">لديك حساب مفعل مسبقاً؟ <button onClick={onSwitchToLogin} type="button" className="text-sky-400 font-black hover:text-sky-300 transition-all">سجل دخولك من هنا</button></p>
             </div>
           </form>
         </div>

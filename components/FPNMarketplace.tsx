@@ -311,31 +311,31 @@ const FPNMarketplace: React.FC<Props> = ({
   return (
     <div className="space-y-8 text-right" dir="rtl">
       {/* Header Info */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900/80 p-6 md:p-8 rounded-3xl border border-white/5 backdrop-blur-xl">
-        <div className="space-y-1">
-          <h1 className="text-xl md:text-3xl font-bold text-white flex items-center gap-3">
-            <Shield className="text-emerald-500 w-6 h-6 md:w-10 md:h-10" />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/80 p-6 rounded-3xl border border-white/5 backdrop-blur-xl">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+            <Shield className="text-emerald-500 w-8 h-8" />
             بورصة FPN المالية المتكاملة
           </h1>
-          <p className="text-slate-400 text-xs md:text-sm">نظام تداول آمن مشفر ببروتوكول AES-256</p>
+          <p className="text-slate-400 text-sm mt-1">نظام تداول آمن مشفر ببروتوكول AES-256</p>
         </div>
-        <div className="flex flex-col items-start md:items-end w-full md:w-auto">
-          <div className="flex items-center gap-2 text-[10px] md:text-xs font-mono text-emerald-500/70 break-all">
-            <Lock className="w-3 h-3 shrink-0" />
+        <div className="flex flex-col items-end">
+          <div className="flex items-center gap-2 text-xs font-mono text-emerald-500/70">
+            <Lock className="w-3 h-3" />
             {encryptedSession}
           </div>
-          <div className="text-2xl md:text-4xl font-bold text-emerald-400 mt-1">
-            {user.balance.toLocaleString()} <span className="text-sm md:text-base font-normal text-slate-500">FPN</span>
+          <div className="text-2xl font-bold text-emerald-400 mt-1">
+            {user.balance.toLocaleString()} <span className="text-sm font-normal text-slate-500">FPN</span>
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex p-1 bg-slate-950 rounded-2xl border border-white/5 w-full md:w-fit overflow-x-auto custom-scrollbar">
+      <div className="flex p-1 bg-slate-950 rounded-2xl border border-white/5 w-fit">
         <button
           onClick={() => setActiveTab('browse')}
           className={cn(
-            "px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap",
+            "px-6 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2",
             activeTab === 'browse' ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "text-slate-400 hover:text-white"
           )}
         >
@@ -345,7 +345,7 @@ const FPNMarketplace: React.FC<Props> = ({
         <button
           onClick={() => setActiveTab('my-ads')}
           className={cn(
-            "px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap",
+            "px-6 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2",
             activeTab === 'my-ads' ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "text-slate-400 hover:text-white"
           )}
         >
@@ -355,7 +355,7 @@ const FPNMarketplace: React.FC<Props> = ({
         <button
           onClick={() => setActiveTab('post')}
           className={cn(
-            "px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap",
+            "px-6 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2",
             activeTab === 'post' ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "text-slate-400 hover:text-white"
           )}
         >
@@ -366,12 +366,12 @@ const FPNMarketplace: React.FC<Props> = ({
           <button
             onClick={() => setActiveTab('admin')}
             className={cn(
-              "px-4 md:px-6 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap",
+              "px-6 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2",
               activeTab === 'admin' ? "bg-red-500 text-white shadow-lg shadow-red-500/20" : "text-slate-400 hover:text-white"
             )}
           >
             <Shield className="w-4 h-4" />
-            إدارة البورصة
+            إدارة البورصة (مدير)
           </button>
         )}
       </div>
@@ -397,7 +397,7 @@ const FPNMarketplace: React.FC<Props> = ({
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAds.map(ad => (
                 <motion.div
                   layoutId={ad.id}
@@ -414,16 +414,16 @@ const FPNMarketplace: React.FC<Props> = ({
                       </span>
                     )}
                   </div>
-                  <h3 className="text-lg md:text-xl font-bold text-white mb-2">{ad.title}</h3>
-                  <p className="text-slate-400 text-xs md:text-sm line-clamp-2 mb-6 flex-grow">{ad.description}</p>
+                  <h3 className="text-xl font-bold text-white mb-2">{ad.title}</h3>
+                  <p className="text-slate-400 text-sm line-clamp-2 mb-6 flex-grow">{ad.description}</p>
                   
                   <div className="flex items-center justify-between mt-auto pt-6 border-t border-white/5">
-                    <div className="text-xl md:text-2xl font-bold text-white">
+                    <div className="text-2xl font-bold text-white">
                       {ad.price.toLocaleString()} <span className="text-xs text-slate-500">FPN</span>
                     </div>
                     <button
                       onClick={() => setSelectedAd(ad)}
-                      className="bg-white text-black px-4 md:px-5 py-2 rounded-xl text-xs md:text-sm font-bold hover:bg-emerald-500 hover:text-white transition-all"
+                      className="bg-white text-black px-5 py-2 rounded-xl text-sm font-bold hover:bg-emerald-500 hover:text-white transition-all"
                     >
                       تفاصيل
                     </button>
@@ -649,18 +649,18 @@ const FPNMarketplace: React.FC<Props> = ({
             exit={{ opacity: 0, y: -20 }}
             className="space-y-8"
           >
-            <div className="bg-slate-900/80 border border-white/5 rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-2xl">
-              <div className="p-6 md:p-8 border-b border-white/5 bg-white/5">
-                <h3 className="text-lg md:text-xl font-bold text-white">الإعلانات المحظورة (Anti-Leakage)</h3>
+            <div className="bg-slate-900/80 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
+              <div className="p-8 border-b border-white/5 bg-white/5">
+                <h3 className="text-xl font-bold text-white">الإعلانات المحظورة (Anti-Leakage)</h3>
               </div>
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-right min-w-[600px]">
+              <div className="overflow-x-auto">
+                <table className="w-full text-right">
                   <thead className="bg-slate-950 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     <tr>
-                      <th className="p-4 md:p-6">الإعلان</th>
-                      <th className="p-4 md:p-6">التاجر</th>
-                      <th className="p-4 md:p-6">السبب</th>
-                      <th className="p-4 md:p-6 text-center">الإجراء</th>
+                      <th className="p-6">الإعلان</th>
+                      <th className="p-6">التاجر</th>
+                      <th className="p-6">السبب</th>
+                      <th className="p-6 text-center">الإجراء</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -671,18 +671,18 @@ const FPNMarketplace: React.FC<Props> = ({
                     ) : (
                       ads.filter(a => a.status === 'blocked').map(ad => (
                         <tr key={ad.id} className="hover:bg-white/5 transition-all">
-                          <td className="p-4 md:p-6">
-                            <div className="font-bold text-white text-sm md:text-base">{ad.title}</div>
+                          <td className="p-6">
+                            <div className="font-bold text-white">{ad.title}</div>
                             <div className="text-xs text-slate-500 line-clamp-1">{ad.description}</div>
                           </td>
-                          <td className="p-4 md:p-6 text-slate-400 text-sm">{ad.sellerName}</td>
-                          <td className="p-4 md:p-6">
-                            <span className="text-[10px] text-red-400 bg-red-400/10 px-2 py-1 rounded-lg border border-red-400/20">تسريب بيانات</span>
+                          <td className="p-6 text-slate-400">{ad.sellerName}</td>
+                          <td className="p-6">
+                            <span className="text-xs text-red-400 bg-red-400/10 px-2 py-1 rounded-lg border border-red-400/20">تسريب بيانات</span>
                           </td>
-                          <td className="p-4 md:p-6 text-center">
+                          <td className="p-6 text-center">
                             <button
                               onClick={() => handleUnblockAd(ad.id)}
-                              className="bg-emerald-500 text-white px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold hover:bg-emerald-600 transition-all"
+                              className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-600 transition-all"
                             >
                               فك الحظر
                             </button>
@@ -695,17 +695,17 @@ const FPNMarketplace: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="bg-slate-900/80 border border-white/5 rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-2xl">
-              <div className="p-6 md:p-8 border-b border-white/5 bg-white/5">
-                <h3 className="text-lg md:text-xl font-bold text-white">المستخدمون المعلقون</h3>
+            <div className="bg-slate-900/80 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
+              <div className="p-8 border-b border-white/5 bg-white/5">
+                <h3 className="text-xl font-bold text-white">المستخدمون المعلقون</h3>
               </div>
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-right min-w-[500px]">
+              <div className="overflow-x-auto">
+                <table className="w-full text-right">
                   <thead className="bg-slate-950 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     <tr>
-                      <th className="p-4 md:p-6">المستخدم</th>
-                      <th className="p-4 md:p-6">السبب</th>
-                      <th className="p-4 md:p-6 text-center">الإجراء</th>
+                      <th className="p-6">المستخدم</th>
+                      <th className="p-6">السبب</th>
+                      <th className="p-6 text-center">الإجراء</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -716,15 +716,15 @@ const FPNMarketplace: React.FC<Props> = ({
                     ) : (
                       accounts.filter(u => u.status === 'suspended').map(acc => (
                         <tr key={acc.id} className="hover:bg-white/5 transition-all">
-                          <td className="p-4 md:p-6">
-                            <div className="font-bold text-white text-sm md:text-base">{acc.fullName}</div>
+                          <td className="p-6">
+                            <div className="font-bold text-white">{acc.fullName}</div>
                             <div className="text-xs text-slate-500">@{acc.username}</div>
                           </td>
-                          <td className="p-4 md:p-6 text-[10px] md:text-xs text-slate-400 max-w-xs">{acc.statusReason}</td>
-                          <td className="p-4 md:p-6 text-center">
+                          <td className="p-6 text-xs text-slate-400 max-w-xs">{acc.statusReason}</td>
+                          <td className="p-6 text-center">
                             <button
                               onClick={() => handleUnblockUser(acc.id)}
-                              className="bg-emerald-500 text-white px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold hover:bg-emerald-600 transition-all"
+                              className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-600 transition-all"
                             >
                               فك الحظر
                             </button>
@@ -742,56 +742,56 @@ const FPNMarketplace: React.FC<Props> = ({
 
       {/* Ad Detail Modal */}
       {selectedAd && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-[#0f172a] border border-white/10 rounded-[2rem] md:rounded-[2.5rem] w-full max-w-2xl overflow-y-auto max-h-[90vh] shadow-2xl custom-scrollbar"
+            className="bg-slate-900 border border-white/10 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl"
           >
-            <div className="p-6 md:p-10">
-              <div className="flex justify-between items-start mb-6 md:mb-8">
-                <div className="p-4 bg-emerald-500/10 rounded-2xl md:rounded-3xl">
-                  <ShoppingBag className="w-6 h-6 md:w-8 md:h-8 text-emerald-500" />
+            <div className="p-8">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-4 bg-emerald-500/10 rounded-3xl">
+                  <ShoppingBag className="w-8 h-8 text-emerald-500" />
                 </div>
                 <button onClick={() => setSelectedAd(null)} className="p-2 hover:bg-white/5 rounded-full transition-all">
                   <X className="w-6 h-6 text-slate-400" />
                 </button>
               </div>
 
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{selectedAd.title}</h2>
-              <div className="flex items-center gap-2 text-slate-500 text-xs md:text-sm mb-6 md:mb-8">
+              <h2 className="text-3xl font-bold text-white mb-2">{selectedAd.title}</h2>
+              <div className="flex items-center gap-2 text-slate-500 text-sm mb-6">
                 <UserIcon className="w-4 h-4" />
                 بواسطة: {selectedAd.sellerName}
               </div>
 
-              <p className="text-slate-300 text-sm md:text-base leading-relaxed mb-8 md:mb-10">{selectedAd.description}</p>
+              <p className="text-slate-300 leading-relaxed mb-8">{selectedAd.description}</p>
 
-              <div className="bg-slate-950 rounded-2xl md:rounded-3xl p-6 md:p-8 border border-white/5 mb-8 md:mb-10">
-                <div className="flex justify-between items-center mb-6 md:mb-8">
-                  <span className="text-slate-400 text-sm md:text-base">السعر الحالي</span>
-                  <div className="text-2xl md:text-4xl font-bold text-white">
-                    {selectedAd.price.toLocaleString()} <span className="text-sm md:text-base font-normal text-slate-500">FPN</span>
+              <div className="bg-slate-950 rounded-3xl p-6 border border-white/5 mb-8">
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-slate-400">السعر الحالي</span>
+                  <div className="text-3xl font-bold text-white">
+                    {selectedAd.price.toLocaleString()} <span className="text-sm font-normal text-slate-500">FPN</span>
                   </div>
                 </div>
 
                 {selectedAd.sellerId === user.id ? (
-                  <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl md:rounded-2xl text-blue-400 text-center text-xs md:text-sm">
+                  <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-blue-400 text-center text-sm">
                     هذا إعلانك الخاص. يمكنك متابعة العروض من تبويب "إعلاناتي".
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {selectedAd.isNegotiable && (
-                      <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex gap-3">
                         <input
                           type="number"
                           placeholder="ضع عرضك هنا..."
                           value={negotiationAmount}
                           onChange={(e) => setNegotiationAmount(e.target.value)}
-                          className="flex-grow bg-slate-900 border border-white/10 rounded-xl md:rounded-2xl p-4 text-white focus:outline-none focus:border-amber-500/50 text-sm md:text-base"
+                          className="flex-grow bg-slate-900 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-amber-500/50"
                         />
                         <button
                           onClick={() => handleMakeOffer(selectedAd)}
-                          className="bg-amber-500 text-black px-6 py-4 rounded-xl md:rounded-2xl font-bold hover:bg-amber-600 transition-all text-sm md:text-base"
+                          className="bg-amber-500 text-black px-6 py-4 rounded-xl font-bold hover:bg-amber-600 transition-all"
                         >
                           تفاوض
                         </button>
@@ -800,16 +800,16 @@ const FPNMarketplace: React.FC<Props> = ({
                     
                     <button
                       onClick={() => startFPNFlow(selectedAd)}
-                      className="w-full bg-emerald-500 text-white py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-base md:text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3"
+                      className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-bold text-xl hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3"
                     >
-                      <Shield className="w-5 h-5" />
-                      شراء عبر FPN LC
+                      <ShoppingBag className="w-6 h-6" />
+                      شراء الآن
                     </button>
                   </div>
                 )}
               </div>
               
-              <div className="flex items-center gap-3 text-[10px] md:text-xs text-slate-500 justify-center">
+              <div className="flex items-center gap-3 text-xs text-slate-500 justify-center">
                 <Shield className="w-4 h-4" />
                 جميع العمليات محمية بنظام الاعتماد المستندي FPN
               </div>
@@ -820,11 +820,11 @@ const FPNMarketplace: React.FC<Props> = ({
 
       {/* FPN Flow Modal */}
       {isFlowActive && (
-        <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-[#0f172a] border border-white/10 rounded-[2rem] md:rounded-[3rem] w-full max-w-md p-8 md:p-12 text-center shadow-2xl relative overflow-hidden"
+            className="bg-slate-900 border border-white/10 rounded-[3rem] w-full max-w-md p-10 text-center shadow-2xl relative overflow-hidden"
           >
             {/* Background Animation */}
             <div className="absolute inset-0 opacity-10">
