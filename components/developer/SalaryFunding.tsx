@@ -38,19 +38,19 @@ const SalaryFunding: React.FC<Props> = ({ salaryPlans, setSalaryPlans, accounts,
 
   return (
     <div className="space-y-10 animate-in slide-in-from-bottom">
-      <div className="flex justify-between items-center">
-        <h2 className="text-5xl font-black tracking-tighter text-indigo-400">تمويل الرواتب المسبق</h2>
-        <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 px-8 py-3 rounded-2xl font-black shadow-lg hover:bg-indigo-500 transition-all">+ تمويل مباشر</button>
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-indigo-400">تمويل الرواتب المسبق</h2>
+        <button onClick={() => setIsModalOpen(true)} className="w-full md:w-auto bg-indigo-600 px-8 py-3 rounded-2xl font-black shadow-lg hover:bg-indigo-500 transition-all">+ تمويل مباشر</button>
       </div>
       <div className="grid grid-cols-1 gap-6">
         {salaryPlans.map(p => (
-          <div key={p.id} className="bg-slate-900/40 p-10 rounded-[3rem] border border-white/5 flex justify-between items-center shadow-xl hover:border-indigo-500/30 transition-all">
+          <div key={p.id} className="bg-slate-900/40 p-6 md:p-10 rounded-3xl md:rounded-[3rem] border border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-xl hover:border-indigo-500/30 transition-all">
             <div>
-              <p className="font-black text-2xl text-white">{p.beneficiaryName} <span className="text-xs text-slate-500">@{p.username}</span></p>
-              <p className="text-indigo-400 font-black text-4xl font-mono">${p.amount.toLocaleString()}</p>
+              <p className="font-black text-xl md:text-2xl text-white">{p.beneficiaryName} <span className="text-xs text-slate-500">@{p.username}</span></p>
+              <p className="text-indigo-400 font-black text-3xl md:text-4xl font-mono">${p.amount.toLocaleString()}</p>
               <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest mt-2">{p.requestedAt}</p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-4 w-full sm:w-auto">
               {p.status === 'pending' ? (
                 <>
                   <button onClick={() => setSalaryPlans(prev => prev.map(x => x.id === p.id ? { ...x, status: 'active' } : x))} className="bg-emerald-600 px-8 py-3 rounded-2xl font-black text-xs hover:bg-emerald-500">تفعيل</button>

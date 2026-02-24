@@ -47,13 +47,13 @@ const DrawManager: React.FC<Props> = ({
 
   return (
     <div className="space-y-10 animate-in fade-in pb-20">
-      <div className="flex justify-between items-center">
-        <h2 className="text-5xl font-black tracking-tighter text-amber-500">إدارة القرعة الشهرية</h2>
-        <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+        <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-amber-500">إدارة القرعة الشهرية</h2>
+        <div className="flex gap-4 w-full md:w-auto">
           <button 
             disabled={isDrawing || raffleEntries.length === 0}
             onClick={drawRaffleWinner} 
-            className={`bg-amber-600 px-10 py-5 rounded-[2.5rem] font-black text-2xl shadow-2xl transition-all flex items-center gap-4 ${isDrawing ? 'opacity-50 cursor-not-allowed scale-95' : 'hover:bg-amber-500 hover:scale-105 active:scale-95'}`}
+            className={`w-full md:w-auto bg-amber-600 px-6 md:px-10 py-4 md:py-5 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl transition-all flex items-center justify-center gap-4 ${isDrawing ? 'opacity-50 cursor-not-allowed scale-95' : 'hover:bg-amber-500 hover:scale-105 active:scale-95'}`}
           >
             {isDrawing ? (
               <>

@@ -85,16 +85,16 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
 
   return (
     <div className="space-y-10 animate-in slide-in-from-bottom pb-20">
-      <div className="flex justify-between items-center">
-        <h2 className="text-5xl font-black tracking-tighter">إدارة حسابات النخبة</h2>
-        <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <h2 className="text-3xl md:text-5xl font-black tracking-tighter">إدارة حسابات النخبة</h2>
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           <button onClick={() => setIsModalOpen(true)} className="bg-emerald-600 px-8 py-3 rounded-2xl font-black shadow-lg hover:bg-emerald-500 transition-all">+ إضافة عضو</button>
-          <input type="text" placeholder="بحث..." value={userSearch} onChange={e => setUserSearch(e.target.value)} className="bg-white/5 p-4 rounded-2xl border border-white/10 w-80 outline-none" />
+          <input type="text" placeholder="بحث..." value={userSearch} onChange={e => setUserSearch(e.target.value)} className="bg-white/5 p-4 rounded-2xl border border-white/10 w-full md:w-80 outline-none" />
         </div>
       </div>
       <div className="bg-[#0f172a] rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-right font-bold">
+          <table className="w-full text-right font-bold min-w-[1000px]">
             <thead className="bg-white/5 text-[10px] text-slate-500 uppercase font-black">
               <tr>
                 <th className="p-8">العضو</th>

@@ -35,6 +35,7 @@ const MerchantDashboard: React.FC<Props> = ({
 }) => {
   const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'verification' | 'ads'>('main');
   const [modalType, setModalType] = useState<'send' | 'cards' | 'new_key' | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // States for Transfer Animation
   const [isTransferring, setIsTransferring] = useState(false);
@@ -351,16 +352,19 @@ header('Location: ' . $payment->checkout_url);`
          </div>
       </div>
 
-      <header className="h-28 bg-[#0f172a]/50 backdrop-blur-2xl border-b border-white/5 px-6 md:px-12 flex justify-between items-center z-10">
-         <div className="flex items-center gap-8">
+      <header className="h-20 md:h-28 bg-[#0f172a]/50 backdrop-blur-2xl border-b border-white/5 px-4 md:px-12 flex justify-between items-center z-[200]">
+         <div className="flex items-center gap-4 md:gap-8">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-white text-2xl p-2">
+               {isMobileMenuOpen ? '✕' : '☰'}
+            </button>
             {siteConfig.logoUrl && (
-              <div className="bg-white p-3 rounded-2xl shadow-xl cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveView('main')}>
-                 <img src={siteConfig.logoUrl} className="h-10" alt="Logo" />
+              <div className="bg-white p-2 md:p-3 rounded-xl md:rounded-2xl shadow-xl cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveView('main')}>
+                 <img src={siteConfig.logoUrl} className="h-6 md:h-10" alt="Logo" />
               </div>
             )}
-            <div className="space-y-1">
-               <h1 className="text-2xl font-black tracking-tighter">بوابة الموزع</h1>
-               <nav className="flex gap-6">
+            <div className="space-y-1 hidden md:block">
+               <h1 className="text-xl md:text-2xl font-black tracking-tighter">بوابة الموزع</h1>
+               <nav className="flex gap-4 md:gap-6">
                   {[
                     { id: 'main', l: 'الرئيسية' },
                     { id: 'gateway', l: 'بوابة المطورين & API' },
@@ -371,7 +375,7 @@ header('Location: ' . $payment->checkout_url);`
                    <button 
                      key={view.id}
                      onClick={() => setActiveView(view.id as any)} 
-                     className={`text-[11px] font-black uppercase tracking-[0.2em] transition-all pb-1 border-b-2 ${activeView === view.id ? 'text-sky-400 border-sky-400' : 'text-slate-500 border-transparent hover:text-white'}`}
+                     className={`text-[9px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all pb-1 border-b-2 ${activeView === view.id ? 'text-sky-400 border-sky-400' : 'text-slate-500 border-transparent hover:text-white'}`}
                    >
                      {view.l}
                    </button>
@@ -379,7 +383,7 @@ header('Location: ' . $payment->checkout_url);`
                </nav>
             </div>
          </div>
-         <div className="flex items-center gap-6">
+         <div className="flex items-center gap-3 md:gap-6">
             <div className="text-left hidden lg:block border-l border-white/10 pl-6 mr-6">
                <p className="font-black text-white text-lg flex items-center gap-2">
                  {user.fullName}
@@ -387,197 +391,219 @@ header('Location: ' . $payment->checkout_url);`
                </p>
                <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">المستوى: موزع معتمد</p>
             </div>
-            <button onClick={onLogout} className="px-8 py-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl font-black hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg">خروج</button>
+            <button onClick={onLogout} className="px-4 md:px-8 py-2 md:py-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl md:rounded-2xl font-black text-xs md:text-base hover:bg-red-600 hover:text-white transition-all active:scale-95 shadow-lg">خروج</button>
          </div>
       </header>
 
-      <main className="flex-1 p-6 md:p-12 overflow-y-auto custom-scrollbar z-10 relative space-y-12 pb-40">
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-[190] bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="absolute top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
+            {[
+              { id: 'main', l: 'الرئيسية', i: '🏠' },
+              { id: 'gateway', l: 'بوابة المطورين', i: '🔌' },
+              { id: 'ads', l: 'بورصة الإعلانات', i: '📢' },
+              { id: 'verification', l: 'توثيق الحساب', i: '🛡️' },
+              { id: 'settings', l: 'إعدادات الحساب', i: '⚙️' }
+            ].map(v => (
+              <button 
+                key={v.id} 
+                onClick={() => { setActiveView(v.id as any); setIsMobileMenuOpen(false); }} 
+                className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black transition-all ${activeView === v.id ? 'bg-sky-600 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+              >
+                <span className="text-2xl">{v.i}</span>
+                <span className="text-base">{v.l}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <main className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar z-10 relative space-y-8 md:space-y-12 pb-40">
          {activeView === 'main' && (
            <div className="max-w-[1600px] mx-auto space-y-12">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                 <div className="lg:col-span-2 bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/10 rounded-[4rem] p-12 md:p-16 shadow-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
-                    <div className="relative z-10 space-y-12">
-                       <div>
-                          <p className="text-sky-400 font-black text-xs uppercase tracking-[0.3em] mb-4">السيولة المتوفرة للموزع</p>
-                          <h2 className="text-6xl md:text-8xl font-black tracking-tighter">${user.balance.toLocaleString()}</h2>
+               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
+                  <div className="lg:col-span-2 bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/10 rounded-3xl md:rounded-[4rem] p-8 md:p-16 shadow-2xl relative overflow-hidden group">
+                     <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
+                     <div className="relative z-10 space-y-8 md:space-y-12">
+                        <div>
+                           <p className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-4">السيولة المتوفرة للموزع</p>
+                           <h2 className="text-5xl md:text-8xl font-black tracking-tighter">${user.balance.toLocaleString()}</h2>
+                        </div>
+                        <div className="flex flex-col sm:flex-row flex-wrap gap-4 md:gap-6">
+                           <button onClick={() => setModalType('cards')} className="flex-1 py-6 md:py-8 bg-emerald-600 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl shadow-emerald-900/40 hover:bg-emerald-500 transition-all flex items-center justify-center gap-4 active:scale-95 group">
+                              <span>إصدار بطاقات</span>
+                              <span className="text-2xl md:text-3xl group-hover:rotate-12 transition-transform">🎫</span>
+                           </button>
+                           <button onClick={() => setModalType('send')} className="flex-1 py-6 md:py-8 bg-white/5 border border-white/10 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl backdrop-blur-xl hover:bg-white/10 transition-all flex items-center justify-center gap-4 active:scale-95 group">
+                              <span>تحويل مباشر</span>
+                              <span className="text-2xl md:text-3xl group-hover:translate-x-[-10px] transition-transform">📤</span>
+                           </button>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                     {[
+                        { l: 'إجمالي البطاقات', v: myGeneratedCards.length, i: '📦', c: 'text-white' },
+                        { l: 'مخزون نشط', v: myGeneratedCards.filter(c=>!c.isUsed).length, i: '⚡', c: 'text-sky-400' },
+                        { l: 'عمليات ناجحة', v: myGeneratedCards.filter(c=>c.isUsed).length, i: '✅', c: 'text-emerald-500' },
+                        { l: 'إيرادات المبيعات', v: `$${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}`, i: '💰', c: 'text-amber-500' }
+                     ].map((stat, idx) => (
+                       <div key={idx} className="p-6 md:p-10 bg-[#0f172a]/60 backdrop-blur-xl border border-white/5 rounded-2xl md:rounded-[3rem] shadow-xl hover:border-sky-500/30 transition-all group">
+                          <div className="flex justify-between items-start mb-4 md:mb-6">
+                             <span className="text-3xl md:text-4xl group-hover:scale-110 transition-transform">{stat.i}</span>
+                             <p className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{stat.l}</p>
+                          </div>
+                          <p className={`text-3xl md:text-4xl font-black ${stat.c}`}>{stat.v}</p>
                        </div>
-                       <div className="flex flex-wrap gap-6">
-                          <button onClick={() => setModalType('cards')} className="flex-1 min-w-[240px] py-8 bg-emerald-600 text-white rounded-[2.5rem] font-black text-2xl shadow-2xl shadow-emerald-900/40 hover:bg-emerald-500 transition-all flex items-center justify-center gap-4 active:scale-95 group">
-                             <span>إصدار بطاقات</span>
-                             <span className="text-3xl group-hover:rotate-12 transition-transform">🎫</span>
-                          </button>
-                          <button onClick={() => setModalType('send')} className="flex-1 min-w-[240px] py-8 bg-white/5 border border-white/10 text-white rounded-[2.5rem] font-black text-2xl backdrop-blur-xl hover:bg-white/10 transition-all flex items-center justify-center gap-4 active:scale-95 group">
-                             <span>تحويل مباشر</span>
-                             <span className="text-3xl group-hover:translate-x-[-10px] transition-transform">📤</span>
-                          </button>
-                       </div>
-                    </div>
-                 </div>
+                     ))}
+                  </div>
+               </div>
 
-                 <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[
-                       { l: 'إجمالي البطاقات', v: myGeneratedCards.length, i: '📦', c: 'text-white' },
-                       { l: 'مخزون نشط', v: myGeneratedCards.filter(c=>!c.isUsed).length, i: '⚡', c: 'text-sky-400' },
-                       { l: 'عمليات ناجحة', v: myGeneratedCards.filter(c=>c.isUsed).length, i: '✅', c: 'text-emerald-500' },
-                       { l: 'إيرادات المبيعات', v: `$${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}`, i: '💰', c: 'text-amber-500' }
-                    ].map((stat, idx) => (
-                      <div key={idx} className="p-10 bg-[#0f172a]/60 backdrop-blur-xl border border-white/5 rounded-[3rem] shadow-xl hover:border-sky-500/30 transition-all group">
-                         <div className="flex justify-between items-start mb-6">
-                            <span className="text-4xl group-hover:scale-110 transition-transform">{stat.i}</span>
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{stat.l}</p>
-                         </div>
-                         <p className={`text-4xl font-black ${stat.c}`}>{stat.v}</p>
-                      </div>
-                    ))}
-                 </div>
-              </div>
+               <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
+                  <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                     <h3 className="text-2xl md:text-4xl font-black tracking-tighter flex items-center gap-4">
+                        <span>📊</span> سجل مبيعات البطاقات المفصل
+                     </h3>
+                     <div className="w-full md:w-96 relative">
+                        <input 
+                          type="text"
+                          placeholder="بحث بكود البطاقة أو المستخدم..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="w-full p-4 md:p-5 pr-14 bg-white/5 border border-white/10 rounded-2xl font-bold text-white outline-none focus:border-sky-500 transition-all shadow-inner"
+                        />
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-xl opacity-40">🔍</span>
+                     </div>
+                  </div>
 
-              <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
-                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                    <h3 className="text-4xl font-black tracking-tighter flex items-center gap-4">
-                       <span>📊</span> سجل مبيعات البطاقات المفصل
-                    </h3>
-                    <div className="w-full md:w-96 relative">
-                       <input 
-                         type="text"
-                         placeholder="بحث بكود البطاقة أو المستخدم..."
-                         value={searchTerm}
-                         onChange={(e) => setSearchTerm(e.target.value)}
-                         className="w-full p-5 pr-14 bg-white/5 border border-white/10 rounded-2xl font-bold text-white outline-none focus:border-sky-500 transition-all shadow-inner"
-                       />
-                       <span className="absolute right-6 top-1/2 -translate-y-1/2 text-xl opacity-40">🔍</span>
-                    </div>
-                 </div>
-
-                 <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-[4rem] overflow-hidden shadow-2xl">
-                    <div className="overflow-x-auto custom-scrollbar">
-                      <table className="w-full text-right min-w-[1200px]">
-                         <thead className="bg-white/5 text-[11px] font-black uppercase text-slate-500 tracking-[0.2em] border-b border-white/5">
-                            <tr>
-                               <th className="p-10">كود البطاقة الرقمي</th>
-                               <th className="p-10">القيمة المالية</th>
-                               <th className="p-10">الحالة التشغيلية</th>
-                               <th className="p-10">المستفيد</th>
-                               <th className="p-10">توقيت الإنشاء</th>
-                               <th className="p-10">توقيت الاستخدام</th>
-                               <th className="p-10 text-center">التحكم</th>
-                            </tr>
-                         </thead>
-                         <tbody className="divide-y divide-white/5 font-bold">
-                            {myGeneratedCards.length > 0 ? (
-                              myGeneratedCards.slice().reverse().map((c) => (
-                                 <tr key={c.code} className="group hover:bg-white/5 transition-all">
-                                    <td className="p-10">
-                                       <div className="flex items-center gap-4">
-                                          <code className="bg-black/60 px-6 py-3 rounded-xl text-sky-400 font-black tracking-[0.2em] text-sm border border-white/5 shadow-inner group-hover:text-white group-hover:bg-sky-600 transition-all">{c.code}</code>
-                                          <button onClick={() => copyToClipboard(c.code)} className="p-2 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all text-xs" title="نسخ الكود">📋</button>
-                                       </div>
-                                    </td>
-                                    <td className="p-10 text-3xl font-black text-white">${c.amount.toLocaleString()}</td>
-                                    <td className="p-10">
-                                       <span className={`px-6 py-2.5 rounded-full text-[10px] font-black border transition-colors ${c.isUsed ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}`}>
-                                          {c.isUsed ? 'تم الاستخدام' : 'متاحة للبيع'}
-                                       </span>
-                                    </td>
-                                    <td className="p-10">
-                                       {c.isUsed ? (
-                                         <div className="flex flex-col gap-1">
-                                           <span className="text-white text-xl">@{c.usedBy}</span>
-                                         </div>
-                                       ) : (
-                                         <span className="text-slate-700 italic">— لم تستخدم —</span>
-                                       )}
-                                    </td>
-                                    <td className="p-10 text-xs text-slate-500 font-mono">
-                                       {c.createdAt}
-                                    </td>
-                                    <td className="p-10 text-xs font-mono">
-                                       {c.isUsed ? <span className="text-emerald-400">{c.usedAt}</span> : <span className="text-slate-600">...</span>}
-                                    </td>
-                                    <td className="p-10 text-center">
-                                       {!c.isUsed && (
-                                         <button 
-                                           onClick={() => handleCancelCard(c)}
-                                           className="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl font-black text-[10px] hover:bg-red-500 hover:text-white transition-all active:scale-95"
-                                           title="إلغاء البطاقة واسترجاع المبلغ"
-                                         >
-                                           إلغاء البطاقة
-                                         </button>
-                                       )}
-                                    </td>
-                                 </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                 <td colSpan={7} className="p-40 text-center opacity-30">
-                                    <div className="text-[8rem]">📋</div>
-                                    <p className="font-black text-2xl">لا توجد بطاقات حتى الآن</p>
-                                 </td>
-                              </tr>
-                            )}
-                         </tbody>
-                      </table>
-                    </div>
-                 </div>
-              </div>
-           </div>
+                  <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl md:rounded-[4rem] overflow-hidden shadow-2xl overflow-x-auto custom-scrollbar">
+                     <table className="w-full text-right min-w-[1000px]">
+                        <thead className="bg-white/5 text-[10px] md:text-[11px] font-black uppercase text-slate-500 tracking-[0.2em] border-b border-white/5">
+                           <tr>
+                              <th className="p-6 md:p-10">كود البطاقة الرقمي</th>
+                              <th className="p-6 md:p-10">القيمة المالية</th>
+                              <th className="p-6 md:p-10">الحالة التشغيلية</th>
+                              <th className="p-6 md:p-10">المستفيد</th>
+                              <th className="p-6 md:p-10">توقيت الإنشاء</th>
+                              <th className="p-6 md:p-10">توقيت الاستخدام</th>
+                              <th className="p-6 md:p-10 text-center">التحكم</th>
+                           </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5 font-bold">
+                           {myGeneratedCards.length > 0 ? (
+                             myGeneratedCards.slice().reverse().map((c) => (
+                                <tr key={c.code} className="group hover:bg-white/5 transition-all">
+                                   <td className="p-6 md:p-10">
+                                      <div className="flex items-center gap-4">
+                                         <code className="bg-black/60 px-4 md:px-6 py-2 md:py-3 rounded-xl text-sky-400 font-black tracking-[0.1em] md:tracking-[0.2em] text-xs md:text-sm border border-white/5 shadow-inner group-hover:text-white group-hover:bg-sky-600 transition-all">{c.code}</code>
+                                         <button onClick={() => copyToClipboard(c.code)} className="p-2 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all text-xs" title="نسخ الكود">📋</button>
+                                      </div>
+                                   </td>
+                                   <td className="p-6 md:p-10 text-2xl md:text-3xl font-black text-white">${c.amount.toLocaleString()}</td>
+                                   <td className="p-6 md:p-10">
+                                      <span className={`px-4 md:px-6 py-1.5 md:py-2.5 rounded-full text-[9px] md:text-[10px] font-black border transition-colors ${c.isUsed ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}`}>
+                                         {c.isUsed ? 'تم الاستخدام' : 'متاحة للبيع'}
+                                      </span>
+                                   </td>
+                                   <td className="p-6 md:p-10">
+                                      {c.isUsed ? (
+                                        <div className="flex flex-col gap-1">
+                                          <span className="text-white text-lg md:text-xl">@{c.usedBy}</span>
+                                        </div>
+                                      ) : (
+                                        <span className="text-slate-700 italic text-sm">— لم تستخدم —</span>
+                                      )}
+                                   </td>
+                                   <td className="p-6 md:p-10 text-[10px] md:text-xs text-slate-500 font-mono">
+                                      {c.createdAt}
+                                   </td>
+                                   <td className="p-6 md:p-10 text-[10px] md:text-xs font-mono">
+                                      {c.isUsed ? <span className="text-emerald-400">{c.usedAt}</span> : <span className="text-slate-600">...</span>}
+                                   </td>
+                                   <td className="p-6 md:p-10 text-center">
+                                      {!c.isUsed && (
+                                        <button 
+                                          onClick={() => handleCancelCard(c)}
+                                          className="px-3 md:px-4 py-1.5 md:py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg md:rounded-xl font-black text-[9px] md:text-[10px] hover:bg-red-600 hover:text-white transition-all active:scale-95"
+                                          title="إلغاء البطاقة واسترجاع المبلغ"
+                                        >
+                                          إلغاء
+                                        </button>
+                                      )}
+                                   </td>
+                                </tr>
+                             ))
+                           ) : (
+                             <tr>
+                                <td colSpan={7} className="p-20 md:p-40 text-center opacity-30">
+                                   <div className="text-6xl md:text-[8rem]">📋</div>
+                                   <p className="font-black text-xl md:text-2xl">لا توجد بطاقات حتى الآن</p>
+                                </td>
+                             </tr>
+                           )}
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+            </div>
          )}
 
          {activeView === 'gateway' && (
             <div className="max-w-[1400px] mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                   <div className="space-y-2">
-                    <h2 className="text-6xl font-black tracking-tighter">بوابة المطورين & API Gateway</h2>
-                    <p className="text-slate-500 font-bold text-lg max-w-2xl">أدوات الربط البرمجي لقبول المدفوعات في متجرك الإلكتروني.</p>
+                    <h2 className="text-4xl md:text-6xl font-black tracking-tighter">بوابة المطورين & API Gateway</h2>
+                    <p className="text-slate-500 font-bold text-base md:text-lg max-w-2xl">أدوات الربط البرمجي لقبول المدفوعات في متجرك الإلكتروني.</p>
                   </div>
-                  <button onClick={() => setModalType('new_key')} className="px-10 py-5 bg-sky-600 rounded-[2rem] font-black text-xl hover:bg-sky-500 transition-all shadow-2xl active:scale-95 flex items-center gap-4">
+                  <button onClick={() => setModalType('new_key')} className="w-full md:w-auto px-10 py-5 bg-sky-600 rounded-[2rem] font-black text-xl hover:bg-sky-500 transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-4">
                     <span>توليد مفتاح جديد</span>
                     <span className="text-2xl">+</span>
                   </button>
                </div>
 
-               <div className="bg-[#111827] border border-white/5 rounded-[4rem] shadow-2xl overflow-hidden">
-                  <div className="p-10 border-b border-white/5 flex justify-between items-center bg-white/5">
-                     <h3 className="text-2xl font-black text-white">إدارة مفاتيح الوصول</h3>
+               <div className="bg-[#111827] border border-white/5 rounded-2xl md:rounded-[4rem] shadow-2xl overflow-hidden">
+                  <div className="p-6 md:p-10 border-b border-white/5 flex justify-between items-center bg-white/5">
+                     <h3 className="text-xl md:text-2xl font-black text-white">إدارة مفاتيح الوصول</h3>
                   </div>
                   <div className="overflow-x-auto custom-scrollbar">
                      <table className="w-full text-right min-w-[1000px]">
                         <thead className="bg-white/5 text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">
                            <tr>
-                              <th className="p-8">الاسم</th>
-                              <th className="p-8">المفتاح البرمجي</th>
-                              <th className="p-8">الطلبات</th>
-                              <th className="p-8">تاريخ الإصدار</th>
-                              <th className="p-8 text-center">الحالة</th>
-                              <th className="p-8 text-center">التحكم</th>
+                              <th className="p-6 md:p-8">الاسم</th>
+                              <th className="p-6 md:p-8">المفتاح البرمجي</th>
+                              <th className="p-6 md:p-8">الطلبات</th>
+                              <th className="p-6 md:p-8">تاريخ الإصدار</th>
+                              <th className="p-6 md:p-8 text-center">الحالة</th>
+                              <th className="p-6 md:p-8 text-center">التحكم</th>
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 font-bold">
                            {(user.apiKeys || []).length > 0 ? (
                              user.apiKeys?.map((k) => (
                                <tr key={k.id} className="hover:bg-white/5 transition-all">
-                                  <td className="p-8">
+                                  <td className="p-6 md:p-8">
                                      <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-sky-600/20 rounded-xl flex items-center justify-center text-sky-400">🔑</div>
                                         <span className="text-white text-lg">{k.name}</span>
                                      </div>
                                   </td>
-                                  <td className="p-8">
+                                  <td className="p-6 md:p-8">
                                      <div className="flex items-center gap-4 bg-black/40 px-6 py-3 rounded-2xl border border-white/5 w-max">
                                         <code className="text-sky-300 font-mono text-xs tracking-widest">{isKeyVisibleId === k.id ? k.key : '••••••••••••••••••••••••'}</code>
                                         <button onClick={() => setIsKeyVisibleId(isKeyVisibleId === k.id ? null : k.id)} className="text-[10px] font-black text-slate-500 hover:text-white">{isKeyVisibleId === k.id ? 'إخفاء' : 'عرض'}</button>
                                         <button onClick={() => copyToClipboard(k.key)} className="text-[10px] font-black text-sky-500">نسخ</button>
                                      </div>
                                   </td>
-                                  <td className="p-8 text-white font-mono">{k.requests}</td>
-                                  <td className="p-8 text-xs text-slate-500 font-mono">{k.createdAt}</td>
-                                  <td className="p-8 text-center">
+                                  <td className="p-6 md:p-8 text-white font-mono">{k.requests}</td>
+                                  <td className="p-6 md:p-8 text-xs text-slate-500 font-mono">{k.createdAt}</td>
+                                  <td className="p-6 md:p-8 text-center">
                                      <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border ${k.status === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
                                         {k.status === 'active' ? 'نشط' : 'ملغى'}
                                      </span>
                                   </td>
-                                  <td className="p-8 text-center">
+                                  <td className="p-6 md:p-8 text-center">
                                      {k.status === 'active' && (
                                        <button onClick={() => handleRevokeKey(k.id)} className="text-red-500 hover:bg-red-500/10 px-4 py-2 rounded-xl transition-all font-black text-xs">إبطال</button>
                                      )}
@@ -594,28 +620,28 @@ header('Location: ' . $payment->checkout_url);`
                   </div>
                </div>
 
-               <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
                   <div className="lg:col-span-2">
-                     <div className="bg-[#111827] p-12 border border-white/5 rounded-[4rem] shadow-2xl space-y-10">
-                        <div className="flex justify-between items-center border-b border-white/5 pb-8">
-                           <h3 className="text-3xl font-black text-emerald-400">وثائق الربط (SDK)</h3>
+                     <div className="bg-[#111827] p-6 md:p-12 border border-white/5 rounded-2xl md:rounded-[4rem] shadow-2xl space-y-10">
+                        <div className="flex flex-col sm:flex-row justify-between items-center border-b border-white/5 pb-8 gap-4">
+                           <h3 className="text-2xl md:text-3xl font-black text-emerald-400">وثائق الربط (SDK)</h3>
                            <div className="flex bg-black/40 p-1 rounded-2xl border border-white/10">
                               {(['nodejs', 'python', 'php'] as const).map(l => (
-                                 <button key={l} onClick={() => setActiveLang(l)} className={`px-6 py-2 rounded-xl text-xs font-black uppercase transition-all ${activeLang === l ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>{l}</button>
+                                 <button key={l} onClick={() => setActiveLang(l)} className={`px-4 md:px-6 py-2 rounded-xl text-[10px] md:text-xs font-black uppercase transition-all ${activeLang === l ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>{l}</button>
                               ))}
                            </div>
                         </div>
                         <div className="relative">
-                           <pre className="p-12 bg-black/60 border border-white/5 rounded-[3rem] overflow-x-auto text-left font-mono text-sm leading-loose text-emerald-400 custom-scrollbar" dir="ltr">
+                           <pre className="p-6 md:p-12 bg-black/60 border border-white/5 rounded-2xl md:rounded-[3rem] overflow-x-auto text-left font-mono text-xs md:text-sm leading-loose text-emerald-400 custom-scrollbar" dir="ltr">
                               {snippets[activeLang]}
                            </pre>
                         </div>
                      </div>
                   </div>
-                  <div className="bg-gradient-to-br from-[#020617] to-slate-900 p-12 border border-white/10 rounded-[4rem] shadow-2xl flex flex-col items-center justify-center text-center gap-8">
-                     <div className="w-24 h-24 bg-sky-600/10 rounded-full flex items-center justify-center text-5xl">🛠️</div>
-                     <h3 className="text-2xl font-black uppercase tracking-widest">محاكي الدفع</h3>
-                     <p className="text-slate-400 font-bold">هذه الواجهة هي ما سيراه عميلك عند استدعاء رابط الدفع الخاص بنا من موقعك.</p>
+                  <div className="bg-gradient-to-br from-[#020617] to-slate-900 p-8 md:p-12 border border-white/10 rounded-2xl md:rounded-[4rem] shadow-2xl flex flex-col items-center justify-center text-center gap-8">
+                     <div className="w-20 md:w-24 h-20 md:h-24 bg-sky-600/10 rounded-full flex items-center justify-center text-4xl md:text-5xl">🛠️</div>
+                     <h3 className="text-xl md:text-2xl font-black uppercase tracking-widest">محاكي الدفع</h3>
+                     <p className="text-slate-400 font-bold text-sm md:text-base">هذه الواجهة هي ما سيراه عميلك عند استدعاء رابط الدفع الخاص بنا من موقعك.</p>
                      <div className="p-6 bg-[#020617] rounded-3xl border border-white/10 w-full flex flex-col gap-4 animate-pulse">
                         {siteConfig.logoUrl && <img src={siteConfig.logoUrl} className="h-6 opacity-50" alt="Logo" />}
                         <div className="h-8 bg-white/5 rounded-lg"></div>
@@ -655,50 +681,50 @@ header('Location: ' . $payment->checkout_url);`
          )}
 
          {activeView === 'settings' && (
-           <div className="max-w-4xl mx-auto animate-in slide-in-from-bottom duration-500 space-y-12">
-              <h2 className="text-6xl font-black tracking-tighter">إعدادات حساب الموزع</h2>
+           <div className="max-w-4xl mx-auto animate-in slide-in-from-bottom duration-500 space-y-8 md:space-y-12">
+              <h2 className="text-4xl md:text-6xl font-black tracking-tighter">إعدادات حساب الموزع</h2>
               
-              <div className="bg-[#0f172a]/60 backdrop-blur-3xl p-12 border border-white/5 rounded-[4rem] shadow-2xl space-y-12">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <div className="p-8 bg-white/5 rounded-3xl border border-white/5 space-y-2">
+              <div className="bg-[#0f172a]/60 backdrop-blur-3xl p-8 md:p-12 border border-white/5 rounded-2xl md:rounded-[4rem] shadow-2xl space-y-8 md:space-y-12">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                    <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-2">
                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">الاسم الكامل</p>
-                       <p className="text-2xl font-black text-white">{user.fullName}</p>
+                       <p className="text-xl md:text-2xl font-black text-white">{user.fullName}</p>
                     </div>
-                    <div className="p-8 bg-white/5 rounded-3xl border border-white/5 space-y-2">
+                    <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-2">
                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">البريد الإلكتروني</p>
-                       <p className="text-2xl font-black text-white">{user.email}</p>
+                       <p className="text-xl md:text-2xl font-black text-white">{user.email}</p>
                     </div>
-                    <div className="p-8 bg-white/5 rounded-3xl border border-white/5 space-y-2">
+                    <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-2">
                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">رقم الهاتف</p>
-                       <p className="text-2xl font-black text-white" dir="ltr">{user.phoneNumber || 'غير محدد'}</p>
+                       <p className="text-xl md:text-2xl font-black text-white" dir="ltr">{user.phoneNumber || 'غير محدد'}</p>
                     </div>
-                    <div className="p-8 bg-white/5 rounded-3xl border border-white/5 space-y-2">
+                    <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-2">
                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">معرف الموزع</p>
-                       <p className="text-xl font-mono text-sky-400">ID: {user.id.toUpperCase()}</p>
+                       <p className="text-lg md:text-xl font-mono text-sky-400">ID: {user.id.toUpperCase()}</p>
                     </div>
                  </div>
 
-                 <form onSubmit={handleChangePassword} className="space-y-10 pt-10 border-t border-white/10">
-                    <h3 className="text-3xl font-black border-r-8 border-sky-500 pr-8">تأمين الحساب (تغيير كلمة المرور)</h3>
+                 <form onSubmit={handleChangePassword} className="space-y-8 md:space-y-10 pt-10 border-t border-white/10">
+                    <h3 className="text-2xl md:text-3xl font-black border-r-8 border-sky-500 pr-8">تأمين الحساب (تغيير كلمة المرور)</h3>
                     <div className="space-y-6">
                        <div className="space-y-3">
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">كلمة المرور الحالية</label>
-                          <input type="password" value={oldPassword} onChange={e=>setOldPassword(e.target.value)} className="w-full p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
+                          <input type="password" value={oldPassword} onChange={e=>setOldPassword(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
                        </div>
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-3">
                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">الجديدة</label>
-                             <input type="password" value={newPassword} onChange={e=>setNewPassword(e.target.value)} className="w-full p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
+                             <input type="password" value={newPassword} onChange={e=>setNewPassword(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
                           </div>
                           <div className="space-y-3">
                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">تأكيد</label>
-                             <input type="password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="w-full p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
+                             <input type="password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
                           </div>
                        </div>
                     </div>
                     {passwordError && <p className="text-red-500 text-xs font-black">{passwordError}</p>}
                     {passwordSuccess && <p className="text-emerald-500 text-xs font-black">تم التحديث بنجاح ✓</p>}
-                    <button type="submit" className="w-full py-8 bg-sky-600 rounded-[2.5rem] font-black text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">حفظ التغييرات</button>
+                    <button type="submit" className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">حفظ التغييرات</button>
                  </form>
               </div>
            </div>
@@ -709,52 +735,52 @@ header('Location: ' . $payment->checkout_url);`
       
       {/* Transfer Animation Modal */}
       {modalType === 'send' && (
-         <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
-            <div className="bg-[#111827] border border-white/10 w-full max-w-3xl rounded-[6rem] p-12 md:p-24 overflow-hidden shadow-3xl text-center relative min-h-[600px] flex flex-col justify-center">
-               <button onClick={()=>setModalType(null)} className={`absolute top-12 right-12 text-slate-500 hover:text-white text-3xl transition-colors ${isTransferring ? 'hidden' : ''}`}>✕</button>
+         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-3xl">
+            <div className="bg-[#111827] border border-white/10 w-full max-w-3xl rounded-3xl md:rounded-[6rem] p-8 md:p-24 overflow-hidden shadow-3xl text-center relative min-h-[500px] md:min-h-[600px] flex flex-col justify-center">
+               <button onClick={()=>setModalType(null)} className={`absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl transition-colors ${isTransferring ? 'hidden' : ''}`}>✕</button>
                
                {!isTransferring ? (
-                 <form onSubmit={handleStartTransfer} className="space-y-12 animate-in zoom-in duration-500">
-                    <h3 className="text-5xl font-black tracking-tighter text-white">تحويل رصيد مباشر</h3>
-                    <div className="space-y-8 text-right">
+                 <form onSubmit={handleStartTransfer} className="space-y-8 md:space-y-12 animate-in zoom-in duration-500">
+                    <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">تحويل رصيد مباشر</h3>
+                    <div className="space-y-6 md:space-y-8 text-right">
                        <div className="space-y-3">
                           <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">اسم مستخدم المستلم</label>
-                          <input required value={recipient} onChange={e=>setRecipient(e.target.value)} className="w-full p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-2xl text-white outline-none" placeholder="@username" />
+                          <input required value={recipient} onChange={e=>setRecipient(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-xl md:text-2xl text-white outline-none" placeholder="@username" />
                        </div>
                        <div className="space-y-3">
                           <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">المبلغ ($)</label>
-                          <input required type="number" value={sendAmount} onChange={e=>setSendAmount(e.target.value)} className="w-full p-8 bg-black/40 border border-white/10 rounded-2xl font-black text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
+                          <input required type="number" value={sendAmount} onChange={e=>setSendAmount(e.target.value)} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl font-black text-4xl md:text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
                        </div>
                     </div>
-                    <button type="submit" className="w-full py-8 bg-sky-600 rounded-[3rem] font-black text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">تأكيد ومباشرة التحويل</button>
+                    <button type="submit" className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">تأكيد ومباشرة التحويل</button>
                  </form>
                ) : (
-                 <div className="space-y-16 animate-in fade-in duration-700">
+                 <div className="space-y-12 md:space-y-16 animate-in fade-in duration-700">
                     {transferSuccess ? (
-                      <div className="space-y-10 animate-in zoom-in duration-700">
-                         <div className="w-48 h-48 bg-emerald-500 rounded-full flex items-center justify-center text-9xl mx-auto shadow-[0_0_100px_rgba(16,185,129,0.4)] border-4 border-emerald-400">✓</div>
-                         <h3 className="text-7xl font-black text-white tracking-tighter">تم التحويل بنجاح</h3>
-                         <p className="text-3xl text-emerald-400 font-black tracking-[0.2em] uppercase">TRANSACTION COMPLETED</p>
+                      <div className="space-y-8 md:space-y-10 animate-in zoom-in duration-700">
+                         <div className="w-32 md:w-48 h-32 md:h-48 bg-emerald-500 rounded-full flex items-center justify-center text-6xl md:text-9xl mx-auto shadow-[0_0_100px_rgba(16,185,129,0.4)] border-4 border-emerald-400">✓</div>
+                         <h3 className="text-4xl md:text-7xl font-black text-white tracking-tighter">تم التحويل بنجاح</h3>
+                         <p className="text-xl md:text-3xl text-emerald-400 font-black tracking-[0.2em] uppercase">TRANSACTION COMPLETED</p>
                       </div>
                     ) : (
-                      <div className="space-y-16">
-                         <div className="relative mx-auto w-32 h-32 flex items-center justify-center">
-                            <span className="text-[8rem] animate-bounce">⏳</span>
+                      <div className="space-y-12 md:space-y-16">
+                         <div className="relative mx-auto w-24 md:w-32 h-24 md:h-32 flex items-center justify-center">
+                            <span className="text-6xl md:text-[8rem] animate-bounce">⏳</span>
                          </div>
-                         <div className="space-y-10">
-                            <div className="relative w-full h-10 bg-white/5 border border-white/10 rounded-full overflow-hidden shadow-inner">
+                         <div className="space-y-8 md:space-y-10">
+                            <div className="relative w-full h-8 md:h-10 bg-white/5 border border-white/10 rounded-full overflow-hidden shadow-inner">
                                <div 
                                  className="h-full bg-gradient-to-r from-sky-600 to-indigo-600 transition-all duration-300 ease-linear shadow-[0_0_40px_rgba(14,165,233,0.5)]" 
                                  style={{ width: `${transferProgress}%` }}
                                ></div>
                             </div>
-                            <div className="min-h-[100px] flex items-center justify-center px-10">
-                               <p className="text-3xl font-black text-sky-400 animate-pulse text-center leading-relaxed">
+                            <div className="min-h-[80px] md:min-h-[100px] flex items-center justify-center px-6 md:px-10">
+                               <p className="text-xl md:text-3xl font-black text-sky-400 animate-pulse text-center leading-relaxed">
                                   {bankingPhrases[transferStep]}
-                               </p>
+                                </p>
                             </div>
                          </div>
-                         <div className="flex justify-center gap-10 text-slate-500 font-black text-[10px] uppercase tracking-[0.4em] opacity-40">
+                         <div className="flex justify-center gap-6 md:gap-10 text-slate-500 font-black text-[8px] md:text-[10px] uppercase tracking-[0.4em] opacity-40">
                             <span>SSL SECURED</span>
                             <span>AES-256</span>
                             <span>NODE VERIFIED</span>
@@ -768,55 +794,68 @@ header('Location: ' . $payment->checkout_url);`
       )}
 
       {modalType === 'cards' && (
-         <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
-            <div className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-[4rem] p-16 space-y-12 animate-in zoom-in duration-500 shadow-3xl text-center relative">
-               <button onClick={()=>setModalType(null)} className="absolute top-10 right-10 text-slate-500 hover:text-white text-2xl">✕</button>
-               <h3 className="text-5xl font-black tracking-tighter text-white">إصدار بطاقات شحن</h3>
-               <div className="space-y-8 text-right">
-                  <div className="space-y-4">
-                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">قيمة البطاقة الواحد ($)</label>
-                     <div className="grid grid-cols-4 gap-4">
-                        {[50, 100, 500, 1000].map(val => (
-                           <button key={val} onClick={()=>setCardAmount(val)} className={`py-4 rounded-xl font-black text-xl transition-all border ${cardAmount === val ? 'bg-emerald-600 border-emerald-400' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}>${val}</button>
+         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-3xl">
+            <div className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[4rem] p-8 md:p-16 space-y-8 md:space-y-12 animate-in zoom-in duration-500 shadow-3xl text-center relative">
+               <button onClick={()=>setModalType(null)} className="absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl transition-colors">✕</button>
+               <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">إصدار بطاقات شحن</h3>
+               <div className="space-y-6 md:space-y-8 text-right">
+                  <div className="space-y-3">
+                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">قيمة البطاقة الواحدة ($)</label>
+                     <div className="grid grid-cols-3 gap-3 md:gap-4">
+                        {[10, 50, 100, 500, 1000, 5000].map(v => (
+                          <button key={v} onClick={()=>setCardAmount(v)} className={`py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl border transition-all ${cardAmount === v ? 'bg-sky-600 border-sky-400 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'}`}>${v}</button>
                         ))}
                      </div>
                   </div>
-                  <div className="space-y-4">
-                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">الكمية</label>
-                     <input type="number" value={cardQuantity} onChange={e=>setCardQuantity(parseInt(e.target.value))} className="w-full p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-4xl text-center text-white outline-none" />
+                  <div className="space-y-3">
+                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">الكمية المطلوبة</label>
+                     <input type="number" value={cardQuantity} onChange={e=>setCardQuantity(parseInt(e.target.value))} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-2xl text-white outline-none" />
                   </div>
-                  <div className="p-8 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl flex justify-between items-center">
-                     <p className="font-black text-emerald-400 text-xs">إجمالي التكلفة</p>
-                     <p className="text-4xl font-black text-white">${(cardAmount * cardQuantity).toLocaleString()}</p>
+                  <div className="p-6 md:p-8 bg-sky-600/10 border border-sky-500/20 rounded-2xl md:rounded-3xl flex justify-between items-center">
+                     <span className="text-slate-400 font-bold text-sm md:text-base">التكلفة الإجمالية:</span>
+                     <span className="text-2xl md:text-4xl font-black text-sky-400">${(cardAmount * cardQuantity).toLocaleString()}</span>
                   </div>
                </div>
-               <button onClick={handleGenerateCards} className="w-full py-8 bg-emerald-600 rounded-[3rem] font-black text-2xl shadow-xl hover:bg-emerald-500 transition-all active:scale-95">تأكيد الإصدار</button>
+               <button onClick={handleGenerateCards} className="w-full py-6 md:py-8 bg-emerald-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-emerald-500 transition-all active:scale-95">تأكيد الإصدار والخصم</button>
             </div>
          </div>
       )}
 
       {modalType === 'new_key' && (
-         <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
-            <div className="bg-[#111827] border border-white/10 w-full max-w-xl rounded-[4rem] p-16 space-y-12 animate-in zoom-in duration-500 shadow-3xl text-center relative">
-               <button onClick={()=>setModalType(null)} className="absolute top-10 right-10 text-slate-500 hover:text-white text-2xl">✕</button>
-               <h3 className="text-4xl font-black tracking-tighter text-white">توليد مفتاح API جديد</h3>
-               <div className="space-y-6 text-right">
+         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-3xl">
+            <div className="bg-[#111827] border border-white/10 w-full max-w-xl rounded-3xl md:rounded-[4rem] p-8 md:p-16 space-y-8 md:space-y-12 animate-in zoom-in duration-500 shadow-3xl text-center relative">
+               <button onClick={()=>setModalType(null)} className="absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl transition-colors">✕</button>
+               <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">توليد مفتاح API</h3>
+               <div className="space-y-6 md:space-y-8 text-right">
                   <div className="space-y-3">
-                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">اسم المفتاح (للمرجع)</label>
-                     <input value={newKeyName} onChange={e=>setNewKeyName(e.target.value)} className="w-full p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none" placeholder="مثلاً: متجر الملابس" />
+                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">اسم المفتاح (للتنظيم)</label>
+                     <input value={newKeyName} onChange={e=>setNewKeyName(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-xl md:text-2xl text-white outline-none" placeholder="مثلاً: متجر الملابس الرئيسي" />
                   </div>
+                  <p className="text-slate-500 font-bold text-xs md:text-sm leading-relaxed">بمجرد التوليد، يمكنك استخدام هذا المفتاح للربط مع مكتباتنا البرمجية. يرجى الحفاظ عليه سرياً.</p>
                </div>
-               <button onClick={handleGenerateApiKey} className="w-full py-6 bg-sky-600 rounded-[2.5rem] font-black text-xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">توليد الآن</button>
+               <button onClick={handleGenerateApiKey} className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">توليد المفتاح الآن</button>
             </div>
          </div>
       )}
 
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+        .bg-mesh {
+          background-image: 
+            radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.15) 0, transparent 50%),
+            radial-gradient(at 100% 0%, rgba(79, 70, 229, 0.15) 0, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.15) 0, transparent 50%),
+            radial-gradient(at 0% 100%, rgba(245, 158, 11, 0.15) 0, transparent 50%);
+        }
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
+        }
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-33.33%); }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.01); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(14, 165, 233, 0.2); border-radius: 10px; }
-        .animate-marquee { animation: marquee 30s linear infinite; }
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .shadow-3xl { box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.8); }
       `}</style>
     </div>
