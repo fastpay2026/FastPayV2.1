@@ -71,6 +71,7 @@ const DeveloperDashboard: React.FC<Props> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'trading' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 const handleManualSync = async () => {
     if (!isSupabaseConfigured) {
@@ -100,8 +101,16 @@ const handleManualSync = async () => {
   };
   return (
     <div className="fixed inset-0 z-[150] flex bg-[#020617] text-white text-right font-sans overflow-hidden" dir="rtl">
+      {/* Mobile Menu Toggle */}
+      <button 
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+        className="lg:hidden fixed top-6 right-6 z-[200] p-3 bg-slate-900 border border-white/10 rounded-xl text-white shadow-2xl"
+      >
+        {isMobileMenuOpen ? '✕' : '☰'}
+      </button>
+
       {/* Sidebar Navigation */}
-      <aside className="w-80 bg-slate-900 border-l border-white/5 flex flex-col shadow-2xl z-20 overflow-y-auto custom-scrollbar">
+      <aside className={`fixed lg:static inset-y-0 right-0 w-80 bg-slate-900 border-l border-white/5 flex flex-col shadow-2xl z-[180] overflow-y-auto custom-scrollbar transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-10 border-b border-white/5 text-center">
            <img src={siteConfig.logoUrl} style={{ width: `120px` }} className="mx-auto mb-4" alt="Logo" />
            <p className="text-[10px] font-black text-sky-400 uppercase tracking-widest">إدارة العمليات السيادية v28.5 Elite</p>
@@ -127,7 +136,11 @@ const handleManualSync = async () => {
             { id: 'raffle', l: 'إدارة القرعة', i: '🎁' },
             { id: 'content', l: 'هوية الموقع', i: '⚙️' }
           ].map(t => (
-            <button key={t.id} onClick={() => setActiveTab(t.id as any)} className={`w-full flex items-center p-4 rounded-2xl transition-all ${activeTab === t.id ? 'bg-sky-600 shadow-xl text-white scale-105' : 'hover:bg-white/5 text-slate-400'}`}>
+            <button 
+              key={t.id} 
+              onClick={() => { setActiveTab(t.id as any); setIsMobileMenuOpen(false); }} 
+              className={`w-full flex items-center p-4 rounded-2xl transition-all ${activeTab === t.id ? 'bg-sky-600 shadow-xl text-white scale-105' : 'hover:bg-white/5 text-slate-400'}`}
+            >
               <span className="text-xl ml-4">{t.i}</span>
               <span className="font-black text-sm">{t.l}</span>
             </button>
@@ -136,7 +149,12 @@ const handleManualSync = async () => {
         <div className="p-8"><button onClick={onLogout} className="w-full p-4 bg-red-600/10 text-red-500 rounded-xl font-black border border-red-500/20 hover:bg-red-600 hover:text-white transition-all">خروج آمن</button></div>
       </aside>
 
-      <main className="flex-1 flex flex-col overflow-y-auto p-12 custom-scrollbar relative">
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-[170] bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
+      )}
+
+      <main className="flex-1 flex flex-col overflow-y-auto p-6 md:p-12 custom-scrollbar relative">
         {activeTab === 'home' && <StatsOverview accounts={accounts} withdrawalRequests={withdrawalRequests} tradeOrders={tradeOrders} siteConfig={siteConfig} onManualSync={handleManualSync} isSyncing={isSyncing} />}
         {activeTab === 'users' && <UserManagement accounts={accounts} setAccounts={setAccounts} onAddUser={onAddUser} onUpdateUser={onUpdateUser} />}
         {activeTab === 'withdrawals' && <SwiftManager withdrawalRequests={withdrawalRequests} setWithdrawalRequests={setWithdrawalRequests} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />}

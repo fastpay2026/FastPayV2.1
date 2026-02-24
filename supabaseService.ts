@@ -106,7 +106,7 @@ export const supabaseService = {
       status: t.status,
       hash: t.hash,
       notes: t.notes
-    });
+    }, { onConflict: 'id' });
     if (error) throw error;
   },
 
@@ -130,7 +130,7 @@ export const supabaseService = {
       type: n.type,
       timestamp: n.timestamp,
       is_read: n.isRead
-    });
+    }, { onConflict: 'id' });
     if (error) throw error;
   },
 
@@ -177,7 +177,7 @@ export const supabaseService = {
       promotion_type: item.promotionType,
       promotion_price: item.promotionPrice,
       created_at: item.createdAt
-    });
+    }, { onConflict: 'id' });
     if (error) throw error;
   },
 
@@ -204,7 +204,7 @@ export const supabaseService = {
       offer_amount: n.offerAmount,
       status: n.status,
       created_at: n.createdAt
-    });
+    }, { onConflict: 'id' });
     if (error) throw error;
   },
 
@@ -236,7 +236,7 @@ export const supabaseService = {
       status: w.status,
       requested_at: w.requestedAt,
       processed_at: w.processedAt
-    });
+    }, { onConflict: 'id' });
     if (error) throw error;
   },
 
@@ -265,7 +265,7 @@ export const supabaseService = {
       start_date: s.startDate,
       status: s.status,
       requested_at: s.requestedAt
-    });
+    }, { onConflict: 'id' });
     if (error) throw error;
   },
 
@@ -296,7 +296,7 @@ export const supabaseService = {
       end_date: d.endDate,
       expected_profit: d.expectedProfit,
       status: d.status
-    });
+    }, { onConflict: 'id' });
     if (error) throw error;
   },
 
@@ -328,7 +328,7 @@ export const supabaseService = {
       submitted_at: v.submittedAt,
       status: v.status,
       rejection_reason: v.rejectionReason
-    });
+    }, { onConflict: 'id' });
     if (error) throw error;
   }
 };

@@ -109,6 +109,7 @@ const UserDashboard: React.FC<Props> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads'>('dashboard');
   const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Logic States
   const [isTransferring, setIsTransferring] = useState(false);
@@ -342,9 +343,12 @@ const UserDashboard: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-[150] bg-[#020617] text-right text-white font-sans overflow-hidden flex flex-col" dir="rtl">
-       <header className="h-16 bg-[#0f172a] border-b border-white/5 px-6 flex justify-between items-center z-10 shrink-0">
-          <div className="flex items-center gap-10">
-             <img src={siteConfig.logoUrl} style={{ width: `100px` }} alt="Logo" className="cursor-pointer" onClick={() => setActiveTab('dashboard')} />
+       <header className="h-16 md:h-20 bg-[#0f172a] border-b border-white/5 px-4 md:px-8 flex justify-between items-center z-[200] shrink-0">
+          <div className="flex items-center gap-4 md:gap-10">
+             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="xl:hidden text-white text-2xl p-2">
+                {isMobileMenuOpen ? '✕' : '☰'}
+             </button>
+             <img src={siteConfig.logoUrl} style={{ width: `80px` }} alt="Logo" className="cursor-pointer md:w-[100px]" onClick={() => setActiveTab('dashboard')} />
              <nav className="hidden xl:flex items-center h-full">
                 {[
                   { id: 'dashboard', l: 'الرئيسية', i: '🏠' },
@@ -355,60 +359,86 @@ const UserDashboard: React.FC<Props> = ({
                   { id: 'salary', l: 'تمويل الرواتب', i: '🏦' },
                   { id: 'profile', l: 'الملف الشخصي', i: '⚙️' }
                 ].map(t => (
-                  <button key={t.id} onClick={() => setActiveTab(t.id as any)} className={`flex items-center gap-2 font-bold px-6 h-16 border-b-2 transition-all duration-300 ${activeTab === t.id ? 'text-sky-400 border-sky-400 bg-sky-400/5' : 'text-slate-500 border-transparent hover:text-white'}`}>
+                  <button key={t.id} onClick={() => setActiveTab(t.id as any)} className={`flex items-center gap-2 font-bold px-6 h-16 md:h-20 border-b-2 transition-all duration-300 ${activeTab === t.id ? 'text-sky-400 border-sky-400 bg-sky-400/5' : 'text-slate-500 border-transparent hover:text-white'}`}>
                     <span className="text-xl">{t.i}</span>
                     <span className="text-sm">{t.l}</span>
                   </button>
                 ))}
              </nav>
           </div>
-          <div className="flex items-center gap-4">
-             <div className="bg-white/5 px-4 py-1.5 rounded-lg border border-white/10">
-                <p className="text-sm font-black text-emerald-400 font-mono">${user.balance.toLocaleString()}</p>
+          <div className="flex items-center gap-2 md:gap-4">
+             <div className="bg-white/5 px-2 md:px-4 py-1 rounded-lg border border-white/10">
+                <p className="text-xs md:text-sm font-black text-emerald-400 font-mono">${user.balance.toLocaleString()}</p>
              </div>
-             <button onClick={onLogout} className="px-4 py-2 bg-red-500/10 text-red-400 rounded-lg text-xs font-black hover:bg-red-600 hover:text-white transition-all">خروج</button>
+             <button onClick={onLogout} className="px-3 md:px-4 py-1.5 md:py-2 bg-red-500/10 text-red-400 rounded-lg text-[10px] md:text-xs font-black hover:bg-red-600 hover:text-white transition-all">خروج</button>
           </div>
        </header>
 
+       {/* Mobile Menu Overlay */}
+       {isMobileMenuOpen && (
+         <div className="xl:hidden fixed inset-0 z-[190] bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
+           <div className="absolute top-16 md:top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
+             {[
+               { id: 'dashboard', l: 'الرئيسية', i: '🏠' },
+               { id: 'trading', l: 'التداول', i: '📈' },
+               { id: 'investment', l: 'الاستثمار', i: '💎' },
+               { id: 'raffle', l: 'القرعة', i: '🎁' },
+               { id: 'ads', l: 'بورصة الإعلانات', i: '📢' },
+               { id: 'salary', l: 'تمويل الرواتب', i: '🏦' },
+               { id: 'profile', l: 'الملف الشخصي', i: '⚙️' }
+             ].map(t => (
+               <button 
+                 key={t.id} 
+                 onClick={() => { setActiveTab(t.id as any); setIsMobileMenuOpen(false); }} 
+                 className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black transition-all ${activeTab === t.id ? 'bg-sky-600 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+               >
+                 <span className="text-2xl">{t.i}</span>
+                 <span className="text-base">{t.l}</span>
+               </button>
+             ))}
+           </div>
+         </div>
+       )}
+
        <main className="flex-1 overflow-hidden z-10 flex flex-col">
           {activeTab === 'dashboard' && (
-             <div className="flex-1 p-8 md:p-12 overflow-y-auto custom-scrollbar space-y-12 animate-in fade-in duration-500 pb-40">
-                <div className="max-w-7xl mx-auto space-y-12">
-                   <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-16 rounded-[4rem] border border-sky-500/20 shadow-3xl text-center relative overflow-hidden">
+             <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar space-y-8 md:space-y-12 animate-in fade-in duration-500 pb-40">
+                <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
+                   <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 md:p-16 rounded-3xl md:rounded-[4rem] border border-sky-500/20 shadow-3xl text-center relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
-                      <p className="text-sky-400 font-black tracking-widest text-sm uppercase mb-6 relative z-10">الرصيد السيادي المتوفر</p>
-                      <h2 className="text-8xl font-black font-mono tracking-tighter mb-12 relative z-10">${user.balance.toLocaleString()}</h2>
-                      <div className="flex flex-wrap justify-center gap-6 relative z-10">
-                         <button onClick={() => setModalType('transfer')} className="bg-sky-600 px-10 py-6 rounded-3xl font-black text-xl hover:bg-sky-500 shadow-2xl transition-all">تحويل مالي فوري</button>
-                         <button onClick={() => setModalType('coupon')} className="bg-emerald-600 px-10 py-6 rounded-3xl font-black text-xl hover:bg-emerald-500 transition-all shadow-2xl">إيداع بكوبون شحن</button>
-                         <button onClick={() => setModalType('withdraw')} className="bg-white/5 border border-white/10 px-10 py-6 rounded-3xl font-black text-xl hover:bg-white/10 transition-all">طلب سحب Swift</button>
+                      <p className="text-sky-400 font-black tracking-widest text-[10px] md:text-sm uppercase mb-4 md:mb-6 relative z-10">الرصيد السيادي المتوفر</p>
+                      <h2 className="text-5xl md:text-8xl font-black font-mono tracking-tighter mb-8 md:mb-12 relative z-10">${user.balance.toLocaleString()}</h2>
+                      <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 md:gap-6 relative z-10">
+                         <button onClick={() => setModalType('transfer')} className="bg-sky-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-lg md:text-xl hover:bg-sky-500 shadow-2xl transition-all">تحويل مالي فوري</button>
+                         <button onClick={() => setModalType('coupon')} className="bg-emerald-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-lg md:text-xl hover:bg-emerald-500 transition-all shadow-2xl">إيداع بكوبون شحن</button>
+                         <button onClick={() => setModalType('withdraw')} className="bg-white/5 border border-white/10 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-lg md:text-xl hover:bg-white/10 transition-all">طلب سحب Swift</button>
                       </div>
                    </div>
 
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                      <div className="bg-[#0f172a]/80 p-10 rounded-[4rem] border border-white/5 shadow-2xl">
-                         <h3 className="text-3xl font-black mb-8">أحدث العمليات</h3>
-                         <div className="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar">
+                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
+                      <div className="bg-[#0f172a]/80 p-6 md:p-10 rounded-3xl md:rounded-[4rem] border border-white/5 shadow-2xl">
+                         <h3 className="text-2xl md:text-3xl font-black mb-6 md:mb-8">أحدث العمليات</h3>
+                         <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto custom-scrollbar">
                             {transactions.filter(t=>t.userId===user.id).slice(0, 10).map(t => (
-                               <div key={t.id} className="flex justify-between items-center p-6 bg-white/5 rounded-3xl border border-white/5">
-                                  <div><p className="font-bold text-white">{t.relatedUser || t.type}</p><p className="text-[10px] text-slate-500 uppercase font-black">{t.timestamp}</p></div>
-                                  <p className={`text-2xl font-mono font-black ${t.amount < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{t.amount > 0 ? '+' : ''}${Math.abs(t.amount).toLocaleString()}</p>
+                               <div key={t.id} className="flex justify-between items-center p-4 md:p-6 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5">
+                                  <div><p className="font-bold text-white text-sm md:text-base">{t.relatedUser || t.type}</p><p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-black">{t.timestamp}</p></div>
+                                  <p className={`text-xl md:text-2xl font-mono font-black ${t.amount < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{t.amount > 0 ? '+' : ''}${Math.abs(t.amount).toLocaleString()}</p>
                                </div>
                             ))}
                             {transactions.filter(t=>t.userId===user.id).length === 0 && <p className="text-center py-10 opacity-20 italic">لا توجد عمليات سابقة</p>}
                          </div>
                       </div>
-                      <div className="bg-[#0f172a]/80 p-10 rounded-[4rem] border border-white/5 shadow-2xl">
-                         <h3 className="text-3xl font-black mb-8">نشاطي الاستثماري</h3>
-                         <div className="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar">
+                      <div className="bg-[#0f172a]/80 p-6 md:p-10 rounded-3xl md:rounded-[4rem] border border-white/5 shadow-2xl">
+                         <h3 className="text-2xl md:text-3xl font-black mb-6 md:mb-8">نشاطي الاستثماري</h3>
+                         <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto custom-scrollbar">
                             {fixedDeposits.filter(d=>d.userId===user.id).map(dep => (
-                               <div key={dep.id} className="p-8 bg-gradient-to-br from-slate-800 to-slate-900 rounded-[2.5rem] border border-white/10">
+                               <div key={dep.id} className="p-6 md:p-8 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl md:rounded-[2.5rem] border border-white/10">
                                   <div className="flex justify-between items-start mb-4">
-                                     <h4 className="text-xl font-black text-sky-400">${dep.amount.toLocaleString()}</h4>
-                                     <span className="bg-emerald-500/10 text-emerald-500 text-[10px] px-3 py-1 rounded-full font-black">نشط</span>
+                                     <h4 className="text-lg md:text-xl font-black text-sky-400">${dep.amount.toLocaleString()}</h4>
+                                     <span className="bg-emerald-500/10 text-emerald-500 text-[9px] md:text-[10px] px-3 py-1 rounded-full font-black">نشط</span>
                                   </div>
                                   <p className="text-xs text-slate-400 font-bold mb-4">الربح المتوقع: <span className="text-emerald-400">${dep.expectedProfit.toFixed(2)}</span></p>
-                                  <p className="text-[9px] text-slate-600 mt-2 font-black uppercase">تاريخ الاستحقاق: {dep.endDate}</p>
+                                  <p className="text-[8px] md:text-[9px] text-slate-600 mt-2 font-black uppercase">تاريخ الاستحقاق: {dep.endDate}</p>
                                </div>
                             ))}
                             {fixedDeposits.filter(d=>d.userId===user.id).length === 0 && <p className="text-center py-10 opacity-20 italic">لا توجد استثمارات قائمة</p>}
@@ -446,7 +476,7 @@ const UserDashboard: React.FC<Props> = ({
              <div className="flex-1 p-12 overflow-y-auto custom-scrollbar animate-in fade-in duration-500 text-center pb-40">
                 <div className="max-w-4xl mx-auto space-y-16">
                    <div className="bg-amber-500/10 p-20 rounded-[5rem] border border-amber-500/20 shadow-3xl space-y-10">
-                      <h2 className="text-7xl font-black tracking-tighter text-amber-500">مهرجان جوائز FastPay</h2>
+                      <h2 className="text-7xl font-black tracking-tighter text-amber-500">القرعة الشهرية FastPay</h2>
                       <p className="text-2xl text-slate-300 font-bold">تذكرتك نحو الرفاهية. شارك في السحب الأكبر!</p>
                       
                       {siteConfig.showRaffleCountdown && siteConfig.raffleEndDate && (

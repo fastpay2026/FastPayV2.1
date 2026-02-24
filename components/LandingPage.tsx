@@ -76,6 +76,7 @@ const LandingPage: React.FC<Props> = ({
   
   const activeCustomPage = pages.find(p => p.slug === currentPath && p.isActive);
   const [speedLines, setSpeedLines] = useState<number[]>([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const [marketData, setMarketData] = useState<MarketAsset[]>([
     { id: '1', name: 'الذهب الملكي', price: 2410.50, change: 1.1, icon: '📀' },
@@ -151,19 +152,19 @@ const LandingPage: React.FC<Props> = ({
          </div>
       </div>
 
-      <nav className="fixed w-full z-[90] top-14 px-8 md:px-24">
-        <div className="max-w-[1600px] mx-auto bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[4rem] py-6 px-12 md:px-20 flex justify-between items-center shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
-          <div className={`flex items-center gap-12 group cursor-pointer flex-1 ${siteConfig.logoPosition === 'center' ? 'justify-center' : siteConfig.logoPosition === 'left' ? 'justify-start' : 'justify-end'}`} onClick={() => setCurrentPath('home')}>
+      <nav className="fixed w-full z-[90] top-14 px-4 md:px-24">
+        <div className="max-w-[1600px] mx-auto bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl md:rounded-[4rem] py-4 md:py-6 px-6 md:px-20 flex justify-between items-center shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
+          <div className={`flex items-center gap-4 md:gap-12 group cursor-pointer flex-1 ${siteConfig.logoPosition === 'center' ? 'justify-center' : siteConfig.logoPosition === 'left' ? 'justify-start' : 'justify-end'}`} onClick={() => setCurrentPath('home')}>
             {siteConfig.logoUrl && (
               <img 
                 src={siteConfig.logoUrl} 
                 alt="Logo" 
-                style={{ width: `${siteConfig.logoWidth || 180}px` }}
-                className="object-contain transform group-hover:scale-110 transition-all duration-700" 
+                style={{ width: `${siteConfig.logoWidth ? Math.min(siteConfig.logoWidth, 120) : 120}px` }}
+                className="object-contain transform group-hover:scale-110 transition-all duration-700 md:w-auto" 
               />
             )}
             {siteConfig.logoPosition === 'right' && (
-                <span className="text-3xl font-black tracking-tighter hidden xl:block bg-gradient-to-r from-white to-sky-400 bg-clip-text text-transparent">
+                <span className="text-xl md:text-3xl font-black tracking-tighter hidden xl:block bg-gradient-to-r from-white to-sky-400 bg-clip-text text-transparent">
                   {siteConfig.siteName}
                 </span>
             )}
@@ -185,36 +186,72 @@ const LandingPage: React.FC<Props> = ({
             ))}
           </div>
 
-          <div className="flex items-center gap-8">
-            <button onClick={onLoginClick} className="px-10 py-4 rounded-3xl text-white bg-sky-600 font-black text-base hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40">دخول النخبة</button>
-            <button onClick={onRegisterClick} className="px-10 py-4 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-base hover:bg-white/10 transition-all hidden sm:block">عضوية جديدة</button>
+          <div className="flex items-center gap-4 md:gap-8">
+            <div className="hidden sm:flex items-center gap-4 md:gap-8">
+              <button onClick={onLoginClick} className="px-6 md:px-10 py-3 md:py-4 rounded-3xl text-white bg-sky-600 font-black text-sm md:text-base hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40">تسجيل الدخول</button>
+              <button onClick={onRegisterClick} className="px-6 md:px-10 py-3 md:py-4 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-sm md:text-base hover:bg-white/10 transition-all hidden md:block">إنظم الينا</button>
+            </div>
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-white text-3xl p-2">
+              {isMobileMenuOpen ? '✕' : '☰'}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden absolute top-full left-4 right-4 mt-4 bg-slate-900/95 backdrop-blur-3xl border border-white/10 rounded-3xl p-8 space-y-6 shadow-4xl animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex flex-col space-y-4 text-right">
+              {[
+                { label: 'الرئيسية', id: 'home' },
+                { label: 'القرعة', id: 'raffle-ad' },
+                { label: 'Swift', id: 'transfer-ad' },
+                { label: 'بوابة الدفع', id: 'gateway-ad' },
+                { label: 'التمويل', id: 'salary-ad' },
+                { label: 'التداول', id: 'trading-ad' }
+              ].map((item, idx) => (
+                <button 
+                  key={idx} 
+                  onClick={() => {
+                    item.id === 'home' ? setCurrentPath('home') : scrollToSection(item.id);
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  className="text-slate-300 hover:text-white font-black text-lg py-2 border-b border-white/5 text-right"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-col gap-4 pt-4">
+              <button onClick={() => { onLoginClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl text-white bg-sky-600 font-black text-lg">تسجيل الدخول</button>
+              <button onClick={() => { onRegisterClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl text-slate-200 bg-white/5 border border-white/10 font-black text-lg">إنظم الينا</button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {currentPath === 'home' ? (
         <>
-          <section className="relative pt-[35vh] pb-32 px-8 md:px-24 z-10 overflow-hidden">
-            <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row items-center gap-24">
-              <div className="w-full lg:w-[55%] space-y-12 order-2 lg:order-1">
-                 <div className="inline-flex items-center gap-4 px-8 py-3 bg-sky-500/10 border border-sky-500/20 rounded-full shadow-[0_0_50px_rgba(14,165,233,0.2)]">
-                    <span className="w-3 h-3 bg-sky-500 rounded-full animate-pulse shadow-[0_0_15px_#0ea5e9]"></span>
-                    <span className="text-sky-400 font-black text-xs uppercase tracking-[0.3em]">نظام {siteConfig.siteName} v5.5 Premium</span>
+          <section className="relative pt-[25vh] md:pt-[35vh] pb-20 md:pb-32 px-6 md:px-24 z-10 overflow-hidden">
+            <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row items-center gap-12 md:gap-24">
+              <div className="w-full lg:w-[55%] space-y-8 md:space-y-12 order-2 lg:order-1 text-center lg:text-right">
+                 <div className="inline-flex items-center gap-4 px-6 md:px-8 py-2 md:py-3 bg-sky-500/10 border border-sky-500/20 rounded-full shadow-[0_0_50px_rgba(14,165,233,0.2)]">
+                    <span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full animate-pulse shadow-[0_0_15px_#0ea5e9]"></span>
+                    <span className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.3em]">نظام {siteConfig.siteName} v5.5 Premium</span>
                  </div>
-                 <h1 className="text-5xl md:text-[6.5rem] font-black leading-[1.1] tracking-tighter hero-gradient-text text-glow" dangerouslySetInnerHTML={{ __html: siteConfig.heroTitle.replace(' ', '<br/>') }}></h1>
-                 <p className="text-xl md:text-3xl text-slate-300 max-w-3xl leading-relaxed font-bold border-r-[12px] border-sky-500 pr-8">{siteConfig.heroSubtitle}</p>
-                 <div className="flex flex-wrap gap-8 pt-6">
-                    <button onClick={onRegisterClick} className="px-14 py-6 rounded-[2.5rem] bg-white text-black font-black text-2xl shadow-[0_25px_60px_rgba(255,255,255,0.2)] hover:scale-105 transition-all flex items-center gap-6 group">
+                 <h1 className="text-4xl md:text-[6.5rem] font-black leading-[1.1] tracking-tighter hero-gradient-text text-glow" dangerouslySetInnerHTML={{ __html: siteConfig.heroTitle.replace(' ', '<br/>') }}></h1>
+                 <p className="text-lg md:text-3xl text-slate-300 max-w-3xl mx-auto lg:mx-0 leading-relaxed font-bold border-r-0 lg:border-r-[12px] border-sky-500 pr-0 lg:pr-8">{siteConfig.heroSubtitle}</p>
+                 <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-4 md:gap-8 pt-6">
+                    <button onClick={onRegisterClick} className="px-8 md:px-14 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] bg-white text-black font-black text-xl md:text-2xl shadow-[0_25px_60px_rgba(255,255,255,0.2)] hover:scale-105 transition-all flex items-center justify-center gap-4 md:gap-6 group">
                       <span>{siteConfig.heroCtaText}</span>
-                      <span className="text-3xl group-hover:translate-x-[-10px] transition-transform">⚡</span>
+                      <span className="text-2xl md:text-3xl group-hover:translate-x-[-10px] transition-transform">⚡</span>
                     </button>
-                    <button onClick={() => scrollToSection('services')} className="px-14 py-6 rounded-[2.5rem] bg-white/5 border border-white/10 text-white font-black text-2xl backdrop-blur-3xl hover:bg-white/10 transition-all">{siteConfig.salesCtaText}</button>
+                    <button onClick={() => scrollToSection('services')} className="px-8 md:px-14 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] bg-white/5 border border-white/10 text-white font-black text-xl md:text-2xl backdrop-blur-3xl hover:bg-white/10 transition-all">{siteConfig.salesCtaText}</button>
                  </div>
               </div>
               
               <div className="w-full lg:w-[45%] order-1 lg:order-2">
                  <div className="relative animate-float group">
-                    <div className="relative w-full aspect-[1.58/1] rounded-[3.5rem] border border-white/20 shadow-[0_80px_160px_rgba(0,0,0,0.9)] overflow-hidden p-12 flex flex-col justify-between backdrop-blur-3xl bg-black/40 card-shimmer">
+                    <div className="relative w-full aspect-[1.58/1] rounded-3xl md:rounded-[3.5rem] border border-white/20 shadow-[0_40px_80px_rgba(0,0,0,0.7)] md:shadow-[0_80px_160px_rgba(0,0,0,0.9)] overflow-hidden p-6 md:p-12 flex flex-col justify-between backdrop-blur-3xl bg-black/40 card-shimmer">
                        <div className="absolute inset-0 holo-glow"></div>
                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
                        
@@ -262,92 +299,92 @@ const LandingPage: React.FC<Props> = ({
           </section>
 
           {/* Transfer/Swift Section */}
-          <section id="transfer-ad" className="py-40 px-8 md:px-24">
-            <div className="max-w-[1800px] mx-auto group glass-card rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[700px] shadow-3xl border border-emerald-500/10 hover:border-emerald-500/40 transition-all duration-1000 relative">
-               <div className="w-full lg:w-[55%] p-20 md:p-32 space-y-12 flex flex-col justify-center relative z-10">
-                  <div className="flex items-center gap-6 text-emerald-400 font-black text-sm uppercase tracking-[0.5em]"><span className="w-20 h-px bg-emerald-500"></span>محرك السيولة العالمي</div>
-                  <h2 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-emerald-400 transition-all duration-700">{siteConfig.transferAdTitle}</h2>
-                  <p className="text-2xl md:text-3xl text-slate-200 font-bold leading-relaxed border-r-8 border-emerald-500 pr-10">{siteConfig.transferAdDesc}</p>
-                  <div className="flex flex-wrap gap-8 items-center pt-8">
-                    <button onClick={onLoginClick} className="bg-emerald-600 px-20 py-8 rounded-[3rem] font-black text-2xl hover:bg-emerald-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(16,185,129,0.3)] w-max">ابدأ التحويل العالمي 🌐</button>
-                    <div className="flex items-center gap-4 text-slate-500 font-black text-xs uppercase tracking-widest bg-white/5 px-6 py-3 rounded-full">
+          <section id="transfer-ad" className="py-20 md:py-40 px-6 md:px-24">
+            <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-emerald-500/10 hover:border-emerald-500/40 transition-all duration-1000 relative">
+               <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
+                  <div className="flex items-center gap-6 text-emerald-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-emerald-500"></span>محرك السيولة العالمي</div>
+                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-emerald-400 transition-all duration-700">{siteConfig.transferAdTitle}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-emerald-500 pr-6 md:pr-10">{siteConfig.transferAdDesc}</p>
+                  <div className="flex flex-wrap gap-6 md:gap-8 items-center pt-4 md:pt-8">
+                    <button onClick={onLoginClick} className="bg-emerald-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-emerald-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(16,185,129,0.3)] w-full md:w-max">ابدأ التحويل العالمي 🌐</button>
+                    <div className="flex items-center gap-4 text-slate-500 font-black text-[10px] md:text-xs uppercase tracking-widest bg-white/5 px-6 py-3 rounded-full">
                        <span>Swift Secured</span>
                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                        <span>Instant P2P</span>
                     </div>
                   </div>
                </div>
-               <div className="w-full lg:w-[45%] relative bg-slate-900 overflow-hidden">
+               <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
                   <img src={siteConfig.transferAdImage} className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-[5s]" alt="Global Transfers" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#020617] via-transparent to-transparent hidden lg:block"></div>
+                  <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#020617] via-transparent to-transparent"></div>
                </div>
             </div>
           </section>
 
           {/* New Payment Gateway Section */}
-          <section id="gateway-ad" className="py-40 px-8 md:px-24">
-            <div className="max-w-[1800px] mx-auto group glass-card rounded-[6rem] overflow-hidden flex flex-col lg:flex-row-reverse items-stretch min-h-[700px] shadow-3xl border border-violet-500/10 hover:border-violet-500/40 transition-all duration-1000 relative">
-               <div className="w-full lg:w-[55%] p-20 md:p-32 space-y-12 flex flex-col justify-center relative z-10">
-                  <div className="flex items-center gap-6 text-violet-400 font-black text-sm uppercase tracking-[0.5em]"><span className="w-20 h-px bg-violet-500"></span>بوابة الدفع الاحترافية</div>
-                  <h2 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-violet-400 transition-all duration-700">{siteConfig.gatewayAdTitle}</h2>
-                  <p className="text-2xl md:text-3xl text-slate-200 font-bold leading-relaxed border-r-8 border-violet-500 pr-10">{siteConfig.gatewayAdDesc}</p>
-                  <div className="flex flex-wrap gap-8 items-center pt-8">
-                    <button onClick={onLoginClick} className="bg-violet-600 px-20 py-8 rounded-[3rem] font-black text-2xl hover:bg-violet-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(124,58,237,0.3)] w-max">تفعيل بوابة الدفع 🚀</button>
+          <section id="gateway-ad" className="py-20 md:py-40 px-6 md:px-24">
+            <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row-reverse items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-violet-500/10 hover:border-violet-500/40 transition-all duration-1000 relative">
+               <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
+                  <div className="flex items-center gap-6 text-violet-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-violet-500"></span>بوابة الدفع الاحترافية</div>
+                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-violet-400 transition-all duration-700">{siteConfig.gatewayAdTitle}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-violet-500 pr-6 md:pr-10">{siteConfig.gatewayAdDesc}</p>
+                  <div className="flex flex-wrap gap-6 md:gap-8 items-center pt-4 md:pt-8">
+                    <button onClick={onLoginClick} className="bg-violet-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-violet-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(124,58,237,0.3)] w-full md:w-max">تفعيل بوابة الدفع 🚀</button>
                     <div className="flex -space-x-4">
                        {[1, 2, 3, 4].map(i => (
-                          <div key={i} className="w-12 h-12 rounded-full border-2 border-[#020617] bg-slate-800 flex items-center justify-center text-xs font-black shadow-lg overflow-hidden">
+                          <div key={i} className="w-10 md:w-12 h-10 md:h-12 rounded-full border-2 border-[#020617] bg-slate-800 flex items-center justify-center text-xs font-black shadow-lg overflow-hidden">
                              <img src={`https://i.pravatar.cc/150?u=${i+10}`} alt="Merchant" />
                           </div>
                        ))}
-                       <div className="w-12 h-12 rounded-full border-2 border-[#020617] bg-violet-600 flex items-center justify-center text-[10px] font-black shadow-lg">+500</div>
+                       <div className="w-10 md:w-12 h-10 md:h-12 rounded-full border-2 border-[#020617] bg-violet-600 flex items-center justify-center text-[8px] md:text-[10px] font-black shadow-lg">+500</div>
                     </div>
                   </div>
                </div>
-               <div className="w-full lg:w-[45%] relative bg-slate-900 overflow-hidden">
+               <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
                   <img src={siteConfig.gatewayAdImage} className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-[5s]" alt="Payment Gateway" />
-                  <div className="absolute inset-0 bg-gradient-to-l from-[#020617] via-transparent to-transparent hidden lg:block"></div>
+                  <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-l from-[#020617] via-transparent to-transparent"></div>
                </div>
             </div>
           </section>
 
-          <section id="raffle-ad" className="py-40 px-8 md:px-24">
-            <div className="max-w-[1800px] mx-auto group glass-card rounded-[6rem] overflow-hidden flex flex-col lg:flex-row-reverse items-stretch min-h-[800px] shadow-[0_50px_120px_rgba(0,0,0,0.7)] border border-amber-500/10 hover:border-amber-500/40 transition-all duration-1000 relative">
-               <div className="w-full lg:w-[55%] p-20 md:p-32 space-y-12 flex flex-col justify-center relative z-10 bg-gradient-to-br from-slate-950 via-[#020617] to-indigo-950/20">
-                  <div className="flex items-center gap-6 text-amber-500 font-black text-sm uppercase tracking-[0.5em]"><span className="w-20 h-px bg-amber-500"></span>سحب FastPay الشهري</div>
-                  <h2 className="text-6xl md:text-9xl font-black text-white leading-tight tracking-tighter group-hover:text-amber-400 transition-all duration-700">{siteConfig.raffleAdTitle}</h2>
-                  <p className="text-2xl md:text-3xl text-slate-200 font-bold leading-relaxed border-r-8 border-amber-500 pr-10">{siteConfig.raffleAdDesc}</p>
+          <section id="raffle-ad" className="py-20 md:py-40 px-6 md:px-24">
+            <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row-reverse items-stretch min-h-[600px] md:min-h-[800px] shadow-[0_50px_120px_rgba(0,0,0,0.7)] border border-amber-500/10 hover:border-amber-500/40 transition-all duration-1000 relative">
+               <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10 bg-gradient-to-br from-slate-950 via-[#020617] to-indigo-950/20">
+                  <div className="flex items-center gap-6 text-amber-500 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-amber-500"></span>سحب FastPay الشهري</div>
+                  <h2 className="text-4xl md:text-9xl font-black text-white leading-tight tracking-tighter group-hover:text-amber-400 transition-all duration-700">{siteConfig.raffleAdTitle}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-amber-500 pr-6 md:pr-10">{siteConfig.raffleAdDesc}</p>
                   
                   {siteConfig.showRaffleCountdown && siteConfig.raffleEndDate && (
-                    <div className="py-6">
-                       <p className="text-center text-amber-500 font-black text-sm uppercase tracking-[0.3em] mb-4">الوقت المتبقي للسحب الكبير</p>
+                    <div className="py-4 md:py-6">
+                       <p className="text-center text-amber-500 font-black text-[10px] md:text-sm uppercase tracking-[0.3em] mb-4">الوقت المتبقي للسحب الكبير</p>
                        <Countdown targetDate={siteConfig.raffleEndDate} />
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-6">
-                     <div className="p-8 bg-white/5 rounded-3xl border border-white/5 space-y-4">
-                        <span className="text-5xl">🏎️</span>
-                        <h4 className="text-xl font-black">سيارة Porsche 911 GT3</h4>
-                        <p className="text-sm text-slate-500 font-bold">اصدار 2024 الرياضي - ملك الطريق</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 py-4 md:py-6">
+                     <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-4">
+                        <span className="text-4xl md:text-5xl">🏎️</span>
+                        <h4 className="text-lg md:text-xl font-black">سيارة Porsche 911 GT3</h4>
+                        <p className="text-xs md:text-sm text-slate-500 font-bold">اصدار 2024 الرياضي - ملك الطريق</p>
                      </div>
-                     <div className="p-8 bg-white/5 rounded-3xl border border-white/5 space-y-4">
-                        <span className="text-5xl">🕋</span>
-                        <h4 className="text-xl font-black">رحلة عمرة ملكية (VIP)</h4>
-                        <p className="text-sm text-slate-500 font-bold">اقامة في جناح مطل على الحرم - طيران خاص</p>
+                     <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-4">
+                        <span className="text-4xl md:text-5xl">🕋</span>
+                        <h4 className="text-lg md:text-xl font-black">رحلة عمرة ملكية (VIP)</h4>
+                        <p className="text-xs md:text-sm text-slate-500 font-bold">اقامة في جناح مطل على الحرم - طيران خاص</p>
                      </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-8 items-center pt-8">
-                    <button onClick={onRegisterClick} className="bg-amber-600 px-20 py-8 rounded-[3rem] font-black text-2xl hover:bg-amber-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(245,158,11,0.3)] w-max">احجز تذكرتك {siteConfig.raffleEntryCost}$</button>
-                    <p className="text-slate-500 font-black text-sm animate-pulse tracking-widest">المقاعد محدودة جداً لهذا السحب</p>
+                  <div className="flex flex-wrap gap-6 md:gap-8 items-center pt-4 md:pt-8">
+                    <button onClick={onRegisterClick} className="bg-amber-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-amber-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(245,158,11,0.3)] w-full md:w-max">احجز تذكرتك {siteConfig.raffleEntryCost}$</button>
+                    <p className="text-slate-500 font-black text-[10px] md:text-sm animate-pulse tracking-widest w-full md:w-auto text-center md:text-right">المقاعد محدودة جداً لهذا السحب</p>
                   </div>
                </div>
-               <div className="w-full lg:w-[45%] relative bg-slate-900 overflow-hidden">
+               <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
                   <img src={siteConfig.raffleAdImage} className="w-full h-full object-cover opacity-70 group-hover:scale-110 group-hover:opacity-90 transition-all duration-[8s]" alt="Sports Car" />
-                  <div className="absolute inset-0 bg-gradient-to-l from-black via-transparent to-transparent hidden lg:block"></div>
-                  <div className="absolute top-12 left-12 bg-white text-black p-8 rounded-full font-black text-center shadow-2xl animate-bounce">
-                     <p className="text-xs">قيمة الجائزة تتجاوز</p>
-                     <p className="text-3xl tracking-tighter">$250,000</p>
+                  <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-l from-black via-transparent to-transparent"></div>
+                  <div className="absolute top-6 md:top-12 left-6 md:left-12 bg-white text-black p-4 md:p-8 rounded-full font-black text-center shadow-2xl animate-bounce">
+                     <p className="text-[8px] md:text-xs">قيمة الجائزة تتجاوز</p>
+                     <p className="text-xl md:text-3xl tracking-tighter">$250,000</p>
                   </div>
                </div>
             </div>
@@ -409,51 +446,51 @@ const LandingPage: React.FC<Props> = ({
             </div>
           </section>
 
-          <section id="services" className="py-60 px-8 md:px-24">
+          <section id="services" className="py-20 md:py-60 px-6 md:px-24">
              <div className="max-w-[1600px] mx-auto">
-                <div className="text-center space-y-8 mb-40">
-                   <h2 className="text-7xl md:text-9xl font-black text-white tracking-tighter">{siteConfig.servicesTitle}</h2>
-                   <h3 className="text-2xl md:text-3xl text-slate-400 font-bold max-w-4xl mx-auto">{siteConfig.servicesSubtitle}</h3>
+                <div className="text-center space-y-6 md:space-y-8 mb-20 md:mb-40">
+                   <h2 className="text-4xl md:text-9xl font-black text-white tracking-tighter">{siteConfig.servicesTitle}</h2>
+                   <h3 className="text-lg md:text-3xl text-slate-400 font-bold max-w-4xl mx-auto">{siteConfig.servicesSubtitle}</h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-20">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-20">
                    {services.map(s => (
-                      <div key={s.id} className="group p-20 glass-card rounded-[5rem] hover:bg-white/5 transition-all duration-700 hover:-translate-y-8 relative overflow-hidden">
-                         <div className="text-[10rem] mb-16 filter drop-shadow-[0_20px_50px_rgba(14,165,233,0.3)] transform group-hover:scale-110 transition-transform duration-700 text-center">{s.icon}</div>
-                         <h3 className="text-5xl font-black mb-10 text-white group-hover:text-sky-400 transition-colors">{s.title}</h3>
-                         <p className="text-xl md:text-2xl text-slate-400 font-bold leading-[2] group-hover:text-slate-200 transition-colors">{s.description}</p>
+                      <div key={s.id} className="group p-10 md:p-20 glass-card rounded-3xl md:rounded-[5rem] hover:bg-white/5 transition-all duration-700 hover:-translate-y-4 md:hover:-translate-y-8 relative overflow-hidden">
+                         <div className="text-6xl md:text-[10rem] mb-8 md:mb-16 filter drop-shadow-[0_20px_50px_rgba(14,165,233,0.3)] transform group-hover:scale-110 transition-transform duration-700 text-center">{s.icon}</div>
+                         <h3 className="text-2xl md:text-5xl font-black mb-6 md:mb-10 text-white group-hover:text-sky-400 transition-colors">{s.title}</h3>
+                         <p className="text-base md:text-2xl text-slate-400 font-bold leading-relaxed md:leading-[2] group-hover:text-slate-200 transition-colors">{s.description}</p>
                       </div>
                    ))}
                 </div>
              </div>
           </section>
 
-          <footer className="bg-[#020617] py-60 px-8 md:px-32 border-t border-white/5 relative z-10 overflow-hidden">
-            <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-3 gap-40">
-              <div className="space-y-16">
-                {siteConfig.logoUrl && <img src={siteConfig.logoUrl} style={{ width: `${siteConfig.logoWidth}px` }} alt="Logo" />}
-                <p className="text-2xl text-slate-400 font-bold leading-[2.2] max-w-2xl">{siteConfig.footerAbout}</p>
+          <footer className="bg-[#020617] py-20 md:py-60 px-6 md:px-32 border-t border-white/5 relative z-10 overflow-hidden">
+            <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-3 gap-20 md:gap-40">
+              <div className="space-y-8 md:space-y-16">
+                {siteConfig.logoUrl && <img src={siteConfig.logoUrl} style={{ width: `${siteConfig.logoWidth ? Math.min(siteConfig.logoWidth, 150) : 150}px` }} alt="Logo" />}
+                <p className="text-lg md:text-2xl text-slate-400 font-bold leading-relaxed md:leading-[2.2] max-w-2xl">{siteConfig.footerAbout}</p>
               </div>
-              <div className="space-y-16">
-                 <h4 className="text-4xl font-black text-white border-r-[10px] border-sky-500 pr-10 tracking-tighter uppercase">{siteConfig.footerLinksTitle}</h4>
-                 <ul className="space-y-10 text-slate-400 font-bold text-2xl">
+              <div className="space-y-8 md:space-y-16">
+                 <h4 className="text-2xl md:text-4xl font-black text-white border-r-4 md:border-r-[10px] border-sky-500 pr-6 md:pr-10 tracking-tighter uppercase">{siteConfig.footerLinksTitle}</h4>
+                 <ul className="space-y-6 md:space-y-10 text-slate-400 font-bold text-lg md:text-2xl">
                     {pages.filter(p=>p.isActive && p.showInFooter).map(p=>(
-                      <li key={p.id} onClick={()=>setCurrentPath(p.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-6"><span className="w-3 h-3 bg-sky-500 rounded-full shadow-[0_0_10px_#0ea5e9]"></span>{p.title}</li>
+                      <li key={p.id} onClick={()=>setCurrentPath(p.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full shadow-[0_0_10px_#0ea5e9]"></span>{p.title}</li>
                     ))}
                     {[siteConfig.footerLink1Text, siteConfig.footerLink2Text, siteConfig.footerLink3Text, siteConfig.footerLink4Text].map(link => (
-                      <li key={link} className="hover:text-white transition-all cursor-pointer flex items-center gap-6"><span className="w-3 h-3 bg-slate-700 rounded-full"></span>{link}</li>
+                      <li key={link} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{link}</li>
                     ))}
                  </ul>
               </div>
-              <div className="space-y-16">
-                 <h4 className="text-4xl font-black text-white border-r-[10px] border-emerald-500 pr-10 tracking-tighter uppercase">{siteConfig.contactSectionTitle}</h4>
-                 <div className="space-y-12 text-slate-400 font-bold text-2xl">
-                    <div className="flex items-start gap-10 group cursor-default"><span className="text-5xl group-hover:scale-125 transition-all">📍</span><p className="group-hover:text-white transition-colors leading-relaxed">{siteConfig.contactAddress}</p></div>
-                    <div className="flex items-center gap-10 group cursor-default"><span className="text-5xl group-hover:scale-125 transition-all">🌐</span><p className="group-hover:text-white transition-colors">{siteConfig.contactEmail}</p></div>
-                    <div className="flex items-center gap-10 group cursor-default" dir="ltr"><span className="text-5xl group-hover:scale-125 transition-all">📱</span><p className="group-hover:text-white transition-colors">{siteConfig.contactPhone}</p></div>
+              <div className="space-y-8 md:space-y-16">
+                 <h4 className="text-2xl md:text-4xl font-black text-white border-r-4 md:border-r-[10px] border-emerald-500 pr-6 md:pr-10 tracking-tighter uppercase">{siteConfig.contactSectionTitle}</h4>
+                 <div className="space-y-8 md:space-y-12 text-slate-400 font-bold text-lg md:text-2xl">
+                    <div className="flex items-start gap-6 md:gap-10 group cursor-default"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">📍</span><p className="group-hover:text-white transition-colors leading-relaxed">{siteConfig.contactAddress}</p></div>
+                    <div className="flex items-center gap-6 md:gap-10 group cursor-default"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">🌐</span><p className="group-hover:text-white transition-colors">{siteConfig.contactEmail}</p></div>
+                    <div className="flex items-center gap-6 md:gap-10 group cursor-default" dir="ltr"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">📱</span><p className="group-hover:text-white transition-colors">{siteConfig.contactPhone}</p></div>
                  </div>
               </div>
             </div>
-            <div className="max-w-[1600px] mx-auto mt-60 pt-20 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-600 font-black tracking-[0.5em] text-xs uppercase">
+            <div className="max-w-[1600px] mx-auto mt-20 md:mt-60 pt-10 md:pt-20 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-600 font-black tracking-[0.2em] md:tracking-[0.5em] text-[8px] md:text-xs uppercase text-center md:text-right">
                <span>{siteConfig.siteName} GLOBAL FINANCIAL INFRASTRUCTURE &copy; {new Date().getFullYear()}</span>
                <span>ISO 27001 SECURED SYSTEM</span>
             </div>

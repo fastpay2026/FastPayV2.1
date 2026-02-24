@@ -63,7 +63,7 @@ const App: React.FC = () => {
     tradingAdTitle: 'محرك التداول الاحترافي',
     tradingAdDesc: 'لا تنتظر السوق، بل كن أنت المحرك. منصتنا توفر لك وصولاً مباشراً للسيولة العالمية مع أدوات تحليل ذكية ومخططات بيانية فورية.',
     tradingAdImage: 'https://images.unsplash.com/photo-1642790106117-e829e14a795f?q=80&w=2000&auto=format&fit=crop',
-    raffleAdTitle: 'مهرجان جوائز النخبة: حلم الفخامة والروحانية',
+    raffleAdTitle: 'القرعة الشهرية: حلم الفخامة والروحانية',
     raffleAdDesc: 'استعد للربح الأكبر في مسيرتك! شارك الآن في سحب FastPay الشهري للفوز بسيارة رياضية خارقة أحدث طراز، أو رحلة عمرة VIP شاملة لأقدس البقاع بضيافة ملكية كاملة.',
     raffleAdImage: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1470&auto=format&fit=crop',
     transferAdTitle: 'جسر السيولة العالمي: Swift وفورية بلا حدود',
@@ -105,6 +105,25 @@ const App: React.FC = () => {
   const [pages, setPages] = useState<CustomPage[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const isInitialLoad = React.useRef(true);
+
+  // Safety check for localStorage quota
+  useEffect(() => {
+    const checkQuota = () => {
+      try {
+        const total = JSON.stringify(localStorage).length;
+        const quotaLimit = 4.5 * 1024 * 1024; // ~4.5MB safety limit
+        if (total > quotaLimit) {
+          console.warn("LocalStorage quota near limit, clearing non-essential data");
+          // Clear specific keys that might be flooding
+          const keysToClear = ['fp_v21_trade_orders', 'fp_v21_recharge_cards', 'fp_v21_raffle_entries', 'fp_v21_raffle_winners'];
+          keysToClear.forEach(key => localStorage.removeItem(key));
+        }
+      } catch (e) {
+        console.error("Quota check failed", e);
+      }
+    };
+    checkQuota();
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
