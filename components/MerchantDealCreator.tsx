@@ -168,11 +168,29 @@ const MerchantDealCreator: React.FC<Props> = ({
 
   const hasEscrow = stats.activeLC > 0;
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
-    <div className="fixed inset-0 z-[150] flex bg-[#0a0a0a] text-white text-right font-sans overflow-hidden" dir="rtl">
+    <div className="fixed inset-0 z-[150] flex flex-col lg:flex-row bg-[#0a0a0a] text-white text-right font-sans overflow-hidden" dir="rtl">
+      {/* Mobile Header */}
+      <header className="lg:hidden h-20 bg-[#111] border-b border-white/5 px-6 flex justify-between items-center z-30">
+        <div className="flex items-center gap-4">
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white text-2xl p-2">
+            {isMobileMenuOpen ? '✕' : '☰'}
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
+              <span className="text-lg">🏪</span>
+            </div>
+            <h1 className="text-lg font-black tracking-tighter">Merchant Suite</h1>
+          </div>
+        </div>
+        <button onClick={onLogout} className="text-red-500 font-black text-sm">خروج</button>
+      </header>
+
       {/* Sidebar */}
-      <aside className="w-80 bg-[#111] border-l border-white/5 flex flex-col z-20">
-        <div className="p-10 border-b border-white/5">
+      <aside className={`fixed lg:static inset-y-0 right-0 w-80 bg-[#111] border-l border-white/5 flex flex-col z-[200] transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="p-10 border-b border-white/5 hidden lg:block">
           <div className="flex items-center gap-4 mb-2">
             <div className="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.4)]">
               <span className="text-xl">🏪</span>
@@ -182,7 +200,7 @@ const MerchantDealCreator: React.FC<Props> = ({
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Global Infrastructure 2026</p>
         </div>
 
-        <nav className="flex-1 p-6 space-y-2">
+        <nav className="flex-1 p-6 space-y-2 mt-20 lg:mt-0">
           {[
             { id: 'overview', label: 'نظرة عامة', icon: '📊' },
             { id: 'create', label: 'إنشاء صفقة جديدة', icon: '➕' },
@@ -192,7 +210,7 @@ const MerchantDealCreator: React.FC<Props> = ({
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => { setActiveTab(tab.id as any); setIsMobileMenuOpen(false); }}
               className={`w-full p-4 rounded-2xl flex items-center gap-4 transition-all font-bold ${activeTab === tab.id ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20 shadow-lg' : 'text-slate-500 hover:bg-white/5 hover:text-white'}`}
             >
               <span className="text-xl">{tab.icon}</span>
@@ -214,14 +232,14 @@ const MerchantDealCreator: React.FC<Props> = ({
               {hasEscrow && <span className="text-[10px] text-amber-500 font-bold">(+{stats.reservedAmount.toLocaleString()} محجوز)</span>}
             </div>
           </div>
-          <button onClick={onLogout} className="w-full py-4 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl font-black hover:bg-red-500 hover:text-white transition-all">تسجيل الخروج</button>
+          <button onClick={onLogout} className="w-full py-4 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl font-black hover:bg-red-500 hover:text-white transition-all hidden lg:block">تسجيل الخروج</button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col relative overflow-hidden">
         {/* Top Header */}
-        <header className="h-24 bg-black/20 backdrop-blur-xl border-b border-white/5 px-12 flex justify-between items-center z-10">
+        <header className="h-24 bg-black/20 backdrop-blur-xl border-b border-white/5 px-6 lg:px-12 flex justify-between items-center z-10 hidden lg:flex">
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-black tracking-tighter">
               {activeTab === 'overview' && 'لوحة التحكم التجارية'}
@@ -243,54 +261,54 @@ const MerchantDealCreator: React.FC<Props> = ({
           </div>
         </header>
 
-        <div className="flex-1 p-12 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 p-4 lg:p-12 overflow-y-auto custom-scrollbar">
           {activeTab === 'overview' && (
-            <div className="space-y-12 animate-in fade-in duration-500">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-8 lg:space-y-12 animate-in fade-in duration-500">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                 {[
                   { label: 'إجمالي حجم التداول', value: `$${stats.totalVolume.toLocaleString()}`, icon: '💰', color: 'text-teal-400' },
                   { label: 'عدد الصفقات المنفذة', value: stats.dealsCount, icon: '🤝', color: 'text-sky-400' },
                   { label: 'اعتمادات LC نشطة', value: stats.activeLC, icon: '🔒', color: 'text-amber-500' },
                 ].map((s, i) => (
-                  <div key={i} className="bg-[#111] p-10 rounded-[3rem] border border-white/5 shadow-2xl space-y-4">
+                  <div key={i} className="bg-[#111] p-6 lg:p-10 rounded-3xl lg:rounded-[3rem] border border-white/5 shadow-2xl space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-4xl">{s.icon}</span>
-                      <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{s.label}</p>
+                      <span className="text-3xl lg:text-4xl">{s.icon}</span>
+                      <p className="text-[9px] lg:text-[10px] text-slate-500 font-black uppercase tracking-widest">{s.label}</p>
                     </div>
-                    <p className={`text-4xl font-black ${s.color}`}>{s.value}</p>
+                    <p className={`text-3xl lg:text-4xl font-black ${s.color}`}>{s.value}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <div className="bg-[#111] p-12 rounded-[4rem] border border-white/5 space-y-8">
-                  <h3 className="text-2xl font-black text-white">آخر النشاطات</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                <div className="bg-[#111] p-6 lg:p-12 rounded-3xl lg:rounded-[4rem] border border-white/5 space-y-6 lg:space-y-8">
+                  <h3 className="text-xl lg:text-2xl font-black text-white">آخر النشاطات</h3>
                   <div className="space-y-4">
                     {merchantTransactions.slice(0, 5).map((t, i) => (
-                      <div key={i} className="flex justify-between items-center p-6 bg-black/40 rounded-3xl border border-white/5">
+                      <div key={i} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 lg:p-6 bg-black/40 rounded-2xl lg:rounded-3xl border border-white/5 gap-4">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 bg-teal-500/10 text-teal-400 rounded-full flex items-center justify-center">🤝</div>
                           <div>
-                            <p className="font-bold text-white">صفقة مع {t.relatedUser}</p>
+                            <p className="font-bold text-white text-sm lg:text-base">صفقة مع {t.relatedUser}</p>
                             <p className="text-[10px] text-slate-500">{t.timestamp}</p>
                           </div>
                         </div>
-                        <p className="text-xl font-black text-teal-400">${Math.abs(t.amount).toLocaleString()}</p>
+                        <p className="text-lg lg:text-xl font-black text-teal-400">${Math.abs(t.amount).toLocaleString()}</p>
                       </div>
                     ))}
                     {merchantTransactions.length === 0 && <p className="text-center py-10 text-slate-600 font-bold">لا توجد عمليات سابقة</p>}
                   </div>
                 </div>
 
-                <div className="bg-teal-500/5 border border-teal-500/10 rounded-[4rem] p-12 flex flex-col justify-center items-center text-center space-y-8">
-                  <div className="w-24 h-24 bg-teal-500/20 rounded-full flex items-center justify-center text-5xl shadow-[0_0_40px_rgba(20,184,166,0.2)]">🛡️</div>
+                <div className="bg-teal-500/5 border border-teal-500/10 rounded-3xl lg:rounded-[4rem] p-6 lg:p-12 flex flex-col justify-center items-center text-center space-y-6 lg:space-y-8">
+                  <div className="w-16 lg:w-24 h-16 lg:h-24 bg-teal-500/20 rounded-full flex items-center justify-center text-3xl lg:text-5xl shadow-[0_0_40px_rgba(20,184,166,0.2)]">🛡️</div>
                   <div className="space-y-4">
-                    <h3 className="text-3xl font-black text-white">نظام الحماية المتكامل</h3>
-                    <p className="text-slate-400 font-bold leading-relaxed max-w-md mx-auto">
+                    <h3 className="text-2xl lg:text-3xl font-black text-white">نظام الحماية المتكامل</h3>
+                    <p className="text-slate-400 font-bold text-sm lg:text-base leading-relaxed max-w-md mx-auto">
                       جميع صفقاتك محمية بنظام التشفير العسكري AES-256. يتم التحقق من كل عملية عبر عقدة الرياض المركزية لضمان أعلى مستويات الموثوقية.
                     </p>
                   </div>
-                  <button onClick={() => setActiveTab('create')} className="px-10 py-4 bg-teal-600 rounded-2xl font-black hover:bg-teal-500 transition-all shadow-xl">ابدأ صفقة جديدة الآن</button>
+                  <button onClick={() => setActiveTab('create')} className="w-full sm:w-auto px-10 py-4 bg-teal-600 rounded-2xl font-black hover:bg-teal-500 transition-all shadow-xl">ابدأ صفقة جديدة الآن</button>
                 </div>
               </div>
             </div>
@@ -298,16 +316,16 @@ const MerchantDealCreator: React.FC<Props> = ({
 
           {activeTab === 'create' && (
             <div className="max-w-4xl mx-auto animate-in slide-in-from-bottom duration-500">
-              <div className="bg-[#111] p-12 md:p-16 rounded-[4rem] border border-white/5 shadow-2xl space-y-12 relative overflow-hidden">
+              <div className="bg-[#111] p-6 lg:p-16 rounded-3xl lg:rounded-[4rem] border border-white/5 shadow-2xl space-y-8 lg:space-y-12 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-teal-500 to-transparent"></div>
                 
                 <div className="space-y-2">
-                  <h3 className="text-4xl font-black tracking-tighter">تفاصيل الصفقة التجارية</h3>
-                  <p className="text-slate-500 font-bold">أدخل البيانات المطلوبة لإنشاء طلب دفع مضمون بنظام LC.</p>
+                  <h3 className="text-2xl lg:text-4xl font-black tracking-tighter">تفاصيل الصفقة التجارية</h3>
+                  <p className="text-sm lg:text-base text-slate-500 font-bold">أدخل البيانات المطلوبة لإنشاء طلب دفع مضمون بنظام LC.</p>
                 </div>
 
-                <form onSubmit={handleCreateDeal} className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <form onSubmit={handleCreateDeal} className="space-y-6 lg:space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">اسم المشتري (Username)</label>
                       <input 
@@ -315,7 +333,7 @@ const MerchantDealCreator: React.FC<Props> = ({
                         type="text" 
                         value={dealForm.buyerName}
                         onChange={e => setDealForm({...dealForm, buyerName: e.target.value})}
-                        className="w-full p-6 bg-black/40 border border-white/10 rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all"
+                        className="w-full p-4 lg:p-6 bg-black/40 border border-white/10 rounded-2xl lg:rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all"
                         placeholder="مثلاً: user123"
                       />
                     </div>
@@ -324,7 +342,7 @@ const MerchantDealCreator: React.FC<Props> = ({
                       <select 
                         value={dealForm.goodsType}
                         onChange={e => setDealForm({...dealForm, goodsType: e.target.value})}
-                        className="w-full p-6 bg-black/40 border border-white/10 rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all cursor-pointer"
+                        className="w-full p-4 lg:p-6 bg-black/40 border border-white/10 rounded-2xl lg:rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all cursor-pointer"
                       >
                         <option value="معادن تجارية">معادن تجارية</option>
                         <option value="البسه">البسه</option>
@@ -335,7 +353,7 @@ const MerchantDealCreator: React.FC<Props> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">الكمية</label>
                       <input 
@@ -343,7 +361,7 @@ const MerchantDealCreator: React.FC<Props> = ({
                         type="text" 
                         value={dealForm.quantity}
                         onChange={e => setDealForm({...dealForm, quantity: e.target.value})}
-                        className="w-full p-6 bg-black/40 border border-white/10 rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all"
+                        className="w-full p-4 lg:p-6 bg-black/40 border border-white/10 rounded-2xl lg:rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all"
                         placeholder="مثلاً: 1000 وحدة"
                       />
                     </div>
@@ -354,7 +372,7 @@ const MerchantDealCreator: React.FC<Props> = ({
                         type="number" 
                         value={dealForm.totalAmount}
                         onChange={e => setDealForm({...dealForm, totalAmount: e.target.value})}
-                        className="w-full p-6 bg-black/60 border border-teal-500/30 rounded-3xl font-black text-3xl text-teal-400 outline-none"
+                        className="w-full p-4 lg:p-6 bg-black/60 border border-teal-500/30 rounded-2xl lg:rounded-3xl font-black text-2xl lg:text-3xl text-teal-400 outline-none"
                         placeholder="0.00"
                       />
                     </div>
@@ -366,7 +384,7 @@ const MerchantDealCreator: React.FC<Props> = ({
                       maxLength={500}
                       value={dealForm.notes}
                       onChange={e => setDealForm({...dealForm, notes: e.target.value})}
-                      className="w-full p-6 bg-black/40 border border-white/10 rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all min-h-[120px] resize-none"
+                      className="w-full p-4 lg:p-6 bg-black/40 border border-white/10 rounded-2xl lg:rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all min-h-[120px] resize-none"
                       placeholder="اكتب أي ملاحظات إضافية هنا (حد أقصى 500 حرف)..."
                     />
                     <div className="text-left">
@@ -374,13 +392,13 @@ const MerchantDealCreator: React.FC<Props> = ({
                     </div>
                   </div>
 
-                  <div className="p-8 bg-teal-500/5 border border-teal-500/10 rounded-[2.5rem] flex justify-between items-center">
+                  <div className="p-6 lg:p-8 bg-teal-500/5 border border-teal-500/10 rounded-2xl lg:rounded-[2.5rem] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="space-y-1">
-                      <p className="font-black text-teal-400 text-lg">نظام الاعتماد المستندي (FastPay)</p>
-                      <p className="text-xs text-slate-500 font-bold">هذا النظام إلزامي لضمان حقوق الطرفين؛ سيتم حجز المبلغ من المشتري ولا يُحرر إلا برفع مستند الشحن.</p>
+                      <p className="font-black text-teal-400 text-base lg:text-lg">نظام الاعتماد المستندي (FastPay)</p>
+                      <p className="text-[10px] lg:text-xs text-slate-500 font-bold">هذا النظام إلزامي لضمان حقوق الطرفين؛ سيتم حجز المبلغ من المشتري ولا يُحرر إلا برفع مستند الشحن.</p>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-teal-500/20 rounded-full border border-teal-500/30">
-                      <span className="text-teal-400 text-xs font-black">نشط دائماً</span>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-teal-500/20 rounded-full border border-teal-500/30 shrink-0">
+                      <span className="text-teal-400 text-[10px] lg:text-xs font-black">نشط دائماً</span>
                       <span className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></span>
                     </div>
                   </div>
@@ -388,17 +406,17 @@ const MerchantDealCreator: React.FC<Props> = ({
                   <button 
                     type="submit" 
                     disabled={isProcessing}
-                    className={`w-full py-8 bg-teal-600 rounded-[3rem] font-black text-2xl shadow-2xl hover:bg-teal-500 transition-all active:scale-95 flex items-center justify-center gap-4 ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full py-6 lg:py-8 bg-teal-600 rounded-2xl lg:rounded-[3rem] font-black text-xl lg:text-2xl shadow-2xl hover:bg-teal-500 transition-all active:scale-95 flex items-center justify-center gap-4 ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {isProcessing ? (
                       <>
-                        <span className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></span>
+                        <span className="w-6 h-6 lg:w-8 lg:h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></span>
                         <span>جاري معالجة البيانات...</span>
                       </>
                     ) : (
                       <>
                         <span>تأكيد وإنشاء الصفقة</span>
-                        <span className="text-3xl">🤝</span>
+                        <span className="text-2xl lg:text-3xl">🤝</span>
                       </>
                     )}
                   </button>
@@ -409,31 +427,31 @@ const MerchantDealCreator: React.FC<Props> = ({
 
           {activeTab === 'history' && (
             <div className="space-y-8 animate-in fade-in duration-500">
-              <div className="bg-[#111] rounded-[4rem] border border-white/5 overflow-hidden shadow-2xl">
-                <table className="w-full text-right">
+              <div className="bg-[#111] rounded-3xl lg:rounded-[4rem] border border-white/5 overflow-hidden shadow-2xl overflow-x-auto custom-scrollbar">
+                <table className="w-full text-right min-w-[800px]">
                   <thead className="bg-white/5 text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] border-b border-white/5">
                     <tr>
-                      <th className="p-10">المشتري</th>
-                      <th className="p-10">المبلغ</th>
-                      <th className="p-10">التوقيت</th>
-                      <th className="p-10 text-center">الحالة</th>
+                      <th className="p-6 lg:p-10">المشتري</th>
+                      <th className="p-6 lg:p-10">المبلغ</th>
+                      <th className="p-6 lg:p-10">التوقيت</th>
+                      <th className="p-6 lg:p-10 text-center">الحالة</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 font-bold">
                     {merchantTransactions.map((t, i) => (
                       <tr key={i} className="hover:bg-white/5 transition-all">
-                        <td className="p-10">
+                        <td className="p-6 lg:p-10">
                           <div className="flex flex-col">
-                            <span className="text-xl text-white">{t.relatedUser}</span>
+                            <span className="text-lg lg:text-xl text-white">{t.relatedUser}</span>
                             {t.hash && <span className="text-[8px] font-mono text-teal-500/50 truncate max-w-[150px]">{t.hash}</span>}
                             {t.notes && <span className="text-[10px] text-slate-500 italic mt-1 truncate max-w-[200px]" title={t.notes}>{t.notes}</span>}
                           </div>
                         </td>
-                        <td className="p-10 text-2xl font-black text-teal-400">${Math.abs(t.amount).toLocaleString()}</td>
-                        <td className="p-10 text-xs text-slate-500 font-mono">{t.timestamp}</td>
-                        <td className="p-10 text-center">
+                        <td className="p-6 lg:p-10 text-xl lg:text-2xl font-black text-teal-400">${Math.abs(t.amount).toLocaleString()}</td>
+                        <td className="p-6 lg:p-10 text-[10px] lg:text-xs text-slate-500 font-mono">{t.timestamp}</td>
+                        <td className="p-6 lg:p-10 text-center">
                           <div className="flex flex-col items-center gap-2">
-                            <span className={`px-6 py-2 rounded-full text-[10px] font-black uppercase border ${
+                            <span className={`px-4 lg:px-6 py-1.5 lg:py-2 rounded-full text-[9px] lg:text-[10px] font-black uppercase border ${
                               t.status === 'shipped' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
                               t.status === 'escrow' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                               'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
@@ -443,7 +461,7 @@ const MerchantDealCreator: React.FC<Props> = ({
                             {t.status === 'escrow' && (
                               <button 
                                 onClick={() => handleUploadShippingDoc(t.id)}
-                                className="text-[10px] text-teal-400 hover:text-white underline transition-colors"
+                                className="text-[9px] lg:text-[10px] text-teal-400 hover:text-white underline transition-colors"
                               >
                                 رفع وثيقة الشحن
                               </button>
@@ -454,9 +472,9 @@ const MerchantDealCreator: React.FC<Props> = ({
                     ))}
                     {merchantTransactions.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="p-40 text-center opacity-30">
-                          <div className="text-8xl mb-4">📜</div>
-                          <p className="text-2xl font-black">لا توجد صفقات مسجلة</p>
+                        <td colSpan={4} className="p-20 lg:p-40 text-center opacity-30">
+                          <div className="text-6xl lg:text-8xl mb-4">📜</div>
+                          <p className="text-xl lg:text-2xl font-black">لا توجد صفقات مسجلة</p>
                         </td>
                       </tr>
                     )}

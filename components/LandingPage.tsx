@@ -54,8 +54,8 @@ const Countdown: React.FC<{ targetDate: string }> = ({ targetDate }) => {
         { label: 'Min', value: timeLeft.minutes },
         { label: 'Sec', value: timeLeft.seconds }
       ].map((item, idx) => (
-        <div key={idx} className="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-2xl w-24 text-center">
-          <p className="text-3xl font-black text-amber-500 font-mono">{String(item.value).padStart(2, '0')}</p>
+        <div key={idx} className="bg-white/10 backdrop-blur-md border border-white/10 p-2 md:p-4 rounded-xl md:rounded-2xl w-16 md:w-24 text-center">
+          <p className="text-xl md:text-3xl font-black text-amber-500 font-mono">{String(item.value).padStart(2, '0')}</p>
           <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{item.label}</p>
         </div>
       ))}
@@ -351,7 +351,7 @@ const LandingPage: React.FC<Props> = ({
             <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row-reverse items-stretch min-h-[600px] md:min-h-[800px] shadow-[0_50px_120px_rgba(0,0,0,0.7)] border border-amber-500/10 hover:border-amber-500/40 transition-all duration-1000 relative">
                <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10 bg-gradient-to-br from-slate-950 via-[#020617] to-indigo-950/20">
                   <div className="flex items-center gap-6 text-amber-500 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-amber-500"></span>سحب FastPay الشهري</div>
-                  <h2 className="text-4xl md:text-9xl font-black text-white leading-tight tracking-tighter group-hover:text-amber-400 transition-all duration-700">{siteConfig.raffleAdTitle}</h2>
+                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-amber-400 transition-all duration-700">{siteConfig.raffleAdTitle}</h2>
                   <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-amber-500 pr-6 md:pr-10">{siteConfig.raffleAdDesc}</p>
                   
                   {siteConfig.showRaffleCountdown && siteConfig.raffleEndDate && (
@@ -399,7 +399,7 @@ const LandingPage: React.FC<Props> = ({
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-12">
                      {activeAds.map(ad => (
-                        <a key={ad.id} href={ad.link} target="_blank" rel="noopener noreferrer" className="group glass-card rounded-[4rem] overflow-hidden flex flex-col shadow-2xl hover:border-sky-500/40 transition-all duration-700 hover:-translate-y-4">
+                        <a key={ad.id} href={ad.link} target="_blank" rel="noopener noreferrer" className="group glass-card rounded-3xl md:rounded-[4rem] overflow-hidden flex flex-col shadow-2xl hover:border-sky-500/40 transition-all duration-700 hover:-translate-y-4">
                            <div className="h-80 relative overflow-hidden">
                               <img src={ad.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3s]" alt={ad.title} />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
@@ -419,29 +419,29 @@ const LandingPage: React.FC<Props> = ({
           )}
 
           <section className="py-40 px-8 md:px-24 space-y-40 max-w-[1800px] mx-auto">
-            <div id="salary-ad" className="group glass-card rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[700px] shadow-3xl border border-indigo-500/10 hover:border-indigo-500/40 transition-all duration-1000 relative">
-               <div className="w-full lg:w-[55%] p-20 md:p-32 space-y-12 flex flex-col justify-center relative z-10">
-                  <div className="flex items-center gap-6 text-indigo-400 font-black text-sm uppercase tracking-[0.5em]"><span className="w-20 h-px bg-indigo-500"></span>ابتكار مالي حصري</div>
-                  <h2 className="text-6xl md:text-8xl font-black text-white leading-tight tracking-tighter group-hover:text-indigo-400 transition-all duration-700">{siteConfig.salaryAdTitle}</h2>
-                  <p className="text-2xl md:text-3xl text-slate-200 font-bold leading-relaxed border-r-8 border-indigo-500 pr-10">{siteConfig.salaryAdDesc}</p>
-                  <button onClick={onRegisterClick} className="bg-indigo-600 px-20 py-8 rounded-[3rem] font-black text-2xl hover:bg-indigo-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(79,70,229,0.3)] w-max">اطلب التمويل المسبق</button>
+            <div id="salary-ad" className="group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-indigo-500/10 hover:border-indigo-500/40 transition-all duration-1000 relative">
+               <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
+                  <div className="flex items-center gap-6 text-indigo-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-indigo-500"></span>ابتكار مالي حصري</div>
+                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-indigo-400 transition-all duration-700">{siteConfig.salaryAdTitle}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-indigo-500 pr-6 md:pr-10">{siteConfig.salaryAdDesc}</p>
+                  <button onClick={onRegisterClick} className="bg-indigo-600 px-10 py-4 md:px-20 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-indigo-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(79,70,229,0.3)] w-full md:w-max">اطلب التمويل المسبق</button>
                </div>
-               <div className="w-full lg:w-[45%] relative bg-slate-900 overflow-hidden">
+               <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
                   <img src={siteConfig.salaryAdImage} className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-[5s]" alt="Salary" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#020617] via-transparent to-transparent hidden lg:block"></div>
+                  <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#020617] via-transparent to-transparent"></div>
                </div>
             </div>
 
-            <div id="trading-ad" className="group glass-card rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[700px] shadow-3xl hover:border-sky-500/30 transition-all duration-1000">
-               <div className="w-full lg:w-[55%] p-20 md:p-32 space-y-12 flex flex-col justify-center">
-                  <div className="flex items-center gap-6 text-sky-400 font-black text-sm uppercase tracking-[0.5em]"><span className="w-20 h-px bg-sky-500"></span>تداول بمستوى النخبة</div>
-                  <h2 className="text-6xl md:text-9xl font-black text-white leading-tight tracking-tighter group-hover:text-glow transition-all duration-700">{siteConfig.tradingAdTitle}</h2>
-                  <p className="text-2xl md:text-3xl text-slate-300 font-bold leading-relaxed border-r-8 border-sky-500 pr-10">{siteConfig.tradingAdDesc}</p>
-                  <button onClick={onLoginClick} className="bg-sky-600 px-20 py-8 rounded-[3rem] font-black text-2xl hover:bg-sky-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(14,165,233,0.4)] w-max">دخول المنصة الاحترافية</button>
+            <div id="trading-ad" className="group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl hover:border-sky-500/30 transition-all duration-1000">
+               <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
+                  <div className="flex items-center gap-6 text-sky-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-sky-500"></span>تداول بمستوى النخبة</div>
+                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-glow transition-all duration-700">{siteConfig.tradingAdTitle}</h2>
+                  <p className="text-lg md:text-3xl text-slate-300 font-bold leading-relaxed border-r-4 md:border-r-8 border-sky-500 pr-6 md:pr-10">{siteConfig.tradingAdDesc}</p>
+                  <button onClick={onLoginClick} className="bg-sky-600 px-10 py-4 md:px-20 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-sky-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(14,165,233,0.4)] w-full md:w-max">دخول المنصة الاحترافية</button>
                </div>
-               <div className="w-full lg:w-[45%] relative bg-slate-900 overflow-hidden">
+               <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
                   <img src={siteConfig.tradingAdImage} className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-[5s]" alt="Trading" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#020617] via-transparent to-transparent hidden lg:block"></div>
+                  <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#020617] via-transparent to-transparent"></div>
                </div>
             </div>
           </section>
@@ -454,8 +454,8 @@ const LandingPage: React.FC<Props> = ({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-20">
                    {services.map(s => (
-                      <div key={s.id} className="group p-10 md:p-20 glass-card rounded-3xl md:rounded-[5rem] hover:bg-white/5 transition-all duration-700 hover:-translate-y-4 md:hover:-translate-y-8 relative overflow-hidden">
-                         <div className="text-6xl md:text-[10rem] mb-8 md:mb-16 filter drop-shadow-[0_20px_50px_rgba(14,165,233,0.3)] transform group-hover:scale-110 transition-transform duration-700 text-center">{s.icon}</div>
+                      <div key={s.id} className="group p-8 md:p-20 glass-card rounded-3xl md:rounded-[5rem] hover:bg-white/5 transition-all duration-700 hover:-translate-y-4 md:hover:-translate-y-8 relative overflow-hidden">
+                         <div className="text-5xl md:text-[10rem] mb-8 md:mb-16 filter drop-shadow-[0_20px_50px_rgba(14,165,233,0.3)] transform group-hover:scale-110 transition-transform duration-700 text-center">{s.icon}</div>
                          <h3 className="text-2xl md:text-5xl font-black mb-6 md:mb-10 text-white group-hover:text-sky-400 transition-colors">{s.title}</h3>
                          <p className="text-base md:text-2xl text-slate-400 font-bold leading-relaxed md:leading-[2] group-hover:text-slate-200 transition-colors">{s.description}</p>
                       </div>
@@ -465,7 +465,7 @@ const LandingPage: React.FC<Props> = ({
           </section>
 
           <footer className="bg-[#020617] py-20 md:py-60 px-6 md:px-32 border-t border-white/5 relative z-10 overflow-hidden">
-            <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-3 gap-20 md:gap-40">
+            <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-3 gap-12 md:gap-40">
               <div className="space-y-8 md:space-y-16">
                 {siteConfig.logoUrl && <img src={siteConfig.logoUrl} style={{ width: `${siteConfig.logoWidth ? Math.min(siteConfig.logoWidth, 150) : 150}px` }} alt="Logo" />}
                 <p className="text-lg md:text-2xl text-slate-400 font-bold leading-relaxed md:leading-[2.2] max-w-2xl">{siteConfig.footerAbout}</p>
