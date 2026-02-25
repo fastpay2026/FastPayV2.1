@@ -108,7 +108,7 @@ const UserDashboard: React.FC<Props> = ({
   salaryPlans, setSalaryPlans, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads'>('dashboard');
-  const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | null>(null);
+  const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | 'withdraw_warning' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Logic States
@@ -116,6 +116,13 @@ const UserDashboard: React.FC<Props> = ({
   const [transferProgress, setTransferProgress] = useState(0);
   const [transferStep, setTransferStep] = useState(0);
   const [transferSuccess, setTransferSuccess] = useState(false);
+
+  const [isLinkingCard, setIsLinkingCard] = useState(false);
+  const [linkingProgress, setLinkingProgress] = useState(0);
+  const [linkingStep, setLinkingStep] = useState(0);
+  const [linkingSuccess, setLinkingSuccess] = useState(false);
+  const [cardType, setCardType] = useState<'visa' | 'mastercard' | 'unknown'>('unknown');
+  const [cardData, setCardData] = useState({ number: '', holder: '', expiry: '', cvc: '' });
 
   // Form States
   const [transferData, setTransferData] = useState({ recipient: '', amount: '' });
@@ -139,6 +146,16 @@ const UserDashboard: React.FC<Props> = ({
     "تأمين المعاملة ببروتوكول حماية من الدرجة العسكرية...",
     "فحص سجلات الامتثال ومنع غسيل الأموال...",
     "إتمام عملية التحويل وتحديث الأرصدة فورياً..."
+  ];
+
+  const cardLinkingPhrases = [
+    "جاري إنشاء قناة اتصال مشفرة مع خوادم التحقق العالمية...",
+    "التحقق من صحة أرقام البطاقة عبر خوارزمية Luhn...",
+    "فحص معايير الأمان الدولية PCI-DSS...",
+    "مزامنة البيانات مع شبكة Visa/Mastercard العالمية...",
+    "تأمين الربط عبر بروتوكول التشفير العسكري AES-256...",
+    "تفعيل ميزة السحب البنكي السريع Swift لهذه البطاقة...",
+    "إتمام عملية الربط وتأكيد الهوية الرقمية..."
   ];
 
   const handleStartTransfer = (e: React.FormEvent) => {
@@ -189,6 +206,76 @@ const UserDashboard: React.FC<Props> = ({
       setTransferSuccess(true);
       setTimeout(() => { setModalType(null); setIsTransferring(false); setTransferSuccess(false); setTransferData({ recipient: '', amount: '' }); }, 3000);
     }
+  };
+
+  const detectCardType = (number: string) => {
+    const cleanNumber = number.replace(/\s+/g, '');
+    if (cleanNumber.startsWith('4')) return 'visa';
+    if (/^5[1-5]/.test(cleanNumber) || /^2(22[1-9]|2[3-9][0-9]|[3-6][0-9]{2}|7[01][0-9]|720)/.test(cleanNumber)) return 'mastercard';
+    return 'unknown';
+  };
+
+  const handleStartLinking = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate expiry
+    const [month, year] = cardData.expiry.split('/').map(n => parseInt(n));
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = parseInt(now.getFullYear().toString().slice(-2));
+    
+    if (!month || !year || month < 1 || month > 12 || year < currentYear || (year === currentYear && month < currentMonth)) {
+      return alert('عذراً، البطاقة منتهية الصلاحية أو تاريخ الانتهاء غير صحيح.');
+    }
+
+    if (cardData.number.replace(/\s+/g, '').length < 15) {
+      return alert('يرجى إدخال رقم بطاقة صحيح.');
+    }
+
+    setIsLinkingCard(true);
+    setLinkingProgress(0);
+    setLinkingStep(0);
+    
+    const duration = 15000; // 15 seconds
+    const intervalTime = 100;
+    const increment = (100 / (duration / intervalTime));
+
+    const timer = setInterval(() => {
+      setLinkingProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          finalizeLinking();
+          return 100;
+        }
+        return prev + increment;
+      });
+    }, intervalTime);
+
+    const stepTimer = setInterval(() => {
+      setLinkingStep(prev => (prev + 1) % cardLinkingPhrases.length);
+    }, 2000);
+  };
+
+  const finalizeLinking = () => {
+    const newCard: BankCard = {
+      id: uuidv4(),
+      number: cardData.number,
+      holder: cardData.holder,
+      expiry: cardData.expiry,
+      cvc: cardData.cvc,
+      type: cardType === 'unknown' ? 'visa' : cardType
+    };
+    onUpdateUser({ ...user, linkedCards: [...(user.linkedCards || []), newCard] });
+    setLinkingSuccess(true);
+    addNotification('ربط بطاقة', 'تم ربط البطاقة بنجاح ، تم تفعيل طلب سحب Swift بنجاح', 'security');
+    
+    setTimeout(() => {
+      setModalType(null);
+      setIsLinkingCard(false);
+      setLinkingSuccess(false);
+      setCardData({ number: '', holder: '', expiry: '', cvc: '' });
+      setCardType('unknown');
+    }, 3000);
   };
 
   const handleApplySalary = (e: React.FormEvent) => {
@@ -407,11 +494,22 @@ const UserDashboard: React.FC<Props> = ({
                    <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 md:p-16 rounded-3xl md:rounded-[4rem] border border-sky-500/20 shadow-3xl text-center relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
                       <p className="text-sky-400 font-black tracking-widest text-[10px] md:text-sm uppercase mb-4 md:mb-6 relative z-10">الرصيد السيادي المتوفر</p>
-                      <h2 className="text-5xl md:text-8xl font-black font-mono tracking-tighter mb-8 md:mb-12 relative z-10">${user.balance.toLocaleString()}</h2>
+                      <h2 className="text-4xl sm:text-5xl md:text-8xl font-black font-mono tracking-tighter mb-8 md:mb-12 relative z-10">${user.balance.toLocaleString()}</h2>
                       <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 md:gap-6 relative z-10">
-                         <button onClick={() => setModalType('transfer')} className="bg-sky-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-lg md:text-xl hover:bg-sky-500 shadow-2xl transition-all">تحويل مالي فوري</button>
-                         <button onClick={() => setModalType('coupon')} className="bg-emerald-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-lg md:text-xl hover:bg-emerald-500 transition-all shadow-2xl">إيداع بكوبون شحن</button>
-                         <button onClick={() => setModalType('withdraw')} className="bg-white/5 border border-white/10 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-lg md:text-xl hover:bg-white/10 transition-all">طلب سحب Swift</button>
+                         <button onClick={() => setModalType('transfer')} className="bg-sky-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-sky-500 shadow-2xl transition-all">تحويل مالي فوري</button>
+                         <button onClick={() => setModalType('coupon')} className="bg-emerald-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-emerald-500 transition-all shadow-2xl">إيداع بكوبون شحن</button>
+                         <button 
+                            onClick={() => {
+                              if (!user.linkedCards || user.linkedCards.length === 0) {
+                                setModalType('withdraw_warning');
+                              } else {
+                                setModalType('withdraw');
+                              }
+                            }} 
+                            className="bg-white/5 border border-white/10 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-white/10 transition-all"
+                          >
+                            طلب سحب Swift
+                          </button>
                       </div>
                    </div>
 
@@ -450,21 +548,21 @@ const UserDashboard: React.FC<Props> = ({
           )}
 
           {activeTab === 'investment' && (
-             <div className="flex-1 p-12 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500 pb-40">
-                <div className="max-w-7xl mx-auto space-y-16">
+             <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500 pb-40">
+                <div className="max-w-7xl mx-auto space-y-10 md:space-y-16">
                    <div className="text-center space-y-4">
-                      <h2 className="text-7xl font-black tracking-tighter">صناديق استثمار النخبة</h2>
+                      <h2 className="text-4xl md:text-7xl font-black tracking-tighter">صناديق استثمار النخبة</h2>
                    </div>
-                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
                       {siteConfig.depositPlans.map(plan => (
-                         <div key={plan.id} className="group bg-slate-900/60 p-12 rounded-[4rem] border border-white/5 shadow-2xl hover:border-sky-500/40 transition-all text-center">
-                            <h4 className="text-3xl font-black text-sky-400 mb-4">{plan.name}</h4>
-                            <p className="text-7xl font-black font-mono mb-8">{plan.rate}%</p>
-                            <ul className="space-y-4 mb-12 text-slate-400 font-bold text-right pr-6">
-                               <li className="flex items-center gap-3">✅ مدة الاستثمار: {plan.durationMonths} أشهر</li>
-                               <li className="flex items-center gap-3">✅ الحد الأدنى: ${plan.minAmount.toLocaleString()}</li>
+                         <div key={plan.id} className="group bg-slate-900/60 p-8 md:p-12 rounded-3xl md:rounded-[4rem] border border-white/5 shadow-2xl hover:border-sky-500/40 transition-all text-center">
+                            <h4 className="text-2xl md:text-3xl font-black text-sky-400 mb-4">{plan.name}</h4>
+                            <p className="text-5xl md:text-7xl font-black font-mono mb-8">{plan.rate}%</p>
+                            <ul className="space-y-3 md:space-y-4 mb-8 md:mb-12 text-slate-400 font-bold text-right pr-6">
+                               <li className="flex items-center gap-3 text-sm md:text-base">✅ مدة الاستثمار: {plan.durationMonths} أشهر</li>
+                               <li className="flex items-center gap-3 text-sm md:text-base">✅ الحد الأدنى: ${plan.minAmount.toLocaleString()}</li>
                             </ul>
-                            <button onClick={() => { setSelectedPlan(plan); setModalType('invest_form'); }} className="w-full py-6 bg-sky-600 rounded-3xl font-black text-xl hover:bg-sky-500 transition-all">استثمر الآن</button>
+                            <button onClick={() => { setSelectedPlan(plan); setModalType('invest_form'); }} className="w-full py-4 md:py-6 bg-sky-600 rounded-2xl md:rounded-3xl font-black text-lg md:text-xl hover:bg-sky-500 transition-all">استثمر الآن</button>
                          </div>
                       ))}
                    </div>
@@ -473,19 +571,19 @@ const UserDashboard: React.FC<Props> = ({
           )}
 
           {activeTab === 'raffle' && (
-             <div className="flex-1 p-12 overflow-y-auto custom-scrollbar animate-in fade-in duration-500 text-center pb-40">
-                <div className="max-w-4xl mx-auto space-y-16">
-                   <div className="bg-amber-500/10 p-20 rounded-[5rem] border border-amber-500/20 shadow-3xl space-y-10">
-                      <h2 className="text-7xl font-black tracking-tighter text-amber-500">القرعة الشهرية FastPay</h2>
-                      <p className="text-2xl text-slate-300 font-bold">تذكرتك نحو الرفاهية. شارك في السحب الأكبر!</p>
+             <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in fade-in duration-500 text-center pb-40">
+                <div className="max-w-4xl mx-auto space-y-10 md:space-y-16">
+                   <div className="bg-amber-500/10 p-8 md:p-20 rounded-3xl md:rounded-[5rem] border border-amber-500/20 shadow-3xl space-y-8 md:space-y-10">
+                      <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-amber-500">القرعة الشهرية FastPay</h2>
+                      <p className="text-lg md:text-2xl text-slate-300 font-bold">تذكرتك نحو الرفاهية. شارك في السحب الأكبر!</p>
                       
                       {siteConfig.showRaffleCountdown && siteConfig.raffleEndDate && (
                         <div className="py-4">
-                           <p className="text-amber-500 font-black text-xs uppercase tracking-[0.2em] mb-4">موعد السحب القادم</p>
+                           <p className="text-amber-500 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] mb-4">موعد السحب القادم</p>
                            <Countdown targetDate={siteConfig.raffleEndDate} />
                         </div>
                       )}
-                      <button onClick={handleJoinRaffle} className="bg-amber-600 px-20 py-8 rounded-[3rem] font-black text-3xl shadow-3xl hover:bg-amber-500 transition-all">احجز تذكرتك (${siteConfig.raffleEntryCost})</button>
+                      <button onClick={handleJoinRaffle} className="bg-amber-600 px-10 md:px-20 py-5 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-amber-500 transition-all">احجز تذكرتك (${siteConfig.raffleEntryCost})</button>
                    </div>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                       <div className="bg-[#0f172a] p-10 rounded-[3rem] border border-white/5 text-right">
@@ -514,22 +612,22 @@ const UserDashboard: React.FC<Props> = ({
           )}
 
           {activeTab === 'salary' && (
-             <div className="flex-1 p-12 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500 pb-40">
-                <div className="max-w-6xl mx-auto space-y-12">
-                   <div className="bg-indigo-900/40 p-16 rounded-[4rem] border border-indigo-500/20 shadow-3xl flex justify-between items-center gap-12">
-                      <div className="text-right space-y-6">
-                         <h2 className="text-6xl font-black tracking-tighter">تمويل الرواتب المسبق</h2>
-                         <p className="text-2xl text-slate-300 font-bold">احصل على سيولة نقدية فورية بضمان راتبك، مع تسديد مريح.</p>
-                         <button onClick={() => setModalType('salary_apply')} className="bg-white text-indigo-900 px-12 py-6 rounded-[2.5rem] font-black text-2xl shadow-2xl hover:scale-105 transition-all">اطلب التمويل الآن</button>
+             <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500 pb-40">
+                <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
+                   <div className="bg-indigo-900/40 p-8 md:p-16 rounded-3xl md:rounded-[4rem] border border-indigo-500/20 shadow-3xl flex flex-col lg:flex-row justify-between items-center gap-8 md:gap-12">
+                      <div className="text-center lg:text-right space-y-4 md:space-y-6">
+                         <h2 className="text-4xl md:text-6xl font-black tracking-tighter">تمويل الرواتب المسبق</h2>
+                         <p className="text-lg md:text-2xl text-slate-300 font-bold">احصل على سيولة نقدية فورية بضمان راتبك، مع تسديد مريح.</p>
+                         <button onClick={() => setModalType('salary_apply')} className="bg-white text-indigo-900 px-8 md:px-12 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl hover:scale-105 transition-all">اطلب التمويل الآن</button>
                       </div>
-                      <div className="text-[10rem] animate-pulse opacity-20 hidden lg:block">🏦</div>
+                      <div className="text-6xl md:text-[10rem] animate-pulse opacity-20 hidden lg:block">🏦</div>
                    </div>
-                   <div className="space-y-8">
-                      <h3 className="text-3xl font-black">طلباتي الحالية</h3>
+                   <div className="space-y-6 md:space-y-8">
+                      <h3 className="text-2xl md:text-3xl font-black">طلباتي الحالية</h3>
                       {salaryPlans.filter(p=>p.userId===user.id).map(plan => (
-                         <div key={plan.id} className="p-10 bg-[#0f172a]/60 border border-white/5 rounded-[3rem] flex justify-between items-center">
-                            <div><p className="text-3xl font-black text-white">تمويل بقيمة ${plan.amount.toLocaleString()}</p><p className="text-slate-500 font-bold">القسط الشهري: ${plan.deduction} / لمدة {plan.duration} شهر</p></div>
-                            <div className={`px-10 py-4 rounded-3xl border font-black text-sm ${plan.status==='active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : plan.status==='pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                         <div key={plan.id} className="p-6 md:p-10 bg-[#0f172a]/60 border border-white/5 rounded-2xl md:rounded-[3rem] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div><p className="text-xl md:text-3xl font-black text-white">تمويل بقيمة ${plan.amount.toLocaleString()}</p><p className="text-xs md:text-slate-500 font-bold">القسط الشهري: ${plan.deduction} / لمدة {plan.duration} شهر</p></div>
+                            <div className={`px-6 md:px-10 py-2 md:py-4 rounded-xl md:rounded-3xl border font-black text-[10px] md:text-sm ${plan.status==='active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : plan.status==='pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
                                {plan.status==='active' ? 'معتمد' : plan.status==='pending' ? 'قيد المراجعة' : 'ملغي'}
                             </div>
                          </div>
@@ -629,22 +727,51 @@ const UserDashboard: React.FC<Props> = ({
 
        {/* MODALS */}
        
+       {/* Modal: Withdraw Warning */}
+       {modalType === 'withdraw_warning' && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
+             <div className="bg-[#111827] border border-white/10 w-full max-w-xl rounded-3xl md:rounded-[4rem] p-8 md:p-16 space-y-8 animate-in zoom-in text-center shadow-3xl">
+                <div className="w-20 h-20 md:w-24 md:h-24 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                   <span className="text-4xl md:text-5xl">⚠️</span>
+                </div>
+                <h3 className="text-2xl md:text-3xl font-black text-white">لا يمكنك اتمام العملية</h3>
+                <p className="text-slate-400 font-bold text-base md:text-lg">قم بإضافة بطاقتك اولا لتتمكن من إجراء عمليات السحب البنكي السريع.</p>
+                
+                <div className="space-y-4 pt-4">
+                   <button 
+                      onClick={() => setModalType('add_card')} 
+                      className="w-full py-4 md:py-5 bg-sky-600 rounded-2xl font-black text-lg md:text-xl shadow-xl hover:bg-sky-500 transition-all active:scale-95 flex items-center justify-center gap-3"
+                   >
+                      <span>ربط بطاقة جديدة</span>
+                      <span className="text-xl md:text-2xl">💳</span>
+                   </button>
+                   <button 
+                      onClick={() => setModalType(null)} 
+                      className="w-full py-4 md:py-5 bg-white/5 border border-white/10 rounded-2xl font-black text-lg md:text-xl text-slate-400 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+                   >
+                      إلغاء العملية
+                   </button>
+                </div>
+             </div>
+          </div>
+       )}
+
        {/* Modal: Withdraw Swift */}
        {modalType === 'withdraw' && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
-             <form onSubmit={handleWithdrawSwift} className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-[5rem] p-16 space-y-8 animate-in zoom-in text-center shadow-3xl">
-                <h3 className="text-4xl font-black text-white">طلب سحب Swift بنكي</h3>
+             <form onSubmit={handleWithdrawSwift} className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[5rem] p-8 md:p-16 space-y-6 md:space-y-8 animate-in zoom-in text-center shadow-3xl">
+                <h3 className="text-2xl md:text-4xl font-black text-white">طلب سحب Swift بنكي</h3>
                 <div className="space-y-4 text-right">
-                   <input required value={withdrawData.bankName} onChange={e=>setWithdrawData({...withdrawData, bankName: e.target.value})} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" placeholder="اسم البنك (Bank Name)" />
-                   <input required value={withdrawData.iban} onChange={e=>setWithdrawData({...withdrawData, iban: e.target.value})} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono" placeholder="رقم الآيبان (IBAN)" />
-                   <input required value={withdrawData.swift} onChange={e=>setWithdrawData({...withdrawData, swift: e.target.value})} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono uppercase" placeholder="كود السويفت (SWIFT Code)" />
+                   <input required value={withdrawData.bankName} onChange={e=>setWithdrawData({...withdrawData, bankName: e.target.value})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white outline-none focus:border-sky-500 text-sm md:text-base" placeholder="اسم البنك (Bank Name)" />
+                   <input required value={withdrawData.iban} onChange={e=>setWithdrawData({...withdrawData, iban: e.target.value})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono text-sm md:text-base" placeholder="رقم الآيبان (IBAN)" />
+                   <input required value={withdrawData.swift} onChange={e=>setWithdrawData({...withdrawData, swift: e.target.value})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono uppercase text-sm md:text-base" placeholder="كود السويفت (SWIFT Code)" />
                    <div className="space-y-1">
                       <label className="text-[10px] font-black text-slate-500 pr-4 uppercase">المبلغ ($)</label>
-                      <input required type="number" value={withdrawData.amount} onChange={e=>setWithdrawData({...withdrawData, amount: e.target.value})} className="w-full p-8 bg-black/40 border border-white/10 rounded-[2rem] font-black text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
+                      <input required type="number" value={withdrawData.amount} onChange={e=>setWithdrawData({...withdrawData, amount: e.target.value})} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl md:rounded-[2rem] font-black text-3xl md:text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
                    </div>
                 </div>
-                <button type="submit" className="w-full py-8 bg-sky-600 rounded-[3rem] font-black text-2xl shadow-xl hover:bg-sky-500 transition-all">تقديم طلب السحب 🏦</button>
-                <button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4">إلغاء</button>
+                <button type="submit" className="w-full py-5 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all">تقديم طلب السحب 🏦</button>
+                <button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4 text-sm md:text-base">إلغاء</button>
              </form>
           </div>
        )}
@@ -652,14 +779,14 @@ const UserDashboard: React.FC<Props> = ({
        {/* Modal: Salary Apply */}
        {modalType === 'salary_apply' && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
-             <form onSubmit={handleApplySalary} className="bg-[#111827] border border-white/10 w-full max-w-xl rounded-[5rem] p-16 space-y-10 animate-in zoom-in text-center shadow-3xl">
-                <h3 className="text-4xl font-black text-white">طلب تمويل راتب مسبق</h3>
+             <form onSubmit={handleApplySalary} className="bg-[#111827] border border-white/10 w-full max-w-xl rounded-3xl md:rounded-[5rem] p-8 md:p-16 space-y-8 md:space-y-10 animate-in zoom-in text-center shadow-3xl">
+                <h3 className="text-2xl md:text-4xl font-black text-white">طلب تمويل راتب مسبق</h3>
                 <div className="space-y-6 text-right">
-                   <div className="space-y-2"><label className="text-[10px] text-slate-500 font-black pr-4 uppercase">المبلغ المطلوب ($)</label><input type="number" required value={salaryForm.amount} onChange={e=>setSalaryForm({...salaryForm, amount: parseInt(e.target.value)})} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white text-3xl text-center outline-none focus:border-indigo-500" /></div>
-                   <div className="space-y-2"><label className="text-[10px] text-slate-500 font-black pr-4 uppercase">مدة السداد (أشهر)</label><input type="number" required value={salaryForm.duration} onChange={e=>setSalaryForm({...salaryForm, duration: parseInt(e.target.value)})} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white text-2xl text-center outline-none focus:border-indigo-500" /></div>
+                   <div className="space-y-2"><label className="text-[10px] text-slate-500 font-black pr-4 uppercase">المبلغ المطلوب ($)</label><input type="number" required value={salaryForm.amount} onChange={e=>setSalaryForm({...salaryForm, amount: parseInt(e.target.value)})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white text-2xl md:text-3xl text-center outline-none focus:border-indigo-500" /></div>
+                   <div className="space-y-2"><label className="text-[10px] text-slate-500 font-black pr-4 uppercase">مدة السداد (أشهر)</label><input type="number" required value={salaryForm.duration} onChange={e=>setSalaryForm({...salaryForm, duration: parseInt(e.target.value)})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white text-xl md:text-2xl text-center outline-none focus:border-indigo-500" /></div>
                 </div>
-                <button type="submit" className="w-full py-8 bg-indigo-600 rounded-[3rem] font-black text-2xl shadow-xl hover:bg-indigo-500 transition-all">تقديم الطلب للمراجعة ⚡</button>
-                <button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4">إلغاء</button>
+                <button type="submit" className="w-full py-5 md:py-8 bg-indigo-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-indigo-500 transition-all">تقديم الطلب للمراجعة ⚡</button>
+                <button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4 text-sm md:text-base">إلغاء</button>
              </form>
           </div>
        )}
@@ -667,14 +794,14 @@ const UserDashboard: React.FC<Props> = ({
        {/* Modal: Investment Form */}
        {modalType === 'invest_form' && selectedPlan && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
-             <form onSubmit={handleInvestSubmit} className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-[5rem] p-16 space-y-12 animate-in zoom-in text-center shadow-3xl">
-                <h3 className="text-4xl font-black text-sky-400">{selectedPlan.name}</h3>
-                <div className="space-y-8 text-right">
-                   <div className="space-y-3"><label className="text-xs font-black text-slate-500 mr-8 uppercase">المبلغ المراد استثماره ($)</label><input type="number" required min={selectedPlan.minAmount} value={investAmount || ''} onChange={e=>setInvestAmount(parseFloat(e.target.value))} className="w-full p-8 bg-black/40 border border-white/10 rounded-[2.5rem] font-black text-center text-5xl text-white outline-none font-mono" /></div>
-                   <div className="p-8 bg-sky-500/10 rounded-3xl border border-sky-500/20"><p className="text-slate-500 font-black text-xs uppercase mb-2">العائد المتوقع بعد {selectedPlan.durationMonths} شهر</p><p className="text-3xl font-black text-emerald-400 font-mono">+${((investAmount || 0) * (selectedPlan.rate/100) * (selectedPlan.durationMonths/12)).toFixed(2)}</p></div>
+             <form onSubmit={handleInvestSubmit} className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[5rem] p-8 md:p-16 space-y-8 md:space-y-12 animate-in zoom-in text-center shadow-3xl">
+                <h3 className="text-2xl md:text-4xl font-black text-sky-400">{selectedPlan.name}</h3>
+                <div className="space-y-6 md:space-y-8 text-right">
+                   <div className="space-y-3"><label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">المبلغ المراد استثماره ($)</label><input type="number" required min={selectedPlan.minAmount} value={investAmount || ''} onChange={e=>setInvestAmount(parseFloat(e.target.value))} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl md:rounded-[2.5rem] font-black text-center text-3xl md:text-5xl text-white outline-none font-mono" /></div>
+                   <div className="p-6 md:p-8 bg-sky-500/10 rounded-2xl md:rounded-3xl border border-sky-500/20"><p className="text-slate-500 font-black text-[10px] md:text-xs uppercase mb-2">العائد المتوقع بعد {selectedPlan.durationMonths} شهر</p><p className="text-xl md:text-3xl font-black text-emerald-400 font-mono">+${((investAmount || 0) * (selectedPlan.rate/100) * (selectedPlan.durationMonths/12)).toFixed(2)}</p></div>
                 </div>
-                <button type="submit" className="w-full py-10 bg-sky-600 rounded-[4rem] font-black text-3xl shadow-3xl hover:bg-sky-500 transition-all">تأكيد بدء الاستثمار 🚀</button>
-                <button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4">إلغاء</button>
+                <button type="submit" className="w-full py-6 md:py-10 bg-sky-600 rounded-2xl md:rounded-[4rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-sky-500 transition-all">تأكيد بدء الاستثمار 🚀</button>
+                <button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4 text-sm md:text-base">إلغاء</button>
              </form>
           </div>
        )}
@@ -682,15 +809,15 @@ const UserDashboard: React.FC<Props> = ({
        {/* Modal: Transfer */}
        {modalType === 'transfer' && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
-             <div className="bg-[#0f172a] border border-white/10 w-full max-w-3xl rounded-[6rem] p-16 md:p-24 overflow-hidden shadow-3xl text-center relative">
-                <button onClick={()=>setModalType(null)} className={`absolute top-12 right-12 text-slate-500 hover:text-white text-3xl transition-all ${isTransferring ? 'hidden' : ''}`}>✕</button>
+             <div className="bg-[#0f172a] border border-white/10 w-full max-w-3xl rounded-3xl md:rounded-[6rem] p-8 md:p-16 lg:p-24 overflow-hidden shadow-3xl text-center relative">
+                <button onClick={()=>setModalType(null)} className={`absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl transition-all ${isTransferring ? 'hidden' : ''}`}>✕</button>
                 {!isTransferring ? (
-                   <form onSubmit={handleStartTransfer} className="space-y-12 animate-in zoom-in duration-500">
-                      <div className="space-y-8 text-right">
-                         <div className="space-y-3"><label className="text-xs font-black text-slate-500 mr-8 uppercase">اسم المستخدم المستلم</label><input required value={transferData.recipient} onChange={e=>setTransferData({...transferData, recipient: e.target.value})} className="w-full p-8 bg-black/40 border border-white/10 rounded-[2.5rem] font-black text-center text-4xl text-white outline-none focus:border-sky-500" placeholder="@username" /></div>
-                         <div className="space-y-3"><label className="text-xs font-black text-slate-500 mr-8 uppercase">المبلغ المراد تحويله ($)</label><input required type="number" value={transferData.amount} onChange={e=>setTransferData({...transferData, amount: e.target.value})} className="w-full p-10 bg-black/40 border border-white/10 rounded-[3rem] font-black text-center text-[5rem] text-sky-400 outline-none font-mono" placeholder="0.00" /></div>
+                   <form onSubmit={handleStartTransfer} className="space-y-8 md:space-y-12 animate-in zoom-in duration-500">
+                      <div className="space-y-6 md:space-y-8 text-right">
+                         <div className="space-y-3"><label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">اسم المستخدم المستلم</label><input required value={transferData.recipient} onChange={e=>setTransferData({...transferData, recipient: e.target.value})} className="w-full p-5 md:p-8 bg-black/40 border border-white/10 rounded-2xl md:rounded-[2.5rem] font-black text-center text-2xl md:text-4xl text-white outline-none focus:border-sky-500" placeholder="@username" /></div>
+                         <div className="space-y-3"><label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">المبلغ المراد تحويله ($)</label><input required type="number" value={transferData.amount} onChange={e=>setTransferData({...transferData, amount: e.target.value})} className="w-full p-6 md:p-10 bg-black/40 border border-white/10 rounded-3xl md:rounded-[3rem] font-black text-center text-4xl sm:text-6xl md:text-[5rem] text-sky-400 outline-none font-mono" placeholder="0.00" /></div>
                       </div>
-                      <button type="submit" className="w-full py-10 bg-sky-600 rounded-[3.5rem] font-black text-3xl shadow-3xl hover:bg-sky-500 transition-all active:scale-95">تأكيد ومباشرة التحويل</button>
+                      <button type="submit" className="w-full py-6 md:py-10 bg-sky-600 rounded-2xl md:rounded-[3.5rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-sky-500 transition-all active:scale-95">تأكيد ومباشرة التحويل</button>
                    </form>
                 ) : (
                    <div className="space-y-16 py-12">
@@ -713,48 +840,108 @@ const UserDashboard: React.FC<Props> = ({
 
        {modalType === 'coupon' && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
-             <form onSubmit={handleRedeemCoupon} className="bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-[5rem] p-16 md:p-24 space-y-12 animate-in zoom-in duration-500 shadow-3xl text-center relative">
-                <button type="button" onClick={()=>setModalType(null)} className="absolute top-12 right-12 text-slate-500 hover:text-white text-3xl">✕</button>
-                <h3 className="text-5xl font-black text-white tracking-tighter">شحن رصيد الكوبون</h3>
+             <form onSubmit={handleRedeemCoupon} className="bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[5rem] p-8 md:p-16 lg:p-24 space-y-8 md:space-y-12 animate-in zoom-in duration-500 shadow-3xl text-center relative">
+                <button type="button" onClick={()=>setModalType(null)} className="absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl">✕</button>
+                <h3 className="text-3xl md:text-5xl font-black text-white tracking-tighter">شحن رصيد الكوبون</h3>
                 <div className="space-y-4">
                    <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest">أدخل كود الشحن المكون من 12 رمزاً</label>
-                   <input required value={couponCode} onChange={e=>setCouponCode(e.target.value)} className="w-full p-8 bg-black/40 border border-white/10 rounded-[2.5rem] font-black text-center text-4xl text-sky-400 outline-none font-mono tracking-widest uppercase focus:border-sky-500" placeholder="FP-XXXX-XXXX" />
+                   <input required value={couponCode} onChange={e=>setCouponCode(e.target.value)} className="w-full p-5 md:p-8 bg-black/40 border border-white/10 rounded-xl md:rounded-[2.5rem] font-black text-center text-2xl md:text-4xl text-sky-400 outline-none font-mono tracking-widest uppercase focus:border-sky-500" placeholder="FP-XXXX-XXXX" />
                 </div>
-                <button type="submit" className="w-full py-10 bg-emerald-600 rounded-[4rem] font-black text-3xl shadow-3xl hover:bg-emerald-500 transition-all active:scale-95">تفعيل وشحن الرصيد فوراً</button>
+                <button type="submit" className="w-full py-6 md:py-10 bg-emerald-600 rounded-2xl md:rounded-[4rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-emerald-500 transition-all active:scale-95">تفعيل وشحن الرصيد فوراً</button>
              </form>
           </div>
        )}
 
-       {modalType === 'add_card' && (
+        {modalType === 'add_card' && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
-             <form onSubmit={(e) => {
-                e.preventDefault();
-                const newCard: BankCard = {
-                   id: uuidv4(),
-                   number: (document.getElementById('c_num') as HTMLInputElement).value,
-                   holder: (document.getElementById('c_hold') as HTMLInputElement).value,
-                   expiry: (document.getElementById('c_exp') as HTMLInputElement).value,
-                   cvc: (document.getElementById('c_cvc') as HTMLInputElement).value,
-                   type: 'visa'
-                };
-                onUpdateUser({ ...user, linkedCards: [...(user.linkedCards || []), newCard] });
-                setModalType(null);
-                addNotification('ربط بطاقة', 'تم ربط بطاقة بنكية جديدة بحسابك بنجاح.', 'security');
-             }} className="bg-[#111827] border border-white/10 w-full max-w-xl rounded-[4rem] p-16 space-y-8 animate-in zoom-in text-center shadow-3xl">
-                <h3 className="text-4xl font-black text-white tracking-tighter">ربط بطاقة بنكية عالمية</h3>
-                <div className="space-y-4 text-right">
-                   <input id="c_hold" required className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none" placeholder="اسم حامل البطاقة" />
-                   <input id="c_num" required className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none font-mono" placeholder="رقم البطاقة (16 رقم)" />
-                   <div className="grid grid-cols-2 gap-4">
-                      <input id="c_exp" required className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none font-mono" placeholder="MM/YY" />
-                      <input id="c_cvc" required className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none font-mono" placeholder="CVC" />
+             <div className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[4rem] p-8 md:p-16 space-y-8 animate-in zoom-in text-center shadow-3xl relative overflow-hidden">
+                <button onClick={()=>setModalType(null)} className={`absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl transition-all ${isLinkingCard ? 'hidden' : ''}`}>✕</button>
+                
+                {!isLinkingCard ? (
+                   <form onSubmit={handleStartLinking} className="space-y-8">
+                      <h3 className="text-2xl md:text-4xl font-black text-white tracking-tighter">ربط بطاقة بنكية عالمية</h3>
+                      <div className="space-y-4 text-right">
+                         <div className="relative">
+                            <input 
+                               required 
+                               value={cardData.holder} 
+                               onChange={e=>setCardData({...cardData, holder: e.target.value})} 
+                               className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 text-base" 
+                               placeholder="اسم حامل البطاقة" 
+                            />
+                         </div>
+                         <div className="relative">
+                            <input 
+                               required 
+                               value={cardData.number} 
+                               onChange={e=>{
+                                  const val = e.target.value;
+                                  setCardData({...cardData, number: val});
+                                  setCardType(detectCardType(val));
+                               }} 
+                               className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono text-lg" 
+                               placeholder="رقم البطاقة (16 رقم)" 
+                            />
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                               {cardType === 'visa' && <span className="text-2xl">💳 <span className="text-sm font-bold text-sky-400">VISA</span></span>}
+                               {cardType === 'mastercard' && <span className="text-2xl">💳 <span className="text-sm font-bold text-orange-400">Mastercard</span></span>}
+                               {cardType === 'unknown' && <span className="text-2xl opacity-20">💳</span>}
+                            </div>
+                         </div>
+                         <div className="grid grid-cols-2 gap-4">
+                            <input 
+                               required 
+                               value={cardData.expiry} 
+                               onChange={e=>setCardData({...cardData, expiry: e.target.value})} 
+                               className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono text-base" 
+                               placeholder="MM/YY" 
+                            />
+                            <input 
+                               required 
+                               value={cardData.cvc} 
+                               onChange={e=>setCardData({...cardData, cvc: e.target.value})} 
+                               className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono text-base" 
+                               placeholder="CVC" 
+                            />
+                         </div>
+                      </div>
+                      <button type="submit" className="w-full py-6 bg-sky-600 rounded-3xl font-black text-xl shadow-2xl hover:bg-sky-500 transition-all active:scale-95">تأكيد الربط المشفر</button>
+                   </form>
+                ) : (
+                   <div className="space-y-12 py-8">
+                      {linkingSuccess ? (
+                         <div className="space-y-8 animate-in zoom-in duration-700">
+                            <div className="w-32 h-32 bg-emerald-500 rounded-full flex items-center justify-center text-6xl mx-auto shadow-3xl border-4 border-emerald-400 animate-bounce">✓</div>
+                            <div className="space-y-2">
+                               <h3 className="text-4xl font-black text-white tracking-tighter">تم ربط البطاقة</h3>
+                               <p className="text-emerald-400 font-bold text-xl">تم تفعيل طلب سحب Swift بنجاح</p>
+                            </div>
+                         </div>
+                      ) : (
+                         <div className="space-y-12">
+                            <div className="relative w-full h-4 bg-white/5 border border-white/10 rounded-full overflow-hidden">
+                               <div 
+                                  className="h-full bg-gradient-to-r from-sky-600 to-indigo-600 shadow-[0_0_20px_rgba(14,165,233,0.5)] transition-all duration-300" 
+                                  style={{ width: `${linkingProgress}%` }}
+                               ></div>
+                            </div>
+                            <div className="space-y-4">
+                               <p className="text-2xl font-black text-sky-400 animate-pulse h-20 leading-relaxed px-6">
+                                  {cardLinkingPhrases[linkingStep]}
+                               </p>
+                               <div className="flex justify-center gap-2">
+                                  <div className="w-2 h-2 bg-sky-500 rounded-full animate-bounce delay-0"></div>
+                                  <div className="w-2 h-2 bg-sky-500 rounded-full animate-bounce delay-150"></div>
+                                  <div className="w-2 h-2 bg-sky-500 rounded-full animate-bounce delay-300"></div>
+                               </div>
+                            </div>
+                         </div>
+                      )}
                    </div>
-                </div>
-                <button type="submit" className="w-full py-6 bg-sky-600 rounded-3xl font-black text-xl shadow-2xl hover:bg-sky-500 transition-all">تأكيد الربط المشفر</button>
-                <button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4">إلغاء</button>
-             </form>
+                )}
+             </div>
           </div>
-       )}
+        )}
 
        <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }

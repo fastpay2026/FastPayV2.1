@@ -256,10 +256,10 @@ export const AdExchange: React.FC<Props> = ({
       </header>
 
       {/* Ad Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
         {filteredAds.map(ad => (
-          <div key={ad.id} className="bg-[#0f172a] border border-white/5 rounded-[2.5rem] overflow-hidden group hover:border-sky-500/50 transition-all shadow-2xl flex flex-col">
-            <div className="relative h-56 overflow-hidden">
+          <div key={ad.id} className="bg-[#0f172a] border border-white/5 rounded-3xl md:rounded-[2.5rem] overflow-hidden group hover:border-sky-500/50 transition-all shadow-2xl flex flex-col h-auto">
+            <div className="relative h-48 md:h-56 overflow-hidden">
               <img src={ad.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={ad.title} />
               <div className="absolute top-4 right-4 flex gap-2">
                 <span className="px-4 py-1 bg-black/60 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-widest">{ad.category}</span>
@@ -271,14 +271,31 @@ export const AdExchange: React.FC<Props> = ({
                 <span className="px-4 py-1 bg-emerald-600 rounded-full text-xs font-black text-white shadow-lg">${ad.price.toLocaleString()}</span>
               </div>
             </div>
-            <div className="p-8 space-y-4 flex-1 flex flex-col">
+            <div className="p-6 md:p-8 space-y-4 flex-1 flex flex-col">
               <div className="space-y-1">
-                <h3 className="text-xl font-black text-white group-hover:text-sky-400 transition-colors">{ad.title}</h3>
-                <p className="text-xs text-slate-500 font-bold flex items-center gap-1">
+                <h3 className="text-lg md:text-xl font-black text-white group-hover:text-sky-400 transition-colors">{ad.title}</h3>
+                <p className="text-[10px] md:text-xs text-slate-500 font-bold flex items-center gap-1">
                   📍 {ad.location.country} • {ad.location.city || ad.location.state || 'عام'}
                 </p>
               </div>
-              <p className="text-slate-400 text-sm font-bold line-clamp-2 leading-relaxed flex-1">{ad.description}</p>
+              
+              {/* Ad Stats - Responsive Flex Wrap */}
+              <div className="flex flex-wrap gap-2 md:gap-3 py-2">
+                <div className="flex flex-col bg-white/5 px-3 py-2 rounded-xl border border-white/5 flex-1 min-w-[80px]">
+                  <span className="text-[8px] md:text-[10px] text-slate-500 font-black uppercase">السعر</span>
+                  <span className="text-sm md:text-base font-black text-emerald-400">${ad.price.toLocaleString()}</span>
+                </div>
+                <div className="flex flex-col bg-white/5 px-3 py-2 rounded-xl border border-white/5 flex-1 min-w-[80px]">
+                  <span className="text-[8px] md:text-[10px] text-slate-500 font-black uppercase">المشاهدات</span>
+                  <span className="text-sm md:text-base font-black text-sky-400">{ad.views}</span>
+                </div>
+                <div className="flex flex-col bg-white/5 px-3 py-2 rounded-xl border border-white/5 flex-1 min-w-[80px]">
+                  <span className="text-[8px] md:text-[10px] text-slate-500 font-black uppercase">الحالة</span>
+                  <span className="text-sm md:text-base font-black text-white">نشط</span>
+                </div>
+              </div>
+
+              <p className="text-slate-400 text-xs md:text-sm font-bold line-clamp-2 leading-relaxed flex-1">{ad.description}</p>
               
               <div className="pt-4 border-t border-white/5 flex justify-between items-center">
                 <div className="flex items-center gap-2">
@@ -457,18 +474,18 @@ export const AdExchange: React.FC<Props> = ({
       {selectedAd && (
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl animate-in fade-in duration-300">
           <div className="bg-[#0f172a] border border-white/10 w-full max-w-6xl rounded-[4rem] p-12 space-y-12 animate-in zoom-in shadow-3xl overflow-y-auto max-h-[90vh] custom-scrollbar">
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start gap-4">
               <div className="space-y-2">
-                <h3 className="text-5xl font-black tracking-tighter">{selectedAd.title}</h3>
-                <p className="text-sky-400 font-bold text-lg">بواسطة: {selectedAd.merchantName} {selectedAd.promotionStatus === 'active' && '⭐'}</p>
+                <h3 className="text-3xl md:text-5xl font-black tracking-tighter">{selectedAd.title}</h3>
+                <p className="text-sky-400 font-bold text-base md:text-lg">بواسطة: {selectedAd.merchantName} {selectedAd.promotionStatus === 'active' && '⭐'}</p>
               </div>
-              <button onClick={() => setSelectedAd(null)} className="text-4xl opacity-50 hover:opacity-100 transition-all">✕</button>
+              <button onClick={() => setSelectedAd(null)} className="text-2xl md:text-4xl opacity-50 hover:opacity-100 transition-all">✕</button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              <div className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+              <div className="space-y-6 md:space-y-8">
                 <div className="space-y-4">
-                  <div className="aspect-video rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl">
+                  <div className="aspect-video rounded-3xl md:rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl">
                     <img src={selectedAd.imageUrl} className="w-full h-full object-cover" alt={selectedAd.title} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -491,10 +508,10 @@ export const AdExchange: React.FC<Props> = ({
               </div>
 
               <div className="space-y-8">
-                <div className="bg-gradient-to-br from-sky-600/20 to-emerald-600/20 p-10 rounded-[3rem] border border-white/10 space-y-6">
-                  <div className="flex justify-between items-center">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">السعر النهائي</p>
-                    <p className="text-5xl font-black text-emerald-400">${selectedAd.price.toLocaleString()}</p>
+                <div className="bg-gradient-to-br from-sky-600/20 to-emerald-600/20 p-6 md:p-10 rounded-3xl md:rounded-[3rem] border border-white/10 space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <p className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">السعر النهائي</p>
+                    <p className="text-3xl md:text-5xl font-black text-emerald-400">${selectedAd.price.toLocaleString()}</p>
                   </div>
                   
                   {selectedAd.isNegotiable && (
