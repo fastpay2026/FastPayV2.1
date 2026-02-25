@@ -138,7 +138,14 @@ const App: React.FC = () => {
           dbWithdrawals,
           dbSalary,
           dbDeposits,
-          dbVerifications
+          dbVerifications,
+          dbCards,
+          dbRaffleEntries,
+          dbRaffleWinners,
+          dbTradeOrders,
+          dbTradeAssets,
+          dbServices,
+          dbPages
         ] = await Promise.all([
           supabaseService.getSiteConfig(),
           supabaseService.getUsers(),
@@ -149,7 +156,14 @@ const App: React.FC = () => {
           supabaseService.getWithdrawals(),
           supabaseService.getSalaryFinancing(),
           supabaseService.getFixedDeposits(),
-          supabaseService.getVerifications()
+          supabaseService.getVerifications(),
+          supabaseService.getRechargeCards(),
+          supabaseService.getRaffleEntries(),
+          supabaseService.getRaffleWinners(),
+          supabaseService.getTradeOrders(),
+          supabaseService.getTradeAssets(),
+          supabaseService.getLandingServices(),
+          supabaseService.getCustomPages()
         ]);
 
         if (dbConfig) {
@@ -164,6 +178,13 @@ const App: React.FC = () => {
         if (dbSalary.length > 0) setSalaryPlans(dbSalary);
         if (dbDeposits.length > 0) setFixedDeposits(dbDeposits);
         if (dbVerifications.length > 0) setVerificationRequests(dbVerifications);
+        if (dbCards.length > 0) setRechargeCards(dbCards);
+        if (dbRaffleEntries.length > 0) setRaffleEntries(dbRaffleEntries);
+        if (dbRaffleWinners.length > 0) setRaffleWinners(dbRaffleWinners);
+        if (dbTradeOrders.length > 0) setTradeOrders(dbTradeOrders);
+        if (dbTradeAssets.length > 0) setTradeAssets(dbTradeAssets);
+        if (dbServices.length > 0) setServices(dbServices);
+        if (dbPages.length > 0) setPages(dbPages);
 
         // Fallback to localStorage for others or if DB is empty
         const storedOrders = localStorage.getItem('fp_v21_trade_orders');
@@ -192,6 +213,43 @@ const App: React.FC = () => {
       }); 
     }
   }, [siteConfig]);
+
+  // Generic Sync Effect for Arrays
+  const useSyncEffect = (data: any[], syncFn: (item: any) => Promise<void>, label: string, bulkSync?: (items: any[]) => Promise<void>) => {
+    const prevData = React.useRef(JSON.stringify(data));
+    useEffect(() => {
+      if (isSupabaseConfigured && !isInitialLoad.current) {
+        const currentData = JSON.stringify(data);
+        if (currentData !== prevData.current) {
+          // Data changed, sync it
+          if (bulkSync) {
+            bulkSync(data).catch(e => console.error(`Bulk Sync ${label} error:`, e));
+          } else {
+            // Fallback to syncing individual items if they are new or updated
+            // For simplicity in this demo, we sync the first few items
+            data.slice(0, 5).forEach(item => syncFn(item).catch(e => console.error(`Sync ${label} error:`, e)));
+          }
+          prevData.current = currentData;
+        }
+      }
+    }, [data]);
+  };
+
+  useSyncEffect(transactions, supabaseService.addTransaction, 'Transaction', supabaseService.bulkUpsertTransactions);
+  useSyncEffect(notifications, supabaseService.addNotification, 'Notification', supabaseService.bulkUpsertNotifications);
+  useSyncEffect(adExchangeItems, supabaseService.upsertAdItem, 'AdItem', supabaseService.bulkUpsertAdItems);
+  useSyncEffect(adNegotiations, supabaseService.upsertAdNegotiation, 'AdNegotiation');
+  useSyncEffect(withdrawalRequests, supabaseService.upsertWithdrawal, 'Withdrawal');
+  useSyncEffect(salaryPlans, supabaseService.upsertSalaryFinancing, 'Salary');
+  useSyncEffect(fixedDeposits, supabaseService.upsertFixedDeposit, 'Deposit');
+  useSyncEffect(verificationRequests, supabaseService.upsertVerification, 'Verification');
+  useSyncEffect(rechargeCards, supabaseService.upsertRechargeCard, 'Card');
+  useSyncEffect(raffleEntries, supabaseService.upsertRaffleEntry, 'RaffleEntry');
+  useSyncEffect(raffleWinners, supabaseService.upsertRaffleWinner, 'RaffleWinner');
+  useSyncEffect(tradeOrders, supabaseService.upsertTradeOrder, 'TradeOrder');
+  useSyncEffect(tradeAssets, supabaseService.upsertTradeAsset, 'TradeAsset');
+  useSyncEffect(services, supabaseService.upsertLandingService, 'Service');
+  useSyncEffect(pages, supabaseService.upsertCustomPage, 'Page');
 
   const syncUser = useCallback(async (user: User) => {
     if (isSupabaseConfigured) {

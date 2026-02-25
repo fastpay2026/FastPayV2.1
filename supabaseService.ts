@@ -330,5 +330,233 @@ export const supabaseService = {
       rejection_reason: v.rejectionReason
     }, { onConflict: 'id' });
     if (error) throw error;
+  },
+
+  // Recharge Cards
+  async getRechargeCards(): Promise<RechargeCard[]> {
+    const { data, error } = await supabase.from('recharge_cards').select('*');
+    if (error) throw error;
+    return (data || []).map(c => ({
+      ...c,
+      isUsed: c.is_used,
+      generatedBy: c.generated_by,
+      usedBy: c.used_by,
+      createdAt: c.created_at,
+      usedAt: c.used_at
+    }));
+  },
+
+  async upsertRechargeCard(c: RechargeCard) {
+    const { error } = await supabase.from('recharge_cards').upsert({
+      code: c.code,
+      amount: c.amount,
+      is_used: c.isUsed,
+      generated_by: c.generatedBy,
+      used_by: c.usedBy,
+      created_at: c.createdAt,
+      used_at: c.usedAt
+    }, { onConflict: 'code' });
+    if (error) throw error;
+  },
+
+  // Raffle Entries
+  async getRaffleEntries(): Promise<RaffleEntry[]> {
+    const { data, error } = await supabase.from('raffle_entries').select('*');
+    if (error) throw error;
+    return (data || []).map(e => ({
+      ...e,
+      userId: e.user_id,
+      fullName: e.full_name,
+      ticketNumber: e.ticket_number,
+      enteredAt: e.entered_at
+    }));
+  },
+
+  async upsertRaffleEntry(e: RaffleEntry) {
+    const { error } = await supabase.from('raffle_entries').upsert({
+      id: e.id,
+      user_id: e.userId,
+      username: e.username,
+      full_name: e.fullName,
+      ticket_number: e.ticketNumber,
+      entered_at: e.enteredAt
+    }, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // Raffle Winners
+  async getRaffleWinners(): Promise<RaffleWinner[]> {
+    const { data, error } = await supabase.from('raffle_winners').select('*');
+    if (error) throw error;
+    return (data || []).map(w => ({
+      ...w,
+      userId: w.user_id,
+      fullName: w.full_name,
+      prizeTitle: w.prize_title,
+      wonAt: w.wonAt
+    }));
+  },
+
+  async upsertRaffleWinner(w: RaffleWinner) {
+    const { error } = await supabase.from('raffle_winners').upsert({
+      id: w.id,
+      user_id: w.userId,
+      username: w.username,
+      full_name: w.fullName,
+      prize_title: w.prizeTitle,
+      won_at: w.wonAt
+    }, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // Trade Assets
+  async getTradeAssets(): Promise<TradeAsset[]> {
+    const { data, error } = await supabase.from('trade_assets').select('*');
+    if (error) throw error;
+    return (data || []).map(a => ({
+      ...a,
+      change24h: a.change_24h,
+      isFrozen: a.is_frozen,
+      trendBias: a.trend_bias
+    }));
+  },
+
+  async upsertTradeAsset(a: TradeAsset) {
+    const { error } = await supabase.from('trade_assets').upsert({
+      id: a.id,
+      name: a.name,
+      symbol: a.symbol,
+      price: a.price,
+      change_24h: a.change24h,
+      type: a.type,
+      icon: a.icon,
+      is_frozen: a.isFrozen,
+      trend_bias: a.trendBias
+    }, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // Trade Orders
+  async getTradeOrders(): Promise<TradeOrder[]> {
+    const { data, error } = await supabase.from('trade_orders').select('*');
+    if (error) throw error;
+    return (data || []).map(o => ({
+      ...o,
+      userId: o.user_id,
+      assetSymbol: o.asset_symbol,
+      entryPrice: o.entry_price
+    }));
+  },
+
+  async upsertTradeOrder(o: TradeOrder) {
+    const { error } = await supabase.from('trade_orders').upsert({
+      id: o.id,
+      user_id: o.userId,
+      username: o.username,
+      asset_symbol: o.assetSymbol,
+      amount: o.amount,
+      entry_price: o.entryPrice,
+      type: o.type,
+      status: o.status,
+      timestamp: o.timestamp
+    }, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // Landing Services
+  async getLandingServices(): Promise<LandingService[]> {
+    const { data, error } = await supabase.from('landing_services').select('*');
+    if (error) throw error;
+    return data || [];
+  },
+
+  async upsertLandingService(s: LandingService) {
+    const { error } = await supabase.from('landing_services').upsert({
+      id: s.id,
+      title: s.title,
+      description: s.description,
+      icon: s.icon
+    }, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // Custom Pages
+  async getCustomPages(): Promise<CustomPage[]> {
+    const { data, error } = await supabase.from('custom_pages').select('*');
+    if (error) throw error;
+    return (data || []).map(p => ({
+      ...p,
+      isActive: p.is_active,
+      showInNavbar: p.show_in_navbar,
+      showInFooter: p.show_in_footer
+    }));
+  },
+
+  async upsertCustomPage(p: CustomPage) {
+    const { error } = await supabase.from('custom_pages').upsert({
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      content: p.content,
+      is_active: p.isActive,
+      show_in_navbar: p.showInNavbar,
+      show_in_footer: p.showInFooter
+    }, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // Bulk Operations
+  async bulkUpsertTransactions(items: Transaction[]) {
+    const payload = items.map(t => ({
+      id: t.id,
+      user_id: t.userId,
+      type: t.type,
+      amount: t.amount,
+      related_user: t.relatedUser,
+      related_id: t.relatedId,
+      timestamp: t.timestamp,
+      status: t.status,
+      hash: t.hash,
+      notes: t.notes
+    }));
+    const { error } = await supabase.from('transactions').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  async bulkUpsertNotifications(items: Notification[]) {
+    const payload = items.map(n => ({
+      id: n.id,
+      user_id: n.userId,
+      title: n.title,
+      message: n.message,
+      type: n.type,
+      timestamp: n.timestamp,
+      is_read: n.isRead
+    }));
+    const { error } = await supabase.from('notifications').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  async bulkUpsertAdItems(items: AdExchangeItem[]) {
+    const payload = items.map(item => ({
+      id: item.id,
+      merchant_id: item.merchantId,
+      merchant_name: item.merchantName,
+      title: item.title,
+      description: item.description,
+      price: item.price,
+      is_negotiable: item.isNegotiable,
+      category: item.category,
+      image_url: item.imageUrl,
+      views: item.views,
+      status: item.status,
+      location: item.location,
+      promotion_status: item.promotionStatus,
+      promotion_type: item.promotionType,
+      promotion_price: item.promotionPrice,
+      created_at: item.createdAt
+    }));
+    const { error } = await supabase.from('ad_exchange_items').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
   }
 };
