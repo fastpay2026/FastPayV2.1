@@ -159,8 +159,7 @@ const LandingPage: React.FC<Props> = ({
               <img 
                 src={siteConfig.logoUrl} 
                 alt="Logo" 
-                style={{ width: `${siteConfig.logoWidth ? Math.min(siteConfig.logoWidth, 120) : 120}px` }}
-                className="object-contain transform group-hover:scale-110 transition-all duration-700 md:w-auto" 
+                className="object-contain max-w-[120px] h-auto transform group-hover:scale-110 transition-all duration-700" 
               />
             )}
             {siteConfig.logoPosition === 'right' && (
