@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from '../types';
 import { isSupabaseConfigured } from '../supabaseClient';
+import { useI18n } from '../i18n/i18n';
 
 // Sub-components
 import StatsOverview from './developer/StatsOverview';
@@ -69,6 +70,7 @@ const DeveloperDashboard: React.FC<Props> = ({
   verificationRequests, setVerificationRequests,
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'trading' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -113,7 +115,7 @@ const handleManualSync = async () => {
       <aside className={`fixed lg:static inset-y-0 right-0 w-80 bg-slate-900 border-l border-white/5 flex flex-col shadow-2xl z-[180] overflow-y-auto custom-scrollbar transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-10 border-b border-white/5 text-center">
            <img src={siteConfig.logoUrl} style={{ width: `120px` }} className="mx-auto mb-4" alt="Logo" />
-           <p className="text-[10px] font-black text-sky-400 uppercase tracking-widest">إدارة العمليات السيادية v28.5 Elite</p>
+           <p className="text-[10px] font-black text-sky-400 uppercase tracking-widest">{t('executive_ops_mgmt')}</p>
            <div className="mt-4 flex items-center justify-center gap-2">
              <div className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
              <span className={`text-[8px] font-bold ${isSupabaseConfigured ? 'text-emerald-500' : 'text-red-500'}`}>
@@ -123,18 +125,18 @@ const handleManualSync = async () => {
         </div>
         <nav className="flex-1 p-6 space-y-2">
           {[
-            { id: 'home', l: 'نظرة عامة', i: '🛰️' },
-            { id: 'users', l: 'إدارة الأعضاء', i: '👥' },
-            { id: 'withdrawals', l: 'حوالات Swift', i: '🏦' },
-            { id: 'trading', l: 'محرك الصفقات', i: '📈' },
-            { id: 'salary', l: 'تمويل الرواتب', i: '💵' },
-            { id: 'cards', l: 'توليد البطاقات', i: '🎫' },
-            { id: 'invest', l: 'خطط الاستثمار', i: '💎' },
-            { id: 'escrow', l: 'اعتمادات التاجر', i: '🏪' },
-            { id: 'ads', l: 'بورصة الإعلانات', i: '📢' },
-            { id: 'verification', l: 'توثيق الهوية', i: '🛡️' },
-            { id: 'raffle', l: 'إدارة القرعة', i: '🎁' },
-            { id: 'content', l: 'هوية الموقع', i: '⚙️' }
+            { id: 'home', l: t('nav_overview'), i: '🛰️' },
+            { id: 'users', l: t('nav_users'), i: '👥' },
+            { id: 'withdrawals', l: t('nav_swift'), i: '🏦' },
+            { id: 'trading', l: t('nav_trading_engine'), i: '📈' },
+            { id: 'salary', l: t('nav_salary_funding'), i: '💵' },
+            { id: 'cards', l: t('nav_card_gen'), i: '🎫' },
+            { id: 'invest', l: t('nav_invest_plans'), i: '💎' },
+            { id: 'escrow', l: t('nav_merchant_escrow'), i: '🏪' },
+            { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
+            { id: 'verification', l: t('nav_id_verification'), i: '🛡️' },
+            { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
+            { id: 'content', l: t('nav_site_identity'), i: '⚙️' }
           ].map(t => (
             <button 
               key={t.id} 
@@ -146,7 +148,7 @@ const handleManualSync = async () => {
             </button>
           ))}
         </nav>
-        <div className="p-8"><button onClick={onLogout} className="w-full p-4 bg-red-600/10 text-red-500 rounded-xl font-black border border-red-500/20 hover:bg-red-600 hover:text-white transition-all">خروج آمن</button></div>
+        <div className="p-8"><button onClick={onLogout} className="w-full p-4 bg-red-600/10 text-red-500 rounded-xl font-black border border-red-500/20 hover:bg-red-600 hover:text-white transition-all">{t('safe_logout')}</button></div>
       </aside>
 
       {/* Mobile Overlay */}

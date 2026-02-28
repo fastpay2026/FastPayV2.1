@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useI18n } from './i18n/i18n.tsx';
 import { v4 as uuidv4 } from 'uuid';
 import LandingPage from './components/LandingPage';
 import LoginModal from './components/LoginModal';
@@ -12,12 +13,19 @@ import { Role, User, SiteConfig, LandingService, Transaction, Notification, Cust
 import { supabaseService } from './supabaseService';
 import { isSupabaseConfigured } from './supabaseClient';
 
+
 const App: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState('home');
+  const { t, language } = useI18n();
   
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'ar' || language === 'ku' ? 'rtl' : 'ltr';
+  }, [language]);
+
   const professionalLogo = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MDAgMTYwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwZWE1ZTkiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzM4YmRmOCIgLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8Y2xpcFBhdGggaWQ9ImNsaXAiPgogICAgICA8cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgcng9IjUwIiAvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTAsIDEwKSI+CiAgICA8cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgcng9IjUwIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPgogICAgPHBhdGggZD0iTTAgMCBMMTQwIDAgTDE0MCAxNDAgWiIgZmlsbD0id2hpdGUiIG9wYWNpdHk9IjAuMDgiIGNsaXAtcGF0aD0idXJsKCNjbGlwKSIgLz4KICAgIDxwYXRoIGQ9Ik03NSAzMCBMNDAgOTAgTDcwIDkwIEw1NSA1NSBMOTAgNTUgTDY1IDEyNSBaIiBmaWxsPSJ3aGl0ZSIgLz4KICAgIDxjaXJjbGUgY3g9IjExNSIgY3k9IjQwIiByPSIxMiIgZmlsbD0id2hpdGUiIG9wYWNpdHk9IjAuMTUiIC8+CiAgPC9nPgogIDx0ZXh0IHg9IjE4MCIgeT0iMTA1IiBmaWxsPSJ3aGl0ZSIgc3R5bGU9ImZvbnQtZmFtaWx5OiAnVGFqYXdhbCcsIHNhbnMtc2VyaWY7IGZvbnQtd2VpZ2h0OiA5MDA7IGZvbnQtc2l6ZTogMTAwcHg7IGxldHRlci1zcGFjaW5nOiAtNXB4OyI+RmFzdFBheTwvdGV4dD4KICA8dGV4dCB4PSIxODUiIHk9IjE0NSIgZmlsbD0iIzM4YmRmOCIgc3R5bGU9ImZvbnQtZmFtaWx5OiAnVGFqYXdhbCcsIHNhbnMtc2VyaWY7IGZvbnQtd2VpZ2h0OiA4MDA7IGZvbnQtc2l6ZTogMjRweDsgbGV0dGVyLXNwYWNpbmc6IDIwcHg7Ij5ORVRXT1JLPC90ZXh0Pgo8L3N2Zz4=`;
 
   const [siteConfig, setSiteConfig] = useState<SiteConfig>({
@@ -29,51 +37,51 @@ const App: React.FC = () => {
     secondaryColor: '#3b82f6',
     siteName: 'FastPay Network',
     template: 'ultra-premium',
-    heroTitle: 'السيادة المالية في عصر السرعة',
-    heroSubtitle: 'بوابة FastPay Network لإدارة الأصول والتداول الفوري وحماية الثروات الرقمية بأعلى معايير الأمان العالمية.',
-    heroCtaText: 'افتح حسابك الملكي',
-    salesCtaText: 'تواصل مع الإدارة',
-    servicesTitle: 'قوة المحرك المالي',
-    servicesSubtitle: 'نستخدم بنية تحتية سحابية موزعة تضمن عدم التوقف أبداً.',
-    galleryTitle: 'التميز العالمي',
-    footerAbout: 'FastPay Network هي المعيار العالمي للمدفوعات الرقمية عالية الأمان، نجمع بين التكنولوجيا المتطورة والخدمات المالية المتميزة.',
+    heroTitle: t('hero_title'),
+    heroSubtitle: t('hero_subtitle'),
+    heroCtaText: t('hero_cta_text'),
+    salesCtaText: t('sales_cta_text'),
+    servicesTitle: t('services_title'),
+    servicesSubtitle: t('services_subtitle'),
+    galleryTitle: t('gallery_title'),
+    footerAbout: t('footer_about'),
     contactEmail: 'elite@fastpay-network.com',
     contactPhone: '+966 9200 12345',
-    contactAddress: 'مركز التجارة العالمي، دبي - المملكة العربية السعودية',
-    footerLinksTitle: 'المؤسسة',
-    footerLink1Text: 'عن الشبكة',
-    footerLink2Text: 'بوابة المطورين',
-    footerLink3Text: 'السياسات الأمنية',
-    footerLink4Text: 'الدعم التقني',
-    contactSectionTitle: 'تواصل مباشر',
+    contactAddress: t('contact_address'),
+    footerLinksTitle: t('footer_links_title'),
+    footerLink1Text: t('footer_link1_text'),
+    footerLink2Text: t('footer_link2_text'),
+    footerLink3Text: t('footer_link3_text'),
+    footerLink4Text: t('footer_link4_text'),
+    contactSectionTitle: t('contact_section_title'),
     galleryImages: [],
     merchantFeeType: 'percent',
     merchantFeeValue: 0.8,
     userFeeType: 'fixed',
     userFeeValue: 0.5,
     depositPlans: [
-      { id: '1', name: 'الاستثمار الاستراتيجي', rate: 8.5, durationMonths: 4, minAmount: 1000 },
-      { id: '2', name: 'الخطة البلاتينية', rate: 18, durationMonths: 8, minAmount: 5000 },
-      { id: '3', name: 'صندوق النخبة الاحتياطي', rate: 35, durationMonths: 12, minAmount: 25000 }
+      { id: '1', name: t('deposit_plan1_name'), rate: 8.5, durationMonths: 4, minAmount: 1000 },
+      { id: '2', name: t('deposit_plan2_name'), rate: 18, durationMonths: 8, minAmount: 5000 },
+      { id: '3', name: t('deposit_plan3_name'), rate: 35, durationMonths: 12, minAmount: 25000 }
     ],
     ads: [],
-    salaryAdTitle: 'تمويل الرواتب الذكي',
-    salaryAdDesc: 'أول منصة تتيح تمويل الرواتب المسبق للموظفين بضمانات بنكية رقمية وسرعة في الإيداع في كل انحاء العالم.',
+    salaryAdTitle: t('salary_ad_title'),
+    salaryAdDesc: t('salary_ad_desc'),
     salaryAdImage: 'https://images.unsplash.com/photo-1556742044-3c52d6e88c62?q=80&w=1470&auto=format&fit=crop',
-    tradingAdTitle: 'محرك التداول الاحترافي',
-    tradingAdDesc: 'لا تنتظر السوق، بل كن أنت المحرك. منصتنا توفر لك وصولاً مباشراً للسيولة العالمية مع أدوات تحليل ذكية ومخططات بيانية فورية.',
+    tradingAdTitle: t('trading_ad_title'),
+    tradingAdDesc: t('trading_ad_desc'),
     tradingAdImage: 'https://images.unsplash.com/photo-1642790106117-e829e14a795f?q=80&w=2000&auto=format&fit=crop',
-    raffleAdTitle: 'القرعة الشهرية: حلم الفخامة والروحانية',
-    raffleAdDesc: 'استعد للربح الأكبر في مسيرتك! شارك الآن في سحب FastPay الشهري للفوز بسيارة رياضية خارقة أحدث طراز، أو رحلة عمرة VIP شاملة لأقدس البقاع بضيافة ملكية كاملة.',
+    raffleAdTitle: t('raffle_ad_title'),
+    raffleAdDesc: t('raffle_ad_desc'),
     raffleAdImage: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1470&auto=format&fit=crop',
-    transferAdTitle: 'جسر السيولة العالمي: Swift وفورية بلا حدود',
-    transferAdDesc: 'أرسل واستقبل الأموال فورياً بين مستخدمي شبكة FastPay Network، أو قم بإدارة حوالاتك الدولية عبر نظام Swift العالمي بدقة متناهية وأمان يتجاوز المعايير البنكية التقليدية.',
+    transferAdTitle: t('transfer_ad_title'),
+    transferAdDesc: t('transfer_ad_desc'),
     transferAdImage: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?q=80&w=1470&auto=format&fit=crop',
-    gatewayAdTitle: 'مستقبلك يبدأ بـ FastPay Checkout',
-    gatewayAdDesc: 'حوّل متجرك الإلكتروني إلى منصة دفع عالمية رائدة. بوابتنا توفر لك دمجاً برمجياً بضغطة زر، عمولات تنافسية تبدأ من 0.8%، وتسوية فورية للأرباح مع حماية سيبرانية شاملة تضمن استمرارية نمو أعمالك.',
+    gatewayAdTitle: t('gateway_ad_title'),
+    gatewayAdDesc: t('gateway_ad_desc'),
     gatewayAdImage: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?q=80&w=1470&auto=format&fit=crop',
     raffleEntryCost: 100,
-    rafflePrizeType: 'سيارة بورش 911 GT3',
+    rafflePrizeType: t('raffle_prize_type'),
     showRaffleCountdown: true,
     raffleEndDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
     isTradingEnabled: true
@@ -257,7 +265,7 @@ const App: React.FC = () => {
         await supabaseService.updateUser(user);
       } catch (e: any) {
         console.error("Failed to sync user to Supabase", e);
-        alert(`⚠️ فشل حفظ البيانات في Supabase: ${e.message || 'خطأ غير معروف'}`);
+        alert(t('supabaseSyncError', { message: e.message || t('unknownError') }));
       }
     }
   }, []);
@@ -278,7 +286,7 @@ const App: React.FC = () => {
     const newNotify: Notification = {
       id: uuidv4(),
       userId: targetUserId || currentUserId || '',
-      title, message, type, timestamp: new Date().toLocaleTimeString('ar-SA'), isRead: false
+      title, message, type, timestamp: new Date().toLocaleTimeString(currentUser?.language || 'en-US'), isRead: false
     };
     setNotifications(prev => [newNotify, ...prev]);
   }, [currentUserId]);
@@ -309,9 +317,9 @@ const App: React.FC = () => {
     <div className="min-h-screen relative">
       {!isSupabaseConfigured && (
         <div className="fixed bottom-6 right-6 z-[2000] bg-red-600/90 backdrop-blur-xl text-white p-6 rounded-2xl shadow-2xl border border-white/10 max-w-sm animate-in slide-in-from-right duration-500">
-          <h4 className="font-black text-sm mb-2">⚠️ تنبيه: قاعدة البيانات غير متصلة</h4>
+          <h4 className="font-black text-sm mb-2">{t('supabaseDisconnectedTitle')}</h4>
           <p className="text-[10px] font-bold opacity-80 leading-relaxed">
-            لم يتم ضبط إعدادات Supabase بشكل صحيح. سيتم حفظ البيانات في المتصفح فقط (LocalStorage) وقد تفقدها عند المسح. يرجى ضبط VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY في إعدادات البيئة.
+            {t('supabaseDisconnectedMessage')}
           </p>
         </div>
       )}
@@ -321,7 +329,7 @@ const App: React.FC = () => {
           <div key={n.id} className="pointer-events-auto bg-[#0f172a]/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl animate-in slide-in-from-left duration-500 max-w-sm">
             <div className="flex justify-between items-start mb-2">
               <h4 className="font-black text-sky-400 text-sm">{n.title}</h4>
-              <button onClick={() => setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isRead: true } : notif))} className="text-white/40 hover:text-white transition-colors">✕</button>
+              <button onClick={() => setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isRead: true } : notif))} className="text-white/40 hover:text-white transition-colors">{t('closeButton')}</button>
             </div>
             <p className="text-xs text-white/80 font-bold leading-relaxed">{n.message}</p>
             <p className="text-[8px] text-white/40 mt-3 font-mono">{n.timestamp}</p>
@@ -332,6 +340,7 @@ const App: React.FC = () => {
       <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
       {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} accounts={accounts} onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} />}
       {isRegisterModalOpen && <RegisterModal onClose={() => setIsRegisterModalOpen(false)} accounts={accounts} onRegister={(u) => { handleAddUser(u); setCurrentUserId(u.id); setIsRegisterModalOpen(false); }} onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); }} />}
+
     </div>
   );
 };

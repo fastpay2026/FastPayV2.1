@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Role, User } from '../types';
+import { useI18n } from '../i18n/i18n';
 
 interface Props {
   onClose: () => void;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToRegister }) => {
+  const { t } = useI18n();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -22,12 +24,12 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
   const [authenticatedUser, setAuthenticatedUser] = useState<User | null>(null);
 
   const authPhrases = [
-    "بدء التحقق من الهوية الرقمية عبر بروتوكول FastPay-Secure...",
-    "فحص البصمة الرقمية ومطابقتها مع قاعدة بيانات النخبة...",
-    "تشفير جلسة الاتصال بنظام AES-256 GCM العالمي...",
-    "التحقق من صلاحيات الوصول إلى الخادم المركزي (Riyadh-Node-01)...",
-    "مزامنة المحفظة الرقمية مع سجل المعاملات العالمي...",
-    "تأمين قناة الاتصال وتجهيز لوحة القيادة البنكية..."
+    t('auth_phrase_1') || "بدء التحقق من الهوية الرقمية عبر بروتوكول FastPay-Secure...",
+    t('auth_phrase_2') || "فحص البصمة الرقمية ومطابقتها مع قاعدة بيانات النخبة...",
+    t('auth_phrase_3') || "تشفير جلسة الاتصال بنظام AES-256 GCM العالمي...",
+    t('auth_phrase_4') || "التحقق من صلاحيات الوصول إلى الخادم المركزي (Riyadh-Node-01)...",
+    t('auth_phrase_5') || "مزامنة المحفظة الرقمية مع سجل المعاملات العالمي...",
+    t('auth_phrase_6') || "تأمين قناة الاتصال وتجهيز لوحة القيادة البنكية..."
   ];
 
   useEffect(() => {
@@ -106,8 +108,8 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
             <div className="py-12 space-y-12 animate-in fade-in duration-700">
                <div className="space-y-6">
                   <div className="w-24 h-24 bg-sky-600/10 rounded-full flex items-center justify-center text-5xl mx-auto border border-sky-500/20 animate-pulse">🔒</div>
-                  <h3 className="text-3xl font-black text-white tracking-tighter">جاري المصادقة الأمنية</h3>
-                  <p className="text-slate-500 font-bold text-sm tracking-widest uppercase">FastPay Network Security Shield</p>
+                  <h3 className="text-3xl font-black text-white tracking-tighter">{t('authenticating')}</h3>
+                  <p className="text-slate-500 font-bold text-sm tracking-widest uppercase">{t('security_shield')}</p>
                </div>
 
                <div className="space-y-8">
@@ -141,16 +143,16 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
                  <div className="w-16 h-16 md:w-24 md:h-24 bg-sky-600/20 rounded-2xl md:rounded-[2rem] flex items-center justify-center mx-auto mb-4 md:mb-6 border border-sky-500/30">
                     <span className="text-3xl md:text-5xl">🔐</span>
                  </div>
-                 <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">بوابة الوصول الآمن</h2>
-                 <p className="text-slate-500 font-bold mt-2 text-sm md:text-base">اختر نوع حسابك للمتابعة</p>
+                 <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">{t('secure_access_portal')}</h2>
+                 <p className="text-slate-500 font-bold mt-2 text-sm md:text-base">{t('choose_account_type')}</p>
               </div>
               
               <div className="space-y-3 md:space-y-4">
                 {[
-                  { r: 'DEVELOPER', label: 'الإدارة التنفيذية', icon: '⚡', color: 'from-sky-600 to-indigo-600', desc: 'إدارة الشبكة والسيولة المالية' },
-                  { r: 'DISTRIBUTOR', label: 'منصة الموزعين', icon: '💼', color: 'from-amber-500 to-orange-600', desc: 'عمليات الربط والمبيعات المباشرة' },
-                  { r: 'MERCHANT', label: 'منصة التاجر - Merchant Suite', icon: '🏪', color: 'from-teal-500 to-emerald-600', desc: 'إدارة الصفقات والاعتمادات المستندية' },
-                  { r: 'USER', label: 'المحفظة الرقمية', icon: '👤', color: 'from-emerald-500 to-teal-600', desc: 'الحوالات والمدفوعات الشخصية' }
+                  { r: 'DEVELOPER', label: t('executive_management'), icon: '⚡', color: 'from-sky-600 to-indigo-600', desc: t('network_management_desc') },
+                  { r: 'DISTRIBUTOR', label: t('distributor_platform'), icon: '💼', color: 'from-amber-500 to-orange-600', desc: t('distributor_ops_desc') },
+                  { r: 'MERCHANT', label: t('merchant_suite'), icon: '🏪', color: 'from-teal-500 to-emerald-600', desc: t('merchant_deals_desc') },
+                  { r: 'USER', label: t('digital_wallet'), icon: '👤', color: 'from-emerald-500 to-teal-600', desc: t('personal_payments_desc') }
                 ].map((item) => (
                   <button 
                     key={item.r} 
@@ -170,9 +172,9 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
               </div>
 
               <div className="mt-8 md:mt-12 pt-6 md:pt-10 border-t border-white/5">
-                <p className="text-slate-500 font-bold mb-2 md:mb-4 text-sm">لا تملك حساباً في الشبكة؟</p>
+                <p className="text-slate-500 font-bold mb-2 md:mb-4 text-sm">{t('no_account_yet')}</p>
                 <button onClick={onSwitchToRegister} className="text-sky-400 font-black text-lg md:text-xl hover:text-sky-300 transition-all inline-flex items-center gap-2">
-                   <span>إنشاء حساب جديد</span>
+                   <span>{t('create_new_account')}</span>
                    <span className="text-xl md:text-2xl">⚡</span>
                 </button>
               </div>
@@ -181,25 +183,27 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
             <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8 text-right animate-in slide-in-from-left duration-500 pt-8 md:pt-0">
               <div className="flex justify-between items-center mb-8 md:mb-12">
                 <button type="button" onClick={handleBack} className="text-sky-500 font-black hover:bg-sky-500/10 px-4 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl transition-all flex items-center gap-2 text-sm md:text-base">
-                   <span>رجوع</span>
+                   <span>{t('back')}</span>
                    <span className="text-lg">→</span>
                 </button>
-                <h2 className="text-2xl md:text-3xl font-black text-white">دخول {selectedRole === 'DEVELOPER' ? 'المطور' : selectedRole === 'DISTRIBUTOR' ? 'الموزع' : selectedRole === 'MERCHANT' ? 'التاجر' : 'المستخدم'}</h2>
+                <h2 className="text-2xl md:text-3xl font-black text-white">
+                  {t('login_as')} {selectedRole === 'DEVELOPER' ? t('executive') : selectedRole === 'DISTRIBUTOR' ? t('distributor') : selectedRole === 'MERCHANT' ? t('merchant') : t('user')}
+                </h2>
               </div>
               
               <div className="space-y-4 md:space-y-6">
                 <div className="space-y-2 md:space-y-3">
-                  <label className="block text-[10px] md:text-xs font-black text-slate-500 mr-4 uppercase tracking-widest">اسم المستخدم</label>
+                  <label className="block text-[10px] md:text-xs font-black text-slate-500 mr-4 uppercase tracking-widest">{t('username_label')}</label>
                   <input 
                     required
                     value={username} 
                     onChange={e=>setUsername(e.target.value)} 
                     className="w-full p-4 md:p-6 rounded-2xl md:rounded-3xl bg-white/5 border border-white/10 text-white font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-lg md:text-xl" 
-                    placeholder="Username" 
+                    placeholder={t('username_placeholder') || "Username"} 
                   />
                 </div>
                 <div className="space-y-2 md:space-y-3">
-                  <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">كلمة المرور</label>
+                  <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">{t('password_label')}</label>
                   <input 
                     required
                     type="password" 
@@ -222,10 +226,10 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
                 type="submit" 
                 className="w-full py-6 md:py-8 bg-sky-600 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-[0_20px_40px_-10px_rgba(14,165,233,0.5)] hover:bg-sky-500 transition-all active:scale-95 transform"
               >
-                المصادقة والدخول
+                {t('auth_and_login')}
               </button>
               
-              <p className="text-center text-slate-500 font-bold text-[10px] md:text-sm">تشفير AES-256 مفعل تلقائياً لهذه الجلسة</p>
+              <p className="text-center text-slate-500 font-bold text-[10px] md:text-sm">{t('aes_encryption_active')}</p>
             </form>
           )}
         </div>

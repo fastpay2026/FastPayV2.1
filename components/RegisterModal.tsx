@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../types';
+import { useI18n } from '../i18n/i18n';
 
 interface Props {
   onClose: () => void;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, accounts }) => {
+  const { t } = useI18n();
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
@@ -91,25 +93,25 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
             <div className="w-16 h-16 md:w-20 md:h-20 bg-sky-600/20 rounded-2xl md:rounded-[2rem] flex items-center justify-center mx-auto mb-4 md:mb-6 border border-sky-500/30">
               <span className="text-3xl md:text-4xl">✨</span>
             </div>
-            <h2 className="text-2xl md:text-5xl font-black text-white tracking-tighter">انضم للمستقبل المالي</h2>
-            <p className="text-slate-500 font-bold mt-2 text-xs md:text-base">عضوية FastPay Network الرقمية الفاخرة</p>
+            <h2 className="text-2xl md:text-5xl font-black text-white tracking-tighter">{t('join_financial_future')}</h2>
+            <p className="text-slate-500 font-bold mt-2 text-xs md:text-base">{t('luxury_membership')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8 text-right">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">الاسم الثلاثي الكامل</label>
+                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">{t('full_name')}</label>
                 <input
                   type="text"
                   required
                   value={formData.fullName}
                   onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                  placeholder="الاسم الثلاثي"
+                  placeholder={t('full_name_placeholder') || "الاسم الثلاثي"}
                   className="w-full p-4 md:p-5 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 text-sky-400 font-black outline-none focus:border-sky-500 focus:bg-sky-500/5 transition-all text-base md:text-lg placeholder:text-slate-700"
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">اسم المستخدم (Unique ID)</label>
+                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">{t('username_label')} (Unique ID)</label>
                 <input
                   type="text"
                   required
@@ -124,7 +126,7 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">البريد الإلكتروني الموثق</label>
+                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">{t('email_label')}</label>
                 <input
                   type="email"
                   required
@@ -136,7 +138,7 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">رقم الهاتف (التحقق الدولي)</label>
+                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">{t('phone_number')}</label>
                 <input
                   type="tel"
                   required
@@ -151,7 +153,7 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">كلمة المرور المشفرة</label>
+                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">{t('password_label')}</label>
                 <input
                   type="password"
                   required
@@ -162,7 +164,7 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">تأكيد كلمة المرور</label>
+                <label className="block text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">{t('confirm_password')}</label>
                 <input
                   type="password"
                   required
@@ -185,11 +187,11 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
               type="submit"
               className="w-full py-5 md:py-7 bg-sky-600 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-[0_20px_50px_-10px_rgba(14,165,233,0.5)] hover:bg-sky-500 transition-all active:scale-95 transform mt-4"
             >
-              تأسيس العضوية الرقمية
+              {t('establish_membership')}
             </button>
 
             <div className="mt-6 md:mt-10 pt-6 md:pt-8 border-t border-white/5">
-               <p className="text-slate-500 font-bold text-xs md:text-base">لديك حساب مفعل مسبقاً؟ <button onClick={onSwitchToLogin} type="button" className="text-sky-400 font-black hover:text-sky-300 transition-all">سجل دخولك من هنا</button></p>
+               <p className="text-slate-500 font-bold text-xs md:text-base">{t('already_have_account')} <button onClick={onSwitchToLogin} type="button" className="text-sky-400 font-black hover:text-sky-300 transition-all">{t('login_here')}</button></p>
             </div>
           </form>
         </div>

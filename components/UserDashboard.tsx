@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing, AdExchangeItem, AdNegotiation } from '../types';
 import { AdExchange } from './AdExchange';
+import { useI18n } from '../i18n/i18n';
 
 interface Props {
   user: User;
@@ -107,6 +108,7 @@ const UserDashboard: React.FC<Props> = ({
   raffleEntries, setRaffleEntries, raffleWinners, withdrawalRequests, setWithdrawalRequests,
   salaryPlans, setSalaryPlans, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads'>('dashboard');
   const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | 'withdraw_warning' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -457,7 +459,7 @@ const UserDashboard: React.FC<Props> = ({
              <div className="bg-white/5 px-2 md:px-4 py-1 rounded-lg border border-white/10">
                 <p className="text-xs md:text-sm font-black text-emerald-400 font-mono">${user.balance.toLocaleString()}</p>
              </div>
-             <button onClick={onLogout} className="px-3 md:px-4 py-1.5 md:py-2 bg-red-500/10 text-red-400 rounded-lg text-[10px] md:text-xs font-black hover:bg-red-600 hover:text-white transition-all">خروج</button>
+             <button onClick={onLogout} className="px-3 md:px-4 py-1.5 md:py-2 bg-red-500/10 text-red-400 rounded-lg text-[10px] md:text-xs font-black hover:bg-red-600 hover:text-white transition-all">{t('logout')}</button>
           </div>
        </header>
 
@@ -466,13 +468,13 @@ const UserDashboard: React.FC<Props> = ({
          <div className="xl:hidden fixed inset-0 z-[190] bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
            <div className="absolute top-16 md:top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
              {[
-               { id: 'dashboard', l: 'الرئيسية', i: '🏠' },
-               { id: 'trading', l: 'التداول', i: '📈' },
-               { id: 'investment', l: 'الاستثمار', i: '💎' },
-               { id: 'raffle', l: 'القرعة', i: '🎁' },
-               { id: 'ads', l: 'بورصة الإعلانات', i: '📢' },
-               { id: 'salary', l: 'تمويل الرواتب', i: '🏦' },
-               { id: 'profile', l: 'الملف الشخصي', i: '⚙️' }
+               { id: 'dashboard', l: t('nav_overview'), i: '🏠' },
+               { id: 'trading', l: t('nav_trading_engine'), i: '📈' },
+               { id: 'investment', l: t('nav_invest_plans'), i: '💎' },
+               { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
+               { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
+               { id: 'salary', l: t('nav_salary_funding'), i: '🏦' },
+               { id: 'profile', l: t('nav_profile'), i: '⚙️' }
              ].map(t => (
                <button 
                  key={t.id} 
@@ -493,11 +495,11 @@ const UserDashboard: React.FC<Props> = ({
                 <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
                    <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 md:p-16 rounded-3xl md:rounded-[4rem] border border-sky-500/20 shadow-3xl text-center relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
-                      <p className="text-sky-400 font-black tracking-widest text-[10px] md:text-sm uppercase mb-4 md:mb-6 relative z-10">الرصيد السيادي المتوفر</p>
+                      <p className="text-sky-400 font-black tracking-widest text-[10px] md:text-sm uppercase mb-4 md:mb-6 relative z-10">{t('available_sovereign_balance')}</p>
                       <h2 className="text-4xl sm:text-5xl md:text-8xl font-black font-mono tracking-tighter mb-8 md:mb-12 relative z-10">${user.balance.toLocaleString()}</h2>
                       <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 md:gap-6 relative z-10">
-                         <button onClick={() => setModalType('transfer')} className="bg-sky-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-sky-500 shadow-2xl transition-all">تحويل مالي فوري</button>
-                         <button onClick={() => setModalType('coupon')} className="bg-emerald-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-emerald-500 transition-all shadow-2xl">إيداع بكوبون شحن</button>
+                         <button onClick={() => setModalType('transfer')} className="bg-sky-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-sky-500 shadow-2xl transition-all">{t('instant_transfer')}</button>
+                         <button onClick={() => setModalType('coupon')} className="bg-emerald-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-emerald-500 transition-all shadow-2xl">{t('deposit_coupon')}</button>
                          <button 
                             onClick={() => {
                               if (!user.linkedCards || user.linkedCards.length === 0) {
@@ -508,7 +510,7 @@ const UserDashboard: React.FC<Props> = ({
                             }} 
                             className="bg-white/5 border border-white/10 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-white/10 transition-all"
                           >
-                            طلب سحب Swift
+                            {t('swift_withdrawal_request')}
                           </button>
                       </div>
                    </div>

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, Role } from '../../types';
+import { useI18n } from '../../i18n/i18n';
 
 interface Props {
   accounts: User[];
@@ -11,6 +12,7 @@ interface Props {
 }
 
 const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onUpdateUser }) => {
+  const { t } = useI18n();
   const [userSearch, setUserSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userForm, setUserForm] = useState({ fullName: '', username: '', password: '', role: 'USER' as Role, balance: 0, phoneNumber: '' });
@@ -86,10 +88,10 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
   return (
     <div className="space-y-10 animate-in slide-in-from-bottom pb-20">
       <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-        <h2 className="text-3xl md:text-5xl font-black tracking-tighter">إدارة حسابات النخبة</h2>
+        <h2 className="text-3xl md:text-5xl font-black tracking-tighter">{t('elite_accounts_mgmt')}</h2>
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          <button onClick={() => setIsModalOpen(true)} className="bg-emerald-600 px-8 py-3 rounded-2xl font-black shadow-lg hover:bg-emerald-500 transition-all">+ إضافة عضو</button>
-          <input type="text" placeholder="بحث..." value={userSearch} onChange={e => setUserSearch(e.target.value)} className="bg-white/5 p-4 rounded-2xl border border-white/10 w-full md:w-80 outline-none" />
+          <button onClick={() => setIsModalOpen(true)} className="bg-emerald-600 px-8 py-3 rounded-2xl font-black shadow-lg hover:bg-emerald-500 transition-all">+ {t('add_member')}</button>
+          <input type="text" placeholder={t('search_placeholder')} value={userSearch} onChange={e => setUserSearch(e.target.value)} className="bg-white/5 p-4 rounded-2xl border border-white/10 w-full md:w-80 outline-none" />
         </div>
       </div>
       <div className="bg-[#0f172a] rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl">
@@ -97,11 +99,11 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
           <table className="w-full text-right font-bold min-w-[1000px]">
             <thead className="bg-white/5 text-[10px] text-slate-500 uppercase font-black">
               <tr>
-                <th className="p-8">العضو</th>
-                <th className="p-8">الرصيد</th>
-                <th className="p-8">الرتبة</th>
-                <th className="p-8">الحالة</th>
-                <th className="p-8 text-center">التحكم المتقدم</th>
+                <th className="p-8">{t('member')}</th>
+                <th className="p-8">{t('balance')}</th>
+                <th className="p-8">{t('rank')}</th>
+                <th className="p-8">{t('status')}</th>
+                <th className="p-8 text-center">{t('advanced_control')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -115,7 +117,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
                       <div>
                         <p className="text-white flex items-center gap-2">
                           {u.fullName}
-                          {u.isVerified && <span className="text-sky-400 text-xs" title="موثق">☑️</span>}
+                          {u.isVerified && <span className="text-sky-400 text-xs" title={t('verified')}>☑️</span>}
                         </p>
                         <p className="text-xs text-sky-400 font-mono">@{u.username}</p>
                         {u.phoneNumber && <p className="text-[10px] text-slate-500">{u.phoneNumber}</p>}
@@ -125,19 +127,19 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
                   <td className="p-8 text-emerald-400 font-mono text-xl">${u.balance.toLocaleString()}</td>
                   <td className="p-8 text-xs text-slate-500 font-black uppercase tracking-widest">{u.role}</td>
                   <td className="p-8">
-                    <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase ${u.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                      {u.status === 'active' ? 'نشط' : 'معلق'}
+                    <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase ${u.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-400'}`}>
+                      {u.status === 'active' ? t('active') : t('suspended')}
                     </span>
                   </td>
                   <td className="p-8">
                     <div className="flex justify-center gap-2 flex-wrap max-w-[400px]">
-                      <button onClick={() => setActionModal({ isOpen: true, type: 'recharge', user: u, value: '' })} className="bg-sky-600/20 text-sky-400 border border-sky-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-sky-600 hover:text-white transition-all">شحن</button>
-                      <button onClick={() => setActionModal({ isOpen: true, type: 'reset', user: u, value: '' })} className="bg-amber-600/20 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-amber-600 hover:text-white transition-all">تصفير</button>
+                      <button onClick={() => setActionModal({ isOpen: true, type: 'recharge', user: u, value: '' })} className="bg-sky-600/20 text-sky-400 border border-sky-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-sky-600 hover:text-white transition-all">{t('recharge')}</button>
+                      <button onClick={() => setActionModal({ isOpen: true, type: 'reset', user: u, value: '' })} className="bg-amber-600/20 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-amber-600 hover:text-white transition-all">{t('reset')}</button>
                       <button onClick={() => setActionModal({ isOpen: true, type: 'suspend', user: u, value: '' })} className={`${u.status === 'active' ? 'bg-red-600/20 text-red-400 border-red-500/20' : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/20'} px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:opacity-80 transition-all`}>
-                        {u.status === 'active' ? 'تعليق' : 'تفعيل'}
+                        {u.status === 'active' ? t('suspend') : t('activate')}
                       </button>
-                      <button onClick={() => { setEditingUser(u); setIsPasswordModalOpen(true); }} className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-indigo-600 hover:text-white transition-all">كلمة المرور</button>
-                      <button onClick={() => setActionModal({ isOpen: true, type: 'delete', user: u, value: '' })} className="bg-red-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase shadow-lg hover:bg-red-500 transition-all">حذف</button>
+                      <button onClick={() => { setEditingUser(u); setIsPasswordModalOpen(true); }} className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-indigo-600 hover:text-white transition-all">{t('password')}</button>
+                      <button onClick={() => setActionModal({ isOpen: true, type: 'delete', user: u, value: '' })} className="bg-red-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase shadow-lg hover:bg-red-500 transition-all">{t('delete')}</button>
                     </div>
                   </td>
                 </tr>
@@ -151,18 +153,18 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
       {isModalOpen && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
           <form onSubmit={handleSaveUser} className="bg-[#111827] border border-white/10 w-full max-w-xl rounded-[4rem] p-16 space-y-8 animate-in zoom-in text-center shadow-3xl">
-            <h3 className="text-4xl font-black mb-8 tracking-tighter">إضافة عضو جديد للنظام</h3>
+            <h3 className="text-4xl font-black mb-8 tracking-tighter">{t('add_new_member_to_system')}</h3>
             <div className="space-y-4">
-              <input required value={userForm.fullName} onChange={e => setUserForm({ ...userForm, fullName: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white" placeholder="الاسم الثلاثي الكامل" />
-              <input required value={userForm.username} onChange={e => setUserForm({ ...userForm, username: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all font-mono text-white" placeholder="اسم المستخدم" />
-              <input value={userForm.phoneNumber} onChange={e => setUserForm({ ...userForm, phoneNumber: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white" placeholder="رقم الهاتف" />
+              <input required value={userForm.fullName} onChange={e => setUserForm({ ...userForm, fullName: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white" placeholder={t('full_name_placeholder')} />
+              <input required value={userForm.username} onChange={e => setUserForm({ ...userForm, username: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all font-mono text-white" placeholder={t('username_placeholder')} />
+              <input value={userForm.phoneNumber} onChange={e => setUserForm({ ...userForm, phoneNumber: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white" placeholder={t('phone_number_placeholder')} />
               <div className="space-y-1 text-right">
-                <label className="text-[10px] text-slate-500 mr-6 font-black uppercase">كلمة مرور مؤقتة (اختياري)</label>
+                <label className="text-[10px] text-slate-500 mr-6 font-black uppercase">{t('temporary_password_optional')}</label>
                 <input type="text" value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white font-mono" placeholder="FastPay123" />
               </div>
             </div>
             <div className="space-y-3 text-right">
-              <label className="text-xs text-slate-500 mr-6 font-black uppercase tracking-widest">تحديد رتبة العضو</label>
+              <label className="text-xs text-slate-500 mr-6 font-black uppercase tracking-widest">{t('select_member_rank')}</label>
               <select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value as Role })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-sky-400 outline-none cursor-pointer">
                 <option value="USER">مستخدم (User)</option>
                 <option value="DISTRIBUTOR">موزع معتمد (Distributor)</option>
@@ -172,12 +174,12 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
               </select>
             </div>
             <div className="space-y-2 text-right">
-              <label className="text-xs text-slate-500 mr-6 font-black uppercase">الرصيد الافتتاحي ($)</label>
+              <label className="text-xs text-slate-500 mr-6 font-black uppercase">{t('opening_balance')}</label>
               <input type="number" required value={userForm.balance} onChange={e => setUserForm({ ...userForm, balance: parseFloat(e.target.value) })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-emerald-400 outline-none text-2xl text-center" />
             </div>
             <div className="flex gap-4 pt-4">
-              <button type="submit" className="flex-1 py-6 bg-sky-600 rounded-3xl font-black text-xl shadow-2xl hover:bg-sky-500 transition-all">حفظ الحساب</button>
-              <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-6 bg-white/5 border border-white/10 rounded-3xl font-black text-xl hover:bg-white/10 transition-all">إلغاء</button>
+              <button type="submit" className="flex-1 py-6 bg-sky-600 rounded-3xl font-black text-xl shadow-2xl hover:bg-sky-500 transition-all">{t('save_account')}</button>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-6 bg-white/5 border border-white/10 rounded-3xl font-black text-xl hover:bg-white/10 transition-all">{t('cancel')}</button>
             </div>
           </form>
         </div>
@@ -188,16 +190,16 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
         <div className="fixed inset-0 z-[400] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
           <div className="bg-[#111827] border border-white/10 w-full max-w-md rounded-[3rem] p-12 space-y-8 animate-in zoom-in text-center shadow-3xl">
             <h3 className="text-3xl font-black tracking-tighter">
-              {actionModal.type === 'recharge' && 'شحن رصيد الحساب'}
-              {actionModal.type === 'reset' && 'تصفير رصيد الحساب'}
-              {actionModal.type === 'suspend' && (actionModal.user.status === 'active' ? 'تعليق الحساب' : 'تفعيل الحساب')}
-              {actionModal.type === 'delete' && 'حذف الحساب نهائياً'}
+              {actionModal.type === 'recharge' && t('recharge_account_balance')}
+              {actionModal.type === 'reset' && t('reset_account_balance')}
+              {actionModal.type === 'suspend' && (actionModal.user.status === 'active' ? t('suspend_account') : t('activate_account'))}
+              {actionModal.type === 'delete' && t('delete_account_permanently')}
             </h3>
-            <p className="text-slate-500 font-bold">للعضو: {actionModal.user.fullName}</p>
+            <p className="text-slate-500 font-bold">{t('for_member')} {actionModal.user.fullName}</p>
             
             {actionModal.type === 'recharge' && (
               <div className="space-y-4">
-                <label className="text-xs text-slate-500 font-black uppercase">أدخل المبلغ (موجب للإضافة، سالب للخصم)</label>
+                <label className="text-xs text-slate-500 font-black uppercase">{t('enter_amount_recharge')}</label>
                 <input 
                   type="number" 
                   autoFocus
@@ -210,7 +212,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
             )}
 
             {(actionModal.type === 'reset' || actionModal.type === 'suspend' || actionModal.type === 'delete') && (
-              <p className="text-white text-lg">هل أنت متأكد من تنفيذ هذا الإجراء؟</p>
+              <p className="text-white text-lg">{t('are_you_sure_action')}</p>
             )}
 
             <div className="flex gap-4 pt-4">
@@ -220,13 +222,13 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
                   actionModal.type === 'delete' ? 'bg-red-600 hover:bg-red-500' : 'bg-sky-600 hover:bg-sky-500'
                 }`}
               >
-                تأكيد
+                {t('confirm')}
               </button>
               <button 
                 onClick={() => setActionModal({ isOpen: false, type: null, user: null, value: '' })} 
                 className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-lg hover:bg-white/10 transition-all"
               >
-                إلغاء
+                {t('cancel')}
               </button>
             </div>
           </div>
@@ -237,8 +239,8 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
       {isPasswordModalOpen && editingUser && (
         <div className="fixed inset-0 z-[310] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
           <form onSubmit={handleChangePassword} className="bg-[#111827] border border-white/10 w-full max-w-md rounded-[3rem] p-12 space-y-8 animate-in zoom-in text-center shadow-3xl">
-            <h3 className="text-3xl font-black tracking-tighter">تغيير كلمة المرور</h3>
-            <p className="text-slate-500 font-bold">للعضو: {editingUser.fullName}</p>
+            <h3 className="text-3xl font-black tracking-tighter">{t('change_password')}</h3>
+            <p className="text-slate-500 font-bold">{t('for_member')} {editingUser.fullName}</p>
             <div className="space-y-4">
               <input 
                 required 
@@ -246,12 +248,12 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
                 value={newPassword} 
                 onChange={e => setNewPassword(e.target.value)} 
                 className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white font-mono text-center text-2xl" 
-                placeholder="كلمة المرور الجديدة" 
+                placeholder={t('new_password_placeholder')} 
               />
             </div>
             <div className="flex gap-4 pt-4">
-              <button type="submit" className="flex-1 py-4 bg-indigo-600 rounded-2xl font-black text-lg shadow-xl hover:bg-indigo-500 transition-all">تحديث</button>
-              <button type="button" onClick={() => { setIsPasswordModalOpen(false); setEditingUser(null); }} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-lg hover:bg-white/10 transition-all">إلغاء</button>
+              <button type="submit" className="flex-1 py-4 bg-indigo-600 rounded-2xl font-black text-lg shadow-xl hover:bg-indigo-500 transition-all">{t('update')}</button>
+              <button type="button" onClick={() => { setIsPasswordModalOpen(false); setEditingUser(null); }} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-lg hover:bg-white/10 transition-all">{t('cancel')}</button>
             </div>
           </form>
         </div>
