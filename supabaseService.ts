@@ -41,7 +41,7 @@ export const supabaseService = {
         api_keys: Array.isArray(user.apiKeys) ? user.apiKeys : []
       };
 
-      const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
+      const { error } = await supabase.from('users').upsert(userData, { onConflict: 'username' });
       if (error) {
         console.error("Supabase Error Details:", error);
         throw new Error(error.message);
