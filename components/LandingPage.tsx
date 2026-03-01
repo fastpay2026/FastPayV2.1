@@ -248,8 +248,8 @@ const LandingPage: React.FC<Props> = ({
                     <span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full animate-pulse shadow-[0_0_15px_#0ea5e9]"></span>
                     <span className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.3em]">{t('system_premium')} {siteConfig.siteName} v5.5 Premium</span>
                  </div>
-                 <h1 className="text-4xl md:text-[6.5rem] font-black leading-[1.1] tracking-tighter hero-gradient-text text-glow" dangerouslySetInnerHTML={{ __html: t('hero_title').replace(' ', '<br/>') }}></h1>
-                 <p className="text-lg md:text-3xl text-slate-300 max-w-3xl mx-auto lg:mx-0 leading-relaxed font-bold border-r-0 lg:border-r-[12px] border-sky-500 pr-0 lg:pr-8">{t('hero_subtitle')}</p>
+                 <h1 className="text-4xl md:text-[6.5rem] font-black leading-[1.1] tracking-tighter hero-gradient-text text-glow" dangerouslySetInnerHTML={{ __html: siteConfig.heroTitle.replace(' ', '<br/>') }}></h1>
+                 <p className="text-lg md:text-3xl text-slate-300 max-w-3xl mx-auto lg:mx-0 leading-relaxed font-bold border-r-0 lg:border-r-[12px] border-sky-500 pr-0 lg:pr-8">{siteConfig.heroSubtitle}</p>
                  <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-4 md:gap-8 pt-6">
                     <button onClick={onRegisterClick} className="px-8 md:px-14 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] bg-white text-black font-black text-xl md:text-2xl shadow-[0_25px_60px_rgba(255,255,255,0.2)] hover:scale-105 transition-all flex items-center justify-center gap-4 md:gap-6 group">
                       <span>{t('hero_cta_text')}</span>
@@ -457,8 +457,8 @@ const LandingPage: React.FC<Props> = ({
           <section id="services" className="py-20 md:py-60 px-6 md:px-24">
              <div className="max-w-[1600px] mx-auto">
                 <div className="text-center space-y-6 md:space-y-8 mb-20 md:mb-40">
-                   <h2 className="text-4xl md:text-9xl font-black text-white tracking-tighter">{t('nav_services')}</h2>
-                   <h3 className="text-lg md:text-3xl text-slate-400 font-bold max-w-4xl mx-auto">{t('services_subtitle')}</h3>
+                   <h2 className="text-4xl md:text-9xl font-black text-white tracking-tighter">{siteConfig.servicesTitle}</h2>
+                   <h3 className="text-lg md:text-3xl text-slate-400 font-bold max-w-4xl mx-auto">{siteConfig.servicesSubtitle}</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-20">
                    {services.map(s => (
@@ -476,7 +476,7 @@ const LandingPage: React.FC<Props> = ({
             <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-3 gap-12 md:gap-40">
               <div className="space-y-8 md:space-y-16">
                 {siteConfig.logoUrl && <img src={siteConfig.logoUrl} style={{ width: `${siteConfig.logoWidth ? Math.min(siteConfig.logoWidth, 150) : 150}px` }} alt="Logo" />}
-                <p className="text-lg md:text-2xl text-slate-400 font-bold leading-relaxed md:leading-[2.2] max-w-2xl">{t('footer_about')}</p>
+                <p className="text-lg md:text-2xl text-slate-400 font-bold leading-relaxed md:leading-[2.2] max-w-2xl">{siteConfig.footerAbout}</p>
               </div>
               <div className="space-y-8 md:space-y-16">
                  <h4 className="text-2xl md:text-4xl font-black text-white border-r-4 md:border-r-[10px] border-sky-500 pr-6 md:pr-10 tracking-tighter uppercase">{t('footer_links_title')}</h4>
@@ -492,7 +492,7 @@ const LandingPage: React.FC<Props> = ({
               <div className="space-y-8 md:space-y-16">
                  <h4 className="text-2xl md:text-4xl font-black text-white border-r-4 md:border-r-[10px] border-emerald-500 pr-6 md:pr-10 tracking-tighter uppercase">{t('contact_section_title')}</h4>
                  <div className="space-y-8 md:space-y-12 text-slate-400 font-bold text-lg md:text-2xl">
-                    <div className="flex items-start gap-6 md:gap-10 group cursor-default"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">📍</span><p className="group-hover:text-white transition-colors leading-relaxed">{t('contact_address')}</p></div>
+                    <div className="flex items-start gap-6 md:gap-10 group cursor-default"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">📍</span><p className="group-hover:text-white transition-colors leading-relaxed">{siteConfig.contactAddress}</p></div>
                     <div className="flex items-center gap-6 md:gap-10 group cursor-default"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">🌐</span><p className="group-hover:text-white transition-colors">{siteConfig.contactEmail}</p></div>
                     <div className="flex items-center gap-6 md:gap-10 group cursor-default" dir="ltr"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">📱</span><p className="group-hover:text-white transition-colors">{siteConfig.contactPhone}</p></div>
                  </div>
