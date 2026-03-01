@@ -48,7 +48,7 @@ export const AdExchange: React.FC<Props> = ({
     imageUrl2: '',
     imageUrl3: '',
     isNegotiable: false,
-    country: 'السعودية',
+    country: t('country_saudi'),
     state: '',
     city: ''
   });
@@ -100,7 +100,7 @@ export const AdExchange: React.FC<Props> = ({
 
   const handlePromoteRequest = (adId: string, type: 'network' | 'network_home') => {
     if (!user.isVerified) {
-      return alert('عذراً، يجب أن يكون حسابك موثقاً بالشارة الزرقاء لطلب الترويج.');
+      return alert(t('verified_account_required_promo'));
     }
 
     setAdExchangeItems(prev => prev.map(ad => ad.id === adId ? { ...ad, promotionStatus: 'requested', promotionType: type } : ad));
@@ -109,7 +109,7 @@ export const AdExchange: React.FC<Props> = ({
 
   const handlePayPromotion = (ad: AdExchangeItem) => {
     if (!ad.promotionPrice) return;
-    if (user.balance < ad.promotionPrice) return alert('رصيدك غير كافٍ لدفع رسوم الترويج.');
+    if (user.balance < ad.promotionPrice) return alert(t('insufficient_balance_promo'));
 
     onUpdateUser({ ...user, balance: user.balance - ad.promotionPrice });
     setAdExchangeItems(prev => prev.map(a => a.id === ad.id ? { ...a, promotionStatus: 'pending_review' } : a));
@@ -133,7 +133,7 @@ export const AdExchange: React.FC<Props> = ({
   const handleBuyAd = (ad: AdExchangeItem) => {
     const finalPrice = ad.price;
     if (user.balance < finalPrice) {
-      return alert('رصيدك غير كافٍ لإتمام هذه العملية.');
+      return alert(t('insufficient_balance_generic'));
     }
 
     setIsBuying(true);
@@ -179,7 +179,7 @@ export const AdExchange: React.FC<Props> = ({
       relatedUser: ad.merchantName,
       timestamp: new Date().toLocaleString('ar-SA'),
       status: 'escrow',
-      notes: `شراء: ${ad.title} (FPN Flow)`
+      notes: `${t('purchase_desc')}: ${ad.title} (FPN Flow)`
     };
     setTransactions(prev => [newTrans, ...prev]);
 
@@ -193,7 +193,7 @@ export const AdExchange: React.FC<Props> = ({
     if (!ad) return;
 
     const amount = parseFloat(negotiationAmount);
-    if (isNaN(amount) || amount <= 0) return alert('يرجى إدخال مبلغ صحيح');
+    if (isNaN(amount) || amount <= 0) return alert(t('invalid_amount'));
 
     const newOffer: AdNegotiation = {
       id: uuidv4(),
@@ -277,7 +277,7 @@ export const AdExchange: React.FC<Props> = ({
               <div className="space-y-1">
                 <h3 className="text-lg md:text-xl font-black text-white group-hover:text-sky-400 transition-colors">{ad.title}</h3>
                 <p className="text-[10px] md:text-xs text-slate-500 font-bold flex items-center gap-1">
-                  📍 {ad.location.country} • {ad.location.city || ad.location.state || 'عام'}
+                  📍 {ad.location.country} • {ad.location.city || ad.location.state || t('general_location')}
                 </p>
               </div>
               

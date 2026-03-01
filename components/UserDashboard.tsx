@@ -108,7 +108,7 @@ const UserDashboard: React.FC<Props> = ({
   raffleEntries, setRaffleEntries, raffleWinners, withdrawalRequests, setWithdrawalRequests,
   salaryPlans, setSalaryPlans, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads'>('dashboard');
   const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | 'withdraw_warning' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -142,22 +142,22 @@ const UserDashboard: React.FC<Props> = ({
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   const bankingPhrases = [
-    "جاري تهيئة الاتصال المشفر مع بوابة الدفع العالمية...",
-    "التحقق من صحة بيانات المستلم في السجل المصرفي الموحد...",
-    "بدء عملية المقاصة الرقمية عبر نظام FastPay المركزي...",
-    "تأمين المعاملة ببروتوكول حماية من الدرجة العسكرية...",
-    "فحص سجلات الامتثال ومنع غسيل الأموال...",
-    "إتمام عملية التحويل وتحديث الأرصدة فورياً..."
+    t('transfer_phrase_1'),
+    t('transfer_phrase_2'),
+    t('transfer_phrase_3'),
+    t('transfer_phrase_4'),
+    t('transfer_phrase_5'),
+    t('transfer_phrase_6')
   ];
 
   const cardLinkingPhrases = [
-    "جاري إنشاء قناة اتصال مشفرة مع خوادم التحقق العالمية...",
-    "التحقق من صحة أرقام البطاقة عبر خوارزمية Luhn...",
-    "فحص معايير الأمان الدولية PCI-DSS...",
-    "مزامنة البيانات مع شبكة Visa/Mastercard العالمية...",
-    "تأمين الربط عبر بروتوكول التشفير العسكري AES-256...",
-    "تفعيل ميزة السحب البنكي السريع Swift لهذه البطاقة...",
-    "إتمام عملية الربط وتأكيد الهوية الرقمية..."
+    t('card_link_phrase_1'),
+    t('card_link_phrase_2'),
+    t('card_link_phrase_3'),
+    t('card_link_phrase_4'),
+    t('card_link_phrase_5'),
+    t('card_link_phrase_6'),
+    t('card_link_phrase_7')
   ];
 
   const handleStartTransfer = (e: React.FormEvent) => {
@@ -165,8 +165,8 @@ const UserDashboard: React.FC<Props> = ({
     const amount = parseFloat(transferData.amount);
     const target = accounts.find(a => a.username === transferData.recipient);
     
-    if (!target) return alert('اسم المستخدم المستلم غير موجود');
-    if (amount > user.balance || amount <= 0) return alert('الرصيد غير كافٍ');
+    if (!target) return alert(t('recipient_not_found'));
+    if (amount > user.balance || amount <= 0) return alert(t('insufficient_balance'));
     
     setIsTransferring(true);
     setTransferProgress(0);
@@ -203,8 +203,8 @@ const UserDashboard: React.FC<Props> = ({
         return acc;
       }));
       onUpdateUser({ ...user, balance: user.balance - amount });
-      setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'send', amount: -amount, relatedUser: `تحويل إلى @${target.username}`, timestamp: new Date().toLocaleString() }, ...prev]);
-      addNotification('تحويل ناجح', `تم تحويل مبلغ $${amount} إلى ${target.fullName} بنجاح.`, 'money');
+      setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'send', amount: -amount, relatedUser: `${t('transfer_to')} @${target.username}`, timestamp: new Date().toLocaleString() }, ...prev]);
+      addNotification(t('transfer_success_title'), t('transfer_success_msg', { amount, name: target.fullName }), 'money');
       setTransferSuccess(true);
       setTimeout(() => { setModalType(null); setIsTransferring(false); setTransferSuccess(false); setTransferData({ recipient: '', amount: '' }); }, 3000);
     }
@@ -227,11 +227,11 @@ const UserDashboard: React.FC<Props> = ({
     const currentYear = parseInt(now.getFullYear().toString().slice(-2));
     
     if (!month || !year || month < 1 || month > 12 || year < currentYear || (year === currentYear && month < currentMonth)) {
-      return alert('عذراً، البطاقة منتهية الصلاحية أو تاريخ الانتهاء غير صحيح.');
+      return alert(t('card_expired'));
     }
 
     if (cardData.number.replace(/\s+/g, '').length < 15) {
-      return alert('يرجى إدخال رقم بطاقة صحيح.');
+      return alert(t('invalid_card_number'));
     }
 
     setIsLinkingCard(true);
@@ -269,7 +269,7 @@ const UserDashboard: React.FC<Props> = ({
     };
     onUpdateUser({ ...user, linkedCards: [...(user.linkedCards || []), newCard] });
     setLinkingSuccess(true);
-    addNotification('ربط بطاقة', 'تم ربط البطاقة بنجاح ، تم تفعيل طلب سحب Swift بنجاح', 'security');
+    addNotification(t('card_link_success_title'), t('card_link_success_msg'), 'security');
     
     setTimeout(() => {
       setModalType(null);
@@ -296,15 +296,15 @@ const UserDashboard: React.FC<Props> = ({
       requestedAt: new Date().toLocaleString()
     };
     setSalaryPlans(prev => [newPlan, ...prev]);
-    addNotification('طلب تمويل', `تم إرسال طلب تمويل بقيمة $${salaryForm.amount}.`, 'system');
+    addNotification(t('salary_apply_success_title'), t('salary_apply_success_msg', { amount: salaryForm.amount }), 'system');
     setModalType(null);
-    alert('تم إرسال طلب التمويل بنجاح لمراجعة الإدارة.');
+    alert(t('salary_apply_alert'));
   };
 
   const handleWithdrawSwift = (e: React.FormEvent) => {
      e.preventDefault();
      const amount = parseFloat(withdrawData.amount);
-     if (amount > user.balance || amount <= 0) return alert('الرصيد غير كافٍ');
+     if (amount > user.balance || amount <= 0) return alert(t('insufficient_balance'));
      
      const newRequest: WithdrawalRequest = {
         id: uuidv4(),
@@ -322,10 +322,10 @@ const UserDashboard: React.FC<Props> = ({
      const newBalance = user.balance - amount;
      onUpdateUser({ ...user, balance: newBalance });
      setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
-     setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'withdrawal', amount: -amount, timestamp: new Date().toLocaleString(), relatedUser: 'سحب Swift بنكي' }, ...prev]);
-     addNotification('طلب سحب', `تم طلب سحب مبلغ $${amount} بنجاح.`, 'money');
+     setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'withdrawal', amount: -amount, timestamp: new Date().toLocaleString(), relatedUser: t('swift_withdrawal_desc') }, ...prev]);
+     addNotification(t('withdraw_request_success_title'), t('withdraw_request_success_msg', { amount }), 'money');
      setModalType(null);
-     alert('تم تقديم طلب السحب بنجاح.');
+     alert(t('withdraw_request_alert'));
   };
 
   const handleRedeemCoupon = (e: React.FormEvent) => {
@@ -336,20 +336,20 @@ const UserDashboard: React.FC<Props> = ({
        const newBalance = user.balance + coupon.amount;
        onUpdateUser({ ...user, balance: newBalance });
        setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
-       setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'redeem', amount: coupon.amount, timestamp: new Date().toLocaleString(), relatedUser: 'شحن بطاقة' }, ...prev]);
-       addNotification('شحن رصيد', `تم شحن $${coupon.amount} بنجاح.`, 'money');
+       setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'redeem', amount: coupon.amount, timestamp: new Date().toLocaleString(), relatedUser: t('card_recharge_desc') }, ...prev]);
+       addNotification(t('recharge_success_title'), t('recharge_success_msg', { amount: coupon.amount }), 'money');
        setModalType(null);
        setCouponCode('');
     } else {
-       alert('الكود غير صحيح أو مستخدم مسبقاً');
+       alert(t('invalid_coupon'));
     }
   };
 
   const handleInvestSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlan) return;
-    if (investAmount < selectedPlan.minAmount) return alert(`الحد الأدنى لهذه الخطة هو $${selectedPlan.minAmount}`);
-    if (investAmount > user.balance) return alert('رصيدك غير كافٍ');
+    if (investAmount < selectedPlan.minAmount) return alert(t('min_invest_amount', { amount: selectedPlan.minAmount }));
+    if (investAmount > user.balance) return alert(t('insufficient_balance'));
 
     const profit = (investAmount * (selectedPlan.rate / 100)) * (selectedPlan.durationMonths / 12);
     const endDate = new Date();
@@ -373,16 +373,16 @@ const UserDashboard: React.FC<Props> = ({
     onUpdateUser({ ...user, balance: newBalance });
     setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
     
-    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'fixed_deposit', amount: -investAmount, timestamp: new Date().toLocaleString(), relatedUser: `استثمار: ${selectedPlan.name}` }, ...prev]);
-    addNotification('بدء استثمار', `تم بدء خطة استثمار بقيمة $${investAmount}.`, 'money');
+    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'fixed_deposit', amount: -investAmount, timestamp: new Date().toLocaleString(), relatedUser: `${t('invest_desc')}: ${selectedPlan.name}` }, ...prev]);
+    addNotification(t('invest_start_title'), t('invest_start_msg', { amount: investAmount }), 'money');
     setModalType(null);
     setSelectedPlan(null);
     setInvestAmount(0);
-    alert('تم بدء الاستثمار بنجاح!');
+    alert(t('invest_success_alert'));
   };
 
   const handleJoinRaffle = () => {
-    if (user.balance < siteConfig.raffleEntryCost) return alert('رصيدك لا يكفي للمشاركة في القرعة');
+    if (user.balance < siteConfig.raffleEntryCost) return alert(t('raffle_insufficient_balance'));
     
     const newEntry: RaffleEntry = {
       id: uuidv4(),
@@ -398,9 +398,9 @@ const UserDashboard: React.FC<Props> = ({
     onUpdateUser({ ...user, balance: newBalance });
     setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
     
-    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'raffle_entry', amount: -siteConfig.raffleEntryCost, timestamp: new Date().toLocaleString(), relatedUser: 'دخول سحب القرعة' }, ...prev]);
-    addNotification('القرعة السيادية', 'تم حجز تذكرتك في السحب الشهري بنجاح.', 'system');
-    alert(`تم الدخول بنجاح! رقم تذكرتك هو: ${newEntry.ticketNumber}`);
+    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'raffle_entry', amount: -siteConfig.raffleEntryCost, timestamp: new Date().toLocaleString(), relatedUser: t('raffle_entry_desc') }, ...prev]);
+    addNotification(t('raffle_success_title'), t('raffle_success_msg'), 'system');
+    alert(t('raffle_success_alert', { ticket: newEntry.ticketNumber }));
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {
@@ -409,15 +409,15 @@ const UserDashboard: React.FC<Props> = ({
     setPasswordSuccess(false);
 
     if (oldPassword !== user.password) {
-      setPasswordError('كلمة المرور الحالية غير صحيحة');
+      setPasswordError(t('current_password_incorrect'));
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError('يجب أن تكون كلمة المرور الجديدة 6 أحرف على الأقل');
+      setPasswordError(t('password_min_length'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('كلمتا المرور غير متطابقتين');
+      setPasswordError(t('passwords_dont_match'));
       return;
     }
 
@@ -426,12 +426,12 @@ const UserDashboard: React.FC<Props> = ({
     setNewPassword('');
     setConfirmPassword('');
     setPasswordSuccess(true);
-    addNotification('أمن الحساب', 'تم تحديث كلمة المرور بنجاح.', 'security');
+    addNotification(t('password_update_success_title'), t('password_update_success_msg'), 'security');
     setTimeout(() => setPasswordSuccess(false), 5000);
   };
 
   return (
-    <div className="fixed inset-0 z-[150] bg-[#020617] text-right text-white font-sans overflow-hidden flex flex-col" dir="rtl">
+    <div className={`fixed inset-0 z-[150] bg-[#020617] text-white font-sans overflow-hidden flex flex-col ${language === 'ar' || language === 'ku' ? 'text-right' : 'text-left'}`} dir={language === 'ar' || language === 'ku' ? 'rtl' : 'ltr'}>
        <header className="h-16 md:h-20 bg-[#0f172a] border-b border-white/5 px-4 md:px-8 flex justify-between items-center z-[200] shrink-0">
           <div className="flex items-center gap-4 md:gap-10">
              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="xl:hidden text-white text-2xl p-2">
@@ -440,13 +440,13 @@ const UserDashboard: React.FC<Props> = ({
              <img src={siteConfig.logoUrl} style={{ width: `80px` }} alt="Logo" className="cursor-pointer md:w-[100px]" onClick={() => setActiveTab('dashboard')} />
              <nav className="hidden xl:flex items-center h-full">
                 {[
-                  { id: 'dashboard', l: 'الرئيسية', i: '🏠' },
-                  { id: 'trading', l: 'التداول', i: '📈' },
-                  { id: 'investment', l: 'الاستثمار', i: '💎' },
-                  { id: 'raffle', l: 'القرعة', i: '🎁' },
-                  { id: 'ads', l: 'بورصة الإعلانات', i: '📢' },
-                  { id: 'salary', l: 'تمويل الرواتب', i: '🏦' },
-                  { id: 'profile', l: 'الملف الشخصي', i: '⚙️' }
+                  { id: 'dashboard', l: t('nav_overview'), i: '🏠' },
+                  { id: 'trading', l: t('nav_trading_engine'), i: '📈' },
+                  { id: 'investment', l: t('nav_invest_plans'), i: '💎' },
+                  { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
+                  { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
+                  { id: 'salary', l: t('nav_salary_funding'), i: '🏦' },
+                  { id: 'profile', l: t('nav_profile'), i: '⚙️' }
                 ].map(t => (
                   <button key={t.id} onClick={() => setActiveTab(t.id as any)} className={`flex items-center gap-2 font-bold px-6 h-16 md:h-20 border-b-2 transition-all duration-300 ${activeTab === t.id ? 'text-sky-400 border-sky-400 bg-sky-400/5' : 'text-slate-500 border-transparent hover:text-white'}`}>
                     <span className="text-xl">{t.i}</span>
@@ -517,7 +517,7 @@ const UserDashboard: React.FC<Props> = ({
 
                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
                       <div className="bg-[#0f172a]/80 p-6 md:p-10 rounded-3xl md:rounded-[4rem] border border-white/5 shadow-2xl">
-                         <h3 className="text-2xl md:text-3xl font-black mb-6 md:mb-8">أحدث العمليات</h3>
+                         <h3 className="text-2xl md:text-3xl font-black mb-6 md:mb-8">{t('latest_transactions')}</h3>
                          <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto custom-scrollbar">
                             {transactions.filter(t=>t.userId===user.id).slice(0, 10).map(t => (
                                <div key={t.id} className="flex justify-between items-center p-4 md:p-6 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5">
@@ -525,23 +525,23 @@ const UserDashboard: React.FC<Props> = ({
                                   <p className={`text-xl md:text-2xl font-mono font-black ${t.amount < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{t.amount > 0 ? '+' : ''}${Math.abs(t.amount).toLocaleString()}</p>
                                </div>
                             ))}
-                            {transactions.filter(t=>t.userId===user.id).length === 0 && <p className="text-center py-10 opacity-20 italic">لا توجد عمليات سابقة</p>}
+                            {transactions.filter(t=>t.userId===user.id).length === 0 && <p className="text-center py-10 opacity-20 italic">{t('no_transactions')}</p>}
                          </div>
                       </div>
                       <div className="bg-[#0f172a]/80 p-6 md:p-10 rounded-3xl md:rounded-[4rem] border border-white/5 shadow-2xl">
-                         <h3 className="text-2xl md:text-3xl font-black mb-6 md:mb-8">نشاطي الاستثماري</h3>
+                         <h3 className="text-2xl md:text-3xl font-black mb-6 md:mb-8">{t('investment_activity')}</h3>
                          <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto custom-scrollbar">
                             {fixedDeposits.filter(d=>d.userId===user.id).map(dep => (
                                <div key={dep.id} className="p-6 md:p-8 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl md:rounded-[2.5rem] border border-white/10">
                                   <div className="flex justify-between items-start mb-4">
                                      <h4 className="text-lg md:text-xl font-black text-sky-400">${dep.amount.toLocaleString()}</h4>
-                                     <span className="bg-emerald-500/10 text-emerald-500 text-[9px] md:text-[10px] px-3 py-1 rounded-full font-black">نشط</span>
+                                     <span className="bg-emerald-500/10 text-emerald-500 text-[9px] md:text-[10px] px-3 py-1 rounded-full font-black">{t('active')}</span>
                                   </div>
-                                  <p className="text-xs text-slate-400 font-bold mb-4">الربح المتوقع: <span className="text-emerald-400">${dep.expectedProfit.toFixed(2)}</span></p>
-                                  <p className="text-[8px] md:text-[9px] text-slate-600 mt-2 font-black uppercase">تاريخ الاستحقاق: {dep.endDate}</p>
+                                  <p className="text-xs text-slate-400 font-bold mb-4">{t('expected_profit')}: <span className="text-emerald-400">${dep.expectedProfit.toFixed(2)}</span></p>
+                                  <p className="text-[8px] md:text-[9px] text-slate-600 mt-2 font-black uppercase">{t('maturity_date')}: {dep.endDate}</p>
                                </div>
                             ))}
-                            {fixedDeposits.filter(d=>d.userId===user.id).length === 0 && <p className="text-center py-10 opacity-20 italic">لا توجد استثمارات قائمة</p>}
+                            {fixedDeposits.filter(d=>d.userId===user.id).length === 0 && <p className="text-center py-10 opacity-20 italic">{t('no_investments')}</p>}
                          </div>
                       </div>
                    </div>
@@ -553,7 +553,7 @@ const UserDashboard: React.FC<Props> = ({
              <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500 pb-40">
                 <div className="max-w-7xl mx-auto space-y-10 md:space-y-16">
                    <div className="text-center space-y-4">
-                      <h2 className="text-4xl md:text-7xl font-black tracking-tighter">صناديق استثمار النخبة</h2>
+                      <h2 className="text-4xl md:text-7xl font-black tracking-tighter">{t('elite_investment_funds')}</h2>
                    </div>
                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
                       {siteConfig.depositPlans.map(plan => (
@@ -561,10 +561,10 @@ const UserDashboard: React.FC<Props> = ({
                             <h4 className="text-2xl md:text-3xl font-black text-sky-400 mb-4">{plan.name}</h4>
                             <p className="text-5xl md:text-7xl font-black font-mono mb-8">{plan.rate}%</p>
                             <ul className="space-y-3 md:space-y-4 mb-8 md:mb-12 text-slate-400 font-bold text-right pr-6">
-                               <li className="flex items-center gap-3 text-sm md:text-base">✅ مدة الاستثمار: {plan.durationMonths} أشهر</li>
-                               <li className="flex items-center gap-3 text-sm md:text-base">✅ الحد الأدنى: ${plan.minAmount.toLocaleString()}</li>
+                               <li className="flex items-center gap-3 text-sm md:text-base">✅ {t('invest_duration')}: {plan.durationMonths} {t('months')}</li>
+                               <li className="flex items-center gap-3 text-sm md:text-base">✅ {t('min_amount')}: ${plan.minAmount.toLocaleString()}</li>
                             </ul>
-                            <button onClick={() => { setSelectedPlan(plan); setModalType('invest_form'); }} className="w-full py-4 md:py-6 bg-sky-600 rounded-2xl md:rounded-3xl font-black text-lg md:text-xl hover:bg-sky-500 transition-all">استثمر الآن</button>
+                            <button onClick={() => { setSelectedPlan(plan); setModalType('invest_form'); }} className="w-full py-4 md:py-6 bg-sky-600 rounded-2xl md:rounded-3xl font-black text-lg md:text-xl hover:bg-sky-500 transition-all">{t('invest_now')}</button>
                          </div>
                       ))}
                    </div>
@@ -576,31 +576,31 @@ const UserDashboard: React.FC<Props> = ({
              <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in fade-in duration-500 text-center pb-40">
                 <div className="max-w-4xl mx-auto space-y-10 md:space-y-16">
                    <div className="bg-amber-500/10 p-8 md:p-20 rounded-3xl md:rounded-[5rem] border border-amber-500/20 shadow-3xl space-y-8 md:space-y-10">
-                      <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-amber-500">القرعة الشهرية FastPay</h2>
-                      <p className="text-lg md:text-2xl text-slate-300 font-bold">تذكرتك نحو الرفاهية. شارك في السحب الأكبر!</p>
+                      <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-amber-500">{t('monthly_raffle_fastpay')}</h2>
+                      <p className="text-lg md:text-2xl text-slate-300 font-bold">{t('raffle_ticket_dream')}</p>
                       
                       {siteConfig.showRaffleCountdown && siteConfig.raffleEndDate && (
                         <div className="py-4">
-                           <p className="text-amber-500 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] mb-4">موعد السحب القادم</p>
+                           <p className="text-amber-500 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] mb-4">{t('next_draw_date')}</p>
                            <Countdown targetDate={siteConfig.raffleEndDate} />
                         </div>
                       )}
-                      <button onClick={handleJoinRaffle} className="bg-amber-600 px-10 md:px-20 py-5 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-amber-500 transition-all">احجز تذكرتك (${siteConfig.raffleEntryCost})</button>
+                      <button onClick={handleJoinRaffle} className="bg-amber-600 px-10 md:px-20 py-5 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-amber-500 transition-all">{t('book_ticket')} (${siteConfig.raffleEntryCost})</button>
                    </div>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                       <div className="bg-[#0f172a] p-10 rounded-[3rem] border border-white/5 text-right">
-                         <h3 className="text-2xl font-black mb-6">تذاكري في السحب</h3>
+                         <h3 className="text-2xl font-black mb-6">{t('my_raffle_tickets')}</h3>
                          {raffleEntries.filter(e=>e.userId===user.id).map(e => (
                             <div key={e.id} className="p-4 bg-white/5 rounded-xl border border-white/5 mb-3 flex justify-between items-center"><span className="font-mono text-sky-400 font-black">{e.ticketNumber}</span><span className="text-[10px] text-slate-500">{e.enteredAt}</span></div>
                          ))}
-                         {raffleEntries.filter(e=>e.userId===user.id).length === 0 && <p className="opacity-20 italic">لم تشارك في أي سحب بعد</p>}
+                         {raffleEntries.filter(e=>e.userId===user.id).length === 0 && <p className="opacity-20 italic">{t('no_raffle_entries')}</p>}
                       </div>
                       <div className="bg-[#0f172a] p-10 rounded-[3rem] border border-white/5 text-right">
-                         <h3 className="text-2xl font-black mb-6 text-emerald-400">آخر الفائزين</h3>
+                         <h3 className="text-2xl font-black mb-6 text-emerald-400">{t('latest_winners')}</h3>
                          {raffleWinners.slice(0, 5).map(w => (
                             <div key={w.id} className="p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/10 mb-3 flex justify-between"><span className="font-black">@{w.username}</span><span>{w.prizeTitle}</span></div>
                          ))}
-                         {raffleWinners.length === 0 && <p className="opacity-20 italic">بانتظار السحب القادم...</p>}
+                         {raffleWinners.length === 0 && <p className="opacity-20 italic">{t('waiting_for_next_draw')}</p>}
                       </div>
                    </div>
                 </div>
@@ -618,23 +618,23 @@ const UserDashboard: React.FC<Props> = ({
                 <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
                    <div className="bg-indigo-900/40 p-8 md:p-16 rounded-3xl md:rounded-[4rem] border border-indigo-500/20 shadow-3xl flex flex-col lg:flex-row justify-between items-center gap-8 md:gap-12">
                       <div className="text-center lg:text-right space-y-4 md:space-y-6">
-                         <h2 className="text-4xl md:text-6xl font-black tracking-tighter">تمويل الرواتب المسبق</h2>
-                         <p className="text-lg md:text-2xl text-slate-300 font-bold">احصل على سيولة نقدية فورية بضمان راتبك، مع تسديد مريح.</p>
-                         <button onClick={() => setModalType('salary_apply')} className="bg-white text-indigo-900 px-8 md:px-12 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl hover:scale-105 transition-all">اطلب التمويل الآن</button>
+                         <h2 className="text-4xl md:text-6xl font-black tracking-tighter">{t('salary_pre_financing')}</h2>
+<p className="text-lg md:text-2xl text-slate-300 font-bold">{t('salary_financing_subtitle')}</p>
+<button onClick={() => setModalType('salary_apply')} className="bg-white text-indigo-900 px-8 md:px-12 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl hover:scale-105 transition-all">{t('apply_for_financing_now')}</button>
                       </div>
                       <div className="text-6xl md:text-[10rem] animate-pulse opacity-20 hidden lg:block">🏦</div>
                    </div>
                    <div className="space-y-6 md:space-y-8">
-                      <h3 className="text-2xl md:text-3xl font-black">طلباتي الحالية</h3>
+                      <h3 className="text-2xl md:text-3xl font-black">{t('current_requests')}</h3>
                       {salaryPlans.filter(p=>p.userId===user.id).map(plan => (
                          <div key={plan.id} className="p-6 md:p-10 bg-[#0f172a]/60 border border-white/5 rounded-2xl md:rounded-[3rem] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div><p className="text-xl md:text-3xl font-black text-white">تمويل بقيمة ${plan.amount.toLocaleString()}</p><p className="text-xs md:text-slate-500 font-bold">القسط الشهري: ${plan.deduction} / لمدة {plan.duration} شهر</p></div>
+                            <div><p className="text-xl md:text-3xl font-black text-white">{t('financing_value')} ${plan.amount.toLocaleString()}</p><p className="text-xs md:text-slate-500 font-bold">{t('monthly_deduction')}: ${plan.deduction} / {t('for')} {plan.duration} {t('months')}</p></div>
                             <div className={`px-6 md:px-10 py-2 md:py-4 rounded-xl md:rounded-3xl border font-black text-[10px] md:text-sm ${plan.status==='active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : plan.status==='pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                               {plan.status==='active' ? 'معتمد' : plan.status==='pending' ? 'قيد المراجعة' : 'ملغي'}
+                               {plan.status==='active' ? t('approved') : plan.status==='pending' ? t('pending_review') : t('cancelled')}
                             </div>
                          </div>
                       ))}
-                      {salaryPlans.filter(p=>p.userId===user.id).length === 0 && <p className="opacity-20 italic text-center py-20">لا يوجد لديك طلبات تمويل</p>}
+                      {salaryPlans.filter(p=>p.userId===user.id).length === 0 && <p className="opacity-20 italic text-center py-20">{t('no_financing_requests')}</p>}
                    </div>
                 </div>
              </div>
@@ -643,29 +643,29 @@ const UserDashboard: React.FC<Props> = ({
           {activeTab === 'profile' && (
              <div className="flex-1 p-12 overflow-y-auto custom-scrollbar animate-in slide-in-from-right duration-500 pb-40">
                 <div className="max-w-4xl mx-auto space-y-12">
-                   <h2 className="text-6xl font-black tracking-tighter">إعدادات الملف الشخصي</h2>
+                   <h2 className="text-6xl font-black tracking-tighter">{t('profile_settings')}</h2>
                    
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="bg-[#0f172a]/60 p-10 rounded-[3rem] border border-white/5 shadow-2xl space-y-6">
-                         <h3 className="text-2xl font-black border-r-4 border-sky-500 pr-4">بيانات الحساب</h3>
+                         <h3 className="text-2xl font-black border-r-4 border-sky-500 pr-4">{t('account_data')}</h3>
                          <div className="space-y-4">
                             <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
-                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">الاسم الكامل</p>
+                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('full_name')}</p>
                                <p className="text-xl font-bold">{user.fullName}</p>
                             </div>
                             <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
-                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">البريد الإلكتروني</p>
+                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('email')}</p>
                                <p className="text-xl font-bold">{user.email}</p>
                             </div>
                             <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
-                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">رقم الهاتف</p>
+                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('phone_number')}</p>
                                <p className="text-xl font-bold" dir="ltr">{user.phoneNumber || '—'}</p>
                             </div>
                          </div>
                       </div>
 
                       <div className="bg-[#0f172a]/60 p-10 rounded-[3rem] border border-white/5 shadow-2xl space-y-6">
-                         <h3 className="text-2xl font-black border-r-4 border-emerald-500 pr-4">البطاقات المرتبطة</h3>
+                         <h3 className="text-2xl font-black border-r-4 border-emerald-500 pr-4">{t('linked_cards')}</h3>
                          <div className="space-y-4">
                             {(user.linkedCards || []).map(card => (
                                <div key={card.id} className="p-6 bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl border border-white/10 flex justify-between items-center group">
@@ -676,32 +676,32 @@ const UserDashboard: React.FC<Props> = ({
                                   <button onClick={() => onUpdateUser({ ...user, linkedCards: user.linkedCards?.filter(c=>c.id!==card.id) })} className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">🗑️</button>
                                </div>
                             ))}
-                            <button onClick={() => setModalType('add_card')} className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-slate-500 font-bold hover:border-sky-500/40 hover:text-sky-400 transition-all">+ ربط بطاقة جديدة</button>
+                            <button onClick={() => setModalType('add_card')} className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-slate-500 font-bold hover:border-sky-500/40 hover:text-sky-400 transition-all">+ {t('add_new_card')}</button>
                          </div>
                       </div>
                    </div>
 
                    <form onSubmit={handleUpdatePassword} className="bg-[#0f172a]/60 p-12 rounded-[4rem] border border-white/5 shadow-2xl space-y-10">
-                      <h3 className="text-3xl font-black border-r-8 border-sky-500 pr-8">تغيير كلمة المرور</h3>
+                      <h3 className="text-3xl font-black border-r-8 border-sky-500 pr-8">{t('change_password')}</h3>
                       <div className="space-y-6">
                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">كلمة المرور الحالية</label>
+                            <label className="text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">{t('current_password')}</label>
                             <input type="password" required value={oldPassword} onChange={e=>setOldPassword(e.target.value)} className="w-full p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 transition-all" />
                          </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                               <label className="text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">الجديدة</label>
+                               <label className="text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">{t('new_password')}</label>
                                <input type="password" required value={newPassword} onChange={e=>setNewPassword(e.target.value)} className="w-full p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 transition-all" />
                             </div>
                             <div className="space-y-2">
-                               <label className="text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">تأكيد الجديدة</label>
+                               <label className="text-[10px] font-black text-slate-500 mr-4 uppercase tracking-widest">{t('confirm_new_password')}</label>
                                <input type="password" required value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="w-full p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 transition-all" />
                             </div>
                          </div>
                       </div>
                       {passwordError && <p className="text-red-500 font-black text-xs">{passwordError}</p>}
-                      {passwordSuccess && <p className="text-emerald-500 font-black text-xs">تم تحديث كلمة المرور بنجاح ✅</p>}
-                      <button type="submit" className="w-full py-8 bg-sky-600 rounded-[2.5rem] font-black text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">تحديث الأمان</button>
+                      {passwordSuccess && <p className="text-emerald-500 font-black text-xs">{t('password_updated_success')} ✅</p>}
+                      <button type="submit" className="w-full py-8 bg-sky-600 rounded-[2.5rem] font-black text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">{t('update_security')}</button>
                    </form>
                 </div>
              </div>
@@ -736,22 +736,22 @@ const UserDashboard: React.FC<Props> = ({
                 <div className="w-20 h-20 md:w-24 md:h-24 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                    <span className="text-4xl md:text-5xl">⚠️</span>
                 </div>
-                <h3 className="text-2xl md:text-3xl font-black text-white">لا يمكنك اتمام العملية</h3>
-                <p className="text-slate-400 font-bold text-base md:text-lg">قم بإضافة بطاقتك اولا لتتمكن من إجراء عمليات السحب البنكي السريع.</p>
+                <h3 className="text-2xl md:text-3xl font-black text-white">{t('cannot_complete_operation')}</h3>
+<p className="text-slate-400 font-bold text-base md:text-lg">{t('add_card_first')}</p>
                 
                 <div className="space-y-4 pt-4">
                    <button 
                       onClick={() => setModalType('add_card')} 
                       className="w-full py-4 md:py-5 bg-sky-600 rounded-2xl font-black text-lg md:text-xl shadow-xl hover:bg-sky-500 transition-all active:scale-95 flex items-center justify-center gap-3"
                    >
-                      <span>ربط بطاقة جديدة</span>
+                      <span>{t('add_new_card')}</span>
                       <span className="text-xl md:text-2xl">💳</span>
                    </button>
                    <button 
                       onClick={() => setModalType(null)} 
                       className="w-full py-4 md:py-5 bg-white/5 border border-white/10 rounded-2xl font-black text-lg md:text-xl text-slate-400 hover:bg-white/10 hover:text-white transition-all active:scale-95"
                    >
-                      إلغاء العملية
+                      {t('cancel_operation')}
                    </button>
                 </div>
              </div>
@@ -762,18 +762,18 @@ const UserDashboard: React.FC<Props> = ({
        {modalType === 'withdraw' && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
              <form onSubmit={handleWithdrawSwift} className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[5rem] p-8 md:p-16 space-y-6 md:space-y-8 animate-in zoom-in text-center shadow-3xl">
-                <h3 className="text-2xl md:text-4xl font-black text-white">طلب سحب Swift بنكي</h3>
+                <h3 className="text-2xl md:text-4xl font-black text-white">{t('swift_withdrawal_request')}</h3>
                 <div className="space-y-4 text-right">
-                   <input required value={withdrawData.bankName} onChange={e=>setWithdrawData({...withdrawData, bankName: e.target.value})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white outline-none focus:border-sky-500 text-sm md:text-base" placeholder="اسم البنك (Bank Name)" />
-                   <input required value={withdrawData.iban} onChange={e=>setWithdrawData({...withdrawData, iban: e.target.value})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono text-sm md:text-base" placeholder="رقم الآيبان (IBAN)" />
-                   <input required value={withdrawData.swift} onChange={e=>setWithdrawData({...withdrawData, swift: e.target.value})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono uppercase text-sm md:text-base" placeholder="كود السويفت (SWIFT Code)" />
+                   <input required value={withdrawData.bankName} onChange={e=>setWithdrawData({...withdrawData, bankName: e.target.value})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white outline-none focus:border-sky-500 text-sm md:text-base" placeholder={t('bank_name')} />
+                   <input required value={withdrawData.iban} onChange={e=>setWithdrawData({...withdrawData, iban: e.target.value})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono text-sm md:text-base" placeholder={t('iban')} />
+                   <input required value={withdrawData.swift} onChange={e=>setWithdrawData({...withdrawData, swift: e.target.value})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono uppercase text-sm md:text-base" placeholder={t('swift_code')} />
                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 pr-4 uppercase">المبلغ ($)</label>
+                      <label className="text-[10px] font-black text-slate-500 pr-4 uppercase">{t('amount_usd')}</label>
                       <input required type="number" value={withdrawData.amount} onChange={e=>setWithdrawData({...withdrawData, amount: e.target.value})} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl md:rounded-[2rem] font-black text-3xl md:text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
                    </div>
                 </div>
-                <button type="submit" className="w-full py-5 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all">تقديم طلب السحب 🏦</button>
-                <button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4 text-sm md:text-base">إلغاء</button>
+                <button type="submit" className="w-full py-5 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all">{t('submit_withdrawal_request')} 🏦</button>
+<button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4 text-sm md:text-base">{t('cancel')}</button>
              </form>
           </div>
        )}
@@ -782,13 +782,13 @@ const UserDashboard: React.FC<Props> = ({
        {modalType === 'salary_apply' && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
              <form onSubmit={handleApplySalary} className="bg-[#111827] border border-white/10 w-full max-w-xl rounded-3xl md:rounded-[5rem] p-8 md:p-16 space-y-8 md:space-y-10 animate-in zoom-in text-center shadow-3xl">
-                <h3 className="text-2xl md:text-4xl font-black text-white">طلب تمويل راتب مسبق</h3>
+                <h3 className="text-2xl md:text-4xl font-black text-white">{t('salary_pre_financing_request')}</h3>
                 <div className="space-y-6 text-right">
-                   <div className="space-y-2"><label className="text-[10px] text-slate-500 font-black pr-4 uppercase">المبلغ المطلوب ($)</label><input type="number" required value={salaryForm.amount} onChange={e=>setSalaryForm({...salaryForm, amount: parseInt(e.target.value)})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white text-2xl md:text-3xl text-center outline-none focus:border-indigo-500" /></div>
-                   <div className="space-y-2"><label className="text-[10px] text-slate-500 font-black pr-4 uppercase">مدة السداد (أشهر)</label><input type="number" required value={salaryForm.duration} onChange={e=>setSalaryForm({...salaryForm, duration: parseInt(e.target.value)})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white text-xl md:text-2xl text-center outline-none focus:border-indigo-500" /></div>
+                   <div className="space-y-2"><label className="text-[10px] text-slate-500 font-black pr-4 uppercase">{t('requested_amount')}</label><input type="number" required value={salaryForm.amount} onChange={e=>setSalaryForm({...salaryForm, amount: parseInt(e.target.value)})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white text-2xl md:text-3xl text-center outline-none focus:border-indigo-500" /></div>
+                   <div className="space-y-2"><label className="text-[10px] text-slate-500 font-black pr-4 uppercase">{t('repayment_duration_months')}</label><input type="number" required value={salaryForm.duration} onChange={e=>setSalaryForm({...salaryForm, duration: parseInt(e.target.value)})} className="w-full p-4 md:p-5 bg-black/40 border border-white/10 rounded-xl md:rounded-2xl font-black text-white text-xl md:text-2xl text-center outline-none focus:border-indigo-500" /></div>
                 </div>
-                <button type="submit" className="w-full py-5 md:py-8 bg-indigo-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-indigo-500 transition-all">تقديم الطلب للمراجعة ⚡</button>
-                <button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4 text-sm md:text-base">إلغاء</button>
+                <button type="submit" className="w-full py-5 md:py-8 bg-indigo-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-indigo-500 transition-all">{t('submit_request_for_review')} ⚡</button>
+<button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4 text-sm md:text-base">{t('cancel')}</button>
              </form>
           </div>
        )}
@@ -799,11 +799,11 @@ const UserDashboard: React.FC<Props> = ({
              <form onSubmit={handleInvestSubmit} className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[5rem] p-8 md:p-16 space-y-8 md:space-y-12 animate-in zoom-in text-center shadow-3xl">
                 <h3 className="text-2xl md:text-4xl font-black text-sky-400">{selectedPlan.name}</h3>
                 <div className="space-y-6 md:space-y-8 text-right">
-                   <div className="space-y-3"><label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">المبلغ المراد استثماره ($)</label><input type="number" required min={selectedPlan.minAmount} value={investAmount || ''} onChange={e=>setInvestAmount(parseFloat(e.target.value))} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl md:rounded-[2.5rem] font-black text-center text-3xl md:text-5xl text-white outline-none font-mono" /></div>
-                   <div className="p-6 md:p-8 bg-sky-500/10 rounded-2xl md:rounded-3xl border border-sky-500/20"><p className="text-slate-500 font-black text-[10px] md:text-xs uppercase mb-2">العائد المتوقع بعد {selectedPlan.durationMonths} شهر</p><p className="text-xl md:text-3xl font-black text-emerald-400 font-mono">+${((investAmount || 0) * (selectedPlan.rate/100) * (selectedPlan.durationMonths/12)).toFixed(2)}</p></div>
+                   <div className="space-y-3"><label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">{t('amount_to_invest')}</label><input type="number" required min={selectedPlan.minAmount} value={investAmount || ''} onChange={e=>setInvestAmount(parseFloat(e.target.value))} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl md:rounded-[2.5rem] font-black text-center text-3xl md:text-5xl text-white outline-none font-mono" /></div>
+                   <div className="p-6 md:p-8 bg-sky-500/10 rounded-2xl md:rounded-3xl border border-sky-500/20"><p className="text-slate-500 font-black text-[10px] md:text-xs uppercase mb-2">{t('expected_return_after')} {selectedPlan.durationMonths} {t('months')}</p><p className="text-xl md:text-3xl font-black text-emerald-400 font-mono">+${((investAmount || 0) * (selectedPlan.rate/100) * (selectedPlan.durationMonths/12)).toFixed(2)}</p></div>
                 </div>
-                <button type="submit" className="w-full py-6 md:py-10 bg-sky-600 rounded-2xl md:rounded-[4rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-sky-500 transition-all">تأكيد بدء الاستثمار 🚀</button>
-                <button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4 text-sm md:text-base">إلغاء</button>
+                <button type="submit" className="w-full py-6 md:py-10 bg-sky-600 rounded-2xl md:rounded-[4rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-sky-500 transition-all">{t('confirm_start_investment')} 🚀</button>
+<button type="button" onClick={()=>setModalType(null)} className="text-slate-500 font-bold hover:text-white mt-4 text-sm md:text-base">{t('cancel')}</button>
              </form>
           </div>
        )}
@@ -816,15 +816,15 @@ const UserDashboard: React.FC<Props> = ({
                 {!isTransferring ? (
                    <form onSubmit={handleStartTransfer} className="space-y-8 md:space-y-12 animate-in zoom-in duration-500">
                       <div className="space-y-6 md:space-y-8 text-right">
-                         <div className="space-y-3"><label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">اسم المستخدم المستلم</label><input required value={transferData.recipient} onChange={e=>setTransferData({...transferData, recipient: e.target.value})} className="w-full p-5 md:p-8 bg-black/40 border border-white/10 rounded-2xl md:rounded-[2.5rem] font-black text-center text-2xl md:text-4xl text-white outline-none focus:border-sky-500" placeholder="@username" /></div>
-                         <div className="space-y-3"><label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">المبلغ المراد تحويله ($)</label><input required type="number" value={transferData.amount} onChange={e=>setTransferData({...transferData, amount: e.target.value})} className="w-full p-6 md:p-10 bg-black/40 border border-white/10 rounded-3xl md:rounded-[3rem] font-black text-center text-4xl sm:text-6xl md:text-[5rem] text-sky-400 outline-none font-mono" placeholder="0.00" /></div>
+                         <div className="space-y-3"><label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">{t('recipient_username')}</label><input required value={transferData.recipient} onChange={e=>setTransferData({...transferData, recipient: e.target.value})} className="w-full p-5 md:p-8 bg-black/40 border border-white/10 rounded-2xl md:rounded-[2.5rem] font-black text-center text-2xl md:text-4xl text-white outline-none focus:border-sky-500" placeholder="@username" /></div>
+                         <div className="space-y-3"><label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">{t('amount_to_transfer')}</label><input required type="number" value={transferData.amount} onChange={e=>setTransferData({...transferData, amount: e.target.value})} className="w-full p-6 md:p-10 bg-black/40 border border-white/10 rounded-3xl md:rounded-[3rem] font-black text-center text-4xl sm:text-6xl md:text-[5rem] text-sky-400 outline-none font-mono" placeholder="0.00" /></div>
                       </div>
-                      <button type="submit" className="w-full py-6 md:py-10 bg-sky-600 rounded-2xl md:rounded-[3.5rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-sky-500 transition-all active:scale-95">تأكيد ومباشرة التحويل</button>
+                      <button type="submit" className="w-full py-6 md:py-10 bg-sky-600 rounded-2xl md:rounded-[3.5rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-sky-500 transition-all active:scale-95">{t('confirm_transfer')}</button>
                    </form>
                 ) : (
                    <div className="space-y-16 py-12">
                       {transferSuccess ? (
-                         <div className="space-y-10 animate-in zoom-in duration-700"><div className="w-48 h-48 bg-emerald-500 rounded-full flex items-center justify-center text-[10rem] mx-auto shadow-3xl border-4 border-emerald-400 animate-pulse">✓</div><h3 className="text-6xl font-black text-white tracking-tighter">تم التحويل بنجاح</h3></div>
+                         <div className="space-y-10 animate-in zoom-in duration-700"><div className="w-48 h-48 bg-emerald-500 rounded-full flex items-center justify-center text-[10rem] mx-auto shadow-3xl border-4 border-emerald-400 animate-pulse">✓</div><h3 className="text-6xl font-black text-white tracking-tighter">{t('transfer_successful')}</h3></div>
                       ) : (
                          <div className="space-y-16">
                             <div className="relative w-full h-16 bg-white/5 border border-white/10 rounded-full overflow-hidden shadow-inner">
@@ -844,12 +844,12 @@ const UserDashboard: React.FC<Props> = ({
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
              <form onSubmit={handleRedeemCoupon} className="bg-[#0f172a] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[5rem] p-8 md:p-16 lg:p-24 space-y-8 md:space-y-12 animate-in zoom-in duration-500 shadow-3xl text-center relative">
                 <button type="button" onClick={()=>setModalType(null)} className="absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl">✕</button>
-                <h3 className="text-3xl md:text-5xl font-black text-white tracking-tighter">شحن رصيد الكوبون</h3>
+                <h3 className="text-3xl md:text-5xl font-black text-white tracking-tighter">{t('redeem_coupon_balance')}</h3>
                 <div className="space-y-4">
-                   <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest">أدخل كود الشحن المكون من 12 رمزاً</label>
+                   <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{t('enter_12_digit_code')}</label>
                    <input required value={couponCode} onChange={e=>setCouponCode(e.target.value)} className="w-full p-5 md:p-8 bg-black/40 border border-white/10 rounded-xl md:rounded-[2.5rem] font-black text-center text-2xl md:text-4xl text-sky-400 outline-none font-mono tracking-widest uppercase focus:border-sky-500" placeholder="FP-XXXX-XXXX" />
                 </div>
-                <button type="submit" className="w-full py-6 md:py-10 bg-emerald-600 rounded-2xl md:rounded-[4rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-emerald-500 transition-all active:scale-95">تفعيل وشحن الرصيد فوراً</button>
+                <button type="submit" className="w-full py-6 md:py-10 bg-emerald-600 rounded-2xl md:rounded-[4rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-emerald-500 transition-all active:scale-95">{t('activate_recharge_instantly')}</button>
              </form>
           </div>
        )}
@@ -861,7 +861,7 @@ const UserDashboard: React.FC<Props> = ({
                 
                 {!isLinkingCard ? (
                    <form onSubmit={handleStartLinking} className="space-y-8">
-                      <h3 className="text-2xl md:text-4xl font-black text-white tracking-tighter">ربط بطاقة بنكية عالمية</h3>
+                      <h3 className="text-2xl md:text-4xl font-black text-white tracking-tighter">{t('link_global_bank_card')}</h3>
                       <div className="space-y-4 text-right">
                          <div className="relative">
                             <input 
@@ -869,7 +869,7 @@ const UserDashboard: React.FC<Props> = ({
                                value={cardData.holder} 
                                onChange={e=>setCardData({...cardData, holder: e.target.value})} 
                                className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 text-base" 
-                               placeholder="اسم حامل البطاقة" 
+                               placeholder={t('card_holder_name')} 
                             />
                          </div>
                          <div className="relative">
@@ -882,7 +882,7 @@ const UserDashboard: React.FC<Props> = ({
                                   setCardType(detectCardType(val));
                                }} 
                                className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono text-lg" 
-                               placeholder="رقم البطاقة (16 رقم)" 
+                               placeholder={t('card_number_16_digits')} 
                             />
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                {cardType === 'visa' && <span className="text-2xl">💳 <span className="text-sm font-bold text-sky-400">VISA</span></span>}
@@ -907,7 +907,7 @@ const UserDashboard: React.FC<Props> = ({
                             />
                          </div>
                       </div>
-                      <button type="submit" className="w-full py-6 bg-sky-600 rounded-3xl font-black text-xl shadow-2xl hover:bg-sky-500 transition-all active:scale-95">تأكيد الربط المشفر</button>
+                      <button type="submit" className="w-full py-6 bg-sky-600 rounded-3xl font-black text-xl shadow-2xl hover:bg-sky-500 transition-all active:scale-95">{t('confirm_encrypted_link')}</button>
                    </form>
                 ) : (
                    <div className="space-y-12 py-8">
@@ -915,8 +915,8 @@ const UserDashboard: React.FC<Props> = ({
                          <div className="space-y-8 animate-in zoom-in duration-700">
                             <div className="w-32 h-32 bg-emerald-500 rounded-full flex items-center justify-center text-6xl mx-auto shadow-3xl border-4 border-emerald-400 animate-bounce">✓</div>
                             <div className="space-y-2">
-                               <h3 className="text-4xl font-black text-white tracking-tighter">تم ربط البطاقة</h3>
-                               <p className="text-emerald-400 font-bold text-xl">تم تفعيل طلب سحب Swift بنجاح</p>
+                               <h3 className="text-4xl font-black text-white tracking-tighter">{t('card_linked_successfully')}</h3>
+<p className="text-emerald-400 font-bold text-xl">{t('swift_withdrawal_activated')}</p>
                             </div>
                          </div>
                       ) : (

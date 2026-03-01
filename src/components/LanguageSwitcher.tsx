@@ -43,28 +43,28 @@ const LanguageSwitcher: React.FC = () => {
     <div className="relative inline-block text-left" style={{ zIndex: 99999 }} ref={dropdownRef}>
       <button
         type="button"
-        className="flex items-center gap-2 rounded-lg px-3 py-2 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs uppercase border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+        className="flex items-center gap-2 rounded-xl px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white font-bold text-sm border border-white/10 backdrop-blur-md transition-all active:scale-95"
         onClick={toggleDropdown}
       >
-        <Languages size={18} strokeWidth={3} />
-        <span>{language.toUpperCase()}</span>
+        <Languages size={18} className="text-sky-400" />
+        <span className="uppercase tracking-wider">{language}</span>
       </button>
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-48 rounded-lg bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden"
+          className="absolute right-0 mt-3 w-48 rounded-2xl bg-[#0f172a] border border-white/10 shadow-2xl overflow-hidden backdrop-blur-2xl animate-in fade-in zoom-in duration-200"
           style={{ zIndex: 99999 }}
         >
-          <div className="py-1">
+          <div className="py-2">
             {supportedLanguages.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => handleLanguageChange(lang.code)}
                 className={`${
                   lang.code === language 
-                    ? 'bg-yellow-400 text-black' 
-                    : 'text-black hover:bg-gray-100'
-                } block px-4 py-2 text-sm w-full text-left font-bold border-b last:border-0 border-black`}
+                    ? 'bg-sky-500/20 text-sky-400' 
+                    : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                } block px-5 py-3 text-sm w-full text-left font-bold transition-colors`}
               >
                 {lang.name}
               </button>

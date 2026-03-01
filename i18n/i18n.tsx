@@ -1335,6 +1335,618 @@ const translationsData: Translations = {
     "ku": "پڕۆفایل",
     "ru": "Профиль"
   },
+  "latest_transactions": {
+    "en": "Latest Transactions",
+    "ar": "أحدث العمليات",
+    "fr": "Dernières transactions",
+    "tr": "Son İşlemler",
+    "zh": "最新交易",
+    "ku": "دوایین مامەڵەکان",
+    "ru": "Последние транзакции"
+  },
+  "no_transactions": {
+    "en": "No transactions found",
+    "ar": "لا توجد عمليات سابقة",
+    "fr": "Aucune transaction trouvée",
+    "tr": "İşlem bulunamadı",
+    "zh": "未找到交易",
+    "ku": "هیچ مامەڵەیەک نەدۆزرایەوە",
+    "ru": "Транзакции не найдены"
+  },
+  "investment_activity": {
+    "en": "Investment Activity",
+    "ar": "نشاطي الاستثماري",
+    "fr": "Activité d'investissement",
+    "tr": "Yatırım Faaliyeti",
+    "zh": "投资活动",
+    "ku": "چالاکی وەبەرهێنان",
+    "ru": "Инвестиционная деятельность"
+  },
+  "active": {
+    "en": "Active",
+    "ar": "نشط",
+    "fr": "Actif",
+    "tr": "Aktif",
+    "zh": "活跃",
+    "ku": "چالاک",
+    "ru": "Активен"
+  },
+  "expected_profit": {
+    "en": "Expected Profit",
+    "ar": "الربح المتوقع",
+    "fr": "Bénéfice attendu",
+    "tr": "Beklenen Kar",
+    "zh": "预期利润",
+    "ku": "قازانجی چاوەڕوانکراو",
+    "ru": "Ожидаемая прибыль"
+  },
+  "maturity_date": {
+    "en": "Maturity Date",
+    "ar": "تاريخ الاستحقاق",
+    "fr": "Date d'échéance",
+    "tr": "Vade Tarihi",
+    "zh": "到期日",
+    "ku": "ڕێکەوتی پێگەیشتن",
+    "ru": "Дата погашения"
+  },
+  "no_investments": {
+    "en": "No active investments",
+    "ar": "لا توجد استثمارات قائمة",
+    "fr": "Aucun investissement actif",
+    "tr": "Aktif yatırım yok",
+    "zh": "无活跃投资",
+    "ku": "هیچ وەبەرهێنانێکی چالاک نییە",
+    "ru": "Нет активных инвестиций"
+  },
+  "elite_investment_funds": {
+    "en": "Elite Investment Funds",
+    "ar": "صناديق استثمار النخبة",
+    "fr": "Fonds d'investissement d'élite",
+    "tr": "Seçkin Yatırım Fonları",
+    "zh": "精英投资基金",
+    "ku": "سندوقەکانی وەبەرهێنانی بژاردە",
+    "ru": "Элитные инвестиционные фонды"
+  },
+  "invest_duration": {
+    "en": "Investment Duration",
+    "ar": "مدة الاستثمار",
+    "fr": "Durée de l'investissement",
+    "tr": "Yatırım Süresi",
+    "zh": "投资期限",
+    "ku": "ماوەی وەبەرهێنان",
+    "ru": "Срок инвестирования"
+  },
+  "months": {
+    "en": "Months",
+    "ar": "أشهر",
+    "fr": "Mois",
+    "tr": "Ay",
+    "zh": "月",
+    "ku": "مانگ",
+    "ru": "Месяцы"
+  },
+  "min_amount": {
+    "en": "Minimum Amount",
+    "ar": "الحد الأدنى",
+    "fr": "Montant minimum",
+    "tr": "Minimum Tutar",
+    "zh": "最低金额",
+    "ku": "کەمترین بڕی پارە",
+    "ru": "Минимальная сумма"
+  },
+  "invest_now": {
+    "en": "Invest Now",
+    "ar": "استثمر الآن",
+    "fr": "Investir maintenant",
+    "tr": "Şimdi Yatırım Yap",
+    "zh": "现在投资",
+    "ku": "ئێستا وەبەرهێنان بکە",
+    "ru": "Инвестировать сейчас"
+  },
+  "monthly_raffle_fastpay": {
+    "en": "FastPay Monthly Raffle",
+    "ar": "القرعة الشهرية FastPay",
+    "fr": "Tombola mensuelle FastPay",
+    "tr": "FastPay Aylık Çekilişi",
+    "zh": "FastPay 每月抽奖",
+    "ku": "تیروپشکی مانگانەی FastPay",
+    "ru": "Ежемесячная лотерея FastPay"
+  },
+  "raffle_ticket_dream": {
+    "en": "Your ticket to luxury. Participate in the biggest draw!",
+    "ar": "تذكرتك نحو الرفاهية. شارك في السحب الأكبر!",
+    "fr": "Votre billet pour le luxe. Participez au plus grand tirage !",
+    "tr": "Lükse giden biletiniz. En büyük çekilişe katılın!",
+    "zh": "您的豪华门票。参加最大的抽奖！",
+    "ku": "تیکتەکەت بۆ لوکس. بەشداری بکە لە گەورەترین تیروپشکدا!",
+    "ru": "Ваш билет в роскошь. Участвуйте в самом большом розыгрыше!"
+  },
+  "next_draw_date": {
+    "en": "Next Draw Date",
+    "ar": "موعد السحب القادم",
+    "fr": "Prochaine date de tirage",
+    "tr": "Sonraki Çekiliş Tarihi",
+    "zh": "下一次抽奖日期",
+    "ku": "ڕێکەوتی تیروپشکی داهاتوو",
+    "ru": "Дата следующего розыгрыша"
+  },
+  "no_raffle_entries": {
+    "en": "No raffle entries yet",
+    "ar": "لم تشارك في أي سحب بعد",
+    "fr": "Aucune participation à la tombola pour le moment",
+    "tr": "Henüz çekiliş katılımı yok",
+    "zh": "尚无抽奖条目",
+    "ku": "هێشتا هیچ بەشدارییەکی تیروپشک نییە",
+    "ru": "Пока нет заявок на участие в лотерее"
+  },
+  "waiting_for_next_draw": {
+    "en": "Waiting for the next draw...",
+    "ar": "بانتظار السحب القادم...",
+    "fr": "En attente du prochain tirage...",
+    "tr": "Sonراکی çekiliş bekleniyor...",
+    "zh": "等待下一次抽奖...",
+    "ku": "چاوەڕێی تیروپشکی داهاتوو...",
+    "ru": "Ожидание следующего розыгрыша..."
+  },
+  "salary_pre_financing": {
+    "en": "Salary Pre-Financing",
+    "ar": "تمويل الرواتب المسبق",
+    "fr": "Préfinancement des salaires",
+    "tr": "Maaş Ön Finansmanı",
+    "zh": "薪资预融资",
+    "ku": "پێشوەختە دابینکردنی مووچە",
+    "ru": "Предварительное финансирование зарплаты"
+  },
+  "salary_financing_subtitle": {
+    "en": "Get instant cash liquidity guaranteed by your salary, with convenient repayment.",
+    "ar": "احصل على سيولة نقدية فورية بضمان راتبك، مع تسديد مريح.",
+    "fr": "Obtenez une liquidité immédiate garantie par votre salaire, avec un remboursement pratique.",
+    "tr": "Maaşınızın garantisiyle, uygun geri ödeme koşullarıyla anında nakit likidite elde edin.",
+    "zh": "获得由您的薪资担保的即时现金流动性，还款方便。",
+    "ku": "بە گەرەنتی مووچەکەت شلەیی نەقدی خێرا بەدەست بهێنە، بە دانەوەی گونجاو.",
+    "ru": "Получите мгновенную денежную ликвидность под залог вашей зарплаты с удобным погашением."
+  },
+  "apply_for_financing_now": {
+    "en": "Apply for Financing Now",
+    "ar": "اطلب التمويل الآن",
+    "fr": "Demander un financement maintenant",
+    "tr": "Şimdi Finansman Başvurusu Yap",
+    "zh": "现在申请融资",
+    "ku": "ئێستا داوای دارایی بکە",
+    "ru": "Подать заявку на финансирование сейчас"
+  },
+  "current_requests": {
+    "en": "Current Requests",
+    "ar": "طلباتي الحالية",
+    "fr": "Demandes actuelles",
+    "tr": "Mevcut Talepler",
+    "zh": "当前请求",
+    "ku": "داواکارییەکانی ئێستا",
+    "ru": "Текущие запросы"
+  },
+  "financing_value": {
+    "en": "Financing Value",
+    "ar": "تمويل بقيمة",
+    "fr": "Valeur du financement",
+    "tr": "Finansman Değeri",
+    "zh": "融资价值",
+    "ku": "بەهای دارایی",
+    "ru": "Стоимость финансирования"
+  },
+  "monthly_deduction": {
+    "en": "Monthly Deduction",
+    "ar": "القسط الشهري",
+    "fr": "Déduction mensuelle",
+    "tr": "Aylık Kesinti",
+    "zh": "每月扣除",
+    "ku": "بڕینی مانگانە",
+    "ru": "Ежемесячное удержание"
+  },
+  "for": {
+    "en": "for",
+    "ar": "لمدة",
+    "fr": "pour",
+    "tr": "için",
+    "zh": "为期",
+    "ku": "بۆ",
+    "ru": "на"
+  },
+  "approved": {
+    "en": "Approved",
+    "ar": "معتمد",
+    "fr": "Approuvé",
+    "tr": "Onaylandı",
+    "zh": "已批准",
+    "ku": "پەسەندکرا",
+    "ru": "Одобрено"
+  },
+  "pending_review": {
+    "en": "Pending Review",
+    "ar": "قيد المراجعة",
+    "fr": "En attente de révision",
+    "tr": "İnceleme Bekliyor",
+    "zh": "待审查",
+    "ku": "چاوەڕێی پێداچوونەوەیە",
+    "ru": "Ожидает рассмотрения"
+  },
+  "cancelled": {
+    "en": "Cancelled",
+    "ar": "ملغي",
+    "fr": "Annulé",
+    "tr": "İptal Edildi",
+    "zh": "已取消",
+    "ku": "هەڵوەشایەوە",
+    "ru": "Отменено"
+  },
+  "no_financing_requests": {
+    "en": "No financing requests",
+    "ar": "لا يوجد لديك طلبات تمويل",
+    "fr": "Aucune demande de financement",
+    "tr": "Finansman talebi yok",
+    "zh": "无融资请求",
+    "ku": "هیچ داواکارییەکی دارایی نییە",
+    "ru": "Нет запросов на финансирование"
+  },
+  "profile_settings": {
+    "en": "Profile Settings",
+    "ar": "إعدادات الملف الشخصي",
+    "fr": "Paramètres du profil",
+    "tr": "Profil Ayarları",
+    "zh": "个人资料设置",
+    "ku": "ڕێکخستنەکانی پڕۆفایل",
+    "ru": "Настройки профиля"
+  },
+  "account_data": {
+    "en": "Account Data",
+    "ar": "بيانات الحساب",
+    "fr": "Données du compte",
+    "tr": "Hesap Verileri",
+    "zh": "账户数据",
+    "ku": "داتاکانی هەژمار",
+    "ru": "Данные аккаунта"
+  },
+  "linked_cards": {
+    "en": "Linked Cards",
+    "ar": "البطاقات المرتبطة",
+    "fr": "Cartes liées",
+    "tr": "Bağlı Kartlar",
+    "zh": "关联卡",
+    "ku": "کارتە بەستراوەکان",
+    "ru": "Привязанные карты"
+  },
+  "add_new_card": {
+    "en": "Add New Card",
+    "ar": "ربط بطاقة جديدة",
+    "fr": "Ajouter une nouvelle carte",
+    "tr": "Yeni Kart Ekle",
+    "zh": "添加新卡",
+    "ku": "کارتێکی نوێ زیاد بکە",
+    "ru": "Добавить новую карту"
+  },
+  "change_password": {
+    "en": "Change Password",
+    "ar": "تغيير كلمة المرور",
+    "fr": "Changer le mot de passe",
+    "tr": "Şifre Değiştir",
+    "zh": "更改密码",
+    "ku": "گۆڕینی وشەی نهێنی",
+    "ru": "Сменить пароль"
+  },
+  "current_password": {
+    "en": "Current Password",
+    "ar": "كلمة المرور الحالية",
+    "fr": "Mot de passe actuel",
+    "tr": "Mevcut Şifre",
+    "zh": "当前密码",
+    "ku": "وشەی نهێنی ئێستا",
+    "ru": "Текущий пароль"
+  },
+  "new_password": {
+    "en": "New Password",
+    "ar": "الجديدة",
+    "fr": "Nouveau mot de passe",
+    "tr": "Yeni Şifre",
+    "zh": "新密码",
+    "ku": "نوێ",
+    "ru": "Новый пароль"
+  },
+  "confirm_new_password": {
+    "en": "Confirm New Password",
+    "ar": "تأكيد الجديدة",
+    "fr": "Confirmer le nouveau mot de passe",
+    "tr": "Yeni Şifreyi Onayla",
+    "zh": "确认新密码",
+    "ku": "دووپاتکردنەوەی نوێ",
+    "ru": "Подтвердите новый пароль"
+  },
+  "password_updated_success": {
+    "en": "Password updated successfully",
+    "ar": "تم تحديث كلمة المرور بنجاح",
+    "fr": "Mot de passe mis à jour avec succès",
+    "tr": "Şifre başarıyla güncellendi",
+    "zh": "密码更新成功",
+    "ku": "وشەی نهێنی بە سەرکەوتوویی نوێکرایەوە",
+    "ru": "Пароль успешно обновлен"
+  },
+  "update_security": {
+    "en": "Update Security",
+    "ar": "تحديث الأمان",
+    "fr": "Mettre à jour la sécurité",
+    "tr": "Güvenliği Güncelle",
+    "zh": "更新安全设置",
+    "ku": "نوێکردنەوەی ئاسایش",
+    "ru": "Обновить безопасность"
+  },
+  "cannot_complete_operation": {
+    "en": "Cannot complete operation",
+    "ar": "لا يمكنك اتمام العملية",
+    "fr": "Impossible de terminer l'opération",
+    "tr": "İşlem tamamlanamıyor",
+    "zh": "无法完成操作",
+    "ku": "ناتوانیت کردارەکە تەواو بکەیت",
+    "ru": "Не удается завершить операцию"
+  },
+  "add_card_first": {
+    "en": "Please add your card first to be able to perform fast bank Swift withdrawals.",
+    "ar": "قم بإضافة بطاقتك اولا لتتمكن من إجراء عمليات السحب البنكي السريع.",
+    "fr": "Veuillez d'abord ajouter votre carte pour pouvoir effectuer des retraits Swift bancaires rapides.",
+    "tr": "Hızlı banka Swift çekimleri yapabilmek için lütfen önce kartınızı ekleyin.",
+    "zh": "请先添加您的卡，以便能够进行快速银行 Swift 提款。",
+    "ku": "تکایە سەرەتا کارتەکەت زیاد بکە بۆ ئەوەی بتوانیت کشانەوەی خێرای بانکی Swift ئەنجام بدەیت.",
+    "ru": "Пожалуйста, сначала добавьте свою карту, чтобы иметь возможность совершать быстрые банковские переводы Swift."
+  },
+  "cancel_operation": {
+    "en": "Cancel Operation",
+    "ar": "إلغاء العملية",
+    "fr": "Annuler l'opération",
+    "tr": "İşlemi İptal Et",
+    "zh": "取消操作",
+    "ku": "هەڵوەشاندنەوەی کردارەکە",
+    "ru": "Отменить операцию"
+  },
+  "swift_withdrawal_request": {
+    "en": "Swift Bank Withdrawal Request",
+    "ar": "طلب سحب Swift بنكي",
+    "fr": "Demande de retrait bancaire Swift",
+    "tr": "Swift Banka Çekme Talebi",
+    "zh": "Swift 银行提款请求",
+    "ku": "داواکاری کشانەوەی بانکی Swift",
+    "ru": "Запрос на банковский перевод Swift"
+  },
+  "bank_name": {
+    "en": "Bank Name",
+    "ar": "اسم البنك",
+    "fr": "Nom de la banque",
+    "tr": "Banka Adı",
+    "zh": "银行名称",
+    "ku": "ناوی بانک",
+    "ru": "Название банка"
+  },
+  "iban": {
+    "en": "IBAN",
+    "ar": "رقم الآيبان",
+    "fr": "IBAN",
+    "tr": "IBAN",
+    "zh": "IBAN",
+    "ku": "ژمارەی ئایبان",
+    "ru": "IBAN"
+  },
+  "swift_code": {
+    "en": "SWIFT Code",
+    "ar": "كود السويفت",
+    "fr": "Code SWIFT",
+    "tr": "SWIFT Kodu",
+    "zh": "SWIFT 代码",
+    "ku": "کۆدی سوێفت",
+    "ru": "SWIFT-код"
+  },
+  "amount_usd": {
+    "en": "Amount ($)",
+    "ar": "المبلغ ($)",
+    "fr": "Montant ($)",
+    "tr": "Tutar ($)",
+    "zh": "金额 ($)",
+    "ku": "بڕی پارە ($)",
+    "ru": "Сумма ($)"
+  },
+  "submit_withdrawal_request": {
+    "en": "Submit Withdrawal Request",
+    "ar": "تقديم طلب السحب",
+    "fr": "Soumettre la demande de retrait",
+    "tr": "Çekme Talebi Gönder",
+    "zh": "提交提款请求",
+    "ku": "ناردنی داواکاری کشانەوە",
+    "ru": "Отправить запрос на вывод средств"
+  },
+  "cancel": {
+    "en": "Cancel",
+    "ar": "إلغاء",
+    "fr": "Annuler",
+    "tr": "İptal",
+    "zh": "取消",
+    "ku": "پاشگەزبوونەوە",
+    "ru": "Отмена"
+  },
+  "salary_pre_financing_request": {
+    "en": "Salary Pre-Financing Request",
+    "ar": "طلب تمويل راتب مسبق",
+    "fr": "Demande de préfinancement de salaire",
+    "tr": "Maaş Ön Finansman Talebi",
+    "zh": "薪资预融资请求",
+    "ku": "داواکاری پێشوەختە دابینکردنی مووچە",
+    "ru": "Запрос на предварительное финансирование зарплаты"
+  },
+  "requested_amount": {
+    "en": "Requested Amount ($)",
+    "ar": "المبلغ المطلوب ($)",
+    "fr": "Montant demandé ($)",
+    "tr": "Talep Edilen Tutar ($)",
+    "zh": "请求金额 ($)",
+    "ku": "بڕی داواکراو ($)",
+    "ru": "Запрошенная сумма ($)"
+  },
+  "repayment_duration_months": {
+    "en": "Repayment Duration (Months)",
+    "ar": "مدة السداد (أشهر)",
+    "fr": "Durée de remboursement (mois)",
+    "tr": "Geri Ödeme Süresi (Ay)",
+    "zh": "还款期限（月）",
+    "ku": "ماوەی دانەوە (مانگ)",
+    "ru": "Срок погашения (месяцы)"
+  },
+  "submit_request_for_review": {
+    "en": "Submit Request for Review",
+    "ar": "تقديم الطلب للمراجعة",
+    "fr": "Soumettre la demande pour révision",
+    "tr": "İnceleme İçin Talep Gönder",
+    "zh": "提交审查请求",
+    "ku": "ناردنی داواکاری بۆ پێداچوونەوە",
+    "ru": "Отправить запрос на рассмотрение"
+  },
+  "amount_to_invest": {
+    "en": "Amount to Invest ($)",
+    "ar": "المبلغ المراد استثماره ($)",
+    "fr": "Montant à investir ($)",
+    "tr": "Yatırım Yapılacak Tutar ($)",
+    "zh": "投资金额 ($)",
+    "ku": "بڕی پارە بۆ وەبەرهێنان ($)",
+    "ru": "Сумма для инвестирования ($)"
+  },
+  "expected_return_after": {
+    "en": "Expected return after",
+    "ar": "العائد المتوقع بعد",
+    "fr": "Rendement attendu après",
+    "tr": "Şu süreden sonra beklenen getiri:",
+    "zh": "预期回报在",
+    "ku": "قازانجی چاوەڕوانکراو دوای",
+    "ru": "Ожидаемая доходность через"
+  },
+  "confirm_start_investment": {
+    "en": "Confirm Start Investment",
+    "ar": "تأكيد بدء الاستثمار",
+    "fr": "Confirmer le début de l'investissement",
+    "tr": "Yatırımı Başlatmayı Onayla",
+    "zh": "确认开始投资",
+    "ku": "دووپاتکردنەوەی دەستپێکردنی وەبەرهێنان",
+    "ru": "Подтвердить начало инвестирования"
+  },
+  "recipient_username": {
+    "en": "Recipient Username",
+    "ar": "اسم المستخدم المستلم",
+    "fr": "Nom d'utilisateur du destinataire",
+    "tr": "Alıcı Kullanıcı Adı",
+    "zh": "收款人用户名",
+    "ku": "ناوی بەکارهێنەری وەرگر",
+    "ru": "Имя пользователя получателя"
+  },
+  "amount_to_transfer": {
+    "en": "Amount to Transfer ($)",
+    "ar": "المبلغ المراد تحويله ($)",
+    "fr": "Montant à transférer ($)",
+    "tr": "Transfer Edilecek Tutar ($)",
+    "zh": "转账金额 ($)",
+    "ku": "بڕی پارە بۆ گواستنەوە ($)",
+    "ru": "Сумма для перевода ($)"
+  },
+  "confirm_transfer": {
+    "en": "Confirm and Proceed with Transfer",
+    "ar": "تأكيد ومباشرة التحويل",
+    "fr": "Confirmer et procéder au transfert",
+    "tr": "Onayla ve Transferi Gerçekleştir",
+    "zh": "确认并继续转账",
+    "ku": "دووپاتکردنەوە و دەستپێکردنی گواستنەوە",
+    "ru": "Подтвердить и продолжить перевод"
+  },
+  "transfer_successful": {
+    "en": "Transfer Successful",
+    "ar": "تم التحويل بنجاح",
+    "fr": "Transfert réussi",
+    "tr": "Transfer Başarılı",
+    "zh": "转账成功",
+    "ku": "گواستنەوە بە سەرکەوتوویی ئەنجامدرا",
+    "ru": "Перевод выполнен успешно"
+  },
+  "redeem_coupon_balance": {
+    "en": "Redeem Coupon Balance",
+    "ar": "شحن رصيد الكوبون",
+    "fr": "Utiliser le solde du coupon",
+    "tr": "Kupon Bakiyesini Kullan",
+    "zh": "兑换优惠券余额",
+    "ku": "بەکارهێنانی باڵانسی کۆپۆن",
+    "ru": "Погасить баланс купона"
+  },
+  "enter_12_digit_code": {
+    "en": "Enter the 12-digit recharge code",
+    "ar": "أدخل كود الشحن المكون من 12 رمزاً",
+    "fr": "Entrez le code de recharge à 12 chiffres",
+    "tr": "12 haneli yükleme kodunu girin",
+    "zh": "输入 12 位充值码",
+    "ku": "کۆدی بارگاویکردنەوەی ١٢ ژمارەیی داخڵ بکە",
+    "ru": "Введите 12-значный код пополнения"
+  },
+  "activate_recharge_instantly": {
+    "en": "Activate and Recharge Instantly",
+    "ar": "تفعيل وشحن الرصيد فوراً",
+    "fr": "Activer et recharger instantanément",
+    "tr": "Anında Etkinleştir ve Yükle",
+    "zh": "立即激活并充值",
+    "ku": "چالاککردن و بارگاویکردنەوەی باڵانس دەستبەجێ",
+    "ru": "Активировать и пополнить мгновенно"
+  },
+  "link_global_bank_card": {
+    "en": "Link Global Bank Card",
+    "ar": "ربط بطاقة بنكية عالمية",
+    "fr": "Lier une carte bancaire mondiale",
+    "tr": "Küresel Banka Kartını Bağلا",
+    "zh": "关联全球银行卡",
+    "ku": "بەستنەوەی کارتی بانکی جیهانی",
+    "ru": "Привязать международную банковскую карту"
+  },
+  "card_holder_name": {
+    "en": "Card Holder Name",
+    "ar": "اسم حامل البطاقة",
+    "fr": "Nom du titulaire de la carte",
+    "tr": "Kart Sahibi Adı",
+    "zh": "持卡人姓名",
+    "ku": "ناوی خاوەنی کارت",
+    "ru": "Имя владельца карты"
+  },
+  "card_number_16_digits": {
+    "en": "Card Number (16 digits)",
+    "ar": "رقم البطاقة (16 رقم)",
+    "fr": "Numéro de carte (16 chiffres)",
+    "tr": "Kart Numarası (16 hane)",
+    "zh": "卡号（16 位数字）",
+    "ku": "ژمارەی کارت (١٦ ژمارە)",
+    "ru": "Номер карты (16 цифр)"
+  },
+  "confirm_encrypted_link": {
+    "en": "Confirm Encrypted Link",
+    "ar": "تأكيد الربط المشفر",
+    "fr": "Confirmer le lien crypté",
+    "tr": "Şifreli Bağlantıyı Onayla",
+    "zh": "确认加密关联",
+    "ku": "دووپاتکردنەوەی بەستنەوەی کۆدکراو",
+    "ru": "Подтвердить зашиفрованное соединение"
+  },
+  "card_linked_successfully": {
+    "en": "Card Linked Successfully",
+    "ar": "تم ربط البطاقة",
+    "fr": "Carte liée avec succès",
+    "tr": "Kart Başarıyla Bağlandı",
+    "zh": "卡关联成功",
+    "ku": "کارتەکە بە سەرکەوتوویی بەستراوە",
+    "ru": "Карта успешно привязана"
+  },
+  "swift_withdrawal_activated": {
+    "en": "Swift withdrawal request activated successfully",
+    "ar": "تم تفعيل طلب سحب Swift بنجاح",
+    "fr": "Demande de retrait Swift activée avec succès",
+    "tr": "Swift çekme talebi başarıyla etkinleştirildi",
+    "zh": "Swift 提款请求已成功激活",
+    "ku": "داواکاری کشانەوەی Swift بە سەرکەوتوویی چالاککرا",
+    "ru": "Запрос на вывод Swift успешно активирован"
+  },
   "available_sovereign_balance": {
     "en": "Available Sovereign Balance",
     "ar": "الرصيد السيادي المتوفر",
@@ -1361,15 +1973,6 @@ const translationsData: Translations = {
     "zh": "通过优惠券存款",
     "ku": "پارەدان بە کوپۆنی بارگاویکردنەوە",
     "ru": "Депозит через купон"
-  },
-  "swift_withdrawal_request": {
-    "en": "Swift Withdrawal Request",
-    "ar": "طلب سحب Swift",
-    "fr": "Demande de retrait Swift",
-    "tr": "Swift Para Çekme Talebi",
-    "zh": "Swift 提款请求",
-    "ku": "داواکاری ڕاکێشانی Swift",
-    "ru": "Запрос на вывод Swift"
   },
   "executive_ops_center": {
     "en": "Executive Operations Center",
@@ -1515,15 +2118,6 @@ const translationsData: Translations = {
     "ku": "سەلمێنراو",
     "ru": "Верифицирован"
   },
-  "active": {
-    "en": "Active",
-    "ar": "نشط",
-    "fr": "Actif",
-    "tr": "Aktif",
-    "zh": "活跃",
-    "ku": "چالاک",
-    "ru": "Активен"
-  },
   "suspended": {
     "en": "Suspended",
     "ar": "معلق",
@@ -1632,15 +2226,6 @@ const translationsData: Translations = {
     "ku": "پاشەکەوتکردنی هەژمار",
     "ru": "Сохранить аккаунт"
   },
-  "cancel": {
-    "en": "Cancel",
-    "ar": "إلغاء",
-    "fr": "Annuler",
-    "tr": "İptal",
-    "zh": "取消",
-    "ku": "پاشگەزبوونەوە",
-    "ru": "Отмена"
-  },
   "recharge_account_balance": {
     "en": "Recharge Account Balance",
     "ar": "شحن رصيد الحساب",
@@ -1721,15 +2306,6 @@ const translationsData: Translations = {
     "zh": "确认",
     "ku": "تەئکیدکردنەوە",
     "ru": "Подтвердить"
-  },
-  "change_password": {
-    "en": "Change Password",
-    "ar": "تغيير كلمة المرور",
-    "fr": "Changer le mot de passe",
-    "tr": "Şifreyi Değiştir",
-    "zh": "修改密码",
-    "ku": "گۆڕینی وشەی نهێنی",
-    "ru": "Сменить пароль"
   },
   "new_password_placeholder": {
     "en": "New Password",
@@ -2091,15 +2667,6 @@ const translationsData: Translations = {
     "ku": "ڕێژەی قازانج (%)",
     "ru": "Ставка прибыли (%)"
   },
-  "min_amount": {
-    "en": "Minimum Amount ($)",
-    "ar": "الحد الأدنى ($)",
-    "fr": "Montant minimum ($)",
-    "tr": "Minimum Tutar ($)",
-    "zh": "最低金额 ($)",
-    "ku": "کەمترین بڕ ($)",
-    "ru": "Минимальная сумма ($)"
-  },
   "save_plan": {
     "en": "Save Plan",
     "ar": "حفظ الخطة",
@@ -2108,15 +2675,6 @@ const translationsData: Translations = {
     "zh": "保存计划",
     "ku": "پاشەکەوتکردنی پلان",
     "ru": "Сохранить план"
-  },
-  "months": {
-    "en": "Months",
-    "ar": "شهر",
-    "fr": "Mois",
-    "tr": "Ay",
-    "zh": "月",
-    "ku": "مانگ",
-    "ru": "Месяцы"
   },
   "generate_recharge_cards": {
     "en": "Generate Recharge Cards",
@@ -3146,7 +3704,61 @@ const translationsData: Translations = {
   "interest": { "en": "Interest in Ad", "ar": "اهتمام بالإعلان", "fr": "Intérêt pour l'annonce", "tr": "Reklama İlgi", "zh": "对广告感兴趣", "ku": "گرنگیپێدان بە ڕیکلام", "ru": "Интерес к объявлению" },
   "views_updated": { "en": "Views Updated", "ar": "تحديث المشاهدات", "fr": "Vues mises à jour", "tr": "Görüntülenmeler Güncellendi", "zh": "查看次数已更新", "ku": "بینینەکان نوێکرایەوە", "ru": "Просмотры обновлены" },
   "merchant_suspended_security": { "en": "Merchant suspended due to contact info leakage attempt.", "ar": "محاولة تسريب بيانات اتصال في الإعلانات", "fr": "Marchand suspendu pour tentative de fuite de coordonnées.", "tr": "İletişim bilgisi sızdırma girişimi nedeniyle satıcı askıya alındı.", "zh": "由于尝试泄露联系信息，商家已被暂停。", "ku": "هەژماری بازرگان ڕاگیرا بەهۆی هەوڵدان بۆ دزەپێکردنی زانیاری پەیوەندیکردن.", "ru": "Продавец заблокирован за попытку утечки контактных данных." },
-  "admin_suspension": { "en": "Administrative suspension from Ad Exchange", "ar": "تعليق إداري من بورصة الإعلانات", "fr": "Suspension administrative de la bourse aux annonces", "tr": "Reklam Borsasından idari askıya alma", "zh": "广告交易所的行政暂停", "ku": "ڕاگرتنی کارگێڕی لە بۆرسەی ڕیکلام", "ru": "Административная блокировка на рекламной бирже" }
+  "admin_suspension": { "en": "Administrative suspension from Ad Exchange", "ar": "تعليق إداري من بورصة الإعلانات", "fr": "Suspension administrative de la bourse aux annonces", "tr": "Reklam Borsasından idari askıya alma", "zh": "广告交易所的行政暂停", "ku": "ڕاگرتنی کارگێڕی لە بۆرسەی ڕیکلام", "ru": "Административная блокировка на рекламной бирже" },
+  "transfer_phrase_1": { "en": "Initializing encrypted connection with global payment gateway...", "ar": "جاري تهيئة الاتصال المشفر مع بوابة الدفع العالمية...", "fr": "Initialisation de la connexion cryptée avec la passerelle de paiement mondiale...", "tr": "Küresel ödeme ağ geçidi ile şifreli bağlantı başlatılıyor...", "zh": "正在初始化与全球支付网关的加密连接...", "ku": "دەستپێکردنی پەیوەندییەکی پارێزراو لەگەڵ دەروازەی پارەدانی جیهانی...", "ru": "Инициализация зашифрованного соединения с глобальным платежным шлюзом..." },
+  "transfer_phrase_2": { "en": "Verifying recipient data in the unified banking registry...", "ar": "التحقق من صحة بيانات المستلم في السجل المصرفي الموحد...", "fr": "Vérification des données du destinataire dans le registre bancaire unifié...", "tr": "Birleşik bankacılık sicilinde alıcı verileri doğrulanıyor...", "zh": "正在统一银行注册中心验证收款人数据...", "ku": "پشکنینی زانیارییەکانی وەرگر لە تۆماری بانکی یەکگرتوو...", "ru": "Проверка данных получателя в едином банковском реестре..." },
+  "transfer_phrase_3": { "en": "Starting digital clearing process via FastPay central system...", "ar": "بدء عملية المقاصة الرقمية عبر نظام FastPay المركزي...", "fr": "Démarrage du processus de compensation numérique via le système central FastPay...", "tr": "FastPay merkezi sistemi üzerinden dijital takas süreci başlatılıyor...", "zh": "正在通过 FastPay 中央系统启动数字清算流程...", "ku": "دەستپێکردنی پرۆسەی پاکتاوکردنی دیجیتاڵی لە ڕێگەی سیستەمی ناوەندی FastPay...", "ru": "Запуск процесса цифрового клиринга через центральную систему FastPay..." },
+  "transfer_phrase_4": { "en": "Securing transaction with military-grade protection protocol...", "ar": "تأمين المعاملة ببروتوكول حماية من الدرجة العسكرية...", "fr": "Sécurisation de la transaction avec un protocole de protection de niveau militaire...", "tr": "İşlem askeri düzeyde koruma protokolü ile güvence altına alınıyor...", "zh": "使用军用级保护协议确保交易安全...", "ku": "پاراستنی مامەڵەکە بە پڕۆتۆکۆڵی پاراستنی ئاستی سەربازی...", "ru": "Обеспечение безопасности транзакции с помощью протокола защиты военного уровня..." },
+  "transfer_phrase_5": { "en": "Checking compliance and anti-money laundering records...", "ar": "فحص سجلات الامتثال ومنع غسيل الأموال...", "fr": "Vérification de la conformité et des dossiers de lutte contre le blanchiment d'argent...", "tr": "Uyum ve kara para aklamayı önleme kayıtları kontrol ediliyor...", "zh": "正在检查合规性和反洗钱记录...", "ku": "پشکنینی تۆمارەکانی پابەندبوون و ڕێگری لە سپیکردنەوەی پارە...", "ru": "Проверка записей о соблюдении нормативных требований и борьбе с отмыванием денег..." },
+  "transfer_phrase_6": { "en": "Completing transfer and updating balances instantly...", "ar": "إتمام عملية التحويل وتحديث الأرصدة فورياً...", "fr": "Finalisation du transfert et mise à jour instantanée des soldes...", "tr": "Transfer tamamlanıyor ve bakiyeler anında güncelleniyor...", "zh": "正在完成转账并立即更新余额...", "ku": "تەواوکردنی پرۆسەی گواستنەوە و نوێکردنەوەی باڵانسەکان بە شێوەیەکی دەستبەجێ...", "ru": "Завершение перевода и мгновенное обновление балансов..." },
+  "card_link_phrase_1": { "en": "Creating encrypted communication channel with global verification servers...", "ar": "جاري إنشاء قناة اتصال مشفرة مع خوادم التحقق العالمية...", "fr": "Création d'un canal de communication crypté avec les serveurs de vérification mondiaux...", "tr": "Küresel doğrulama sunucuları ile şifreli iletişim kanalı oluşturuluyor...", "zh": "正在与全球验证服务器建立加密通信渠道...", "ku": "دروستکردنی کەناڵێکی پەیوەندی پارێزراو لەگەڵ سێرڤەرەکانی پشکنینی جیهانی...", "ru": "Создание зашифрованного канала связи с глобальными серверами верификации..." },
+  "card_link_phrase_2": { "en": "Verifying card numbers via Luhn algorithm...", "ar": "التحقق من صحة أرقام البطاقة عبر خوارزمية Luhn...", "fr": "Vérification des numéros de carte via l'algorithme de Luhn...", "tr": "Luhn algoritması üzerinden kart numaraları doğrulanıyor...", "zh": "通过 Luhn 算法验证卡号...", "ku": "پشکنینی دروستی ژمارەکانی کارت لە ڕێگەی ئەلگۆریتمی Luhn...", "ru": "Проверка номеров карт с помощью алгоритма Луна..." },
+  "card_link_phrase_3": { "en": "Checking international security standards PCI-DSS...", "ar": "فحص معايير الأمان الدولية PCI-DSS...", "fr": "Vérification des normes de sécurité internationales PCI-DSS...", "tr": "Uluslararası güvenlik standartları PCI-DSS kontrol ediliyor...", "zh": "正在检查国际安全标准 PCI-DSS...", "ku": "پشکنینی پێوەرە ئەمنییە نێودەوڵەتییەکانی PCI-DSS...", "ru": "Проверка международных стандартов безопасности PCI-DSS..." },
+  "card_link_phrase_4": { "en": "Syncing data with global Visa/Mastercard network...", "ar": "مزامنة البيانات مع شبكة Visa/Mastercard العالمية...", "fr": "Synchronisation des données avec le réseau mondial Visa/Mastercard...", "tr": "Veriler küresel Visa/Mastercard ağı ile senkronize ediliyor...", "zh": "正在与全球 Visa/Mastercard 网络同步数据...", "ku": "هاوکاتکردنی زانیارییەکان لەگەڵ تۆڕی جیهانی Visa/Mastercard...", "ru": "Синхронизация данных с глобальной сетью Visa/Mastercard..." },
+  "card_link_phrase_5": { "en": "Securing link via military encryption protocol AES-256...", "ar": "تأمين الربط عبر بروتوكول التشفير العسكري AES-256...", "fr": "Sécurisation de la liaison via le protocole de cryptage militaire AES-256...", "tr": "Bağlantı askeri şifreleme protokolü AES-256 ile güvence altına alınıyor...", "zh": "通过军事加密协议 AES-256 确保链接安全...", "ku": "پاراستنی بەستنەوەکە لە ڕێگەی پڕۆتۆکۆڵی شێفەرەکردنی سەربازی AES-256...", "ru": "Обеспечение безопасности связи с помощью военного протокола шифрования AES-256..." },
+  "card_link_phrase_6": { "en": "Activating fast Swift bank withdrawal feature for this card...", "ar": "تفعيل ميزة السحب البنكي السريع Swift لهذه البطاقة...", "fr": "Activation de la fonction de retrait bancaire Swift rapide pour cette carte...", "tr": "Bu kart için hızlı Swift banka çekme özelliği etkinleştiriliyor...", "zh": "正在为此卡激活快速 Swift 银行提款功能...", "ku": "چالاککردنی تایبەتمەندی ڕاکێشانی بانکی خێرای Swift بۆ ئەم کارتە...", "ru": "Активация функции быстрого банковского вывода Swift для этой карты..." },
+  "card_link_phrase_7": { "en": "Completing linking process and confirming digital identity...", "ar": "إتمام عملية الربط وتأكيد الهوية الرقمية...", "fr": "Finalisation du processus de liaison et confirmation de l'identité numérique...", "tr": "Bağlama süreci tamamlanıyor ve dijital kimlik onaylanıyor...", "zh": "正在完成链接过程并确认数字身份...", "ku": "تەواوکردنی پرۆسەی بەستنەوە و پشتڕاستکردنەوەی ناسنامەی دیجیتاڵی...", "ru": "Завершение процесса привязки и подтверждение цифровой личности..." },
+  "recipient_not_found": { "en": "Recipient username not found", "ar": "اسم المستخدم المستلم غير موجود", "fr": "Nom d'utilisateur du destinataire non trouvé", "tr": "Alıcı kullanıcı adı bulunamadı", "zh": "找不到收款人用户名", "ku": "ناوی بەکارهێنەری وەرگر نەدۆزرایەوە", "ru": "Имя пользователя получателя не найдено" },
+  "insufficient_balance": { "en": "Insufficient balance", "ar": "الرصيد غير كافٍ", "fr": "Solde insuffisant", "tr": "Yetersiz bakiye", "zh": "余额不足", "ku": "باڵانسەکەت بەش ناکات", "ru": "Недостаточно средств" },
+  "transfer_to": { "en": "Transfer to", "ar": "تحويل إلى", "fr": "Transférer à", "tr": "Transfer et", "zh": "转账至", "ku": "گواستنەوە بۆ", "ru": "Перевод на" },
+  "transfer_success_title": { "en": "Transfer Successful", "ar": "تحويل ناجح", "fr": "Transfert réussi", "tr": "Transfer Başarılı", "zh": "转账成功", "ku": "گواستنەوەکە سەرکەوتوو بوو", "ru": "Перевод успешен" },
+  "transfer_success_msg": { "en": "Successfully transferred ${{amount}} to {{name}}.", "ar": "تم تحويل مبلغ ${{amount}} إلى {{name}} بنجاح.", "fr": "Transfert réussi de ${{amount}} à {{name}}.", "tr": "${{amount}} tutarı {{name}} kişisine başarıyla transfer edildi.", "zh": "成功向 {{name}} 转账 ${{amount}}。", "ku": "بڕی ${{amount}} بە سەرکەوتوویی گوازرایەوە بۆ {{name}}.", "ru": "Успешно переведено ${{amount}} пользователю {{name}}." },
+  "card_expired": { "en": "Sorry, the card is expired or the expiry date is incorrect.", "ar": "عذراً، البطاقة منتهية الصلاحية أو تاريخ الانتهاء غير صحيح.", "fr": "Désolé, la carte est expirée ou la date d'expiration est incorrecte.", "tr": "Üzgünüz, kartın süresi dolmuş veya son kullanma tarihi yanlış.", "zh": "抱歉，卡已过期或过期日期不正确。", "ku": "ببوورە، کارتەکە بەسەرچووە یان بەرواری بەسەرچوونەکەی هەڵەیە.", "ru": "К сожалению, срок действия карты истек или дата истечения указана неверно." },
+  "invalid_card_number": { "en": "Please enter a valid card number.", "ar": "يرجى إدخال رقم بطاقة صحيح.", "fr": "Veuillez saisir un numéro de carte valide.", "tr": "Lütfen geçerli bir kart numarası girin.", "zh": "请输入有效的卡号。", "ku": "تکایە ژمارەیەکی دروستی کارت بنووسە.", "ru": "Пожалуйста, введите правильный номер карты." },
+  "card_link_success_title": { "en": "Card Linked", "ar": "ربط بطاقة", "fr": "Carte liée", "tr": "Kart Bağlandı", "zh": "卡已链接", "ku": "کارتەکە بەسترایەوە", "ru": "Карта привязана" },
+  "card_link_success_msg": { "en": "Card linked successfully, Swift withdrawal request activated.", "ar": "تم ربط البطاقة بنجاح ، تم تفعيل طلب سحب Swift بنجاح", "fr": "Carte liée avec succès, demande de retrait Swift activée.", "tr": "Kart başarıyla bağlandı, Swift para çekme talebi etkinleştirildi.", "zh": "卡链接成功，Swift 提款请求已激活。", "ku": "کارتەکە بە سەرکەوتوویی بەسترایەوە، داواکاری ڕاکێشانی Swift چالاککرا.", "ru": "Карта успешно привязана, запрос на вывод Swift активирован." },
+  "salary_apply_success_title": { "en": "Financing Request", "ar": "طلب تمويل", "fr": "Demande de financement", "tr": "Finansman Talebi", "zh": "融资请求", "ku": "داواکاری پارەدارکردن", "ru": "Запрос на финансирование" },
+  "salary_apply_success_msg": { "en": "Financing request of ${{amount}} sent.", "ar": "تم إرسال طلب تمويل بقيمة ${{amount}}.", "fr": "Demande de financement de ${{amount}} envoyée.", "tr": "${{amount}} tutarında finansman talebi gönderildi.", "zh": "已发送 ${{amount}} 的融资请求。", "ku": "داواکاری پارەدارکردن بە بڕی ${{amount}} نێردرا.", "ru": "Запрос на финансирование в размере ${{amount}} отправлен." },
+  "salary_apply_alert": { "en": "Financing request sent successfully for management review.", "ar": "تم إرسال طلب التمويل بنجاح لمراجعة الإدارة.", "fr": "Demande de financement envoyée avec succès pour examen par la direction.", "tr": "Finansman talebi yönetim incelemesi için başarıyla gönderildi.", "zh": "融资请求已成功发送供管理层审核。", "ku": "داواکاری پارەدارکردن بە سەرکەوتوویی نێردرا بۆ پێداچوونەوەی کارگێڕی.", "ru": "Запрос на финансирование успешно отправлен на рассмотрение руководству." },
+  "swift_withdrawal_desc": { "en": "Swift Bank Withdrawal", "ar": "سحب Swift بنكي", "fr": "Retrait bancaire Swift", "tr": "Swift Banka Çekimi", "zh": "Swift 银行提款", "ku": "ڕاکێشانی بانکی Swift", "ru": "Банковский вывод Swift" },
+  "withdraw_request_success_title": { "en": "Withdrawal Request", "ar": "طلب سحب", "fr": "Demande de retrait", "tr": "Para Çekme Talebi", "zh": "提款请求", "ku": "داواکاری ڕاکێشان", "ru": "Запрос на вывод" },
+  "withdraw_request_success_msg": { "en": "Withdrawal request of ${{amount}} submitted successfully.", "ar": "تم طلب سحب مبلغ ${{amount}} بنجاح.", "fr": "Demande de retrait de ${{amount}} soumise avec succès.", "tr": "${{amount}} tutarında para çekme talebi başarıyla iletildi.", "zh": "已成功提交 ${{amount}} 的提款请求。", "ku": "داواکاری ڕاکێشان بە بڕی ${{amount}} بە سەرکەوتوویی پێشکەش کرا.", "ru": "Запрос на вывод средств в размере ${{amount}} успешно подан." },
+  "withdraw_request_alert": { "en": "Withdrawal request submitted successfully.", "ar": "تم تقديم طلب السحب بنجاح.", "fr": "Demande de retrait soumise avec succès.", "tr": "Para çekme talebi başarıyla iletildi.", "zh": "提款请求已成功提交。", "ku": "داواکاری ڕاکێشان بە سەرکەوتوویی پێشکەش کرا.", "ru": "Запрос на вывод средств успешно подан." },
+  "card_recharge_desc": { "en": "Card Recharge", "ar": "شحن بطاقة", "fr": "Recharge de carte", "tr": "Kart Yükleme", "zh": "卡充值", "ku": "بارگاویکردنەوەی کارت", "ru": "Пополнение карты" },
+  "recharge_success_title": { "en": "Balance Recharge", "ar": "شحن رصيد", "fr": "Recharge de solde", "tr": "Bakiye Yükleme", "zh": "余额充值", "ku": "بارگاویکردنەوەی باڵانس", "ru": "Пополнение баланса" },
+  "recharge_success_msg": { "en": "Successfully recharged ${{amount}}.", "ar": "تم شحن ${{amount}} بنجاح.", "fr": "Recharge de ${{amount}} réussie.", "tr": "${{amount}} başarıyla yüklendi.", "zh": "成功充值 ${{amount}}。", "ku": "بڕی ${{amount}} بە سەرکەوتوویی بارگاویکرایەوە.", "ru": "Успешно пополнено на ${{amount}}." },
+  "invalid_coupon": { "en": "Invalid or already used code", "ar": "الكود غير صحيح أو مستخدم مسبقاً", "fr": "Code invalide ou déjà utilisé", "tr": "Geçersiz veya zaten kullanılmış kod", "zh": "代码无效或已使用", "ku": "کۆدەکە هەڵەیە یان پێشتر بەکارهاتووە", "ru": "Неверный или уже использованный код" },
+  "min_invest_amount": { "en": "Minimum for this plan is ${{amount}}", "ar": "الحد الأدنى لهذه الخطة هو ${{amount}}", "fr": "Le minimum pour ce plan est de ${{amount}}", "tr": "Bu plan için minimum tutar ${{amount}}", "zh": "此计划的最低金额为 ${{amount}}", "ku": "کەمترین بڕ بۆ ئەم پلانە ${{amount}}", "ru": "Минимум для этого плана — ${{amount}}" },
+  "invest_desc": { "en": "Investment", "ar": "استثمار", "fr": "Investissement", "tr": "Yatırım", "zh": "投资", "ku": "وەبەرهێنان", "ru": "Инвестиция" },
+  "invest_start_title": { "en": "Investment Started", "ar": "بدء استثمار", "fr": "Investissement commencé", "tr": "Yatırım Başlatıldı", "zh": "投资已开始", "ku": "وەبەرهێنان دەستی پێکرد", "ru": "Инвестиция начата" },
+  "invest_start_msg": { "en": "Investment plan of ${{amount}} started.", "ar": "تم بدء خطة استثمار بقيمة ${{amount}}.", "fr": "Plan d'investissement de ${{amount}} commencé.", "tr": "${{amount}} tutarında yatırım planı başlatıldı.", "zh": "已开始 ${{amount}} 的投资计划。", "ku": "پلانی وەبەرهێنان بە بڕی ${{amount}} دەستی پێکرد.", "ru": "Инвестиционный план на сумму ${{amount}} начат." },
+  "invest_success_alert": { "en": "Investment started successfully!", "ar": "تم بدء الاستثمار بنجاح!", "fr": "Investissement commencé avec succès !", "tr": "Yatırım başarıyla başlatıldı!", "zh": "投资已成功开始！", "ku": "وەبەرهێنان بە سەرکەوتوویی دەستی پێکرد!", "ru": "Инвестиция успешно начата!" },
+  "raffle_insufficient_balance": { "en": "Insufficient balance to join raffle", "ar": "رصيدك لا يكفي للمشاركة في القرعة", "fr": "Solde insuffisant pour participer à la tombola", "tr": "Çekilişe katılmak için yetersiz bakiye", "zh": "余额不足，无法参加抽奖", "ku": "باڵانسەکەت بەش ناکات بۆ بەشداریکردن لە تیروپشک", "ru": "Недостаточно средств для участия в лотерее" },
+  "raffle_entry_desc": { "en": "Raffle Entry", "ar": "دخول سحب القرعة", "fr": "Entrée à la tombola", "tr": "Çekiliş Girişi", "zh": "抽奖报名", "ku": "بەشداریکردن لە تیروپشک", "ru": "Участие в лотерее" },
+  "raffle_success_title": { "en": "Sovereign Raffle", "ar": "القرعة السيادية", "fr": "Tombola souveraine", "tr": "Egemen Çekiliş", "zh": "主权抽奖", "ku": "تیروپشکی سەروەری", "ru": "Суверенная лотерея" },
+  "raffle_success_msg": { "en": "Ticket booked successfully for monthly draw.", "ar": "تم حجز تذكرتك في السحب الشهري بنجاح.", "fr": "Billet réservé avec succès pour le tirage mensuel.", "tr": "Aylık çekiliش için bilet başarıyla ayırtıldı.", "zh": "成功预订月度抽奖门票。", "ku": "تیکتەکەت بە سەرکەوتوویی بۆ تیروپشکی مانگانە بڕدرا.", "ru": "Билет на ежемесячный тираж успешно забронирован." },
+  "raffle_success_alert": { "en": "Success! Your ticket number is: {{ticket}}", "ar": "تم الدخول بنجاح! رقم تذكرتك هو: {{ticket}}", "fr": "Succès ! Votre numéro de billet est : {{ticket}}", "tr": "Başarılı! Bilet numaranız: {{ticket}}", "zh": "成功！您的门票号码是：{{ticket}}", "ku": "سەرکەوتوو بوو! ژمارەی تیکتەکەت بریتییە لە: {{ticket}}", "ru": "Успех! Номер вашего билета: {{ticket}}" },
+  "current_password_incorrect": { "en": "Current password is incorrect", "ar": "كلمة المرور الحالية غير صحيحة", "fr": "Le mot de passe actuel est incorrect", "tr": "Mevcut şifre yanlış", "zh": "当前密码不正确", "ku": "وشەی نهێنی ئێستا هەڵەیە", "ru": "Текущий пароль неверен" },
+  "password_min_length": { "en": "New password must be at least 6 characters", "ar": "يجب أن تكون كلمة المرور الجديدة 6 أحرف على الأقل", "fr": "Le nouveau mot de passe doit comporter au moins 6 caractères", "tr": "Yeni şifre en az 6 karakter olmalıdır", "zh": "新密码必须至少为 6 个字符", "ku": "وشەی نهێنی نوێ دەبێت لانی کەم ٦ پیت بێت", "ru": "Новый пароль должен содержать не менее 6 символов" },
+  "passwords_dont_match": { "en": "Passwords do not match", "ar": "كلمتا المرور غير متطابقتين", "fr": "Les mots de passe ne correspondent pas", "tr": "Şifreler eşleşmiyor", "zh": "密码不匹配", "ku": "وشە نهێنییەکان وەک یەک نین", "ru": "Пароли не совпадают" },
+  "password_update_success_title": { "en": "Account Security", "ar": "أمن الحساب", "fr": "Sécurité du compte", "tr": "Hesap Güvenliği", "zh": "账户安全", "ku": "ئاسایشی هەژمار", "ru": "Безопасность аккаунта" },
+  "password_update_success_msg": { "en": "Password updated successfully.", "ar": "تم تحديث كلمة المرور بنجاح.", "fr": "Mot de passe mis à jour avec succès.", "tr": "Şifre başarıyla güncellendi.", "zh": "密码已成功更新。", "ku": "وشەی نهێنی بە سەرکەوتوویی نوێکرایەوە.", "ru": "Пароль успешно обновлен." },
+  "verified_account_required_promo": { "en": "Sorry, your account must be verified with a blue badge to request promotion.", "ar": "عذراً، يجب أن يكون حسابك موثقاً بالشارة الزرقاء لطلب الترويج.", "fr": "Désolé, votre compte doit être vérifié avec un badge bleu pour demander une promotion.", "tr": "Üzgünüz, promosyon talep etmek için hesabınızın mavi rozetle doğrulanmış olması gerekir.", "zh": "抱歉，您的帐户必须经过蓝标验证才能请求推广。", "ku": "ببوورە، دەبێت هەژمارەکەت بە نیشانەی شین پشتڕاستکرابێتەوە بۆ داواکردنی پەرەپێدان.", "ru": "Извините, ваш аккаунт должен быть верифицирован синим значком для запроса продвижения." },
+  "insufficient_balance_promo": { "en": "Insufficient balance to pay promotion fees.", "ar": "رصيدك غير كافٍ لدفع رسوم الترويج.", "fr": "Solde insuffisant pour payer les frais de promotion.", "tr": "Promosyon ücretlerini ödemek için yetersiz bakiye.", "zh": "余额不足，无法支付推广费用。", "ku": "باڵانسەکەت بەش ناکات بۆ پارەدانی تێچووی پەرەپێدان.", "ru": "Недостаточно средств для оплаты промо-сборов." },
+  "insufficient_balance_generic": { "en": "Insufficient balance to complete this operation.", "ar": "رصيدك غير كافٍ لإتمام هذه العملية.", "fr": "Solde insuffisant pour terminer cette opération.", "tr": "Bu işlemi tamamlamak için yetersiz bakiye.", "zh": "余额不足，无法完成此操作。", "ku": "باڵانسەکەت بەش ناکات بۆ تەواوکردنی ئەم مامەڵەیە.", "ru": "Недостаточно средств для завершения этой операции." },
+  "purchase_desc": { "en": "Purchase", "ar": "شراء", "fr": "Achat", "tr": "Satın Al", "zh": "购买", "ku": "کڕین", "ru": "Покупка" },
+  "invalid_amount": { "en": "Please enter a valid amount", "ar": "يرجى إدخال مبلغ صحيح", "fr": "Veuillez saisir un montant valide", "tr": "Lütfen geçerli bir tutar girin", "zh": "请输入有效金额", "ku": "تکایە بڕێکی دروست بنووسە", "ru": "Пожалуйста, введите правильную сумму" },
+  "general_location": { "en": "General", "ar": "عام", "fr": "Général", "tr": "Genel", "zh": "通用", "ku": "گشتی", "ru": "Общий" }
 };
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
