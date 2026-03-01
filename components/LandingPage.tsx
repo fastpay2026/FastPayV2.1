@@ -82,16 +82,16 @@ const LandingPage: React.FC<Props> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const [marketData, setMarketData] = useState<MarketAsset[]>([
-    { id: '1', name: 'الذهب الملكي', price: 2410.50, change: 1.1, icon: '📀' },
-    { id: '2', name: 'بيتكوين (BTC)', price: 92421.10, change: 4.5, icon: '₿' },
-    { id: '3', name: 'نفط برنت', price: 88.14, change: 1.3, icon: '🛢️' },
-    { id: '4', name: 'إيثيريوم (ETH)', price: 2845.30, change: -0.8, icon: '💎' },
+    { id: '1', name: 'asset_gold', price: 2410.50, change: 1.1, icon: '📀' },
+    { id: '2', name: 'asset_btc', price: 92421.10, change: 4.5, icon: '₿' },
+    { id: '3', name: 'asset_brent', price: 88.14, change: 1.3, icon: '🛢️' },
+    { id: '4', name: 'asset_eth', price: 2845.30, change: -0.8, icon: '💎' },
     { id: '5', name: 'EUR / USD', price: 1.0842, change: 0.05, icon: '🇪🇺' },
     { id: '6', name: 'GBP / USD', price: 1.2654, change: 0.12, icon: '🇬🇧' },
     { id: '7', name: 'USD / JPY', price: 151.20, change: -0.22, icon: '🇯🇵' },
-    { id: '8', name: 'ناسداك 100', price: 18240.5, change: 0.65, icon: '📊' },
-    { id: '9', name: 'آبل (AAPL)', price: 192.42, change: 1.2, icon: '🍎' },
-    { id: '10', name: 'انفيديا (NVDA)', price: 1150.20, change: 3.4, icon: '🟢' },
+    { id: '8', name: 'asset_nasdaq', price: 18240.5, change: 0.65, icon: '📊' },
+    { id: '9', name: 'asset_apple', price: 192.42, change: 1.2, icon: '🍎' },
+    { id: '10', name: 'asset_nvidia', price: 1150.20, change: 3.4, icon: '🟢' },
   ]);
 
   useEffect(() => {
@@ -143,7 +143,7 @@ const LandingPage: React.FC<Props> = ({
          <div className="flex animate-marquee whitespace-nowrap gap-20 items-center">
             {[...marketData, ...marketData].map((asset, idx) => (
               <div key={`${asset.id}-${idx}`} className={`flex items-center gap-4 font-black text-[11px] tracking-widest group cursor-default transition-all duration-1000 ${asset.flash === 'up' ? 'text-emerald-400 scale-105' : asset.flash === 'down' ? 'text-red-400 scale-105' : 'text-white'}`}>
-                 <span className="text-white/40 group-hover:text-sky-400 transition-colors">{asset.icon} {asset.name}</span>
+                 <span className="text-white/40 group-hover:text-sky-400 transition-colors">{asset.icon} {t(asset.name)}</span>
                  <span className={`font-mono text-sm transition-colors duration-300 ${asset.flash === 'up' ? 'text-emerald-400' : asset.flash === 'down' ? 'text-red-400' : 'text-white'}`}>
                    ${asset.price.toLocaleString(undefined, { minimumFractionDigits: asset.price < 10 ? 4 : 2 })}
                  </span>
@@ -312,8 +312,8 @@ const LandingPage: React.FC<Props> = ({
             <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-emerald-500/10 hover:border-emerald-500/40 transition-all duration-1000 relative">
                <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
                   <div className="flex items-center gap-6 text-emerald-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-emerald-500"></span>{t('global_liquidity_engine')}</div>
-                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-emerald-400 transition-all duration-700">{t('transfer_ad_title')}</h2>
-                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-emerald-500 pr-6 md:pr-10">{t('transfer_ad_desc')}</p>
+                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-emerald-400 transition-all duration-700">{siteConfig.transferAdTitle}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-emerald-500 pr-6 md:pr-10">{siteConfig.transferAdDesc}</p>
                   <div className="flex flex-wrap gap-6 md:gap-8 items-center pt-4 md:pt-8">
                     <button onClick={onLoginClick} className="bg-emerald-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-emerald-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(16,185,129,0.3)] w-full md:w-max">{t('start_global_transfer')}</button>
                     <div className="flex items-center gap-4 text-slate-500 font-black text-[10px] md:text-xs uppercase tracking-widest bg-white/5 px-6 py-3 rounded-full">
@@ -334,8 +334,8 @@ const LandingPage: React.FC<Props> = ({
             <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row-reverse items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-violet-500/10 hover:border-violet-500/40 transition-all duration-1000 relative">
                <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
                   <div className="flex items-center gap-6 text-violet-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-violet-500"></span>{t('professional_payment_gateway')}</div>
-                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-violet-400 transition-all duration-700">{t('gateway_ad_title')}</h2>
-                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-violet-500 pr-6 md:pr-10">{t('gateway_ad_desc')}</p>
+                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-violet-400 transition-all duration-700">{siteConfig.gatewayAdTitle}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-violet-500 pr-6 md:pr-10">{siteConfig.gatewayAdDesc}</p>
                   <div className="flex flex-wrap gap-6 md:gap-8 items-center pt-4 md:pt-8">
                     <button onClick={onLoginClick} className="bg-violet-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-violet-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(124,58,237,0.3)] w-full md:w-max">{t('activate_gateway')}</button>
                     <div className="flex -space-x-4">
@@ -359,8 +359,8 @@ const LandingPage: React.FC<Props> = ({
             <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row-reverse items-stretch min-h-[600px] md:min-h-[800px] shadow-[0_50px_120px_rgba(0,0,0,0.7)] border border-amber-500/10 hover:border-amber-500/40 transition-all duration-1000 relative">
                 <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10 bg-gradient-to-br from-slate-950 via-[#020617] to-indigo-950/20">
                   <div className="flex items-center gap-6 text-amber-500 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-amber-500"></span>{t('monthly_raffle_title')}</div>
-                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-amber-400 transition-all duration-700">{t('raffle_ad_title')}</h2>
-                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-amber-500 pr-6 md:pr-10">{t('raffle_ad_desc')}</p>
+                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-amber-400 transition-all duration-700">{siteConfig.raffleAdTitle}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-amber-500 pr-6 md:pr-10">{siteConfig.raffleAdDesc}</p>
                   
                   {siteConfig.showRaffleCountdown && siteConfig.raffleEndDate && (
                     <div className="py-4 md:py-6">
@@ -430,8 +430,8 @@ const LandingPage: React.FC<Props> = ({
             <div id="salary-ad" className="group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-indigo-500/10 hover:border-indigo-500/40 transition-all duration-1000 relative">
                <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
                   <div className="flex items-center gap-6 text-indigo-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-indigo-500"></span>{t('exclusive_financial_innovation')}</div>
-                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-indigo-400 transition-all duration-700">{t('salary_ad_title')}</h2>
-                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-indigo-500 pr-6 md:pr-10">{t('salary_ad_desc')}</p>
+                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-indigo-400 transition-all duration-700">{siteConfig.salaryAdTitle}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-indigo-500 pr-6 md:pr-10">{siteConfig.salaryAdDesc}</p>
                   <button onClick={onRegisterClick} className="bg-indigo-600 px-10 py-4 md:px-20 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-indigo-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(79,70,229,0.3)] w-full md:w-max">{t('request_pre_financing')}</button>
                </div>
                <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
@@ -443,8 +443,8 @@ const LandingPage: React.FC<Props> = ({
             <div id="trading-ad" className="group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl hover:border-sky-500/30 transition-all duration-1000">
                <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
                   <div className="flex items-center gap-6 text-sky-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-sky-500"></span>{t('elite_level_trading')}</div>
-                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-glow transition-all duration-700">{t('trading_ad_title')}</h2>
-                  <p className="text-lg md:text-3xl text-slate-300 font-bold leading-relaxed border-r-4 md:border-r-8 border-sky-500 pr-6 md:pr-10">{t('trading_ad_desc')}</p>
+                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-glow transition-all duration-700">{siteConfig.tradingAdTitle}</h2>
+                  <p className="text-lg md:text-3xl text-slate-300 font-bold leading-relaxed border-r-4 md:border-r-8 border-sky-500 pr-6 md:pr-10">{siteConfig.tradingAdDesc}</p>
                   <button onClick={onLoginClick} className="bg-sky-600 px-10 py-4 md:px-20 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-sky-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(14,165,233,0.4)] w-full md:w-max">{t('enter_pro_platform')}</button>
                </div>
                <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
@@ -484,8 +484,8 @@ const LandingPage: React.FC<Props> = ({
                     {pages.filter(p=>p.isActive && p.showInFooter).map(p=>(
                       <li key={p.id} onClick={()=>setCurrentPath(p.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full shadow-[0_0_10px_#0ea5e9]"></span>{p.title}</li>
                     ))}
-                    {[t('footer_link_1'), t('footer_link_2'), t('footer_link_3'), t('footer_link_4')].map(link => (
-                      <li key={link} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{link}</li>
+                    {[siteConfig.footerLink1Text, siteConfig.footerLink2Text, siteConfig.footerLink3Text, siteConfig.footerLink4Text].map((link, idx) => (
+                      <li key={idx} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{link}</li>
                     ))}
                  </ul>
               </div>

@@ -222,6 +222,40 @@ const App: React.FC = () => {
     }
   }, [siteConfig]);
 
+  // Refresh default values in siteConfig when language changes
+  useEffect(() => {
+    if (!isInitialLoad.current) {
+      setSiteConfig(prev => ({
+        ...prev,
+        heroTitle: t('hero_title'),
+        heroSubtitle: t('hero_subtitle'),
+        heroCtaText: t('hero_cta_text'),
+        salesCtaText: t('sales_cta_text'),
+        servicesTitle: t('services_title'),
+        servicesSubtitle: t('services_subtitle'),
+        galleryTitle: t('gallery_title'),
+        footerAbout: t('footer_about'),
+        contactAddress: t('contact_address'),
+        footerLinksTitle: t('footer_links_title'),
+        footerLink1Text: t('footer_link_1'),
+        footerLink2Text: t('footer_link_2'),
+        footerLink3Text: t('footer_link_3'),
+        footerLink4Text: t('footer_link_4'),
+        contactSectionTitle: t('contact_section_title'),
+        salaryAdTitle: t('salary_ad_title'),
+        salaryAdDesc: t('salary_ad_desc'),
+        tradingAdTitle: t('trading_ad_title'),
+        tradingAdDesc: t('trading_ad_desc'),
+        raffleAdTitle: t('raffle_ad_title'),
+        raffleAdDesc: t('raffle_ad_desc'),
+        transferAdTitle: t('transfer_ad_title'),
+        transferAdDesc: t('transfer_ad_desc'),
+        gatewayAdTitle: t('gateway_ad_title'),
+        gatewayAdDesc: t('gateway_ad_desc'),
+      }));
+    }
+  }, [language]);
+
   // Generic Sync Effect for Arrays
   const useSyncEffect = (data: any[], syncFn: (item: any) => Promise<void>, label: string, bulkSync?: (items: any[]) => Promise<void>) => {
     const prevData = React.useRef(JSON.stringify(data));

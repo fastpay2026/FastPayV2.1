@@ -30,6 +30,48 @@ const translationsData: Translations = {
     "ku": "تۆمارکردن",
     "ru": "Регистрация"
   },
+  "asset_gold": {
+    "en": "Royal Gold",
+    "ar": "الذهب الملكي",
+    "ku": "ئاڵتوونی شاهانە",
+    "tr": "Kraliyet Altını"
+  },
+  "asset_btc": {
+    "en": "Bitcoin (BTC)",
+    "ar": "بيتكوين (BTC)",
+    "ku": "بیتکۆین (BTC)",
+    "tr": "Bitcoin (BTC)"
+  },
+  "asset_brent": {
+    "en": "Brent Oil",
+    "ar": "نفط برنت",
+    "ku": "نەوتی برێنت",
+    "tr": "Brent Petrol"
+  },
+  "asset_eth": {
+    "en": "Ethereum (ETH)",
+    "ar": "إيثيريوم (ETH)",
+    "ku": "ئیسریۆم (ETH)",
+    "tr": "Ethereum (ETH)"
+  },
+  "asset_nasdaq": {
+    "en": "Nasdaq 100",
+    "ar": "ناسداك 100",
+    "ku": "ناسداک ١٠٠",
+    "tr": "Nasdaq 100"
+  },
+  "asset_apple": {
+    "en": "Apple (AAPL)",
+    "ar": "آبل (AAPL)",
+    "ku": "ئەپڵ (AAPL)",
+    "tr": "Apple (AAPL)"
+  },
+  "asset_nvidia": {
+    "en": "Nvidia (NVDA)",
+    "ar": "انفيديا (NVDA)",
+    "ku": "ئینڤیدیا (NVDA)",
+    "tr": "Nvidia (NVDA)"
+  },
   "home": {
     "en": "Home",
     "ar": "الرئيسية",
@@ -759,6 +801,15 @@ const translationsData: Translations = {
     "ku": "خزمەتگوزارییەکان",
     "ru": "Услуги"
   },
+  "services_title": {
+    "en": "Services",
+    "ar": "الخدمات",
+    "fr": "Services",
+    "tr": "Hizmetler",
+    "zh": "服务",
+    "ku": "خزمەتگوزارییەکان",
+    "ru": "Услуги"
+  },
   "services_subtitle": {
     "en": "Integrated financial solutions designed for the elite, combining speed, security, and global innovation.",
     "ar": "حلول مالية متكاملة مصممة للنخبة، تجمع بين السرعة والأمان والابتكار العالمي.",
@@ -767,6 +818,15 @@ const translationsData: Translations = {
     "zh": "为精英设计的综合金融解决方案，结合了速度、安全和全球创新。",
     "ku": "چارەسەری دارایی یەکخراو کە بۆ بژاردەکان داڕێژراوە، خێرایی و ئاسایش و داهێنانی جیهانی کۆدەکاتەوە.",
     "ru": "Интегрированные финансовые решения, разработанные для элиты, сочетающие в себе скорость, безопасность и глобальные инновации."
+  },
+  "gallery_title": {
+    "en": "Global Financial Infrastructure",
+    "ar": "البنية التحتية المالية العالمية",
+    "fr": "Infrastructure financière mondiale",
+    "tr": "Küresel Finansal Altyapı",
+    "zh": "全球金融基础设施",
+    "ku": "ژێرخانی دارایی جیهانی",
+    "ru": "Глобальная финансовая инфраструктура"
   },
   "footer_links_title": {
     "en": "Quick Links",
