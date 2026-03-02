@@ -30,48 +30,12 @@ const translationsData: Translations = {
     "ku": "تۆمارکردن",
     "ru": "Регистрация"
   },
-  "asset_gold": {
-    "en": "Royal Gold",
-    "ar": "الذهب الملكي",
-    "ku": "ئاڵتوونی شاهانە",
-    "tr": "Kraliyet Altını"
-  },
-  "asset_btc": {
-    "en": "Bitcoin (BTC)",
-    "ar": "بيتكوين (BTC)",
-    "ku": "بیتکۆین (BTC)",
-    "tr": "Bitcoin (BTC)"
-  },
-  "asset_brent": {
-    "en": "Brent Oil",
-    "ar": "نفط برنت",
-    "ku": "نەوتی برێنت",
-    "tr": "Brent Petrol"
-  },
-  "asset_eth": {
-    "en": "Ethereum (ETH)",
-    "ar": "إيثيريوم (ETH)",
-    "ku": "ئیسریۆم (ETH)",
-    "tr": "Ethereum (ETH)"
-  },
-  "asset_nasdaq": {
-    "en": "Nasdaq 100",
-    "ar": "ناسداك 100",
-    "ku": "ناسداک ١٠٠",
-    "tr": "Nasdaq 100"
-  },
-  "asset_apple": {
-    "en": "Apple (AAPL)",
-    "ar": "آبل (AAPL)",
-    "ku": "ئەپڵ (AAPL)",
-    "tr": "Apple (AAPL)"
-  },
-  "asset_nvidia": {
-    "en": "Nvidia (NVDA)",
-    "ar": "انفيديا (NVDA)",
-    "ku": "ئینڤیدیا (NVDA)",
-    "tr": "Nvidia (NVDA)"
-  },
+  "asset_gold": { "en": "Gold", "ar": "الذهب", "fr": "Or", "tr": "Altın", "zh": "黄金", "ku": "ئاڵتوون", "ru": "Золото" },
+  "asset_btc": { "en": "Bitcoin", "ar": "بيتكوين", "fr": "Bitcoin", "tr": "Bitcoin", "zh": "比特币", "ku": "بیتکۆین", "ru": "Биткойн" },
+  "asset_brent": { "en": "Brent Oil", "ar": "نفط برنت", "fr": "Pétrole Brent", "tr": "Brent Petrol", "zh": "布伦特原油", "ku": "نەوتی برێنت", "ru": "Нефть Brent" },
+  "asset_eth": { "en": "Ethereum", "ar": "إيثيريوم", "fr": "Ethereum", "tr": "Ethereum", "zh": "以太坊", "ku": "ئیسێريۆم", "ru": "Эфириум" },
+  "asset_nasdaq": { "en": "NASDAQ 100", "ar": "ناسداك 100", "fr": "NASDAQ 100", "tr": "NASDAQ 100", "zh": "纳斯达克 100", "ku": "ناسداک ١٠٠", "ru": "NASDAQ 100" },
+  "asset_apple": { "en": "Apple Inc", "ar": "شركة أبل", "fr": "Apple Inc", "tr": "Apple Inc", "zh": "苹果公司", "ku": "کۆمپانیای ئەپڵ", "ru": "Apple Inc" },
   "home": {
     "en": "Home",
     "ar": "الرئيسية",
@@ -846,6 +810,18 @@ const translationsData: Translations = {
     "ku": "پەیوەندیمان پێوە بکە",
     "ru": "Связаться с нами"
   },
+  "contact_address": {
+    "en": "Riyadh, Saudi Arabia",
+    "ar": "الرياض، المملكة العربية السعودية",
+    "fr": "Riyad, Arabie Saoudite",
+    "tr": "Riyad, Suudi Arabistan",
+    "zh": "沙特阿拉伯利雅得",
+    "ku": "ڕیاز، عەرەبستانی سعوودی",
+    "ru": "Эр-Рияд, Саудовская Аравия"
+  },
+  "asset_eur_usd": { "en": "EUR / USD", "ar": "اليورو / دولار", "fr": "EUR / USD", "tr": "EUR / USD", "zh": "欧元 / 美元", "ku": "یۆرۆ / دۆلار", "ru": "EUR / USD" },
+  "asset_gbp_usd": { "en": "GBP / USD", "ar": "الجنيه / دولار", "fr": "GBP / USD", "tr": "GBP / USD", "zh": "英镑 / 美元", "ku": "پاوەند / دۆلار", "ru": "GBP / USD" },
+  "asset_usd_jpy": { "en": "USD / JPY", "ar": "دولار / ين", "fr": "USD / JPY", "tr": "USD / JPY", "zh": "美元 / 日元", "ku": "دۆلار / یەن", "ru": "USD / JPY" },
   "footer_link_1": {
     "en": "Privacy Policy",
     "ar": "سياسة الخصوصية",
@@ -1313,6 +1289,339 @@ const translationsData: Translations = {
     "zh": "投资计划",
     "ku": "پلانەکانی وەبەرهێنان",
     "ru": "Инвестиционные планы"
+  },
+  "الخطة البلاتينية": {
+    "en": "Platinum Plan",
+    "ar": "الخطة البلاتينية",
+    "fr": "Plan Platine",
+    "tr": "Platin Plan",
+    "zh": "铂金计划",
+    "ku": "پلانی پلاتینی",
+    "ru": "Платиновый план"
+  },
+  "صندوق النخبة الاحتياطي": {
+    "en": "Elite Reserve Fund",
+    "ar": "صندوق النخبة الاحتياطي",
+    "fr": "Fonds de réserve d'élite",
+    "tr": "Elit Rezerv Fonu",
+    "zh": "精英储备基金",
+    "ku": "سندوقی یەدەگی بژاردە",
+    "ru": "Элитный резервный фонд"
+  },
+  "ايجار سهم في منصة الاستثمار": {
+    "en": "Share Rental in Investment Platform",
+    "ar": "ايجار سهم في منصة الاستثمار",
+    "fr": "Location d'actions sur la plateforme d'investissement",
+    "tr": "Yatırım Platformunda Hisse Kiralama",
+    "zh": "投资平台股票租赁",
+    "ku": "بەکرێگرتنی پشک لە پلاتفۆرمی وەبەرهێنان",
+    "ru": "Аренда акций на инвестиционной платформе"
+  },
+  "الخطة الفضية": {
+    "en": "Silver Plan",
+    "ar": "الخطة الفضية",
+    "fr": "Plan Argent",
+    "tr": "Gümüş Plan",
+    "zh": "白银计划",
+    "ku": "پلانی زیو",
+    "ru": "Серебряный план"
+  },
+  "الخطة الذهبية": {
+    "en": "Gold Plan",
+    "ar": "الخطة الذهبية",
+    "fr": "Plan Or",
+    "tr": "Altın Plan",
+    "zh": "黄金计划",
+    "ku": "پلانی ئاڵتوون",
+    "ru": "Золотой план"
+  },
+  "صندوق النمو الفضي": {
+    "en": "Silver Growth Fund",
+    "ar": "صندوق النمو الفضي",
+    "fr": "Fonds de croissance Silver",
+    "tr": "Gümüş Büyüme Fonu",
+    "zh": "白银增长基金",
+    "ku": "سندوقی گەشەی زیو",
+    "ru": "Серебряный фонд роста"
+  },
+  "صندوق الثروة الذهبي": {
+    "en": "Gold Wealth Fund",
+    "ar": "صندوق الثروة الذهبي",
+    "fr": "Fonds de richesse Gold",
+    "tr": "Altın Servet Fonu",
+    "zh": "黄金财富基金",
+    "ku": "سندوقی سامانی ئاڵتوون",
+    "ru": "Золотой фонд благосостояния"
+  },
+  "الصندوق السيادي البلاتيني": {
+    "en": "Platinum Sovereign Fund",
+    "ar": "الصندوق السيادي البلاتيني",
+    "fr": "Fonds souverain Platinum",
+    "tr": "Platin Egemen Fonu",
+    "zh": "铂金主权基金",
+    "ku": "سندوقی سەروەری پلاتین",
+    "ru": "Платиновый суверенный фонд"
+  },
+  "السيادة المالية في عصر السرعة": {
+    "en": "Financial Sovereignty in the Age of Speed",
+    "ar": "السيادة المالية في عصر السرعة",
+    "fr": "Souveraineté financière à l'ère de la vitesse",
+    "tr": "Hız Çağında Finansal Egemenlik",
+    "zh": "速度时代的金融主权",
+    "ku": "سەروەری دارایی لە سەردەمی خێراییدا",
+    "ru": "Финансовый суверенитет в эпоху скорости"
+  },
+  "بوابة FastPay Network لإدارة الأصول والتداول الفوري وحماية الثروات الرقمية بأعلى معايير الأمان العالمية.": {
+    "en": "FastPay Network's gateway for asset management, instant trading, and digital wealth protection with the highest global security standards.",
+    "ar": "بوابة FastPay Network لإدارة الأصول والتداول الفوري وحماية الثروات الرقمية بأعلى معايير الأمان العالمية.",
+    "fr": "La passerelle de FastPay Network pour la gestion d'actifs, le trading instantané et la protection du patrimoine numérique avec les normes de sécurité mondiales les plus élevées.",
+    "tr": "FastPay Network'ün varlık yönetimi, anında ticaret ve dijital servet koruması için en yüksek küresel güvenlik standartlarına sahip geçidi.",
+    "zh": "FastPay Network 的资产管理、即时交易和数字财富保护网关，符合全球最高安全标准。",
+    "ku": "دەروازەی تۆڕی FastPay بۆ بەڕێوەبردنی سەرمایە، بازرگانی خێرا، و پاراستنی سامانی دیجیتاڵی بە بەرزترین ستانداردەکانی ئاسایشی جیهانی.",
+    "ru": "Шлюз FastPay Network для управления активами, мгновенной торговли и защиты цифрового богатства с высочайшими мировыми стандартами безопасности."
+  },
+  "FastPay Network هي المعيار العالمي للمدفوعات الرقمية عالية الأمان، نجمع بين التكنولوجيا المتطورة والخدمات المالية المتميزة.": {
+    "en": "FastPay Network is the global standard for highly secure digital payments, combining advanced technology with outstanding financial services.",
+    "ar": "FastPay Network هي المعيار العالمي للمدفوعات الرقمية عالية الأمان، نجمع بين التكنولوجيا المتطورة والخدمات المالية المتميزة.",
+    "fr": "FastPay Network est la norme mondiale pour les paiements numériques hautement sécurisés, combinant une technologie de pointe avec des services financiers exceptionnels.",
+    "tr": "FastPay Network, ileri teknolojiyi üstün finansal hizmetlerle birleştiren, yüksek güvenlikli dijital ödemeler için küresel bir standarttır.",
+    "zh": "FastPay Network 是高度安全的数字支付全球标准，结合了先进技术和卓越의 金融服务。",
+    "ku": "تۆڕی FastPay ستانداردی جیهانییە بۆ پارەدانە دیجیتاڵییە زۆر پارێزراوەکان، تەکنەلۆژیای پێشکەوتوو لەگەڵ خزمەتگوزارییە داراییە نایابەکان کۆدەکاتەوە.",
+    "ru": "FastPay Network - это мировой стандарт для высокозащищенных цифровых платежей, сочетающий передовые технологии с выдающимися финансовыми услугами."
+  },
+  "الرياض، المملكة العربية السعودية": {
+    "en": "Riyadh, Saudi Arabia",
+    "ar": "الرياض، المملكة العربية السعودية",
+    "fr": "Riyad, Arabie Saoudite",
+    "tr": "Riyad, Suudi Arabistan",
+    "zh": "沙特阿拉伯利雅得",
+    "ku": "ڕیاز، عەرەبستانی سعوودی",
+    "ru": "Эр-Рияд, Саудовская Аравия"
+  },
+  "تمويل الرواتب الذكي": {
+    "en": "Smart Salary Financing",
+    "ar": "تمويل الرواتب الذكي",
+    "fr": "Financement intelligent des salaires",
+    "tr": "Akıllı Maaş Finansmanı",
+    "zh": "智能薪资融资",
+    "ku": "پارەدانەوەی مووچەی زیرەک",
+    "ru": "Умное финансирование зарплаты"
+  },
+  "أول منصة تتيح تمويل الرواتب المسبق للموظفين بضمانات بنكية رقمية وسرعة في الإيداع في كل انحاء العالم.": {
+    "en": "The first platform that allows advance salary financing for employees with digital bank guarantees and fast deposits worldwide.",
+    "ar": "أول منصة تتيح تمويل الرواتب المسبق للموظفين بضمانات بنكية رقمية وسرعة في الإيداع في كل انحاء العالم.",
+    "fr": "La première plateforme qui permet le financement anticipé des salaires pour les employés avec des garanties bancaires numériques et des dépôts rapides dans le monde entier.",
+    "tr": "Çalışanlar için dijital banka garantileri ve dünya genelinde hızlı para yatırma imkanı sunan ilk platform.",
+    "zh": "首个允许员工通过数字银行担保和全球快速存款进行预支薪资融资的平台。",
+    "ku": "یەکەم پلاتفۆرم کە ڕێگە بە پارەدانەوەی مووچەی پێشوەختە دەدات بۆ کارمەندان بە گەرەنتی بانکی دیجیتاڵی و خێرایی لە دانانی پارە لە هەموو جیهاندا.",
+    "ru": "Первая платформа, позволяющая авансовое финансирование зарплаты для сотрудников с цифровыми банковскими гарантиями и быстрыми депозитами по всему миру."
+  },
+  "محرك التداول الاحترافي": {
+    "en": "Professional Trading Engine",
+    "ar": "محرك التداول الاحترافي",
+    "fr": "Moteur de trading professionnel",
+    "tr": "Profesyonel Ticaret Motoru",
+    "zh": "专业交易引擎",
+    "ku": "بزوێنەری بازرگانی پیشەیی",
+    "ru": "Профессиональный торговый движок"
+  },
+  "لا تنتظر السوق، بل كن أنت المحرك. منصتنا توفر لك وصولاً مباشراً للسيولة العالمية مع أدوات تحليل ذكية ومخططات بيانية فورية.": {
+    "en": "Don't wait for the market, be the driver. Our platform provides you with direct access to global liquidity with smart analysis tools and instant charts.",
+    "ar": "لا تنتظر السوق، بل كن أنت المحرك. منصتنا توفر لك وصولاً مباشراً للسيولة العالمية مع أدوات تحليل ذكية ومخططات بيانية فورية.",
+    "fr": "N'attendez pas le marché, soyez le moteur. Notre plateforme vous offre un accès direct à la liquidité mondiale avec des outils d'analyse intelligents et des graphiques instantanés.",
+    "tr": "Piyasayı beklemeyin, sürücü olun. Platformumuz akıllı analiz araçları ve anlık grafiklerle küresel likiditeye doğrudan erişim sağlar.",
+    "zh": "不要等待市场，成为驱动者。我们的平台为您提供全球流动性的直接访问，以及智能分析工具和即时图表。",
+    "ku": "چاوەڕێی بازاڕ مەکە، بەڵکو خۆت بزوێنەر بە. پلاتفۆرمەکەمان دەستڕاگەیشتنی ڕاستەوخۆت پێدەدات بە شلەیی جیهانی لەگەڵ ئامرازەکانی شیکردنەوەی زیرەک و نەخشەی خێرا.",
+    "ru": "Не ждите рынка, будьте двигателем. Наша платформа предоставляет вам прямой доступ к глобальной ликвидности с интеллектуальными инструментами анализа и мгновенными графиками."
+  },
+  "القرعة الشهرية: حلم الفخامة": {
+    "en": "Monthly Raffle: Dream of Luxury",
+    "ar": "القرعة الشهرية: حلم الفخامة",
+    "fr": "Tombola mensuelle : Rêve de luxe",
+    "tr": "Aylık Çekiliş: Lüks Hayali",
+    "zh": "每月抽奖：奢华梦想",
+    "ku": "تیروپشکی مانگانە: خەونی لوکس",
+    "ru": "Ежемесячная лотерея: Мечта о роскоши"
+  },
+  "شارك الآن في سحب FastPay الشهري للفوز بسيارة رياضية خارقة أحدث طراز، أو رحلة عمرة VIP.": {
+    "en": "Participate now in the FastPay monthly draw to win a brand new supercar, or a VIP Umrah trip.",
+    "ar": "شارك الآن في سحب FastPay الشهري للفوز بسيارة رياضية خارقة أحدث طراز، أو رحلة عمرة VIP.",
+    "fr": "Participez maintenant au tirage au sort mensuel FastPay pour gagner une toute nouvelle supercar ou un voyage Omra VIP.",
+    "tr": "Şimdi FastPay aylık çekilişine katılarak yepyeni bir süper araba veya VIP Umre gezisi kazanın.",
+    "zh": "立即参加 FastPay 每月抽奖，赢取一辆全新的超级跑车或一次 VIP 副朝之旅。",
+    "ku": "ئێستا بەشداری بکە لە تیروپشکی مانگانەی FastPay بۆ بردنەوەی ئۆتۆمبێلێکی وەرزشی نوێ، یان گەشتێکی عومرەی VIP.",
+    "ru": "Участвуйте сейчас в ежемесячном розыгрыше FastPay, чтобы выиграть совершенно новый суперкар или VIP-поездку в Умру."
+  },
+  "جسر السيولة العالمي": {
+    "en": "Global Liquidity Bridge",
+    "ar": "جسر السيولة العالمي",
+    "fr": "Pont de liquidité mondial",
+    "tr": "Küresel Likidite Köprüsü",
+    "zh": "全球流动性桥梁",
+    "ku": "پرۆژەی شلەیی جیهانی",
+    "ru": "Глобальный мост ликвидности"
+  },
+  "أرسل واستقبل الأموال فورياً عبر نظام Swift العالمي بدقة متناهية وأمان يتجاوز المعايير البنكية.": {
+    "en": "Send and receive money instantly via the global Swift system with extreme precision.",
+    "ar": "أرسل واستقبل الأموال فورياً عبر نظام Swift العالمي بدقة متناهية وأمان يتجاوز المعايير البنكية.",
+    "fr": "Envoyez et recevez de l'argent instantanément via le système Swift mondial avec une précision extrême.",
+    "tr": "Küresel Swift sistemi aracılığıyla aşırı hassasiyetle anında para gönderip alın.",
+    "zh": "通过全球 Swift 系统以极高的精确度即时发送和接收资金。",
+    "ku": "پارە خێرا بنێرە و وەربگرە لە ڕێگەی سیستەمی Swift ی جیهانییەوە بە وردبینییەکی زۆر.",
+    "ru": "Мгновенно отправляйте и получайте деньги через глобальную систему Swift с исключительной точностью."
+  },
+  "بوابة دفع FastPay": {
+    "en": "FastPay Checkout Gateway",
+    "ar": "بوابة دفع FastPay",
+    "fr": "Passerelle FastPay Checkout",
+    "tr": "FastPay Checkout Ağ Geçidi",
+    "zh": "FastPay 结账网关",
+    "ku": "دەروازەی پارەدانی FastPay",
+    "ru": "Платежный шлюз FastPay Checkout"
+  },
+  "حوّل متجرك الإلكتروني إلى منصة دفع عالمية رائدة بعمولات تنافسية تبدأ من 0.8%.": {
+    "en": "Transform your e-store into a leading global payment platform with competitive commissions.",
+    "ar": "حوّل متجرك الإلكتروني إلى منصة دفع عالمية رائدة بعمولات تنافسية تبدأ من 0.8%.",
+    "fr": "Transformez votre boutique en ligne en une plateforme de paiement mondiale de premier plan avec des commissions compétitives.",
+    "tr": "E-mağazanızı rekabetçi komisyonlarla lider bir küresel ödeme platformuna dönüştürün.",
+    "zh": "以具有竞争力的佣金将您的电子商店转变为领先的全球支付平台。",
+    "ku": "فرۆشگا ئەلیکترۆنییەکەت بگۆڕە بۆ پلاتفۆرمێکی پێشەنگی پارەدانی جیهانی بە کۆمیسیۆنی کێبڕکێکار.",
+    "ru": "Превратите свой интернет-магазин в ведущую глобальную платежную платформу с конкурентоспособными комиссиями."
+  },
+  "الخدمات": {
+    "en": "Services",
+    "ar": "الخدمات",
+    "fr": "Services",
+    "tr": "Hizmetler",
+    "zh": "服务",
+    "ku": "خزمەتگوزارییەکان",
+    "ru": "Услуги"
+  },
+  "حلول مالية متكاملة مصممة للنخبة، تجمع بين السرعة والأمان والابتكار العالمي.": {
+    "en": "Integrated financial solutions designed for the elite, combining speed, security, and global innovation.",
+    "ar": "حلول مالية متكاملة مصممة للنخبة، تجمع بين السرعة والأمان والابتكار العالمي.",
+    "fr": "Solutions financières intégrées conçues pour l'élite, alliant vitesse, sécurité et innovation mondiale.",
+    "tr": "Hız, güvenlik ve küresel inovasyonu birleştiren, elitler için tasarlanmış entegre finansal çözümler.",
+    "zh": "为精英设计的综合金融解决方案，结合了速度、安全和全球创新。",
+    "ku": "حلول مالية متكاملة مصممة للنخبة، تجمع بين السرعة والأمان والابتكار العالمي.",
+    "ru": "Интегрированные финансовые решения, разработанные для элиты, сочетающие скорость, безопасность и мировые инновации."
+  },
+  "raffle_prize_type": {
+    "en": "Grand Prize",
+    "ar": "جائزة كبرى",
+    "fr": "Grand Prix",
+    "tr": "Büyük Ödül",
+    "zh": "大奖",
+    "ku": "خەڵاتی گەورە",
+    "ru": "Главный приз"
+  },
+  "افتح حسابك الملكي": {
+    "en": "Open Your Royal Account",
+    "ar": "افتح حسابك الملكي",
+    "fr": "Ouvrez votre compte Royal",
+    "tr": "Kraliyet Hesabınızı Açın",
+    "zh": "开设您的皇家账户",
+    "ku": "هەژماری شاهانەی خۆت بکەرەوە",
+    "ru": "Откройте свой королевский счет"
+  },
+  "تواصل مع الإدارة": {
+    "en": "Contact Management",
+    "ar": "تواصل مع الإدارة",
+    "fr": "Contacter la direction",
+    "tr": "Yönetimle İletيشيمه Geçin",
+    "zh": "联系管理层",
+    "ku": "پەیوەندی بە بەڕێوەبەرایەتییەوە بکە",
+    "ru": "Связаться с руководством"
+  },
+  "روابط سريعة": {
+    "en": "Quick Links",
+    "ar": "روابط سريعة",
+    "fr": "Liens rapides",
+    "tr": "Hızlı Bağlantılar",
+    "zh": "快速链接",
+    "ku": "بەستەرە خێراکان",
+    "ru": "Быстрые ссылки"
+  },
+  "تواصل معنا": {
+    "en": "Contact Us",
+    "ar": "تواصل معنا",
+    "fr": "Contactez-nous",
+    "tr": "Bize Ulaşın",
+    "zh": "联系我们",
+    "ku": "پەیوەندیمان پێوە بکە",
+    "ru": "Связаться с нами"
+  },
+  "البنية التحتية المالية العالمية": {
+    "en": "Global Financial Infrastructure",
+    "ar": "البنية التحتية المالية العالمية",
+    "fr": "Infrastructure financière mondiale",
+    "tr": "Küresel Finansal Altyapı",
+    "zh": "全球金融基础设施",
+    "ku": "ژێرخانی دارایی جیهانی",
+    "ru": "Глобальная финансовая инфраструктура"
+  },
+  "سياسة الخصوصية": {
+    "en": "Privacy Policy",
+    "ar": "سياسة الخصوصية",
+    "fr": "Politique de confidentialité",
+    "tr": "Gizlilik Politikası",
+    "zh": "隐私政策",
+    "ku": "سیاسەتی تایبەتمەندی",
+    "ru": "Политика конфиденциальности"
+  },
+  "شروط الخدمة": {
+    "en": "Terms of Service",
+    "ar": "شروط الخدمة",
+    "fr": "Conditions d'utilisation",
+    "tr": "Hizmet Şartları",
+    "zh": "服务条款",
+    "ku": "مەرجەکانی خزمەتگوزاری",
+    "ru": "Условия обслуживания"
+  },
+  "معايير الأمان": {
+    "en": "Security Standards",
+    "ar": "معايير الأمان",
+    "fr": "Normes de sécurité",
+    "tr": "Güvenlik Standartları",
+    "zh": "安全标准",
+    "ku": "ستانداردەکانی ئاسایش",
+    "ru": "Стандарты безопасности"
+  },
+  "التراخيص العالمية": {
+    "en": "Global Licenses",
+    "ar": "التراخيص العالمية",
+    "fr": "Licences mondiales",
+    "tr": "Küresel Lisanslar",
+    "zh": "全球执照",
+    "ku": "مۆڵەتە جیهانییەکان",
+    "ru": "Глобальные лицензии"
+  },
+  "deposit_plan1_name": {
+    "en": "Silver Growth Fund",
+    "ar": "صندوق النمو الفضي",
+    "fr": "Fonds de croissance Silver",
+    "tr": "Gümüş Büyüme Fonu",
+    "zh": "白银增长基金",
+    "ku": "سندوقی گەشەی زیو",
+    "ru": "Серебряный фонд роста"
+  },
+  "deposit_plan2_name": {
+    "en": "Gold Wealth Fund",
+    "ar": "صندوق الثروة الذهبي",
+    "fr": "Fonds de richesse Gold",
+    "tr": "Altın Servet Fonu",
+    "zh": "黄金财富基金",
+    "ku": "سندوقی سامانی ئاڵتوون",
+    "ru": "Золотой фонд благосостояния"
+  },
+  "deposit_plan3_name": {
+    "en": "Platinum Sovereign Fund",
+    "ar": "الصندوق السيادي البلاتيني",
+    "fr": "Fonds souverain Platinum",
+    "tr": "Platin Egemen Fonu",
+    "zh": "铂金主权基金",
+    "ku": "سندوقی سەروەری پلاتین",
+    "ru": "Платиновый суверенный фонд"
   },
   "nav_merchant_escrow": {
     "en": "Merchant Escrow",

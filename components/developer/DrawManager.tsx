@@ -23,7 +23,7 @@ const DrawManager: React.FC<Props> = ({
 
   const drawRaffleWinner = () => {
     if (raffleEntries.length === 0) return alert(t('no_participants_warning'));
-    const prize = prompt(t('enter_prize_name'), siteConfig.rafflePrizeType || t('grand_prize'));
+    const prize = prompt(t('enter_prize_name'), t(siteConfig.rafflePrizeType) || t('grand_prize'));
     if (!prize) return;
 
     setIsDrawing(true);

@@ -41,7 +41,7 @@ const InvestmentPlans: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {siteConfig.depositPlans.map(plan => (
           <div key={plan.id} className="p-8 md:p-10 bg-slate-900/60 border border-white/10 rounded-2xl md:rounded-[3rem] shadow-xl text-center group hover:border-sky-500/40 transition-all relative">
-            <h4 className="text-xl md:text-2xl font-black text-sky-400 mb-2">{plan.name}</h4>
+            <h4 className="text-xl md:text-2xl font-black text-sky-400 mb-2">{t(plan.name)}</h4>
             <p className="text-5xl md:text-6xl font-black mb-6">{plan.rate}%</p>
             <p className="text-[10px] md:text-xs text-slate-500 font-bold mb-8 uppercase tracking-widest">{plan.durationMonths} {t('months')} / {t('min_amount')} ${plan.minAmount.toLocaleString()}</p>
             <button onClick={() => deletePlan(plan.id)} className="text-red-500 font-black text-[10px] hover:bg-red-500/10 px-4 md:px-6 py-2 rounded-full transition-all border border-red-500/20">{t('delete_plan')}</button>

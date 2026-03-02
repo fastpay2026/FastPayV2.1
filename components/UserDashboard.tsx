@@ -373,7 +373,7 @@ const UserDashboard: React.FC<Props> = ({
     onUpdateUser({ ...user, balance: newBalance });
     setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
     
-    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'fixed_deposit', amount: -investAmount, timestamp: new Date().toLocaleString(), relatedUser: `${t('invest_desc')}: ${selectedPlan.name}` }, ...prev]);
+    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'fixed_deposit', amount: -investAmount, timestamp: new Date().toLocaleString(), relatedUser: `${t('invest_desc')}: ${t(selectedPlan.name)}` }, ...prev]);
     addNotification(t('invest_start_title'), t('invest_start_msg', { amount: investAmount }), 'money');
     setModalType(null);
     setSelectedPlan(null);
@@ -558,7 +558,7 @@ const UserDashboard: React.FC<Props> = ({
                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
                       {siteConfig.depositPlans.map(plan => (
                          <div key={plan.id} className="group bg-slate-900/60 p-8 md:p-12 rounded-3xl md:rounded-[4rem] border border-white/5 shadow-2xl hover:border-sky-500/40 transition-all text-center">
-                            <h4 className="text-2xl md:text-3xl font-black text-sky-400 mb-4">{plan.name}</h4>
+                            <h4 className="text-2xl md:text-3xl font-black text-sky-400 mb-4">{t(plan.name)}</h4>
                             <p className="text-5xl md:text-7xl font-black font-mono mb-8">{plan.rate}%</p>
                             <ul className="space-y-3 md:space-y-4 mb-8 md:mb-12 text-slate-400 font-bold text-right pr-6">
                                <li className="flex items-center gap-3 text-sm md:text-base">✅ {t('invest_duration')}: {plan.durationMonths} {t('months')}</li>
@@ -797,7 +797,7 @@ const UserDashboard: React.FC<Props> = ({
        {modalType === 'invest_form' && selectedPlan && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
              <form onSubmit={handleInvestSubmit} className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[5rem] p-8 md:p-16 space-y-8 md:space-y-12 animate-in zoom-in text-center shadow-3xl">
-                <h3 className="text-2xl md:text-4xl font-black text-sky-400">{selectedPlan.name}</h3>
+                <h3 className="text-2xl md:text-4xl font-black text-sky-400">{t(selectedPlan.name)}</h3>
                 <div className="space-y-6 md:space-y-8 text-right">
                    <div className="space-y-3"><label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">{t('amount_to_invest')}</label><input type="number" required min={selectedPlan.minAmount} value={investAmount || ''} onChange={e=>setInvestAmount(parseFloat(e.target.value))} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl md:rounded-[2.5rem] font-black text-center text-3xl md:text-5xl text-white outline-none font-mono" /></div>
                    <div className="p-6 md:p-8 bg-sky-500/10 rounded-2xl md:rounded-3xl border border-sky-500/20"><p className="text-slate-500 font-black text-[10px] md:text-xs uppercase mb-2">{t('expected_return_after')} {selectedPlan.durationMonths} {t('months')}</p><p className="text-xl md:text-3xl font-black text-emerald-400 font-mono">+${((investAmount || 0) * (selectedPlan.rate/100) * (selectedPlan.durationMonths/12)).toFixed(2)}</p></div>

@@ -37,51 +37,51 @@ const App: React.FC = () => {
     secondaryColor: '#3b82f6',
     siteName: 'FastPay Network',
     template: 'ultra-premium',
-    heroTitle: t('hero_title'),
-    heroSubtitle: t('hero_subtitle'),
-    heroCtaText: t('hero_cta_text'),
-    salesCtaText: t('sales_cta_text'),
-    servicesTitle: t('services_title'),
-    servicesSubtitle: t('services_subtitle'),
-    galleryTitle: t('gallery_title'),
-    footerAbout: t('footer_about'),
+    heroTitle: 'hero_title',
+    heroSubtitle: 'hero_subtitle',
+    heroCtaText: 'hero_cta_text',
+    salesCtaText: 'sales_cta_text',
+    servicesTitle: 'services_title',
+    servicesSubtitle: 'services_subtitle',
+    galleryTitle: 'gallery_title',
+    footerAbout: 'footer_about',
     contactEmail: 'elite@fastpay-network.com',
     contactPhone: '+966 9200 12345',
-    contactAddress: t('contact_address'),
-    footerLinksTitle: t('footer_links_title'),
-    footerLink1Text: t('footer_link1_text'),
-    footerLink2Text: t('footer_link2_text'),
-    footerLink3Text: t('footer_link3_text'),
-    footerLink4Text: t('footer_link4_text'),
-    contactSectionTitle: t('contact_section_title'),
+    contactAddress: 'contact_address',
+    footerLinksTitle: 'footer_links_title',
+    footerLink1Text: 'footer_link_1',
+    footerLink2Text: 'footer_link_2',
+    footerLink3Text: 'footer_link_3',
+    footerLink4Text: 'footer_link_4',
+    contactSectionTitle: 'contact_section_title',
     galleryImages: [],
     merchantFeeType: 'percent',
     merchantFeeValue: 0.8,
     userFeeType: 'fixed',
     userFeeValue: 0.5,
     depositPlans: [
-      { id: '1', name: t('deposit_plan1_name'), rate: 8.5, durationMonths: 4, minAmount: 1000 },
-      { id: '2', name: t('deposit_plan2_name'), rate: 18, durationMonths: 8, minAmount: 5000 },
-      { id: '3', name: t('deposit_plan3_name'), rate: 35, durationMonths: 12, minAmount: 25000 }
+      { id: '1', name: 'deposit_plan1_name', rate: 8.5, durationMonths: 4, minAmount: 1000 },
+      { id: '2', name: 'deposit_plan2_name', rate: 18, durationMonths: 8, minAmount: 5000 },
+      { id: '3', name: 'deposit_plan3_name', rate: 35, durationMonths: 12, minAmount: 25000 }
     ],
     ads: [],
-    salaryAdTitle: t('salary_ad_title'),
-    salaryAdDesc: t('salary_ad_desc'),
+    salaryAdTitle: 'salary_ad_title',
+    salaryAdDesc: 'salary_ad_desc',
     salaryAdImage: 'https://images.unsplash.com/photo-1556742044-3c52d6e88c62?q=80&w=1470&auto=format&fit=crop',
-    tradingAdTitle: t('trading_ad_title'),
-    tradingAdDesc: t('trading_ad_desc'),
+    tradingAdTitle: 'trading_ad_title',
+    tradingAdDesc: 'trading_ad_desc',
     tradingAdImage: 'https://images.unsplash.com/photo-1642790106117-e829e14a795f?q=80&w=2000&auto=format&fit=crop',
-    raffleAdTitle: t('raffle_ad_title'),
-    raffleAdDesc: t('raffle_ad_desc'),
+    raffleAdTitle: 'raffle_ad_title',
+    raffleAdDesc: 'raffle_ad_desc',
     raffleAdImage: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1470&auto=format&fit=crop',
-    transferAdTitle: t('transfer_ad_title'),
-    transferAdDesc: t('transfer_ad_desc'),
+    transferAdTitle: 'transfer_ad_title',
+    transferAdDesc: 'transfer_ad_desc',
     transferAdImage: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?q=80&w=1470&auto=format&fit=crop',
-    gatewayAdTitle: t('gateway_ad_title'),
-    gatewayAdDesc: t('gateway_ad_desc'),
+    gatewayAdTitle: 'gateway_ad_title',
+    gatewayAdDesc: 'gateway_ad_desc',
     gatewayAdImage: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?q=80&w=1470&auto=format&fit=crop',
     raffleEntryCost: 100,
-    rafflePrizeType: t('raffle_prize_type'),
+    rafflePrizeType: 'raffle_prize_type',
     showRaffleCountdown: true,
     raffleEndDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
     isTradingEnabled: true
@@ -222,39 +222,53 @@ const App: React.FC = () => {
     }
   }, [siteConfig]);
 
-  // Refresh default values in siteConfig when language changes
+  // Cleanup siteConfig to use keys for default values (migration)
   useEffect(() => {
     if (!isInitialLoad.current) {
-      setSiteConfig(prev => ({
-        ...prev,
-        heroTitle: t('hero_title'),
-        heroSubtitle: t('hero_subtitle'),
-        heroCtaText: t('hero_cta_text'),
-        salesCtaText: t('sales_cta_text'),
-        servicesTitle: t('services_title'),
-        servicesSubtitle: t('services_subtitle'),
-        galleryTitle: t('gallery_title'),
-        footerAbout: t('footer_about'),
-        contactAddress: t('contact_address'),
-        footerLinksTitle: t('footer_links_title'),
-        footerLink1Text: t('footer_link_1'),
-        footerLink2Text: t('footer_link_2'),
-        footerLink3Text: t('footer_link_3'),
-        footerLink4Text: t('footer_link_4'),
-        contactSectionTitle: t('contact_section_title'),
-        salaryAdTitle: t('salary_ad_title'),
-        salaryAdDesc: t('salary_ad_desc'),
-        tradingAdTitle: t('trading_ad_title'),
-        tradingAdDesc: t('trading_ad_desc'),
-        raffleAdTitle: t('raffle_ad_title'),
-        raffleAdDesc: t('raffle_ad_desc'),
-        transferAdTitle: t('transfer_ad_title'),
-        transferAdDesc: t('transfer_ad_desc'),
-        gatewayAdTitle: t('gateway_ad_title'),
-        gatewayAdDesc: t('gateway_ad_desc'),
-      }));
+      const defaultMappings: { [key: string]: string } = {
+        "السيادة المالية في عصر السرعة": "hero_title",
+        "بوابة FastPay Network لإدارة الأصول والتداول الفوري وحماية الثروات الرقمية بأعلى معايير الأمان العالمية.": "hero_subtitle",
+        "افتح حسابك الملكي": "hero_cta_text",
+        "تواصل مع الإدارة": "sales_cta_text",
+        "الخدمات": "services_title",
+        "حلول متكاملة مصممة للنخبة، تجمع بين السرعة والأمان والابتكار العالمي.": "services_subtitle",
+        "البنية التحتية المالية العالمية": "gallery_title",
+        "FastPay Network هي المعيار العالمي للمدفوعات الرقمية عالية الأمان، نجمع بين التكنولوجيا المتطورة والخدمات المالية المتميزة.": "footer_about",
+        "روابط سريعة": "footer_links_title",
+        "تواصل معنا": "contact_section_title",
+        "الرياض، المملكة العربية السعودية": "contact_address",
+        "تمويل الرواتب الذكي": "salary_ad_title",
+        "أول منصة تتيح تمويل الرواتب المسبق للموظفين بضمانات بنكية رقمية وسرعة في الإيداع في كل انحاء العالم.": "salary_ad_desc",
+        "محرك التداول الاحترافي": "trading_ad_title",
+        "لا تنتظر السوق، بل كن أنت المحرك. منصتنا توفر لك وصولاً مباشراً للسيولة العالمية مع أدوات تحليل ذكية ومخططات بيانية فورية.": "trading_ad_desc",
+        "القرعة الشهرية: حلم الفخامة": "raffle_ad_title",
+        "شارك الآن في سحب FastPay الشهري للفوز بسيارة رياضية خارقة أحدث طراز، أو رحلة عمرة VIP.": "raffle_ad_desc",
+        "جسر السيولة العالمي": "transfer_ad_title",
+        "أرسل واستقبل الأموال فورياً عبر نظام Swift العالمي بدقة متناهية وأمان يتجاوز المعايير البنكية.": "transfer_ad_desc",
+        "بوابة دفع FastPay": "gateway_ad_title",
+        "حوّل متجرك الإلكتروني إلى منصة دفع عالمية رائدة بعمولات تنافسية تبدأ من 0.8%.": "gateway_ad_desc",
+        "سياسة الخصوصية": "footer_link_1",
+        "شروط الخدمة": "footer_link_2",
+        "معايير الأمان": "footer_link_3",
+        "التراخيص العالمية": "footer_link_4"
+      };
+
+      setSiteConfig(prev => {
+        let hasChanged = false;
+        const newConfig = { ...prev };
+        
+        Object.keys(newConfig).forEach(key => {
+          const val = (newConfig as any)[key];
+          if (typeof val === 'string' && defaultMappings[val]) {
+            (newConfig as any)[key] = defaultMappings[val];
+            hasChanged = true;
+          }
+        });
+
+        return hasChanged ? newConfig : prev;
+      });
     }
-  }, [language]);
+  }, [siteConfig]); // Run whenever siteConfig changes (e.g. after load)
 
   // Generic Sync Effect for Arrays
   const useSyncEffect = (data: any[], syncFn: (item: any) => Promise<void>, label: string, bulkSync?: (items: any[]) => Promise<void>) => {

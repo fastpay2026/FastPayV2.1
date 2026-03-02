@@ -86,9 +86,9 @@ const LandingPage: React.FC<Props> = ({
     { id: '2', name: 'asset_btc', price: 92421.10, change: 4.5, icon: '₿' },
     { id: '3', name: 'asset_brent', price: 88.14, change: 1.3, icon: '🛢️' },
     { id: '4', name: 'asset_eth', price: 2845.30, change: -0.8, icon: '💎' },
-    { id: '5', name: 'EUR / USD', price: 1.0842, change: 0.05, icon: '🇪🇺' },
-    { id: '6', name: 'GBP / USD', price: 1.2654, change: 0.12, icon: '🇬🇧' },
-    { id: '7', name: 'USD / JPY', price: 151.20, change: -0.22, icon: '🇯🇵' },
+    { id: '5', name: 'asset_eur_usd', price: 1.0842, change: 0.05, icon: '🇪🇺' },
+    { id: '6', name: 'asset_gbp_usd', price: 1.2654, change: 0.12, icon: '🇬🇧' },
+    { id: '7', name: 'asset_usd_jpy', price: 151.20, change: -0.22, icon: '🇯🇵' },
     { id: '8', name: 'asset_nasdaq', price: 18240.5, change: 0.65, icon: '📊' },
     { id: '9', name: 'asset_apple', price: 192.42, change: 1.2, icon: '🍎' },
     { id: '10', name: 'asset_nvidia', price: 1150.20, change: 3.4, icon: '🟢' },
@@ -248,14 +248,14 @@ const LandingPage: React.FC<Props> = ({
                     <span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full animate-pulse shadow-[0_0_15px_#0ea5e9]"></span>
                     <span className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.3em]">{t('system_premium')} {siteConfig.siteName} v5.5 Premium</span>
                  </div>
-                 <h1 className="text-4xl md:text-[6.5rem] font-black leading-[1.1] tracking-tighter hero-gradient-text text-glow" dangerouslySetInnerHTML={{ __html: siteConfig.heroTitle.replace(' ', '<br/>') }}></h1>
-                 <p className="text-lg md:text-3xl text-slate-300 max-w-3xl mx-auto lg:mx-0 leading-relaxed font-bold border-r-0 lg:border-r-[12px] border-sky-500 pr-0 lg:pr-8">{siteConfig.heroSubtitle}</p>
+                 <h1 className="text-4xl md:text-[6.5rem] font-black leading-[1.1] tracking-tighter hero-gradient-text text-glow" dangerouslySetInnerHTML={{ __html: t(siteConfig.heroTitle).replace(' ', '<br/>') }}></h1>
+                 <p className="text-lg md:text-3xl text-slate-300 max-w-3xl mx-auto lg:mx-0 leading-relaxed font-bold border-r-0 lg:border-r-[12px] border-sky-500 pr-0 lg:pr-8">{t(siteConfig.heroSubtitle)}</p>
                  <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-4 md:gap-8 pt-6">
                     <button onClick={onRegisterClick} className="px-8 md:px-14 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] bg-white text-black font-black text-xl md:text-2xl shadow-[0_25px_60px_rgba(255,255,255,0.2)] hover:scale-105 transition-all flex items-center justify-center gap-4 md:gap-6 group">
-                      <span>{t('hero_cta_text')}</span>
+                      <span>{t(siteConfig.heroCtaText)}</span>
                       <span className="text-2xl md:text-3xl group-hover:translate-x-[-10px] transition-transform">⚡</span>
                     </button>
-                    <button onClick={() => scrollToSection('services')} className="px-8 md:px-14 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] bg-white/5 border border-white/10 text-white font-black text-xl md:text-2xl backdrop-blur-3xl hover:bg-white/10 transition-all">{t('sales_cta_text')}</button>
+                    <button onClick={() => scrollToSection('services')} className="px-8 md:px-14 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] bg-white/5 border border-white/10 text-white font-black text-xl md:text-2xl backdrop-blur-3xl hover:bg-white/10 transition-all">{t(siteConfig.salesCtaText)}</button>
                  </div>
               </div>
               
@@ -312,8 +312,8 @@ const LandingPage: React.FC<Props> = ({
             <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-emerald-500/10 hover:border-emerald-500/40 transition-all duration-1000 relative">
                <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
                   <div className="flex items-center gap-6 text-emerald-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-emerald-500"></span>{t('global_liquidity_engine')}</div>
-                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-emerald-400 transition-all duration-700">{siteConfig.transferAdTitle}</h2>
-                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-emerald-500 pr-6 md:pr-10">{siteConfig.transferAdDesc}</p>
+                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-emerald-400 transition-all duration-700">{t(siteConfig.transferAdTitle)}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-emerald-500 pr-6 md:pr-10">{t(siteConfig.transferAdDesc)}</p>
                   <div className="flex flex-wrap gap-6 md:gap-8 items-center pt-4 md:pt-8">
                     <button onClick={onLoginClick} className="bg-emerald-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-emerald-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(16,185,129,0.3)] w-full md:w-max">{t('start_global_transfer')}</button>
                     <div className="flex items-center gap-4 text-slate-500 font-black text-[10px] md:text-xs uppercase tracking-widest bg-white/5 px-6 py-3 rounded-full">
@@ -334,8 +334,8 @@ const LandingPage: React.FC<Props> = ({
             <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row-reverse items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-violet-500/10 hover:border-violet-500/40 transition-all duration-1000 relative">
                <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
                   <div className="flex items-center gap-6 text-violet-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-violet-500"></span>{t('professional_payment_gateway')}</div>
-                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-violet-400 transition-all duration-700">{siteConfig.gatewayAdTitle}</h2>
-                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-violet-500 pr-6 md:pr-10">{siteConfig.gatewayAdDesc}</p>
+                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-violet-400 transition-all duration-700">{t(siteConfig.gatewayAdTitle)}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-violet-500 pr-6 md:pr-10">{t(siteConfig.gatewayAdDesc)}</p>
                   <div className="flex flex-wrap gap-6 md:gap-8 items-center pt-4 md:pt-8">
                     <button onClick={onLoginClick} className="bg-violet-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-violet-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(124,58,237,0.3)] w-full md:w-max">{t('activate_gateway')}</button>
                     <div className="flex -space-x-4">
@@ -359,8 +359,8 @@ const LandingPage: React.FC<Props> = ({
             <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row-reverse items-stretch min-h-[600px] md:min-h-[800px] shadow-[0_50px_120px_rgba(0,0,0,0.7)] border border-amber-500/10 hover:border-amber-500/40 transition-all duration-1000 relative">
                 <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10 bg-gradient-to-br from-slate-950 via-[#020617] to-indigo-950/20">
                   <div className="flex items-center gap-6 text-amber-500 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-amber-500"></span>{t('monthly_raffle_title')}</div>
-                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-amber-400 transition-all duration-700">{siteConfig.raffleAdTitle}</h2>
-                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-amber-500 pr-6 md:pr-10">{siteConfig.raffleAdDesc}</p>
+                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-amber-400 transition-all duration-700">{t(siteConfig.raffleAdTitle)}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-amber-500 pr-6 md:pr-10">{t(siteConfig.raffleAdDesc)}</p>
                   
                   {siteConfig.showRaffleCountdown && siteConfig.raffleEndDate && (
                     <div className="py-4 md:py-6">
@@ -430,8 +430,8 @@ const LandingPage: React.FC<Props> = ({
             <div id="salary-ad" className="group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-indigo-500/10 hover:border-indigo-500/40 transition-all duration-1000 relative">
                <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
                   <div className="flex items-center gap-6 text-indigo-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-indigo-500"></span>{t('exclusive_financial_innovation')}</div>
-                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-indigo-400 transition-all duration-700">{siteConfig.salaryAdTitle}</h2>
-                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-indigo-500 pr-6 md:pr-10">{siteConfig.salaryAdDesc}</p>
+                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-indigo-400 transition-all duration-700">{t(siteConfig.salaryAdTitle)}</h2>
+                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-indigo-500 pr-6 md:pr-10">{t(siteConfig.salaryAdDesc)}</p>
                   <button onClick={onRegisterClick} className="bg-indigo-600 px-10 py-4 md:px-20 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-indigo-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(79,70,229,0.3)] w-full md:w-max">{t('request_pre_financing')}</button>
                </div>
                <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
@@ -443,8 +443,8 @@ const LandingPage: React.FC<Props> = ({
             <div id="trading-ad" className="group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl hover:border-sky-500/30 transition-all duration-1000">
                <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
                   <div className="flex items-center gap-6 text-sky-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-sky-500"></span>{t('elite_level_trading')}</div>
-                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-glow transition-all duration-700">{siteConfig.tradingAdTitle}</h2>
-                  <p className="text-lg md:text-3xl text-slate-300 font-bold leading-relaxed border-r-4 md:border-r-8 border-sky-500 pr-6 md:pr-10">{siteConfig.tradingAdDesc}</p>
+                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-glow transition-all duration-700">{t(siteConfig.tradingAdTitle)}</h2>
+                  <p className="text-lg md:text-3xl text-slate-300 font-bold leading-relaxed border-r-4 md:border-r-8 border-sky-500 pr-6 md:pr-10">{t(siteConfig.tradingAdDesc)}</p>
                   <button onClick={onLoginClick} className="bg-sky-600 px-10 py-4 md:px-20 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-sky-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(14,165,233,0.4)] w-full md:w-max">{t('enter_pro_platform')}</button>
                </div>
                <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
@@ -457,8 +457,8 @@ const LandingPage: React.FC<Props> = ({
           <section id="services" className="py-20 md:py-60 px-6 md:px-24">
              <div className="max-w-[1600px] mx-auto">
                 <div className="text-center space-y-6 md:space-y-8 mb-20 md:mb-40">
-                   <h2 className="text-4xl md:text-9xl font-black text-white tracking-tighter">{siteConfig.servicesTitle}</h2>
-                   <h3 className="text-lg md:text-3xl text-slate-400 font-bold max-w-4xl mx-auto">{siteConfig.servicesSubtitle}</h3>
+                   <h2 className="text-4xl md:text-9xl font-black text-white tracking-tighter">{t(siteConfig.servicesTitle)}</h2>
+                   <h3 className="text-lg md:text-3xl text-slate-400 font-bold max-w-4xl mx-auto">{t(siteConfig.servicesSubtitle)}</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-20">
                    {services.map(s => (
@@ -476,7 +476,7 @@ const LandingPage: React.FC<Props> = ({
             <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-3 gap-12 md:gap-40">
               <div className="space-y-8 md:space-y-16">
                 {siteConfig.logoUrl && <img src={siteConfig.logoUrl} style={{ width: `${siteConfig.logoWidth ? Math.min(siteConfig.logoWidth, 150) : 150}px` }} alt="Logo" />}
-                <p className="text-lg md:text-2xl text-slate-400 font-bold leading-relaxed md:leading-[2.2] max-w-2xl">{siteConfig.footerAbout}</p>
+                <p className="text-lg md:text-2xl text-slate-400 font-bold leading-relaxed md:leading-[2.2] max-w-2xl">{t(siteConfig.footerAbout)}</p>
               </div>
               <div className="space-y-8 md:space-y-16">
                  <h4 className="text-2xl md:text-4xl font-black text-white border-r-4 md:border-r-[10px] border-sky-500 pr-6 md:pr-10 tracking-tighter uppercase">{t('footer_links_title')}</h4>
@@ -485,21 +485,21 @@ const LandingPage: React.FC<Props> = ({
                       <li key={p.id} onClick={()=>setCurrentPath(p.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full shadow-[0_0_10px_#0ea5e9]"></span>{p.title}</li>
                     ))}
                     {[siteConfig.footerLink1Text, siteConfig.footerLink2Text, siteConfig.footerLink3Text, siteConfig.footerLink4Text].map((link, idx) => (
-                      <li key={idx} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{link}</li>
+                      <li key={idx} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{t(link)}</li>
                     ))}
                  </ul>
               </div>
               <div className="space-y-8 md:space-y-16">
                  <h4 className="text-2xl md:text-4xl font-black text-white border-r-4 md:border-r-[10px] border-emerald-500 pr-6 md:pr-10 tracking-tighter uppercase">{t('contact_section_title')}</h4>
                  <div className="space-y-8 md:space-y-12 text-slate-400 font-bold text-lg md:text-2xl">
-                    <div className="flex items-start gap-6 md:gap-10 group cursor-default"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">📍</span><p className="group-hover:text-white transition-colors leading-relaxed">{siteConfig.contactAddress}</p></div>
+                    <div className="flex items-start gap-6 md:gap-10 group cursor-default"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">📍</span><p className="group-hover:text-white transition-colors leading-relaxed">{t(siteConfig.contactAddress)}</p></div>
                     <div className="flex items-center gap-6 md:gap-10 group cursor-default"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">🌐</span><p className="group-hover:text-white transition-colors">{siteConfig.contactEmail}</p></div>
                     <div className="flex items-center gap-6 md:gap-10 group cursor-default" dir="ltr"><span className="text-3xl md:text-5xl group-hover:scale-125 transition-all">📱</span><p className="group-hover:text-white transition-colors">{siteConfig.contactPhone}</p></div>
                  </div>
               </div>
             </div>
             <div className="max-w-[1600px] mx-auto mt-20 md:mt-60 pt-10 md:pt-20 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-600 font-black tracking-[0.2em] md:tracking-[0.5em] text-[8px] md:text-xs uppercase text-center md:text-right">
-               <span>{siteConfig.siteName} {t('global_financial_infrastructure')} &copy; {new Date().getFullYear()}</span>
+               <span>{siteConfig.siteName} {t(siteConfig.galleryTitle)} &copy; {new Date().getFullYear()}</span>
                <span>ISO 27001 SECURED SYSTEM</span>
             </div>
           </footer>
