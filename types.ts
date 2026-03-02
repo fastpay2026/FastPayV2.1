@@ -113,7 +113,7 @@ export interface Transaction {
   relatedUser?: string; 
   relatedId?: string; 
   timestamp: string;
-  status?: 'pending' | 'completed' | 'shipped' | 'escrow';
+  status?: 'pending' | 'completed' | 'shipped' | 'escrow' | 'rejected';
   hash?: string;
   notes?: string;
 }

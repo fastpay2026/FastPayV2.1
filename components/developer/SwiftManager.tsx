@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, WithdrawalRequest } from '../../types';
+import { User, WithdrawalRequest, Transaction } from '../../types';
 import { useI18n } from '../../i18n/i18n';
 
 interface Props {
@@ -10,14 +10,19 @@ interface Props {
   setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
   onUpdateUser: (user: User) => void;
   addNotification: (title: string, message: string, type: 'system' | 'success' | 'warning' | 'error', targetUserId?: string) => void;
+  setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 }
 
-const SwiftManager: React.FC<Props> = ({ withdrawalRequests, setWithdrawalRequests, accounts, setAccounts, onUpdateUser, addNotification }) => {
+const SwiftManager: React.FC<Props> = ({ withdrawalRequests, setWithdrawalRequests, accounts, setAccounts, onUpdateUser, addNotification, setTransactions }) => {
   const { t } = useI18n();
   const handleSwiftAction = (id: string, status: 'approved' | 'rejected') => {
     const req = withdrawalRequests.find(r => r.id === id);
     if (!req) return;
     setWithdrawalRequests(prev => prev.map(r => r.id === id ? { ...r, status, processedAt: new Date().toLocaleString() } : r));
+    
+    // Update associated transaction status
+    setTransactions(prev => prev.map(tr => tr.relatedId === id ? { ...tr, status: status === 'approved' ? 'completed' : 'rejected' } : tr));
+
     if (status === 'rejected') {
       const user = accounts.find((u: User) => u.id === req.userId);
       if (user) {

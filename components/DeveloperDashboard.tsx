@@ -159,7 +159,7 @@ const handleManualSync = async () => {
       <main className="flex-1 flex flex-col overflow-y-auto p-6 md:p-12 custom-scrollbar relative">
         {activeTab === 'home' && <StatsOverview accounts={accounts} withdrawalRequests={withdrawalRequests} tradeOrders={tradeOrders} siteConfig={siteConfig} onManualSync={handleManualSync} isSyncing={isSyncing} />}
         {activeTab === 'users' && <UserManagement accounts={accounts} setAccounts={setAccounts} onAddUser={onAddUser} onUpdateUser={onUpdateUser} />}
-        {activeTab === 'withdrawals' && <SwiftManager withdrawalRequests={withdrawalRequests} setWithdrawalRequests={setWithdrawalRequests} accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} addNotification={addNotification} />}
+        {activeTab === 'withdrawals' && <SwiftManager withdrawalRequests={withdrawalRequests} setWithdrawalRequests={setWithdrawalRequests} accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} addNotification={addNotification} setTransactions={setTransactions} />}
         {activeTab === 'trading' && <DealsEngine tradeAssets={tradeAssets} setTradeAssets={setTradeAssets} tradeOrders={tradeOrders} setTradeOrders={setTradeOrders} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />}
         {activeTab === 'salary' && <SalaryFunding salaryPlans={salaryPlans} setSalaryPlans={setSalaryPlans} accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />}
         {activeTab === 'cards' && <CardGenerator rechargeCards={rechargeCards} setRechargeCards={setRechargeCards} user={user} />}

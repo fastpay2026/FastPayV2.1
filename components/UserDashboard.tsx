@@ -322,7 +322,7 @@ const UserDashboard: React.FC<Props> = ({
      const newBalance = user.balance - amount;
      onUpdateUser({ ...user, balance: newBalance });
      setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
-     setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'withdrawal', amount: -amount, timestamp: new Date().toLocaleString(), relatedUser: t('swift_withdrawal_desc') }, ...prev]);
+     setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'withdrawal', amount: -amount, timestamp: new Date().toLocaleString(), relatedUser: t('swift_withdrawal_desc'), relatedId: newRequest.id, status: 'pending' }, ...prev]);
      addNotification(t('withdraw_request_success_title'), t('withdraw_request_success_msg', { amount }), 'money');
      setModalType(null);
      alert(t('withdraw_request_alert'));
@@ -521,7 +521,7 @@ const UserDashboard: React.FC<Props> = ({
                          <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto custom-scrollbar">
                             {transactions.filter(t=>t.userId===user.id).slice(0, 10).map(t => (
                                <div key={t.id} className="flex justify-between items-center p-4 md:p-6 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5">
-                                  <div><p className="font-bold text-white text-sm md:text-base">{t.relatedUser || t.type}</p><p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-black">{t.timestamp}</p></div>
+                                  <div><p className="font-bold text-white text-sm md:text-base">{t.relatedUser || t.type}{t.status === 'rejected' && <span className="text-red-500 text-[10px] block md:inline md:mr-2 font-black"> (The operation was cancelled. Please try again later)</span>}</p><p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-black">{t.timestamp}</p></div>
                                   <p className={`text-xl md:text-2xl font-mono font-black ${t.amount < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{t.amount > 0 ? '+' : ''}${Math.abs(t.amount).toLocaleString()}</p>
                                </div>
                             ))}
