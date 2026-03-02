@@ -2766,6 +2766,15 @@ const translationsData: Translations = {
     "ku": "گواستنەوە ڕەتکرایەوە و باڵانس گەڕێنرایەوە ❌",
     "ru": "Перевод отклонен, баланс возвращен ❌"
   },
+  "swift_transfer_rejected": {
+    "en": "Swift Transfer Rejected",
+    "ar": "رفض حوالة Swift",
+    "fr": "Virement Swift rejeté",
+    "tr": "Swift Transferi Reddedildi",
+    "zh": "Swift 转账已拒绝",
+    "ku": "گواستنەوەی Swift ڕەتکرایەوە",
+    "ru": "Перевод Swift отклонен"
+  },
   "asset_price_control": {
     "en": "Asset Price and Deals Control",
     "ar": "التحكم في أسعار الأصول والصفقات",

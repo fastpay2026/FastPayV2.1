@@ -6,19 +6,29 @@ import { useI18n } from '../../i18n/i18n';
 interface Props {
   withdrawalRequests: WithdrawalRequest[];
   setWithdrawalRequests: React.Dispatch<React.SetStateAction<WithdrawalRequest[]>>;
+  accounts: User[];
   setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
   onUpdateUser: (user: User) => void;
+  addNotification: (title: string, message: string, type: 'system' | 'success' | 'warning' | 'error', targetUserId?: string) => void;
 }
 
-const SwiftManager: React.FC<Props> = ({ withdrawalRequests, setWithdrawalRequests, setAccounts, onUpdateUser }) => {
+const SwiftManager: React.FC<Props> = ({ withdrawalRequests, setWithdrawalRequests, accounts, setAccounts, onUpdateUser, addNotification }) => {
   const { t } = useI18n();
   const handleSwiftAction = (id: string, status: 'approved' | 'rejected') => {
     const req = withdrawalRequests.find(r => r.id === id);
     if (!req) return;
     setWithdrawalRequests(prev => prev.map(r => r.id === id ? { ...r, status, processedAt: new Date().toLocaleString() } : r));
     if (status === 'rejected') {
-      const user = (window as any).accounts?.find((u: User) => u.id === req.userId);
-      if (user) onUpdateUser({ ...user, balance: user.balance + req.amount });
+      const user = accounts.find((u: User) => u.id === req.userId);
+      if (user) {
+        onUpdateUser({ ...user, balance: user.balance + req.amount });
+        addNotification(
+          t('swift_transfer_rejected'),
+          "(The operation was cancelled. Please try again later)",
+          'error',
+          user.id
+        );
+      }
     }
     alert(status === 'approved' ? t('swift_approved_success') : t('swift_rejected_success'));
   };
