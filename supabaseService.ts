@@ -558,5 +558,130 @@ export const supabaseService = {
     }));
     const { error } = await supabase.from('ad_exchange_items').upsert(payload, { onConflict: 'id' });
     if (error) throw error;
+  },
+
+  async bulkUpsertRechargeCards(items: RechargeCard[]) {
+    const payload = items.map(c => ({
+      code: c.code,
+      amount: c.amount,
+      is_used: c.isUsed,
+      generated_by: c.generatedBy,
+      used_by: c.usedBy,
+      created_at: c.createdAt,
+      used_at: c.usedAt
+    }));
+    const { error } = await supabase.from('recharge_cards').upsert(payload, { onConflict: 'code' });
+    if (error) throw error;
+  },
+
+  async bulkUpsertWithdrawals(items: WithdrawalRequest[]) {
+    const payload = items.map(w => ({
+      id: w.id,
+      user_id: w.userId,
+      username: w.username,
+      full_name: w.fullName,
+      amount: w.amount,
+      bank_name: w.bankName,
+      iban: w.iban,
+      swift_code: w.swiftCode,
+      status: w.status,
+      requested_at: w.requestedAt,
+      processed_at: w.processedAt
+    }));
+    const { error } = await supabase.from('withdrawal_requests').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  async bulkUpsertSalaryFinancing(items: SalaryFinancing[]) {
+    const payload = items.map(s => ({
+      id: s.id,
+      user_id: s.userId,
+      username: s.username,
+      beneficiary_name: s.beneficiaryName,
+      amount: s.amount,
+      deduction: s.deduction,
+      duration: s.duration,
+      start_date: s.startDate,
+      status: s.status,
+      requested_at: s.requestedAt
+    }));
+    const { error } = await supabase.from('salary_financing').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  async bulkUpsertFixedDeposits(items: FixedDeposit[]) {
+    const payload = items.map(d => ({
+      id: d.id,
+      user_id: d.userId,
+      username: d.username,
+      amount: d.amount,
+      interest_rate: d.interestRate,
+      duration_months: d.durationMonths,
+      start_date: d.startDate,
+      end_date: d.endDate,
+      expected_profit: d.expectedProfit,
+      status: d.status
+    }));
+    const { error } = await supabase.from('fixed_deposits').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  async bulkUpsertTradeOrders(items: TradeOrder[]) {
+    const payload = items.map(o => ({
+      id: o.id,
+      user_id: o.userId,
+      username: o.username,
+      asset_symbol: o.assetSymbol,
+      amount: o.amount,
+      entry_price: o.entryPrice,
+      type: o.type,
+      status: o.status,
+      timestamp: o.timestamp
+    }));
+    const { error } = await supabase.from('trade_orders').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  async bulkUpsertRaffleEntries(items: RaffleEntry[]) {
+    const payload = items.map(e => ({
+      id: e.id,
+      user_id: e.userId,
+      username: e.username,
+      full_name: e.fullName,
+      ticket_number: e.ticketNumber,
+      entered_at: e.enteredAt
+    }));
+    const { error } = await supabase.from('raffle_entries').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  async bulkUpsertRaffleWinners(items: RaffleWinner[]) {
+    const payload = items.map(w => ({
+      id: w.id,
+      user_id: w.userId,
+      username: w.username,
+      full_name: w.fullName,
+      prize_title: w.prizeTitle,
+      won_at: w.wonAt
+    }));
+    const { error } = await supabase.from('raffle_winners').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  async bulkUpsertVerifications(items: VerificationRequest[]) {
+    const payload = items.map(v => ({
+      id: v.id,
+      user_id: v.userId,
+      username: v.username,
+      full_name: v.fullName,
+      id_front: v.idFront,
+      id_back: v.idBack,
+      commercial_register: v.commercialRegister,
+      submitted_at: v.submittedAt,
+      status: v.status,
+      rejection_reason: v.rejectionReason
+    }));
+    const { error } = await supabase.from('verification_requests').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
   }
 };

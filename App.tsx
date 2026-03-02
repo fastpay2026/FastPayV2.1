@@ -135,6 +135,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
+      if (!currentUserId) return; // Only load when someone is logged in
       try {
         const [
           dbConfig,
@@ -211,7 +212,7 @@ const App: React.FC = () => {
       }
     };
     loadData();
-  }, []);
+  }, [currentUserId]); // Re-fetch on login
 
   // Sync to Supabase on changes
   useEffect(() => { 
@@ -295,14 +296,14 @@ const App: React.FC = () => {
   useSyncEffect(notifications, supabaseService.addNotification, 'Notification', supabaseService.bulkUpsertNotifications);
   useSyncEffect(adExchangeItems, supabaseService.upsertAdItem, 'AdItem', supabaseService.bulkUpsertAdItems);
   useSyncEffect(adNegotiations, supabaseService.upsertAdNegotiation, 'AdNegotiation');
-  useSyncEffect(withdrawalRequests, supabaseService.upsertWithdrawal, 'Withdrawal');
-  useSyncEffect(salaryPlans, supabaseService.upsertSalaryFinancing, 'Salary');
-  useSyncEffect(fixedDeposits, supabaseService.upsertFixedDeposit, 'Deposit');
-  useSyncEffect(verificationRequests, supabaseService.upsertVerification, 'Verification');
-  useSyncEffect(rechargeCards, supabaseService.upsertRechargeCard, 'Card');
-  useSyncEffect(raffleEntries, supabaseService.upsertRaffleEntry, 'RaffleEntry');
-  useSyncEffect(raffleWinners, supabaseService.upsertRaffleWinner, 'RaffleWinner');
-  useSyncEffect(tradeOrders, supabaseService.upsertTradeOrder, 'TradeOrder');
+  useSyncEffect(withdrawalRequests, supabaseService.upsertWithdrawal, 'Withdrawal', supabaseService.bulkUpsertWithdrawals);
+  useSyncEffect(salaryPlans, supabaseService.upsertSalaryFinancing, 'Salary', supabaseService.bulkUpsertSalaryFinancing);
+  useSyncEffect(fixedDeposits, supabaseService.upsertFixedDeposit, 'Deposit', supabaseService.bulkUpsertFixedDeposits);
+  useSyncEffect(verificationRequests, supabaseService.upsertVerification, 'Verification', supabaseService.bulkUpsertVerifications);
+  useSyncEffect(rechargeCards, supabaseService.upsertRechargeCard, 'Card', supabaseService.bulkUpsertRechargeCards);
+  useSyncEffect(raffleEntries, supabaseService.upsertRaffleEntry, 'RaffleEntry', supabaseService.bulkUpsertRaffleEntries);
+  useSyncEffect(raffleWinners, supabaseService.upsertRaffleWinner, 'RaffleWinner', supabaseService.bulkUpsertRaffleWinners);
+  useSyncEffect(tradeOrders, supabaseService.upsertTradeOrder, 'TradeOrder', supabaseService.bulkUpsertTradeOrders);
   useSyncEffect(tradeAssets, supabaseService.upsertTradeAsset, 'TradeAsset');
   useSyncEffect(services, supabaseService.upsertLandingService, 'Service');
   useSyncEffect(pages, supabaseService.upsertCustomPage, 'Page');
@@ -339,8 +340,25 @@ const App: React.FC = () => {
     setNotifications(prev => [newNotify, ...prev]);
   }, [currentUserId]);
 
+  const handleLogout = () => {
+    setCurrentUserId(null);
+    setTransactions([]);
+    setNotifications([]);
+    setWithdrawalRequests([]);
+    setSalaryPlans([]);
+    setFixedDeposits([]);
+    setVerificationRequests([]);
+    setRechargeCards([]);
+    setRaffleEntries([]);
+    setRaffleWinners([]);
+    setTradeOrders([]);
+    setAdExchangeItems([]);
+    setAdNegotiations([]);
+    isInitialLoad.current = true; // Reset initial load flag for next login
+  };
+
   const commonProps = { 
-    user: currentUser!, onLogout: () => setCurrentUserId(null), siteConfig, onUpdateConfig: setSiteConfig, 
+    user: currentUser!, onLogout: handleLogout, siteConfig, onUpdateConfig: setSiteConfig, 
     accounts, setAccounts, transactions, setTransactions, 
     addNotification, salaryPlans, setSalaryPlans, onUpdateUser: handleUpdateUser, onAddUser: handleAddUser,
     services, setServices, pages, setPages, notifications, setNotifications,
