@@ -95,7 +95,8 @@ const MerchantDashboard: React.FC<Props> = ({
     
     const newCards: RechargeCard[] = [];
     const now = new Date();
-    const ts = now.toLocaleString('ar-SA');
+    const ts = now.toISOString();
+    const displayTs = now.toLocaleString('ar-SA');
 
     for (let i = 0; i < cardQuantity; i++) {
       newCards.push({
@@ -239,7 +240,7 @@ const MerchantDashboard: React.FC<Props> = ({
 
     const refundAmount = card.amount;
     const cardCode = card.code;
-    const ts = new Date().toLocaleString('ar-SA');
+    const ts = new Date().toISOString();
 
     // 1. Remove the card from the global list
     setRechargeCards(prev => prev.filter(c => c.code !== cardCode));
@@ -517,10 +518,10 @@ header('Location: ' . $payment->checkout_url);`
                                       )}
                                    </td>
                                    <td className="p-6 md:p-10 text-[10px] md:text-xs text-slate-500 font-mono">
-                                      {c.createdAt}
+                                      {new Date(c.createdAt).toLocaleString('ar-SA')}
                                    </td>
                                    <td className="p-6 md:p-10 text-[10px] md:text-xs font-mono">
-                                      {c.isUsed ? <span className="text-emerald-400">{c.usedAt}</span> : <span className="text-slate-600">...</span>}
+                                      {c.isUsed && c.usedAt ? <span className="text-emerald-400">{new Date(c.usedAt).toLocaleString('ar-SA')}</span> : <span className="text-slate-600">...</span>}
                                    </td>
                                    <td className="p-6 md:p-10 text-center">
                                       {!c.isUsed && (

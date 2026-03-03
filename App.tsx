@@ -144,6 +144,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        isInitialLoad.current = true;
         const [
           dbConfig,
           dbUsers,
@@ -194,32 +195,22 @@ const App: React.FC = () => {
           supabaseService.getCustomPages()
         ]);
 
-        if (dbTrans.length > 0) setTransactions(dbTrans);
-        if (dbNotifs.length > 0) setNotifications(dbNotifs);
-        if (dbAds.length > 0) setAdExchangeItems(dbAds);
-        if (dbOffers.length > 0) setAdNegotiations(dbOffers);
-        if (dbWithdrawals.length > 0) setWithdrawalRequests(dbWithdrawals);
-        if (dbSalary.length > 0) setSalaryPlans(dbSalary);
-        if (dbDeposits.length > 0) setFixedDeposits(dbDeposits);
-        if (dbVerifications.length > 0) setVerificationRequests(dbVerifications);
-        if (dbCards.length > 0) setRechargeCards(dbCards);
-        if (dbRaffleEntries.length > 0) setRaffleEntries(dbRaffleEntries);
-        if (dbRaffleWinners.length > 0) setRaffleWinners(dbRaffleWinners);
-        if (dbTradeOrders.length > 0) setTradeOrders(dbTradeOrders);
-        if (dbTradeAssets.length > 0) setTradeAssets(dbTradeAssets);
-        if (dbServices.length > 0) setServices(dbServices);
-        if (dbPages.length > 0) setPages(dbPages);
+        setTransactions(dbTrans || []);
+        setNotifications(dbNotifs || []);
+        setAdExchangeItems(dbAds || []);
+        setAdNegotiations(dbOffers || []);
+        setWithdrawalRequests(dbWithdrawals || []);
+        setSalaryPlans(dbSalary || []);
+        setFixedDeposits(dbDeposits || []);
+        setVerificationRequests(dbVerifications || []);
+        setRechargeCards(dbCards || []);
+        setRaffleEntries(dbRaffleEntries || []);
+        setRaffleWinners(dbRaffleWinners || []);
+        setTradeOrders(dbTradeOrders || []);
+        setTradeAssets(dbTradeAssets || []);
+        setServices(dbServices || []);
+        setPages(dbPages || []);
 
-        // Fallback to localStorage for others or if DB is empty
-        const storedOrders = localStorage.getItem('fp_v21_trade_orders');
-        if (storedOrders) setTradeOrders(JSON.parse(storedOrders));
-        const storedCards = localStorage.getItem('fp_v21_recharge_cards');
-        if (storedCards) setRechargeCards(JSON.parse(storedCards));
-        const storedRaffleEntries = localStorage.getItem('fp_v21_raffle_entries');
-        if (storedRaffleEntries) setRaffleEntries(JSON.parse(storedRaffleEntries));
-        const storedRaffleWinners = localStorage.getItem('fp_v21_raffle_winners');
-        if (storedRaffleWinners) setRaffleWinners(JSON.parse(storedRaffleWinners));
-        
         isInitialLoad.current = false;
       } catch (e) { 
         console.error("Supabase load error, falling back to local", e);
@@ -289,6 +280,7 @@ const App: React.FC = () => {
   // Generic Sync Effect for Arrays
   const useSyncEffect = (data: any[], syncFn: (item: any) => Promise<void>, label: string, bulkSync?: (items: any[]) => Promise<void>) => {
     const prevData = React.useRef(JSON.stringify(data));
+    
     useEffect(() => {
       if (isSupabaseConfigured && !isInitialLoad.current) {
         const currentData = JSON.stringify(data);
@@ -297,12 +289,14 @@ const App: React.FC = () => {
           if (bulkSync) {
             bulkSync(data).catch(e => console.error(`Bulk Sync ${label} error:`, e));
           } else {
-            // Fallback to syncing individual items if they are new or updated
             // For simplicity in this demo, we sync the first few items
             data.slice(0, 5).forEach(item => syncFn(item).catch(e => console.error(`Sync ${label} error:`, e)));
           }
           prevData.current = currentData;
         }
+      } else if (isInitialLoad.current) {
+        // Update prevData during initial load so we don't trigger sync immediately after load
+        prevData.current = JSON.stringify(data);
       }
     }, [data]);
   };
@@ -350,12 +344,13 @@ const App: React.FC = () => {
     const newNotify: Notification = {
       id: uuidv4(),
       userId: targetUserId || currentUserId || '',
-      title, message, type, timestamp: new Date().toLocaleTimeString(currentUser?.language || 'en-US'), isRead: false
+      title, message, type, timestamp: new Date().toISOString(), isRead: false
     };
     setNotifications(prev => [newNotify, ...prev]);
   }, [currentUserId]);
 
   const handleLogout = () => {
+    isInitialLoad.current = true; // Reset initial load flag first to prevent sync during logout
     setCurrentUserId(null);
     localStorage.removeItem('fp_v21_current_user_id');
     setTransactions([]);
@@ -370,7 +365,6 @@ const App: React.FC = () => {
     setTradeOrders([]);
     setAdExchangeItems([]);
     setAdNegotiations([]);
-    isInitialLoad.current = true; // Reset initial load flag for next login
   };
 
   const commonProps = { 
@@ -414,7 +408,7 @@ const App: React.FC = () => {
               <button onClick={() => setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isRead: true } : notif))} className="text-white/40 hover:text-white transition-colors">{t('closeButton')}</button>
             </div>
             <p className="text-xs text-white/80 font-bold leading-relaxed">{n.message}</p>
-            <p className="text-[8px] text-white/40 mt-3 font-mono">{n.timestamp}</p>
+            <p className="text-[8px] text-white/40 mt-3 font-mono">{new Date(n.timestamp).toLocaleString(currentUser?.language || 'en-US')}</p>
           </div>
         ))}
       </div>

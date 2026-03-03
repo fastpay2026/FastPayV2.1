@@ -332,11 +332,11 @@ const UserDashboard: React.FC<Props> = ({
     e.preventDefault();
     const coupon = rechargeCards.find(c => c.code === couponCode && !c.isUsed);
     if (coupon) {
-       setRechargeCards(prev => prev.map(c => c.code === couponCode ? { ...c, isUsed: true, usedBy: user.username, usedAt: new Date().toLocaleString() } : c));
+       setRechargeCards(prev => prev.map(c => c.code === couponCode ? { ...c, isUsed: true, usedBy: user.username, usedAt: new Date().toISOString() } : c));
        const newBalance = user.balance + coupon.amount;
        onUpdateUser({ ...user, balance: newBalance });
        setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
-       setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'redeem', amount: coupon.amount, timestamp: new Date().toLocaleString(), relatedUser: t('card_recharge_desc') }, ...prev]);
+       setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'redeem', amount: coupon.amount, timestamp: new Date().toISOString(), relatedUser: t('card_recharge_desc') }, ...prev]);
        addNotification(t('recharge_success_title'), t('recharge_success_msg', { amount: coupon.amount }), 'money');
        setModalType(null);
        setCouponCode('');
@@ -398,7 +398,7 @@ const UserDashboard: React.FC<Props> = ({
     onUpdateUser({ ...user, balance: newBalance });
     setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
     
-    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'raffle_entry', amount: -siteConfig.raffleEntryCost, timestamp: new Date().toLocaleString(), relatedUser: t('raffle_entry_desc') }, ...prev]);
+    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'raffle_entry', amount: -siteConfig.raffleEntryCost, timestamp: new Date().toISOString(), relatedUser: t('raffle_entry_desc') }, ...prev]);
     addNotification(t('raffle_success_title'), t('raffle_success_msg'), 'system');
     alert(t('raffle_success_alert', { ticket: newEntry.ticketNumber }));
   };
