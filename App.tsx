@@ -143,11 +143,24 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!currentUserId) return; // Only load when someone is logged in
       try {
         const [
           dbConfig,
           dbUsers,
+        ] = await Promise.all([
+          supabaseService.getSiteConfig(),
+          supabaseService.getUsers(),
+        ]);
+
+        if (dbConfig) setSiteConfig(dbConfig);
+        if (dbUsers.length > 0) setAccounts(dbUsers);
+
+        if (!currentUserId) {
+          isInitialLoad.current = false;
+          return;
+        }
+
+        const [
           dbTrans,
           dbNotifs,
           dbAds,
@@ -164,8 +177,6 @@ const App: React.FC = () => {
           dbServices,
           dbPages
         ] = await Promise.all([
-          supabaseService.getSiteConfig(),
-          supabaseService.getUsers(),
           supabaseService.getTransactions(),
           supabaseService.getNotifications(),
           supabaseService.getAdItems(),
@@ -183,10 +194,6 @@ const App: React.FC = () => {
           supabaseService.getCustomPages()
         ]);
 
-        if (dbConfig) {
-          setSiteConfig(dbConfig);
-        }
-        if (dbUsers.length > 0) setAccounts(dbUsers);
         if (dbTrans.length > 0) setTransactions(dbTrans);
         if (dbNotifs.length > 0) setNotifications(dbNotifs);
         if (dbAds.length > 0) setAdExchangeItems(dbAds);
