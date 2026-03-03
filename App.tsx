@@ -15,7 +15,7 @@ import { isSupabaseConfigured } from './supabaseClient';
 
 
 const App: React.FC = () => {
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(() => localStorage.getItem('fp_v21_current_user_id'));
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState('home');
@@ -25,6 +25,14 @@ const App: React.FC = () => {
     document.documentElement.lang = language;
     document.documentElement.dir = language === 'ar' || language === 'ku' ? 'rtl' : 'ltr';
   }, [language]);
+
+  useEffect(() => {
+    if (currentUserId) {
+      localStorage.setItem('fp_v21_current_user_id', currentUserId);
+    } else {
+      localStorage.removeItem('fp_v21_current_user_id');
+    }
+  }, [currentUserId]);
 
   const professionalLogo = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3MDAgMTYwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwZWE1ZTkiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzM4YmRmOCIgLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8Y2xpcFBhdGggaWQ9ImNsaXAiPgogICAgICA8cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgcng9IjUwIiAvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTAsIDEwKSI+CiAgICA8cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE0MCIgcng9IjUwIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPgogICAgPHBhdGggZD0iTTAgMCBMMTQwIDAgTDE0MCAxNDAgWiIgZmlsbD0id2hpdGUiIG9wYWNpdHk9IjAuMDgiIGNsaXAtcGF0aD0idXJsKCNjbGlwKSIgLz4KICAgIDxwYXRoIGQ9Ik03NSAzMCBMNDAgOTAgTDcwIDkwIEw1NSA1NSBMOTAgNTUgTDY1IDEyNSBaIiBmaWxsPSJ3aGl0ZSIgLz4KICAgIDxjaXJjbGUgY3g9IjExNSIgY3k9IjQwIiByPSIxMiIgZmlsbD0id2hpdGUiIG9wYWNpdHk9IjAuMTUiIC8+CiAgPC9nPgogIDx0ZXh0IHg9IjE4MCIgeT0iMTA1IiBmaWxsPSJ3aGl0ZSIgc3R5bGU9ImZvbnQtZmFtaWx5OiAnVGFqYXdhbCcsIHNhbnMtc2VyaWY7IGZvbnQtd2VpZ2h0OiA5MDA7IGZvbnQtc2l6ZTogMTAwcHg7IGxldHRlci1zcGFjaW5nOiAtNXB4OyI+RmFzdFBheTwvdGV4dD4KICA8dGV4dCB4PSIxODUiIHk9IjE0NSIgZmlsbD0iIzM4YmRmOCIgc3R5bGU9ImZvbnQtZmFtaWx5OiAnVGFqYXdhbCcsIHNhbnMtc2VyaWY7IGZvbnQtd2VpZ2h0OiA4MDA7IGZvbnQtc2l6ZTogMjRweDsgbGV0dGVyLXNwYWNpbmc6IDIwcHg7Ij5ORVRXT1JLPC90ZXh0Pgo8L3N2Zz4=`;
 
@@ -342,6 +350,7 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     setCurrentUserId(null);
+    localStorage.removeItem('fp_v21_current_user_id');
     setTransactions([]);
     setNotifications([]);
     setWithdrawalRequests([]);
