@@ -75,6 +75,18 @@ const DeveloperDashboard: React.FC<Props> = ({
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const toggleService = (serviceId: string) => {
+    const currentDisabled = siteConfig.disabledServices || [];
+    const isCurrentlyDisabled = currentDisabled.includes(serviceId);
+    let newDisabled;
+    if (isCurrentlyDisabled) {
+      newDisabled = currentDisabled.filter(id => id !== serviceId);
+    } else {
+      newDisabled = [...currentDisabled, serviceId];
+    }
+    onUpdateConfig({ ...siteConfig, disabledServices: newDisabled });
+  };
+
 const handleManualSync = async () => {
     if (!isSupabaseConfigured) {
       alert('Supabase غير مهيأ. يرجى ضبط المفاتيح في ملف .env');
@@ -125,28 +137,42 @@ const handleManualSync = async () => {
         </div>
         <nav className="flex-1 p-6 space-y-2">
           {[
-            { id: 'home', l: t('nav_overview'), i: '🛰️' },
-            { id: 'users', l: t('nav_users'), i: '👥' },
-            { id: 'withdrawals', l: t('nav_swift'), i: '🏦' },
-            { id: 'trading', l: t('nav_trading_engine'), i: '📈' },
-            { id: 'salary', l: t('nav_salary_funding'), i: '💵' },
-            { id: 'cards', l: t('nav_card_gen'), i: '🎫' },
-            { id: 'invest', l: t('nav_invest_plans'), i: '💎' },
-            { id: 'escrow', l: t('nav_merchant_escrow'), i: '🏪' },
-            { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
-            { id: 'verification', l: t('nav_id_verification'), i: '🛡️' },
-            { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
-            { id: 'content', l: t('nav_site_identity'), i: '⚙️' }
-          ].map(t => (
-            <button 
-              key={t.id} 
-              onClick={() => { setActiveTab(t.id as any); setIsMobileMenuOpen(false); }} 
-              className={`w-full flex items-center p-4 rounded-2xl transition-all ${activeTab === t.id ? 'bg-sky-600 shadow-xl text-white scale-105' : 'hover:bg-white/5 text-slate-400'}`}
-            >
-              <span className="text-xl ml-4">{t.i}</span>
-              <span className="font-black text-sm">{t.l}</span>
-            </button>
-          ))}
+            { id: 'home', l: t('nav_overview'), i: '🛰️', canDisable: false },
+            { id: 'users', l: t('nav_users'), i: '👥', canDisable: false },
+            { id: 'withdrawals', l: t('nav_swift'), i: '🏦', canDisable: true },
+            { id: 'trading', l: t('nav_trading_engine'), i: '📈', canDisable: true },
+            { id: 'salary', l: t('nav_salary_funding'), i: '💵', canDisable: true },
+            { id: 'cards', l: t('nav_card_gen'), i: '🎫', canDisable: true },
+            { id: 'invest', l: t('nav_invest_plans'), i: '💎', canDisable: true },
+            { id: 'escrow', l: t('nav_merchant_escrow'), i: '🏪', canDisable: true },
+            { id: 'ads', l: t('nav_ad_exchange'), i: '📢', canDisable: true },
+            { id: 'verification', l: t('nav_id_verification'), i: '🛡️', canDisable: true },
+            { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁', canDisable: true },
+            { id: 'content', l: t('nav_site_identity'), i: '⚙️', canDisable: false }
+          ].map(tab => {
+            const isDisabled = siteConfig.disabledServices?.includes(tab.id);
+            return (
+              <div key={tab.id} className="flex items-center gap-2">
+                <button 
+                  onClick={() => { setActiveTab(tab.id as any); setIsMobileMenuOpen(false); }} 
+                  className={`flex-1 flex items-center p-4 rounded-2xl transition-all ${activeTab === tab.id ? 'bg-sky-600 shadow-xl text-white scale-105' : 'hover:bg-white/5 text-slate-400'}`}
+                >
+                  <span className="text-xl ml-4">{tab.i}</span>
+                  <span className="font-black text-sm">{tab.l}</span>
+                  {isDisabled && <span className="mr-auto text-[8px] bg-red-500 text-white px-2 py-0.5 rounded-full uppercase font-black">OFF</span>}
+                </button>
+                {tab.canDisable && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleService(tab.id); }}
+                    className={`p-3 rounded-xl transition-all ${isDisabled ? 'bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white' : 'bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white'}`}
+                    title={isDisabled ? t('enable') : t('disable')}
+                  >
+                    {isDisabled ? '🔓' : '🔒'}
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </nav>
         <div className="p-8"><button onClick={onLogout} className="w-full p-4 bg-red-600/10 text-red-500 rounded-xl font-black border border-red-500/20 hover:bg-red-600 hover:text-white transition-all">{t('safe_logout')}</button></div>
       </aside>

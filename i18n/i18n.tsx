@@ -3,6 +3,51 @@ import { Language, RTL_LANGUAGES, Translations, I18nContextType } from '../types
 import axios from 'axios';
 
 const translationsData: Translations = {
+  "service_under_development": {
+    "en": "This service is under development now",
+    "ar": "هذه الخدمة قيد التطوير الآن",
+    "ku": "ئەم خزمەتگوزارییە ئێستا لە قۆناغی گەشەپێداندایە",
+    "fr": "Ce service est en cours de développement",
+    "tr": "Bu hizmet şu anda geliştirme aşamasındadır",
+    "zh": "此服务目前正在开发中",
+    "ru": "Этот сервис сейчас находится в разработке"
+  },
+  "disable": {
+    "en": "Disable",
+    "ar": "تعطيل",
+    "ku": "ناچالاککردن",
+    "fr": "Désactiver",
+    "tr": "Devre Dışı Bırak",
+    "zh": "禁用",
+    "ru": "Отключить"
+  },
+  "enable": {
+    "en": "Enable",
+    "ar": "تفعيل",
+    "ku": "چالاککردن",
+    "fr": "Activer",
+    "tr": "Etkinleştir",
+    "zh": "启用",
+    "ru": "Включить"
+  },
+  "service_status": {
+    "en": "Service Status",
+    "ar": "حالة الخدمات",
+    "ku": "بارودۆخی خزمەتگوزارییەکان",
+    "fr": "État du service",
+    "tr": "Hizmet Durumu",
+    "zh": "服务状态",
+    "ru": "Статус услуги"
+  },
+  "manage_services": {
+    "en": "Manage Services",
+    "ar": "إدارة الخدمات",
+    "ku": "بەڕێوەبردنی خزمەتگوزارییەکان",
+    "fr": "Gérer les services",
+    "tr": "Hizmetleri Yönet",
+    "zh": "管理服务",
+    "ru": "Управление услугами"
+  },
   "welcome": {
     "en": "Welcome to FastPay Network",
     "ar": "أهلاً بك في شبكة FastPay",

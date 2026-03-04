@@ -317,4 +317,5 @@ export interface SiteConfig {
   showRaffleCountdown: boolean;
   raffleEndDate: string;
   isTradingEnabled: boolean;
+  disabledServices?: string[];
 }

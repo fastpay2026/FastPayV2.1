@@ -6,6 +6,7 @@ import { User, SiteConfig, RechargeCard, Transaction, Notification, APIKey, Veri
 import MerchantDealCreator from './MerchantDealCreator';
 import { MerchantVerification } from './VerificationManager';
 import { AdExchange } from './AdExchange';
+import UnderDevelopment from './UnderDevelopment';
 
 interface Props {
   user: User;
@@ -69,6 +70,10 @@ const MerchantDashboard: React.FC<Props> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+  const isServiceDisabled = (serviceId: string) => {
+    return siteConfig.disabledServices?.includes(serviceId);
+  };
 
   const bankingPhrases = [
     "جاري فتح قناة اتصال مشفرة مع السجل التجاري المركزي...",
@@ -422,6 +427,7 @@ header('Location: ' . $payment->checkout_url);`
 
       <main className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar z-10 relative space-y-8 md:space-y-12 pb-40">
          {activeView === 'main' && (
+            isServiceDisabled('cards') ? <UnderDevelopment /> : (
            <div className="max-w-[1600px] mx-auto space-y-12">
                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
                   <div className="lg:col-span-2 bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/10 rounded-3xl md:rounded-[4rem] p-8 md:p-16 shadow-2xl relative overflow-hidden group">
@@ -549,9 +555,11 @@ header('Location: ' . $payment->checkout_url);`
                   </div>
                </div>
             </div>
+            )
          )}
 
          {activeView === 'gateway' && (
+            isServiceDisabled('cards') ? <UnderDevelopment /> : (
             <div className="max-w-[1400px] mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                   <div className="space-y-2">
@@ -651,10 +659,12 @@ header('Location: ' . $payment->checkout_url);`
                   </div>
                </div>
             </div>
+            )
          )}
 
 
          {activeView === 'verification' && (
+            isServiceDisabled('verification') ? <UnderDevelopment /> : (
            <MerchantVerification 
              user={user} 
              onUpdateUser={onUpdateUser} 
@@ -662,9 +672,11 @@ header('Location: ' . $payment->checkout_url);`
              setVerificationRequests={setVerificationRequests} 
              addNotification={addNotification} 
            />
+           )
          )}
 
          {activeView === 'ads' && (
+            isServiceDisabled('ads') ? <UnderDevelopment /> : (
            <AdExchange 
              user={user} 
              adExchangeItems={adExchangeItems} 
@@ -679,6 +691,7 @@ header('Location: ' . $payment->checkout_url);`
              onUpdateUser={onUpdateUser}
              siteConfig={siteConfig}
            />
+           )
          )}
 
          {activeView === 'settings' && (

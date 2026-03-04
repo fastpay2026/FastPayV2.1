@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing, AdExchangeItem, AdNegotiation } from '../types';
 import { AdExchange } from './AdExchange';
 import { useI18n } from '../i18n/i18n';
+import UnderDevelopment from './UnderDevelopment';
 
 interface Props {
   user: User;
@@ -102,6 +103,7 @@ const Countdown: React.FC<{ targetDate: string }> = ({ targetDate }) => {
   );
 };
 
+
 const UserDashboard: React.FC<Props> = ({ 
   user, onLogout, siteConfig, accounts, setAccounts, rechargeCards, setRechargeCards, 
   transactions, setTransactions, addNotification, onUpdateUser, fixedDeposits, setFixedDeposits, tradeAssets,
@@ -112,6 +114,10 @@ const UserDashboard: React.FC<Props> = ({
   const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads'>('dashboard');
   const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | 'withdraw_warning' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const isServiceDisabled = (serviceId: string) => {
+    return siteConfig.disabledServices?.includes(serviceId);
+  };
   
   // Logic States
   const [isTransferring, setIsTransferring] = useState(false);
@@ -502,6 +508,10 @@ const UserDashboard: React.FC<Props> = ({
                          <button onClick={() => setModalType('coupon')} className="bg-emerald-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-emerald-500 transition-all shadow-2xl">{t('deposit_coupon')}</button>
                          <button 
                             onClick={() => {
+                              if (isServiceDisabled('withdrawals')) {
+                                alert(t('service_under_development'));
+                                return;
+                              }
                               if (!user.linkedCards || user.linkedCards.length === 0) {
                                 setModalType('withdraw_warning');
                               } else {
@@ -550,6 +560,7 @@ const UserDashboard: React.FC<Props> = ({
           )}
 
           {activeTab === 'investment' && (
+             isServiceDisabled('invest') ? <UnderDevelopment /> : (
              <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500 pb-40">
                 <div className="max-w-7xl mx-auto space-y-10 md:space-y-16">
                    <div className="text-center space-y-4">
@@ -570,9 +581,11 @@ const UserDashboard: React.FC<Props> = ({
                    </div>
                 </div>
              </div>
+             )
           )}
 
           {activeTab === 'raffle' && (
+             isServiceDisabled('raffle') ? <UnderDevelopment /> : (
              <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in fade-in duration-500 text-center pb-40">
                 <div className="max-w-4xl mx-auto space-y-10 md:space-y-16">
                    <div className="bg-amber-500/10 p-8 md:p-20 rounded-3xl md:rounded-[5rem] border border-amber-500/20 shadow-3xl space-y-8 md:space-y-10">
@@ -605,15 +618,19 @@ const UserDashboard: React.FC<Props> = ({
                    </div>
                 </div>
              </div>
+             )
           )}
 
           {activeTab === 'trading' && (
+             isServiceDisabled('trading') ? <UnderDevelopment /> : (
              <div className="flex-1 flex flex-col animate-in zoom-in duration-500 h-full overflow-hidden">
                 <TradingViewWidget symbol="BINANCE:BTCUSDT" />
              </div>
+             )
           )}
 
           {activeTab === 'salary' && (
+             isServiceDisabled('salary') ? <UnderDevelopment /> : (
              <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500 pb-40">
                 <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
                    <div className="bg-indigo-900/40 p-8 md:p-16 rounded-3xl md:rounded-[4rem] border border-indigo-500/20 shadow-3xl flex flex-col lg:flex-row justify-between items-center gap-8 md:gap-12">
@@ -638,6 +655,7 @@ const UserDashboard: React.FC<Props> = ({
                    </div>
                 </div>
              </div>
+             )
           )}
 
           {activeTab === 'profile' && (
@@ -708,6 +726,7 @@ const UserDashboard: React.FC<Props> = ({
           )}
 
           {activeTab === 'ads' && (
+             isServiceDisabled('ads') ? <UnderDevelopment /> : (
             <div className="flex-1 p-8 md:p-12 overflow-y-auto custom-scrollbar pb-40">
               <AdExchange 
                 user={user} 
@@ -724,6 +743,7 @@ const UserDashboard: React.FC<Props> = ({
                 siteConfig={siteConfig}
               />
             </div>
+            )
           )}
        </main>
 
