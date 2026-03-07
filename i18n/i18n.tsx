@@ -4201,7 +4201,405 @@ const translationsData: Translations = {
   "insufficient_balance_generic": { "en": "Insufficient balance to complete this operation.", "ar": "رصيدك غير كافٍ لإتمام هذه العملية.", "fr": "Solde insuffisant pour terminer cette opération.", "tr": "Bu işlemi tamamlamak için yetersiz bakiye.", "zh": "余额不足，无法完成此操作。", "ku": "باڵانسەکەت بەش ناکات بۆ تەواوکردنی ئەم مامەڵەیە.", "ru": "Недостаточно средств для завершения этой операции." },
   "purchase_desc": { "en": "Purchase", "ar": "شراء", "fr": "Achat", "tr": "Satın Al", "zh": "购买", "ku": "کڕین", "ru": "Покупка" },
   "invalid_amount": { "en": "Please enter a valid amount", "ar": "يرجى إدخال مبلغ صحيح", "fr": "Veuillez saisir un montant valide", "tr": "Lütfen geçerli bir tutar girin", "zh": "请输入有效金额", "ku": "تکایە بڕێکی دروست بنووسە", "ru": "Пожалуйста, введите правильную сумму" },
-  "general_location": { "en": "General", "ar": "عام", "fr": "Général", "tr": "Genel", "zh": "通用", "ku": "گشتی", "ru": "Общий" }
+  "general_location": { "en": "General", "ar": "عام", "fr": "Général", "tr": "Genel", "zh": "通用", "ku": "گشتی", "ru": "Общий" },
+  "secure_gateway": {
+    "en": "Secure Gateway",
+    "ar": "البوابة الآمنة",
+    "fr": "Passerelle Sécurisée",
+    "tr": "Güvenli Ağ Geçidi",
+    "zh": "安全网关",
+    "ku": "دەروازەی پارێزراو",
+    "ru": "Безопасный шлюз"
+  },
+  "usdt_amount_to_transfer": {
+    "en": "USDT Amount to Transfer",
+    "ar": "مبلغ USDT للتحويل",
+    "fr": "Montant USDT à transférer",
+    "tr": "Transfer Edilecek USDT Tutarı",
+    "zh": "要转账的 USDT 金额",
+    "ku": "بڕی USDT بۆ گواستنەوە",
+    "ru": "Сумма USDT для перевода"
+  },
+  "total_to_deduct": {
+    "en": "Total to Deduct",
+    "ar": "إجمالي المبلغ المخصوم",
+    "fr": "Total à déduire",
+    "tr": "Düşülecek Toplam Tutar",
+    "zh": "扣除总额",
+    "ku": "کۆی غشتی بۆ بڕین",
+    "ru": "Итого к списанию"
+  },
+  "confirm_usdt_transfer": {
+    "en": "Confirm USDT Transfer",
+    "ar": "تأكيد تحويل USDT",
+    "fr": "Confirmer le transfert USDT",
+    "tr": "USDT Transferini Onayla",
+    "zh": "确认 USDT 转账",
+    "ku": "پشتڕاستکردنەوەی گواستنەوەی USDT",
+    "ru": "Подтвердить перевод USDT"
+  },
+  "transfer_request_submitted": {
+    "en": "Transfer Request Submitted",
+    "ar": "تم تقديم طلب التحويل",
+    "fr": "Demande de transfert soumise",
+    "tr": "Transfer Talebi Gönderildi",
+    "zh": "转账申请已提交",
+    "ku": "داواکاری گواستنەوە نێردرا",
+    "ru": "Запрос на перевод отправлен"
+  },
+  "request_processed_msg": {
+    "en": "Your request is being processed by the network.",
+    "ar": "طلبك قيد المعالجة من قبل الشبكة.",
+    "fr": "Votre demande est en cours de traitement par le réseau.",
+    "tr": "Talebiniz ağ tarafından işleniyor.",
+    "zh": "您的请求正在由网络处理。",
+    "ku": "داواکارییەکەت لەلایەن تۆڕەکەوە لە قۆناغی جێبەجێکردندایە.",
+    "ru": "Ваш запрос обрабатывается сетью."
+  },
+  "initializing_secure_gateway": {
+    "en": "Initializing Secure Gateway...",
+    "ar": "جاري تهيئة البوابة الآمنة...",
+    "fr": "Initialisation de la passerelle sécurisée...",
+    "tr": "Güvenli Ağ Geçidi Başlatılıyor...",
+    "zh": "正在初始化安全网关...",
+    "ku": "دەستپێکردنی دەروازەی پارێزراو...",
+    "ru": "Инициализация безопасного шлюза..."
+  },
+  "scanning_online_distributors": {
+    "en": "Scanning for Online Distributors...",
+    "ar": "جاري البحث عن الموزعين المتاحين...",
+    "fr": "Recherche de distributeurs en ligne...",
+    "tr": "Çevrimiçi Distribütörler Taranıyor...",
+    "zh": "正在扫描在线分销商...",
+    "ku": "گەڕان بەدوای دابەشکەرە ئۆنلاینەکاندا...",
+    "ru": "Поиск онлайн-дистрибьюторов..."
+  },
+  "establishing_encrypted_handshake": {
+    "en": "Establishing Encrypted Handshake...",
+    "ar": "جاري إنشاء اتصال مشفر...",
+    "fr": "Établissement d'une liaison cryptée...",
+    "tr": "Şifreli El Sıkışma Kuruluyor...",
+    "zh": "正在建立加密握手...",
+    "ku": "دروستکردنی پەیوەندییەکی پارێزراو...",
+    "ru": "Установка зашифрованного соединения..."
+  },
+  "verifying_liquidity_capacity": {
+    "en": "Verifying Liquidity Capacity...",
+    "ar": "جاري التحقق من سعة السيولة...",
+    "fr": "Vérification de la capacité de liquidité...",
+    "tr": "Likidite Kapasitesi Doğرulanıyor...",
+    "zh": "正在验证流动性容量...",
+    "ku": "پشتڕاستکردنەوەی توانای شلەیی...",
+    "ru": "Проверка ликвидности..."
+  },
+  "routing_transaction_node": {
+    "en": "Routing Transaction through Node...",
+    "ar": "جاري توجيه المعاملة عبر العقدة...",
+    "fr": "Routage de la transaction via le nœud...",
+    "tr": "İşlem Düğüm Üzerinden Yönlendiriliyor...",
+    "zh": "正在通过节点路由交易...",
+    "ku": "ناردنی مامەڵەکە لە ڕێگەی نۆدەوە...",
+    "ru": "Маршрутизация транзакции через узел..."
+  },
+  "gateway_fee": {
+    "en": "Gateway Fee",
+    "ar": "رسوم البوابة",
+    "fr": "Frais de passerelle",
+    "tr": "Ağ Geçidi Ücreti",
+    "zh": "网关费用",
+    "ku": "تێچووی دەروازە",
+    "ru": "Комиссия шлюза"
+  },
+  "usdt_gateway": {
+    "en": "USDT Gateway",
+    "ar": "بوابة USDT",
+    "fr": "Passerelle USDT",
+    "tr": "USDT Ağ Geçidi",
+    "zh": "USDT 网关",
+    "ku": "دەروازەی USDT",
+    "ru": "Шлюз USDT"
+  },
+  "secure_gateway_flash_programming": {
+    "en": "Secure USDT Gateway & Flash Programming",
+    "ar": "بوابة USDT الآمنة وبرمجة الفلاش",
+    "fr": "Passerelle USDT sécurisée et programmation Flash",
+    "tr": "Güvenli USDT Ağ Geçidi ve Flash Programlama",
+    "zh": "安全 USDT 网关和闪存编程",
+    "ku": "دەروازەی USDT ی پارێزراو و پڕۆگرامسازی فلاش",
+    "ru": "Безопасный шлюз USDT и программирование Flash"
+  },
+  "manage_hidden_liquidity_channels": {
+    "en": "Manage hidden liquidity channels and hardware authentication keys",
+    "ar": "إدارة قنوات السيولة المخفية ومفاتيح المصادقة للأجهزة",
+    "fr": "Gérer les canaux de liquidité cachés et les clés d'authentification matérielle",
+    "tr": "Gizli likidite kanallarını ve donanım kimlik doğrulama anahtarlarını yönetin",
+    "zh": "管理隐藏的流动性渠道和硬件身份验证密钥",
+    "ku": "بەڕێوەبردنی کەناڵە شاردراوەکانی شلەیی و کلیلەکانی پشتڕاستکردنەوەی ڕەقەکاڵا",
+    "ru": "Управление скрытыми каналами ликвидности и аппаратными ключами аутентификации"
+  },
+  "flash_key_programming_module": {
+    "en": "Flash Key Programming Module",
+    "ar": "وحدة برمجة مفتاح الفلاش",
+    "fr": "Module de programmation de clé Flash",
+    "tr": "Flash Anahtar Programlama Modülü",
+    "zh": "闪存密钥编程模块",
+    "ku": "مۆدیۆلی پڕۆگرامسازی کلیلی فلاش",
+    "ru": "Модуль программирования ключей Flash"
+  },
+  "target_distributor": {
+    "en": "Target Distributor",
+    "ar": "الموزع المستهدف",
+    "fr": "Distributeur cible",
+    "tr": "Hedef Distribütör",
+    "zh": "目标分销商",
+    "ku": "دابەشکەری مەبەست",
+    "ru": "Целевой дистрибьютор"
+  },
+  "hardware_signature_unique_hash": {
+    "en": "Hardware Signature (Unique Hash)",
+    "ar": "توقيع الجهاز (هاش فريد)",
+    "fr": "Signature matérielle (Hash unique)",
+    "tr": "Donanım İmzası (Benzersiz Hash)",
+    "zh": "硬件签名（唯一哈希）",
+    "ku": "واژۆی ڕەقەکاڵا (هاشی بێهاوتا)",
+    "ru": "Аппаратная подпись (уникальный хеш)"
+  },
+  "program_new_hardware_key": {
+    "en": "Program New Hardware Key",
+    "ar": "برمجة مفتاح جهاز جديد",
+    "fr": "Programmer une nouvelle clé matérielle",
+    "tr": "Yeni Donanım Anahtarını Programla",
+    "zh": "编写新的硬件密钥",
+    "ku": "پڕۆگرامکردنی کلیلی ڕەقەکاڵای نوێ",
+    "ru": "Программировать новый аппаратный ключ"
+  },
+  "programming_instructions": {
+    "en": "Programming Instructions",
+    "ar": "تعليمات البرمجة",
+    "fr": "Instructions de programmation",
+    "tr": "Programlama Talimatları",
+    "zh": "编程说明",
+    "ku": "ڕێنماییەکانی پڕۆگرامسازی",
+    "ru": "Инструкции по программированию"
+  },
+  "instruction_1": {
+    "en": "Connect the target USB/OTG device to the secure terminal.",
+    "ar": "قم بتوصيل جهاز USB/OTG المستهدف بالطرفية الآمنة.",
+    "fr": "Connectez le périphérique USB/OTG cible au terminal sécurisé.",
+    "tr": "Hedef USB/OTG cihazını güvenli terminale bağlayın.",
+    "zh": "将目标 USB/OTG 设备连接到安全终端。",
+    "ku": "ئامێری USB/OTG ی مەبەست بە تێرمیناڵە پارێزراوەکەوە ببەستە.",
+    "ru": "Подключите целевое устройство USB/OTG к защищенному терминалу."
+  },
+  "instruction_2": {
+    "en": "Select the distributor who will hold this physical key.",
+    "ar": "اختر الموزع الذي سيحتفظ بهذا المفتاح المادي.",
+    "fr": "Sélectionnez le distributeur qui détiendra cette clé physique.",
+    "tr": "Bu fiziksel anahtarı tutacak distribütörü seçin.",
+    "zh": "选择将持有此物理密钥的分销商。",
+    "ku": "ئەو دابەشکەرە هەڵبژێرە کە ئەم کلیلە فیزیاییە لای دەبێت.",
+    "ru": "Выберите дистрибьютора, который будет владеть этим физическим ключом."
+  },
+  "instruction_3": {
+    "en": "Generate or enter the hardware's unique signature.",
+    "ar": "قم بتوليد أو إدخال التوقيع الفريد للجهاز.",
+    "fr": "Générez ou saisissez la signature unique du matériel.",
+    "tr": "Donanımın benzersiz imzasını oluşturun veya girin.",
+    "zh": "生成或输入硬件的唯一签名。",
+    "ku": "واژۆی بێهاوتای ڕەقەکاڵاکە دروست بکە یان بنووسە.",
+    "ru": "Сгенерируйте или введите уникальную подпись оборудования."
+  },
+  "instruction_4": {
+    "en": "Flash the registry. The key is now authorized for USDT confirmation.",
+    "ar": "قم ببرمجة السجل. المفتاح الآن مخول لتأكيد USDT.",
+    "fr": "Flashez le registre. La clé est maintenant autorisée pour la confirmation USDT.",
+    "tr": "Kaydı flaşlayın. Anahtar artık USDT onayı için yetkilendirilmiştir.",
+    "zh": "刷新注册表。该密钥现在已被授权用于 USDT 确认。",
+    "ku": "فلاشکردنی تۆمارەکە. کلیلەکە ئێستا ڕێپێدراوە بۆ پشتڕاستکردنەوەی USDT.",
+    "ru": "Прошейте реестр. Теперь ключ авторизован для подтверждения USDT."
+  },
+  "authorized_flash_registry": {
+    "en": "Authorized Flash Registry",
+    "ar": "سجل الفلاش المعتمد",
+    "fr": "Registre Flash autorisé",
+    "tr": "Yetkili Flash Kaydı",
+    "zh": "授权闪存注册表",
+    "ku": "تۆماری فلاشە ڕێپێدراوەکان",
+    "ru": "Авторизованный реестр Flash"
+  },
+  "active_keys": {
+    "en": "Active Keys",
+    "ar": "المفاتيح النشطة",
+    "fr": "Clés actives",
+    "tr": "Aktif Anahtarlar",
+    "zh": "活动密钥",
+    "ku": "کلیلە چالاکەکان",
+    "ru": "Активные ключи"
+  },
+  "hardware_hash": {
+    "en": "Hardware Hash",
+    "ar": "هاش الجهاز",
+    "fr": "Hash matériel",
+    "tr": "Donanım Hash",
+    "zh": "硬件哈希",
+    "ku": "هاشی ڕەقەکاڵا",
+    "ru": "Хеш оборудования"
+  },
+  "last_used": {
+    "en": "Last Used",
+    "ar": "آخر استخدام",
+    "fr": "Dernière utilisation",
+    "tr": "Son Kullanım",
+    "zh": "上次使用",
+    "ku": "دواین بەکارهێنان",
+    "ru": "Последнее использование"
+  },
+  "actions": {
+    "en": "Actions",
+    "ar": "الإجراءات",
+    "fr": "Actions",
+    "tr": "İşlemler",
+    "zh": "操作",
+    "ku": "کردارەکان",
+    "ru": "Действия"
+  },
+  "gateway_settings": {
+    "en": "Gateway Settings",
+    "ar": "إعدادات البوابة",
+    "fr": "Paramètres de la passerelle",
+    "tr": "Ağ Geçidi Ayarları",
+    "zh": "网关设置",
+    "ku": "ڕێکخستنەکانی دەروازە",
+    "ru": "Настройки шлюза"
+  },
+  "gateway_status": {
+    "en": "Gateway Status",
+    "ar": "حالة البوابة",
+    "fr": "Statut de la passerelle",
+    "tr": "Ağ Geçidi Durumu",
+    "zh": "网关状态",
+    "ku": "بارودۆخی دەروازە",
+    "ru": "Статус шлюза"
+  },
+  "online": {
+    "en": "Online",
+    "ar": "متصل",
+    "fr": "En ligne",
+    "tr": "Çevrimiçi",
+    "zh": "在线",
+    "ku": "ئۆنلاین",
+    "ru": "В сети"
+  },
+  "offline": {
+    "en": "Offline",
+    "ar": "غير متصل",
+    "fr": "Hors ligne",
+    "tr": "Çevrimdışı",
+    "zh": "离线",
+    "ku": "ئۆفلاین",
+    "ru": "Не в сети"
+  },
+  "usdt_buy_rate": {
+    "en": "USDT Buy Rate (1 USD = ? USDT)",
+    "ar": "سعر شراء USDT (1 USD = ? USDT)",
+    "fr": "Taux d'achat USDT (1 USD = ? USDT)",
+    "tr": "USDT Alış Kuru (1 USD = ? USDT)",
+    "zh": "USDT 买入价 (1 USD = ? USDT)",
+    "ku": "نرخی کڕینی USDT (1 USD = ? USDT)",
+    "ru": "Курс покупки USDT (1 USD = ? USDT)"
+  },
+  "min_transfer_amount": {
+    "en": "Min Transfer Amount ($)",
+    "ar": "أقل مبلغ للتحويل ($)",
+    "fr": "Montant minimum de transfert ($)",
+    "tr": "Min Transfer Tutarı ($)",
+    "zh": "最小转账金额 ($)",
+    "ku": "کەمترین بڕی گواستنەوە ($)",
+    "ru": "Мин. сумма перевода ($)"
+  },
+  "recent_gateway_activity": {
+    "en": "Recent Gateway Activity",
+    "ar": "نشاط البوابة الأخير",
+    "fr": "Activité récente de la passerelle",
+    "tr": "Son Ağ Geçidi Etkinliği",
+    "zh": "近期网关活动",
+    "ku": "چالاکییەکانی دوایی دەروازە",
+    "ru": "Последние действия шлюза"
+  },
+  "no_recent_activity": {
+    "en": "No recent activity",
+    "ar": "لا يوجد نشاط أخير",
+    "fr": "Aucune activité récente",
+    "tr": "Son etkinlik yok",
+    "zh": "近期无活动",
+    "ku": "هیچ چالاکییەکی دوایی نییە",
+    "ru": "Нет недавней активности"
+  },
+  "flash_key_programmed_success": {
+    "en": "Flash Key Programmed Successfully",
+    "ar": "تم برمجة مفتاح الفلاش بنجاح",
+    "fr": "Clé Flash programmée avec succès",
+    "tr": "Flash Anahtarı Başarıyla Programlandı",
+    "zh": "闪存密钥编程成功",
+    "ku": "کلیلی فلاش بە سەرکەوتوویی پڕۆگرام کرا",
+    "ru": "Ключ Flash успешно запрограммирован"
+  },
+  "error_programming_flash_key": {
+    "en": "Error programming flash key",
+    "ar": "خطأ في برمجة مفتاح الفلاش",
+    "fr": "Erreur lors de la programmation de la clé Flash",
+    "tr": "Flash anahtarı programlanırken hata oluştu",
+    "zh": "闪存密钥编程错误",
+    "ku": "هەڵە لە پڕۆگرامکردنی کلیلی فلاش",
+    "ru": "Ошибка программирования ключа Flash"
+  },
+  "error_updating_key_status": {
+    "en": "Error updating key status",
+    "ar": "خطأ في تحديث حالة المفتاح",
+    "fr": "Erreur lors de la mise à jour du statut de la clé",
+    "tr": "Anahtar durumu güncellenirken hata oluştu",
+    "zh": "更新密钥状态错误",
+    "ku": "هەڵە لە نوێکردنەوەی بارودۆخی کلیل",
+    "ru": "Ошибка обновления статуса ключа"
+  },
+  "error_updating_settings": {
+    "en": "Error updating settings",
+    "ar": "خطأ في تحديث الإعدادات",
+    "fr": "Erreur lors de la mise à jour des paramètres",
+    "tr": "Ayarlar güncellenirken hata oluştu",
+    "zh": "更新设置错误",
+    "ku": "هەڵە لە نوێکردنەوەی ڕێکخستنەکان",
+    "ru": "Ошибка обновления настроек"
+  },
+  "select_distributor_placeholder": {
+    "en": "Select Distributor...",
+    "ar": "اختر الموزع...",
+    "fr": "Sélectionner un distributeur...",
+    "tr": "Distribütör Seçin...",
+    "zh": "选择分销商...",
+    "ku": "دابەشکەر هەڵبژێرە...",
+    "ru": "Выберите дистрибьютора..."
+  },
+  "hardware_signature_placeholder": {
+    "en": "FP-XXXX-XXXX-XXXX-XXXX",
+    "ar": "FP-XXXX-XXXX-XXXX-XXXX",
+    "fr": "FP-XXXX-XXXX-XXXX-XXXX",
+    "tr": "FP-XXXX-XXXX-XXXX-XXXX",
+    "zh": "FP-XXXX-XXXX-XXXX-XXXX",
+    "ku": "FP-XXXX-XXXX-XXXX-XXXX",
+    "ru": "FP-XXXX-XXXX-XXXX-XXXX"
+  },
+  "select_distributor_and_signature": {
+    "en": "Please select a distributor and enter a hardware signature",
+    "ar": "يرجى اختيار موزع وإدخال توقيع الجهاز",
+    "fr": "Veuillez sélectionner un distributeur et saisir une signature matérielle",
+    "tr": "Lütfen bir distribütör seçin ve bir donanım imzası girin",
+    "zh": "请选择分销商并输入硬件签名",
+    "ku": "تکایە دابەشکەرێک هەڵبژێرە و واژۆی ڕەقەکاڵایەک بنووسە",
+    "ru": "Пожалуйста, выберите дистрибьютора и введите аппаратную подпись"
+  }
+
+
 };
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);

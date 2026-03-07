@@ -51,7 +51,7 @@ const MerchantDashboard: React.FC<Props> = ({
   useEffect(() => {
     if (user.balance > prevBalanceRef.current) {
       const diff = user.balance - prevBalanceRef.current;
-      addNotification('تم شحن حسابك', `قامت الإدارة بإضافة مبلغ $${diff.toLocaleString()} إلى رصيدك.`, 'money');
+      addNotification('Account Recharged', `Administration added $${diff.toLocaleString()} to your balance.`, 'money');
     }
     prevBalanceRef.current = user.balance;
   }, [user.balance, addNotification]);
@@ -77,14 +77,14 @@ const MerchantDashboard: React.FC<Props> = ({
   };
 
   const bankingPhrases = [
-    "جاري فتح قناة اتصال مشفرة مع السجل التجاري المركزي...",
-    "التحقق من كفاية السيولة في محفظة الموزع السيادية...",
-    "توليد توقيع رقمي فريد للمعاملة عبر بروتوكول FastPay-Secure...",
-    "فحص معايير الامتثال الدولية (KYC/AML) ومكافحة غسيل الأموال...",
-    "تأمين التحويل عبر بروتوكول التشفير العسكري AES-256...",
-    "إرسال بيانات التسوية النهائية إلى الخادم المصرفي الرئيسي...",
-    "تحديث أرصدة الطرفين في قاعدة البيانات الموزعة عالمياً...",
-    "توليد إيصال العملية وتأكيد الحوالة بنجاح..."
+    "Opening encrypted connection with Central Commercial Registry...",
+    "Verifying liquidity sufficiency in Distributor Sovereign Wallet...",
+    "Generating unique digital signature via FastPay-Secure protocol...",
+    "Scanning international compliance standards (KYC/AML)...",
+    "Securing transfer via AES-256 military-grade encryption...",
+    "Sending final settlement data to Main Banking Server...",
+    "Updating balances in globally distributed ledger...",
+    "Generating transaction receipt and confirming transfer..."
   ];
 
   const currencies = [
@@ -97,12 +97,12 @@ const MerchantDashboard: React.FC<Props> = ({
 
   const handleGenerateCards = () => {
     const totalCost = cardAmount * cardQuantity;
-    if (totalCost > user.balance) return alert('الرصيد غير كافٍ في محفظة الموزع');
+    if (totalCost > user.balance) return alert('Insufficient balance in distributor wallet');
     
     const newCards: RechargeCard[] = [];
     const now = new Date();
     const ts = now.toISOString();
-    const displayTs = now.toLocaleString('ar-SA');
+    const displayTs = now.toLocaleString();
 
     for (let i = 0; i < cardQuantity; i++) {
       newCards.push({
@@ -124,10 +124,10 @@ const MerchantDashboard: React.FC<Props> = ({
       type: 'generate_card', 
       amount: -totalCost, 
       timestamp: ts, 
-      relatedUser: `توليد ${cardQuantity} بطاقة` 
+      relatedUser: `Generated ${cardQuantity} cards` 
     }, ...prev]);
     
-    addNotification('توليد بطاقات', `تم توليد ${cardQuantity} بطاقة بقيمة $${totalCost} بنجاح.`, 'money');
+    addNotification('Card Generation', `Generated ${cardQuantity} cards worth $${totalCost} successfully.`, 'money');
     setModalType(null);
   };
 
@@ -136,8 +136,8 @@ const MerchantDashboard: React.FC<Props> = ({
     const value = parseFloat(sendAmount);
     const target = accounts.find(acc => acc.username === recipient && acc.id !== user.id);
     
-    if (!target) return alert('خطأ: اسم المستخدم المستلم غير موجود في النظام');
-    if (value > user.balance || isNaN(value) || value <= 0) return alert('خطأ: الرصيد غير كافٍ أو المبلغ غير صحيح');
+    if (!target) return alert('Error: Recipient username not found in the system');
+    if (value > user.balance || isNaN(value) || value <= 0) return alert('Error: Insufficient balance or invalid amount');
 
     setIsTransferring(true);
     setTransferProgress(0);
@@ -182,7 +182,7 @@ const MerchantDashboard: React.FC<Props> = ({
     const target = accounts.find(acc => acc.username === recipient && acc.id !== user.id);
     
     if (target) {
-      const ts = new Date().toLocaleString('ar-SA');
+      const ts = new Date().toLocaleString();
 
       setAccounts(prev => prev.map(acc => {
         if (acc.id === user.id) return { ...acc, balance: acc.balance - value };
@@ -201,7 +201,7 @@ const MerchantDashboard: React.FC<Props> = ({
         timestamp: ts 
       }, ...prev]);
 
-      addNotification('تحويل ناجح', `تم تحويل $${value} إلى ${target.fullName} بنجاح.`, 'money');
+      addNotification('Transfer Successful', `Transferred $${value} to ${target.fullName} successfully.`, 'money');
       setTransferSuccess(true);
       
       setTimeout(() => {
@@ -214,35 +214,35 @@ const MerchantDashboard: React.FC<Props> = ({
   };
 
   const handleGenerateApiKey = () => {
-    if (!newKeyName.trim()) return alert('يرجى إدخال اسم للمفتاح');
+    if (!newKeyName.trim()) return alert('Please enter a name for the key');
     const newKey: APIKey = {
       id: uuidv4(),
       key: `pk_live_${uuidv4().replace(/-/g, '')}`,
       name: newKeyName,
-      createdAt: new Date().toLocaleString('ar-SA'),
+      createdAt: new Date().toLocaleString(),
       status: 'active',
       requests: 0
     };
     onUpdateUser({ ...user, apiKeys: [...(user.apiKeys || []), newKey] });
     setModalType(null);
     setNewKeyName('');
-    addNotification('أمن الـ API', `تم توليد مفتاح جديد: ${newKeyName}`, 'security');
+    addNotification('API Security', `New key generated: ${newKeyName}`, 'security');
   };
 
   const handleRevokeKey = (id: string) => {
-    if (!confirm('هل أنت متأكد من إلغاء هذا المفتاح؟ سيتوقف الربط البرمجي المرتبط به فوراً.')) return;
+    if (!confirm('Are you sure you want to revoke this key? Linked services will stop immediately.')) return;
     const updatedKeys = (user.apiKeys || []).map(k => k.id === id ? { ...k, status: 'revoked' as const } : k);
     onUpdateUser({ ...user, apiKeys: updatedKeys });
-    addNotification('أمن الـ API', 'تم إلغاء مفتاح ربط برمجي.', 'security');
+    addNotification('API Security', 'API access key revoked.', 'security');
   };
 
   const handleCancelCard = (card: RechargeCard) => {
     if (!card || card.isUsed) {
-      alert('خطأ: لا يمكن إلغاء هذه البطاقة');
+      alert('Error: This card cannot be cancelled');
       return;
     }
     
-    if (!confirm(`هل أنت متأكد من إلغاء البطاقة (${card.code})؟ سيتم حذفها واسترجاع قيمتها ($${card.amount}) إلى رصيدك.`)) return;
+    if (!confirm(`Are you sure you want to cancel card (${card.code})? It will be deleted and its value ($${card.amount}) will be refunded to your balance.`)) return;
 
     const refundAmount = card.amount;
     const cardCode = card.code;
@@ -262,10 +262,10 @@ const MerchantDashboard: React.FC<Props> = ({
       type: 'receive',
       amount: refundAmount,
       timestamp: ts,
-      relatedUser: `إلغاء بطاقة: ${cardCode}`
+      relatedUser: `Card Cancellation: ${cardCode}`
     }, ...prev]);
 
-    addNotification('إلغاء بطاقة', `تم إلغاء البطاقة بنجاح واسترجاع $${refundAmount} إلى محفظتك.`, 'money');
+    addNotification('Card Cancelled', `Card cancelled successfully and $${refundAmount} refunded to your wallet.`, 'money');
   };
 
   const handleChangePassword = (e: React.FormEvent) => {
@@ -274,15 +274,15 @@ const MerchantDashboard: React.FC<Props> = ({
     setPasswordSuccess(false);
 
     if (oldPassword !== user.password) {
-      setPasswordError('كلمة المرور الحالية غير صحيحة');
+      setPasswordError('Current password is incorrect');
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError('يجب أن تكون كلمة المرور 6 أحرف على الأقل');
+      setPasswordError('Password must be at least 6 characters');
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('كلمتا المرور غير متطابقتين');
+      setPasswordError('Passwords do not match');
       return;
     }
 
@@ -291,7 +291,7 @@ const MerchantDashboard: React.FC<Props> = ({
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    addNotification('أمن الحساب', 'تم تحديث كلمة المرور للموزع بنجاح.', 'security');
+    addNotification('Account Security', 'Distributor password updated successfully.', 'security');
     setTimeout(() => setPasswordSuccess(false), 3000);
   };
 
@@ -339,11 +339,11 @@ header('Location: ' . $payment->checkout_url);`
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('تم النسخ إلى الحافظة');
+    alert('Copied to clipboard');
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex flex-col bg-[#020617] text-white text-right font-sans overflow-hidden" dir="rtl">
+    <div className="fixed inset-0 z-[150] flex flex-col bg-[#020617] text-white text-left font-sans overflow-hidden">
       <div className="absolute inset-0 bg-mesh opacity-20 pointer-events-none"></div>
 
       {/* Currency Ticker */}
@@ -370,15 +370,15 @@ header('Location: ' . $payment->checkout_url);`
               </div>
             )}
             <div className="space-y-1 hidden md:block">
-               <h1 className="text-xl md:text-2xl font-black tracking-tighter">بوابة الموزع</h1>
+               <h1 className="text-xl md:text-2xl font-black tracking-tighter">Distributor Portal</h1>
                <nav className="flex gap-4 md:gap-6">
                   {[
-                    { id: 'main', l: 'الرئيسية' },
-                    { id: 'usdt_gateway', l: 'بوابة USDT' },
-                    { id: 'gateway', l: 'بوابة المطورين & API' },
-                    { id: 'ads', l: 'بورصة الإعلانات' },
-                    { id: 'verification', l: 'توثيق الحساب' },
-                    { id: 'settings', l: 'إعدادات الحساب' }
+                    { id: 'main', l: 'Home' },
+                    { id: 'usdt_gateway', l: 'USDT Gateway' },
+                    { id: 'gateway', l: 'Developer Portal & API' },
+                    { id: 'ads', l: 'Ad Exchange' },
+                    { id: 'verification', l: 'Account Verification' },
+                    { id: 'settings', l: 'Account Settings' }
                  ].map((view) => (
                    <button 
                      key={view.id}
@@ -408,12 +408,12 @@ header('Location: ' . $payment->checkout_url);`
         <div className="lg:hidden fixed inset-0 z-[190] bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="absolute top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
             {[
-              { id: 'main', l: 'الرئيسية', i: '🏠' },
-              { id: 'usdt_gateway', l: 'بوابة USDT', i: '🛡️' },
-              { id: 'gateway', l: 'بوابة المطورين', i: '🔌' },
-              { id: 'ads', l: 'بورصة الإعلانات', i: '📢' },
-              { id: 'verification', l: 'توثيق الحساب', i: '🛡️' },
-              { id: 'settings', l: 'إعدادات الحساب', i: '⚙️' }
+              { id: 'main', l: 'Home', i: '🏠' },
+              { id: 'usdt_gateway', l: 'USDT Gateway', i: '🛡️' },
+              { id: 'gateway', l: 'Developer Portal', i: '🔌' },
+              { id: 'ads', l: 'Ad Exchange', i: '📢' },
+              { id: 'verification', l: 'Account Verification', i: '🛡️' },
+              { id: 'settings', l: 'Account Settings', i: '⚙️' }
             ].map(v => (
               <button 
                 key={v.id} 
@@ -437,12 +437,12 @@ header('Location: ' . $payment->checkout_url);`
                      <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
                      <div className="relative z-10 space-y-8 md:space-y-12">
                         <div>
-                           <p className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-4">السيولة المتوفرة للموزع</p>
+                           <p className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-4">Distributor Available Liquidity</p>
                            <h2 className="text-5xl md:text-8xl font-black tracking-tighter">${user.balance.toLocaleString()}</h2>
                         </div>
                         <div className="flex flex-col sm:flex-row flex-wrap gap-4 md:gap-6">
                            <button onClick={() => setModalType('cards')} className="flex-1 py-6 md:py-8 bg-emerald-600 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl shadow-emerald-900/40 hover:bg-emerald-500 transition-all flex items-center justify-center gap-4 active:scale-95 group">
-                              <span>إصدار بطاقات</span>
+                              <span>Issue Cards</span>
                               <span className="text-2xl md:text-3xl group-hover:rotate-12 transition-transform">🎫</span>
                            </button>
                            <button onClick={() => setModalType('send')} className="flex-1 py-6 md:py-8 bg-white/5 border border-white/10 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl backdrop-blur-xl hover:bg-white/10 transition-all flex items-center justify-center gap-4 active:scale-95 group">
@@ -455,10 +455,10 @@ header('Location: ' . $payment->checkout_url);`
 
                   <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                      {[
-                        { l: 'إجمالي البطاقات', v: myGeneratedCards.length, i: '📦', c: 'text-white' },
-                        { l: 'مخزون نشط', v: myGeneratedCards.filter(c=>!c.isUsed).length, i: '⚡', c: 'text-sky-400' },
-                        { l: 'عمليات ناجحة', v: myGeneratedCards.filter(c=>c.isUsed).length, i: '✅', c: 'text-emerald-500' },
-                        { l: 'إيرادات المبيعات', v: `$${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}`, i: '💰', c: 'text-amber-500' }
+                        { l: 'Total Cards', v: myGeneratedCards.length, i: '📦', c: 'text-white' },
+                        { l: 'Active Stock', v: myGeneratedCards.filter(c=>!c.isUsed).length, i: '⚡', c: 'text-sky-400' },
+                        { l: 'Successful Operations', v: myGeneratedCards.filter(c=>c.isUsed).length, i: '✅', c: 'text-emerald-500' },
+                        { l: 'Sales Revenue', v: `$${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}`, i: '💰', c: 'text-amber-500' }
                      ].map((stat, idx) => (
                        <div key={idx} className="p-6 md:p-10 bg-[#0f172a]/60 backdrop-blur-xl border border-white/5 rounded-2xl md:rounded-[3rem] shadow-xl hover:border-sky-500/30 transition-all group">
                           <div className="flex justify-between items-start mb-4 md:mb-6">
@@ -474,17 +474,17 @@ header('Location: ' . $payment->checkout_url);`
                <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
                   <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                      <h3 className="text-2xl md:text-4xl font-black tracking-tighter flex items-center gap-4">
-                        <span>📊</span> سجل مبيعات البطاقات المفصل
+                        <span>📊</span> Detailed Card Sales Log
                      </h3>
                      <div className="w-full md:w-96 relative">
                         <input 
                           type="text"
-                          placeholder="بحث بكود البطاقة أو المستخدم..."
+                          placeholder="Search by card code or user..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-full p-4 md:p-5 pr-14 bg-white/5 border border-white/10 rounded-2xl font-bold text-white outline-none focus:border-sky-500 transition-all shadow-inner"
+                          className="w-full p-4 md:p-5 pl-14 bg-white/5 border border-white/10 rounded-2xl font-bold text-white outline-none focus:border-sky-500 transition-all shadow-inner"
                         />
-                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-xl opacity-40">🔍</span>
+                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-xl opacity-40">🔍</span>
                      </div>
                   </div>
 
@@ -492,13 +492,13 @@ header('Location: ' . $payment->checkout_url);`
                      <table className="w-full text-right min-w-[1000px]">
                         <thead className="bg-white/5 text-[10px] md:text-[11px] font-black uppercase text-slate-500 tracking-[0.2em] border-b border-white/5">
                            <tr>
-                              <th className="p-6 md:p-10">كود البطاقة الرقمي</th>
-                              <th className="p-6 md:p-10">القيمة المالية</th>
-                              <th className="p-6 md:p-10">الحالة التشغيلية</th>
-                              <th className="p-6 md:p-10">المستفيد</th>
-                              <th className="p-6 md:p-10">توقيت الإنشاء</th>
-                              <th className="p-6 md:p-10">توقيت الاستخدام</th>
-                              <th className="p-6 md:p-10 text-center">التحكم</th>
+                              <th className="p-6 md:p-10">Digital Card Code</th>
+                              <th className="p-6 md:p-10">Value</th>
+                              <th className="p-6 md:p-10">Status</th>
+                              <th className="p-6 md:p-10">Beneficiary</th>
+                              <th className="p-6 md:p-10">Creation Time</th>
+                              <th className="p-6 md:p-10">Usage Time</th>
+                              <th className="p-6 md:p-10 text-center">Control</th>
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 font-bold">
@@ -514,7 +514,7 @@ header('Location: ' . $payment->checkout_url);`
                                    <td className="p-6 md:p-10 text-2xl md:text-3xl font-black text-white">${c.amount.toLocaleString()}</td>
                                    <td className="p-6 md:p-10">
                                       <span className={`px-4 md:px-6 py-1.5 md:py-2.5 rounded-full text-[9px] md:text-[10px] font-black border transition-colors ${c.isUsed ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}`}>
-                                         {c.isUsed ? 'تم الاستخدام' : 'متاحة للبيع'}
+                                         {c.isUsed ? 'Used' : 'Available for Sale'}
                                       </span>
                                    </td>
                                    <td className="p-6 md:p-10">
@@ -566,29 +566,29 @@ header('Location: ' . $payment->checkout_url);`
             <div className="max-w-[1400px] mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                   <div className="space-y-2">
-                    <h2 className="text-4xl md:text-6xl font-black tracking-tighter">بوابة المطورين & API Gateway</h2>
-                    <p className="text-slate-500 font-bold text-base md:text-lg max-w-2xl">أدوات الربط البرمجي لقبول المدفوعات في متجرك الإلكتروني.</p>
+                    <h2 className="text-4xl md:text-6xl font-black tracking-tighter">Developer Portal & API Gateway</h2>
+                    <p className="text-slate-500 font-bold text-base md:text-lg max-w-2xl">Software integration tools to accept payments in your online store.</p>
                   </div>
                   <button onClick={() => setModalType('new_key')} className="w-full md:w-auto px-10 py-5 bg-sky-600 rounded-[2rem] font-black text-xl hover:bg-sky-500 transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-4">
-                    <span>توليد مفتاح جديد</span>
+                    <span>Generate New Key</span>
                     <span className="text-2xl">+</span>
                   </button>
                </div>
 
                <div className="bg-[#111827] border border-white/5 rounded-2xl md:rounded-[4rem] shadow-2xl overflow-hidden">
                   <div className="p-6 md:p-10 border-b border-white/5 flex justify-between items-center bg-white/5">
-                     <h3 className="text-xl md:text-2xl font-black text-white">إدارة مفاتيح الوصول</h3>
+                     <h3 className="text-xl md:text-2xl font-black text-white">Access Key Management</h3>
                   </div>
                   <div className="overflow-x-auto custom-scrollbar">
                      <table className="w-full text-right min-w-[1000px]">
                         <thead className="bg-white/5 text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">
                            <tr>
-                              <th className="p-6 md:p-8">الاسم</th>
-                              <th className="p-6 md:p-8">المفتاح البرمجي</th>
-                              <th className="p-6 md:p-8">الطلبات</th>
-                              <th className="p-6 md:p-8">تاريخ الإصدار</th>
-                              <th className="p-6 md:p-8 text-center">الحالة</th>
-                              <th className="p-6 md:p-8 text-center">التحكم</th>
+                              <th className="p-6 md:p-8">Name</th>
+                              <th className="p-6 md:p-8">API Key</th>
+                              <th className="p-6 md:p-8">Requests</th>
+                              <th className="p-6 md:p-8">Issue Date</th>
+                              <th className="p-6 md:p-8 text-center">Status</th>
+                              <th className="p-6 md:p-8 text-center">Control</th>
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 font-bold">
@@ -604,27 +604,27 @@ header('Location: ' . $payment->checkout_url);`
                                   <td className="p-6 md:p-8">
                                      <div className="flex items-center gap-4 bg-black/40 px-6 py-3 rounded-2xl border border-white/5 w-max">
                                         <code className="text-sky-300 font-mono text-xs tracking-widest">{isKeyVisibleId === k.id ? k.key : '••••••••••••••••••••••••'}</code>
-                                        <button onClick={() => setIsKeyVisibleId(isKeyVisibleId === k.id ? null : k.id)} className="text-[10px] font-black text-slate-500 hover:text-white">{isKeyVisibleId === k.id ? 'إخفاء' : 'عرض'}</button>
-                                        <button onClick={() => copyToClipboard(k.key)} className="text-[10px] font-black text-sky-500">نسخ</button>
+                                        <button onClick={() => setIsKeyVisibleId(isKeyVisibleId === k.id ? null : k.id)} className="text-[10px] font-black text-slate-500 hover:text-white">{isKeyVisibleId === k.id ? 'Hide' : 'Show'}</button>
+                                        <button onClick={() => copyToClipboard(k.key)} className="text-[10px] font-black text-sky-500">Copy</button>
                                      </div>
                                   </td>
                                   <td className="p-6 md:p-8 text-white font-mono">{k.requests}</td>
                                   <td className="p-6 md:p-8 text-xs text-slate-500 font-mono">{k.createdAt}</td>
                                   <td className="p-6 md:p-8 text-center">
                                      <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border ${k.status === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                                        {k.status === 'active' ? 'نشط' : 'ملغى'}
+                                        {k.status === 'active' ? 'Active' : 'Revoked'}
                                      </span>
                                   </td>
                                   <td className="p-6 md:p-8 text-center">
                                      {k.status === 'active' && (
-                                       <button onClick={() => handleRevokeKey(k.id)} className="text-red-500 hover:bg-red-500/10 px-4 py-2 rounded-xl transition-all font-black text-xs">إبطال</button>
+                                       <button onClick={() => handleRevokeKey(k.id)} className="text-red-500 hover:bg-red-500/10 px-4 py-2 rounded-xl transition-all font-black text-xs">Revoke</button>
                                      )}
                                   </td>
                                </tr>
                              ))
                            ) : (
                              <tr>
-                               <td colSpan={6} className="p-20 text-center italic text-slate-600">لا توجد مفاتيح API. ابدأ بتوليد مفتاح لربط متجرك.</td>
+                               <td colSpan={6} className="p-20 text-center italic text-slate-600">No API keys found. Start by generating a key to link your store.</td>
                              </tr>
                            )}
                         </tbody>
@@ -636,7 +636,7 @@ header('Location: ' . $payment->checkout_url);`
                   <div className="lg:col-span-2">
                      <div className="bg-[#111827] p-6 md:p-12 border border-white/5 rounded-2xl md:rounded-[4rem] shadow-2xl space-y-10">
                         <div className="flex flex-col sm:flex-row justify-between items-center border-b border-white/5 pb-8 gap-4">
-                           <h3 className="text-2xl md:text-3xl font-black text-emerald-400">وثائق الربط (SDK)</h3>
+                           <h3 className="text-2xl md:text-3xl font-black text-emerald-400">Integration Documentation (SDK)</h3>
                            <div className="flex bg-black/40 p-1 rounded-2xl border border-white/10">
                               {(['nodejs', 'python', 'php'] as const).map(l => (
                                  <button key={l} onClick={() => setActiveLang(l)} className={`px-4 md:px-6 py-2 rounded-xl text-[10px] md:text-xs font-black uppercase transition-all ${activeLang === l ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>{l}</button>
@@ -652,8 +652,8 @@ header('Location: ' . $payment->checkout_url);`
                   </div>
                   <div className="bg-gradient-to-br from-[#020617] to-slate-900 p-8 md:p-12 border border-white/10 rounded-2xl md:rounded-[4rem] shadow-2xl flex flex-col items-center justify-center text-center gap-8">
                      <div className="w-20 md:w-24 h-20 md:h-24 bg-sky-600/10 rounded-full flex items-center justify-center text-4xl md:text-5xl">🛠️</div>
-                     <h3 className="text-xl md:text-2xl font-black uppercase tracking-widest">محاكي الدفع</h3>
-                     <p className="text-slate-400 font-bold text-sm md:text-base">هذه الواجهة هي ما سيراه عميلك عند استدعاء رابط الدفع الخاص بنا من موقعك.</p>
+                     <h3 className="text-xl md:text-2xl font-black uppercase tracking-widest">Payment Simulator</h3>
+                     <p className="text-slate-400 font-bold text-sm md:text-base">This interface is what your customer will see when calling our payment link from your site.</p>
                      <div className="p-6 bg-[#020617] rounded-3xl border border-white/10 w-full flex flex-col gap-4 animate-pulse">
                         {siteConfig.logoUrl && <img src={siteConfig.logoUrl} className="h-6 opacity-50" alt="Logo" />}
                         <div className="h-8 bg-white/5 rounded-lg"></div>
@@ -743,35 +743,29 @@ header('Location: ' . $payment->checkout_url);`
                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">تأكيد</label>
                              <input type="password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
                           </div>
-                       </div>
-                    </div>
-                    {passwordError && <p className="text-red-500 text-xs font-black">{passwordError}</p>}
-                    {passwordSuccess && <p className="text-emerald-500 text-xs font-black">تم التحديث بنجاح ✓</p>}
-                    <button type="submit" className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">حفظ التغييرات</button>
-                 </form>
-              </div>
-           </div>
-         )}
-      </main>
-
-      {/* MODALS */}
-      
-      {/* Transfer Animation Modal */}
-      {modalType === 'send' && (
-         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-3xl">
-            <div className="bg-[#111827] border border-white/10 w-full max-w-3xl rounded-3xl md:rounded-[6rem] p-8 md:p-24 overflow-hidden shadow-3xl text-center relative min-h-[500px] md:min-h-[600px] flex flex-col justify-center">
-               <button onClick={()=>setModalType(null)} className={`absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl transition-colors ${isTransferring ? 'hidden' : ''}`}>✕</button>
-               
-               {!isTransferring ? (
-                 <form onSubmit={handleStartTransfer} className="space-y-8 md:space-y-12 animate-in zoom-in duration-500">
-                    <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">تحويل رصيد مباشر</h3>
-                    <div className="space-y-6 md:space-y-8 text-right">
+                                   <form onSubmit={handleStartTransfer} className="space-y-8 md:space-y-12 animate-in zoom-in duration-500">
+                    <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">Direct Balance Transfer</h3>
+                    <div className="space-y-6 md:space-y-8 text-left">
                        <div className="space-y-3">
-                          <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">اسم مستخدم المستلم</label>
+                          <label className="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">Recipient Username</label>
                           <input required value={recipient} onChange={e=>setRecipient(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-xl md:text-2xl text-white outline-none" placeholder="@username" />
                        </div>
                        <div className="space-y-3">
-                          <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">المبلغ ($)</label>
+                          <label className="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">Amount ($)</label>
+                          <input required type="number" value={sendAmount} onChange={e=>setSendAmount(e.target.value)} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl font-black text-4xl md:text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
+                       </div>
+                    </div>
+                    <button type="submit" className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">Confirm and Initiate Transfer</button>
+                 </form>
+               ) : (
+                 <div className="space-y-12 md:space-y-16 animate-in fade-in duration-700">
+                    {transferSuccess ? (
+                      <div className="space-y-8 md:space-y-10 animate-in zoom-in duration-700">
+                         <div className="w-32 md:w-48 h-32 md:h-48 bg-emerald-500 rounded-full flex items-center justify-center text-6xl md:text-9xl mx-auto shadow-[0_0_100px_rgba(16,185,129,0.4)] border-4 border-emerald-400">✓</div>
+                         <h3 className="text-4xl md:text-7xl font-black text-white tracking-tighter">Transfer Successful</h3>
+                         <p className="text-xl md:text-3xl text-emerald-400 font-black tracking-[0.2em] uppercase">TRANSACTION COMPLETED</p>
+                      </div>
+el>
                           <input required type="number" value={sendAmount} onChange={e=>setSendAmount(e.target.value)} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl font-black text-4xl md:text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
                        </div>
                     </div>

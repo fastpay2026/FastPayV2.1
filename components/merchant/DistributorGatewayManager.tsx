@@ -119,7 +119,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
   if (isLoading) return <div className="flex items-center justify-center h-64"><Activity className="animate-spin text-sky-500" /></div>;
 
   return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4" dir="rtl">
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
       {/* Status & Liquidity Header */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 glass-card p-10 rounded-[3rem] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
@@ -128,8 +128,8 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
               <Activity size={40} />
             </div>
             <div>
-              <h2 className="text-3xl font-black tracking-tighter">حالة بوابة USDT</h2>
-              <p className="text-slate-500 font-bold">تحكم في ظهورك في نظام التوجيه الذكي</p>
+              <h2 className="text-3xl font-black tracking-tighter">USDT Gateway Status</h2>
+              <p className="text-slate-500 font-bold">Control your visibility in the smart routing system</p>
             </div>
           </div>
           
@@ -144,7 +144,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                     : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'
                 }`}
               >
-                {s === 'online' ? 'متصل' : s === 'offline' ? 'غير متصل' : 'متأخر'}
+                {s === 'online' ? 'Online' : s === 'offline' ? 'Offline' : 'Delayed'}
               </button>
             ))}
           </div>
@@ -152,7 +152,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
 
         <div className="glass-card p-10 rounded-[3rem] border border-white/5 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">السيولة المتوفرة (USDT)</h3>
+            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">Available Liquidity (USDT)</h3>
             <DollarSign className="text-emerald-400" size={20} />
           </div>
           <div className="flex gap-4">
@@ -166,7 +166,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
               <span className="font-black">USDT</span>
             </div>
           </div>
-          <p className="text-[10px] text-slate-500 font-bold text-center">سيتم توجيه الطلبات إليك بناءً على هذا الرصيد</p>
+          <p className="text-[10px] text-slate-500 font-bold text-center">Orders will be routed to you based on this balance</p>
         </div>
       </div>
 
@@ -178,21 +178,21 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
             <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
               <h3 className="text-xl font-black flex items-center gap-3">
                 <Clock className="text-sky-400" size={20} />
-                طلبات التحويل الواردة
+                Incoming Transfer Requests
               </h3>
               <span className="px-4 py-1 bg-sky-500/10 text-sky-400 rounded-full text-[10px] font-black uppercase tracking-widest">
-                {orders.filter(o => o.status === 'pending_distributor').length} طلبات معلقة
+                {orders.filter(o => o.status === 'pending_distributor').length} Pending Requests
               </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-right">
                 <thead>
                   <tr className="bg-black/20 text-slate-500 text-[10px] font-black uppercase tracking-widest">
-                    <th className="p-6">المبلغ الإجمالي</th>
-                    <th className="p-6">الصافي للمستلم</th>
-                    <th className="p-6">الحالة</th>
-                    <th className="p-6">التوقيت</th>
-                    <th className="p-6">الإجراء</th>
+                    <th className="p-6">Total Amount</th>
+                    <th className="p-6">Net to Recipient</th>
+                    <th className="p-6">Status</th>
+                    <th className="p-6">Timestamp</th>
+                    <th className="p-6">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -200,7 +200,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                     <tr key={order.id} className="hover:bg-white/5 transition-colors group">
                       <td className="p-6">
                         <p className="font-black text-lg">${order.totalAmount.toLocaleString()}</p>
-                        <p className="text-[10px] text-slate-500 font-bold">شامل الرسوم</p>
+                        <p className="text-[10px] text-slate-500 font-bold">Including Fees</p>
                       </td>
                       <td className="p-6">
                         <p className="font-black text-emerald-400 text-lg">${order.netAmount.toLocaleString()}</p>
@@ -212,8 +212,8 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                           order.status === 'success_pending_review' ? 'bg-amber-500/10 text-amber-500' :
                           'bg-sky-500/10 text-sky-500'
                         }`}>
-                          {order.status === 'pending_distributor' ? 'بانتظارك' : 
-                           order.status === 'success_pending_review' ? 'قيد المراجعة' : 'مكتمل'}
+                          {order.status === 'pending_distributor' ? 'Waiting for you' : 
+                           order.status === 'success_pending_review' ? 'Under Review' : 'Completed'}
                         </span>
                       </td>
                       <td className="p-6 text-xs text-slate-500 font-bold">
@@ -225,7 +225,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                             onClick={() => { setSelectedOrder(order); setStep(1); }}
                             className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-xl text-xs transition-all"
                           >
-                            معالجة الطلب
+                            Process Order
                           </button>
                         )}
                       </td>
@@ -233,7 +233,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                   ))}
                   {orders.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="p-20 text-center text-slate-600 font-bold">لا توجد طلبات حالياً</td>
+                      <td colSpan={5} className="p-20 text-center text-slate-600 font-bold">No requests currently</td>
                     </tr>
                   )}
                 </tbody>
@@ -247,7 +247,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
           {selectedOrder ? (
             <div className="glass-card p-10 rounded-[3rem] border border-sky-500/30 bg-sky-500/5 space-y-8 animate-in zoom-in duration-300">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-black">معالجة الطلب الآمن</h3>
+                <h3 className="text-xl font-black">Secure Order Processing</h3>
                 <button onClick={() => setSelectedOrder(null)} className="text-slate-500 hover:text-white">✕</button>
               </div>
 
@@ -266,14 +266,14 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
               {step === 1 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-left-4">
                   <div className="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-4">
-                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest">تفاصيل التحويل المطلوبة</h4>
+                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest">Required Transfer Details</h4>
                     <div className="flex justify-between items-end">
                       <div>
                         <p className="text-3xl font-black text-white">${selectedOrder.netAmount.toLocaleString()}</p>
                         <p className="text-xs font-bold text-sky-400">USDT (TRC-20)</p>
                       </div>
                       <div className="text-left">
-                        <p className="text-[10px] font-black text-slate-500 uppercase">عنوان المحفظة</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase">Wallet Address</p>
                         <p className="text-xs font-mono font-bold text-white">TXXXX...XXXX</p>
                       </div>
                     </div>
@@ -282,7 +282,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                     onClick={() => setStep(2)}
                     className="w-full py-5 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-2xl transition-all"
                   >
-                    بدء المصافحة Hardware Handshake
+                    Start Hardware Handshake
                   </button>
                 </div>
               )}
@@ -293,14 +293,14 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                     <div className="w-20 h-20 bg-sky-500/10 rounded-full flex items-center justify-center mx-auto text-sky-400">
                       <Smartphone size={40} className="animate-pulse" />
                     </div>
-                    <h4 className="font-black text-lg">تأكيد مفتاح Flash Key</h4>
-                    <p className="text-sm text-slate-400 font-bold">يرجى إدخال توقيع الجهاز الفعلي المبرمج مسبقاً</p>
+                    <h4 className="font-black text-lg">Confirm Flash Key</h4>
+                    <p className="text-sm text-slate-400 font-bold">Please enter the pre-programmed physical hardware signature</p>
                   </div>
                   <input 
                     type="password"
                     value={hardwareInput}
                     onChange={(e) => setHardwareInput(e.target.value)}
-                    placeholder="أدخل توقيع الجهاز..."
+                    placeholder="Enter hardware signature..."
                     className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 font-mono text-center text-sky-400 outline-none focus:border-sky-500"
                   />
                   <button 
@@ -308,7 +308,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                     className="w-full py-5 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-3"
                   >
                     <Shield size={20} />
-                    تأكيد المصافحة
+                    Confirm Handshake
                   </button>
                 </div>
               )}
@@ -316,17 +316,17 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
               {step === 3 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-left-4">
                   <div className="space-y-4">
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mr-4">رقم العملية (TXID)</label>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mr-4">Transaction ID (TXID)</label>
                     <input 
                       type="text"
                       value={txid}
                       onChange={(e) => setTxid(e.target.value)}
-                      placeholder="أدخل TXID هنا..."
+                      placeholder="Enter TXID here..."
                       className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-mono text-xs text-white outline-none focus:border-sky-500"
                     />
                   </div>
                   <div className="space-y-4">
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mr-4">رابط إيصال التحويل (Screenshot URL)</label>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mr-4">Transfer Receipt Link (Screenshot URL)</label>
                     <input 
                       type="text"
                       value={receiptUrl}
@@ -341,7 +341,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                     className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-3"
                   >
                     {isProcessing ? <Activity className="animate-spin" /> : <Upload size={20} />}
-                    إرسال إثبات التحويل للمراجعة
+                    Submit Transfer Proof for Review
                   </button>
                 </div>
               )}
@@ -351,8 +351,8 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
               <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-slate-700">
                 <Shield size={48} />
               </div>
-              <h3 className="text-xl font-black text-slate-500">بانتظار طلبات جديدة</h3>
-              <p className="text-sm text-slate-600 font-bold max-w-xs">عند وصول طلب تحويل USDT متوافق مع سيولتك، سيظهر هنا للمعالجة الفورية.</p>
+              <h3 className="text-xl font-black text-slate-500">Waiting for New Requests</h3>
+              <p className="text-sm text-slate-600 font-bold max-w-xs">When a USDT transfer request compatible with your liquidity arrives, it will appear here for immediate processing.</p>
             </div>
           )}
 
@@ -360,7 +360,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
           <div className="glass-card p-8 rounded-[3rem] border border-white/5 space-y-6">
             <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
               <Key size={16} />
-              مفاتيح Flash المصرح بها
+              Authorized Flash Keys
             </h3>
             <div className="space-y-3">
               {keys.map(k => (
@@ -373,10 +373,10 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                       {k.hardwareHash.substring(0, 10)}...
                     </span>
                   </div>
-                  <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">نشط</span>
+                  <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
                 </div>
               ))}
-              {keys.length === 0 && <p className="text-center text-[10px] text-slate-600 font-bold py-4">لا توجد مفاتيح مبرمجة. تواصل مع الإدارة.</p>}
+              {keys.length === 0 && <p className="text-center text-[10px] text-slate-600 font-bold py-4">No programmed keys found. Contact administration.</p>}
             </div>
           </div>
         </div>

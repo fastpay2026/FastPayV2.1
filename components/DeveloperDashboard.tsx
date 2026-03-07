@@ -149,7 +149,7 @@ const handleManualSync = async () => {
             { id: 'ads', l: t('nav_ad_exchange'), i: '📢', canDisable: true },
             { id: 'verification', l: t('nav_id_verification'), i: '🛡️', canDisable: true },
             { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁', canDisable: true },
-            { id: 'gateway', l: 'Secure Gateway', i: '🛡️', canDisable: false },
+            { id: 'gateway', l: t('secure_gateway'), i: '🛡️', canDisable: false },
             { id: 'content', l: t('nav_site_identity'), i: '⚙️', canDisable: false }
           ].map(tab => {
             const isDisabled = siteConfig.disabledServices?.includes(tab.id);

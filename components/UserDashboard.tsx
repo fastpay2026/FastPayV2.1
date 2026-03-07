@@ -985,33 +985,33 @@ const UserDashboard: React.FC<Props> = ({
               {!isUSDTProcessing ? (
                 <form onSubmit={handleStartUSDTGateway} className="space-y-8 md:space-y-12 animate-in zoom-in duration-500">
                   <div className="space-y-6 md:space-y-8 text-right">
-                    <h3 className="text-3xl md:text-5xl font-black text-white tracking-tighter text-center">Secure USDT Gateway</h3>
+                    <h3 className="text-3xl md:text-5xl font-black text-white tracking-tighter text-center">{t('secure_usdt_gateway')}</h3>
                     <div className="space-y-3">
-                      <label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">USDT Amount to Transfer</label>
+                      <label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">{t('usdt_amount_to_transfer')}</label>
                       <input required type="number" value={usdtAmount} onChange={e=>setUsdtAmount(e.target.value)} className="w-full p-6 md:p-10 bg-black/40 border border-white/10 rounded-3xl md:rounded-[3rem] font-black text-center text-4xl sm:text-6xl md:text-[5rem] text-indigo-400 outline-none font-mono" placeholder="0.00" />
                     </div>
                     {fxSettings && usdtAmount && (
                       <div className="bg-white/5 p-6 rounded-2xl border border-white/5 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500 font-bold">Gateway Fee ({fxSettings.gatewayFeePercent}%)</span>
+                          <span className="text-slate-500 font-bold">{t('gateway_fee')} ({fxSettings.gatewayFeePercent}%)</span>
                           <span className="text-white font-mono">${((parseFloat(usdtAmount) * fxSettings.gatewayFeePercent) / 100).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-lg font-black border-t border-white/10 pt-2">
-                          <span className="text-slate-300">Total to Deduct</span>
+                          <span className="text-slate-300">{t('total_to_deduct')}</span>
                           <span className="text-emerald-400 font-mono">${(parseFloat(usdtAmount) + (parseFloat(usdtAmount) * fxSettings.gatewayFeePercent) / 100).toFixed(2)}</span>
                         </div>
                       </div>
                     )}
                   </div>
-                  <button type="submit" className="w-full py-6 md:py-10 bg-indigo-600 rounded-2xl md:rounded-[3.5rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-indigo-500 transition-all active:scale-95">Confirm USDT Transfer</button>
+                  <button type="submit" className="w-full py-6 md:py-10 bg-indigo-600 rounded-2xl md:rounded-[3.5rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-indigo-500 transition-all active:scale-95">{t('confirm_usdt_transfer')}</button>
                 </form>
               ) : (
                 <div className="space-y-16 py-12">
                   {usdtSuccess ? (
                     <div className="space-y-10 animate-in zoom-in duration-700">
                       <div className="w-48 h-48 bg-emerald-500 rounded-full flex items-center justify-center text-[10rem] mx-auto shadow-3xl border-4 border-emerald-400 animate-pulse">✓</div>
-                      <h3 className="text-6xl font-black text-white tracking-tighter">Transfer Request Submitted</h3>
-                      <p className="text-slate-400 font-bold">Your request is being processed by the network.</p>
+                      <h3 className="text-6xl font-black text-white tracking-tighter">{t('transfer_request_submitted')}</h3>
+                      <p className="text-slate-400 font-bold">{t('request_processed_msg')}</p>
                     </div>
                   ) : (
                     <div className="space-y-16">
@@ -1021,11 +1021,11 @@ const UserDashboard: React.FC<Props> = ({
                       </div>
                       <p className="text-3xl font-black text-indigo-400 animate-pulse h-20 leading-relaxed px-10">
                         {[
-                          "Initializing Secure Gateway...",
-                          "Scanning for Online Distributors...",
-                          "Establishing Encrypted Handshake...",
-                          "Verifying Liquidity Capacity...",
-                          "Routing Transaction through Node..."
+                          t('initializing_secure_gateway'),
+                          t('scanning_online_distributors'),
+                          t('establishing_encrypted_handshake'),
+                          t('verifying_liquidity_capacity'),
+                          t('routing_transaction_node')
                         ][usdtStep]}
                       </p>
                     </div>

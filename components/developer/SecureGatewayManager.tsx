@@ -58,13 +58,13 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
       await supabaseService.upsertFXExchangeSettings(newSettings);
       setSettings(newSettings);
     } catch (error) {
-      alert("Error updating settings");
+      alert(t('error_updating_settings'));
     }
   };
 
   const handleProgramFlash = async () => {
     if (!selectedDistributor || !hardwareSignature) {
-      alert("Please select a distributor and enter a hardware signature");
+      alert(t('select_distributor_and_signature'));
       return;
     }
 
@@ -81,9 +81,9 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
       setRegistry([...registry, newKey]);
       setHardwareSignature('');
       setSelectedDistributor('');
-      alert("Flash Key Programmed Successfully");
+      alert(t('flash_key_programmed_success'));
     } catch (error) {
-      alert("Error programming flash key");
+      alert(t('error_programming_flash_key'));
     } finally {
       setIsProgramming(false);
     }
@@ -98,7 +98,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
       await supabaseService.upsertFXFlashRegistry(updatedKey);
       setRegistry(registry.map(r => r.id === key.id ? updatedKey : r));
     } catch (error) {
-      alert("Error updating key status");
+      alert(t('error_updating_key_status'));
     }
   };
 
@@ -121,9 +121,9 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
         <div>
           <h2 className="text-4xl font-black tracking-tighter flex items-center gap-4">
             <Shield className="text-sky-500 w-10 h-10" />
-            Secure USDT Gateway & Flash Programming
+            {t('secure_gateway_flash_programming')}
           </h2>
-          <p className="text-slate-400 font-bold mt-2">Manage hidden liquidity channels and hardware authentication keys</p>
+          <p className="text-slate-400 font-bold mt-2">{t('manage_hidden_liquidity_channels')}</p>
         </div>
         <button onClick={fetchData} className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-white/10">
           <RefreshCw size={20} />
@@ -139,32 +139,32 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
             </div>
             <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
               <Key className="text-sky-400" />
-              Flash Key Programming Module
+              {t('flash_key_programming_module')}
             </h3>
             
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Target Distributor</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-3">{t('target_distributor')}</label>
                   <select 
                     value={selectedDistributor}
                     onChange={(e) => setSelectedDistributor(e.target.value)}
                     className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-bold text-white focus:border-sky-500 transition-all outline-none"
                   >
-                    <option value="">Select Distributor...</option>
+                    <option value="">{t('select_distributor_placeholder')}</option>
                     {distributors.map(d => (
                       <option key={d.id} value={d.id}>{d.fullName} (@{d.username})</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Hardware Signature (Unique Hash)</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-3">{t('hardware_signature_unique_hash')}</label>
                   <div className="flex gap-3">
                     <input 
                       type="text"
                       value={hardwareSignature}
                       onChange={(e) => setHardwareSignature(e.target.value)}
-                      placeholder="FP-XXXX-XXXX-XXXX-XXXX"
+                      placeholder={t('hardware_signature_placeholder')}
                       className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 font-mono font-bold text-sky-400 focus:border-sky-500 transition-all outline-none"
                     />
                     <button 
@@ -181,28 +181,28 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
                   className="w-full py-5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-black rounded-2xl shadow-xl shadow-sky-900/20 transition-all flex items-center justify-center gap-3"
                 >
                   {isProgramming ? <RefreshCw className="animate-spin" /> : <Cpu size={20} />}
-                  Program New Hardware Key
+                  {t('program_new_hardware_key')}
                 </button>
               </div>
               
               <div className="bg-black/40 rounded-3xl p-8 border border-white/5 space-y-4">
-                <h4 className="text-sm font-black text-slate-500 uppercase tracking-widest">Programming Instructions</h4>
+                <h4 className="text-sm font-black text-slate-500 uppercase tracking-widest">{t('programming_instructions')}</h4>
                 <ul className="space-y-3 text-sm font-bold text-slate-400">
                   <li className="flex items-start gap-3">
                     <span className="text-sky-500">01.</span>
-                    Connect the target USB/OTG device to the secure terminal.
+                    {t('instruction_1')}
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-sky-500">02.</span>
-                    Select the distributor who will hold this physical key.
+                    {t('instruction_2')}
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-sky-500">03.</span>
-                    Generate or enter the hardware's unique signature.
+                    {t('instruction_3')}
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-sky-500">04.</span>
-                    Flash the registry. The key is now authorized for USDT confirmation.
+                    {t('instruction_4')}
                   </li>
                 </ul>
               </div>
@@ -214,21 +214,21 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
             <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
               <h3 className="text-xl font-black flex items-center gap-3">
                 <Shield className="text-emerald-400" size={20} />
-                Authorized Flash Registry
+                {t('authorized_flash_registry')}
               </h3>
               <span className="px-4 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest">
-                {registry.length} Active Keys
+                {registry.length} {t('active_keys')}
               </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-right">
                 <thead>
                   <tr className="bg-black/20 text-slate-500 text-[10px] font-black uppercase tracking-widest">
-                    <th className="p-6">Distributor</th>
-                    <th className="p-6">Hardware Hash</th>
-                    <th className="p-6">Status</th>
-                    <th className="p-6">Last Used</th>
-                    <th className="p-6">Actions</th>
+                    <th className="p-6">{t('distributor')}</th>
+                    <th className="p-6">{t('hardware_hash')}</th>
+                    <th className="p-6">{t('status')}</th>
+                    <th className="p-6">{t('last_used')}</th>
+                    <th className="p-6">{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -279,22 +279,22 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
           <div className="glass-card p-8 rounded-[3rem] border border-white/5 space-y-8">
             <h3 className="text-xl font-black flex items-center gap-3">
               <Settings className="text-slate-400" size={20} />
-              Gateway Settings
+              {t('gateway_settings')}
             </h3>
             
             <div className="space-y-6">
               <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                <span className="text-sm font-bold text-slate-400">Gateway Status</span>
+                <span className="text-sm font-bold text-slate-400">{t('gateway_status')}</span>
                 <button 
                   onClick={() => settings && handleUpdateSettings({ ...settings, isGatewayActive: !settings.isGatewayActive })}
                   className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${settings?.isGatewayActive ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}
                 >
-                  {settings?.isGatewayActive ? 'Online' : 'Offline'}
+                  {settings?.isGatewayActive ? t('online') : t('offline')}
                 </button>
               </div>
 
               <div className="space-y-4">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">USDT Buy Rate (1 USD = ? USDT)</label>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('usdt_buy_rate')}</label>
                 <input 
                   type="number"
                   value={settings?.usdtBuyRate}
@@ -304,7 +304,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
               </div>
 
               <div className="space-y-4">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Gateway Fee (%)</label>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('gateway_fee')} (%)</label>
                 <input 
                   type="number"
                   value={settings?.gatewayFeePercent}
@@ -314,7 +314,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
               </div>
 
               <div className="space-y-4">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Min Transfer Amount ($)</label>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('min_transfer_amount')}</label>
                 <input 
                   type="number"
                   value={settings?.minTransferAmount}
@@ -329,7 +329,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
           <div className="glass-card p-8 rounded-[3rem] border border-white/5 space-y-6">
             <h3 className="text-xl font-black flex items-center gap-3">
               <Activity className="text-sky-400" size={20} />
-              Recent Gateway Activity
+              {t('recent_gateway_activity')}
             </h3>
             <div className="space-y-4">
               {queue.slice(0, 5).map(item => (
@@ -350,7 +350,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
                   {item.txid && <p className="text-[9px] font-mono text-sky-400 truncate">{item.txid}</p>}
                 </div>
               ))}
-              {queue.length === 0 && <p className="text-center text-slate-500 font-bold text-sm py-8">No recent activity</p>}
+              {queue.length === 0 && <p className="text-center text-slate-500 font-bold text-sm py-8">{t('no_recent_activity')}</p>}
             </div>
           </div>
         </div>
