@@ -120,7 +120,7 @@
       if (storedBuildId && storedBuildId !== currentBuildId) {
         console.log('New app version detected. Reloading...');
         localStorage.setItem('app_build_id', currentBuildId);
-        window.location.reload(true);
+        window.location.reload();
       } else if (!storedBuildId) {
         localStorage.setItem('app_build_id', currentBuildId);
       }
