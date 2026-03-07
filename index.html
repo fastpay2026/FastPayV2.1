@@ -3,9 +3,6 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FastPay Network | القوة المالية العالمية</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -113,17 +110,5 @@
   <body>
     <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
-    <script>
-      const currentBuildId = '__APP_BUILD_ID__'; // Injected by Vite
-      const storedBuildId = localStorage.getItem('app_build_id');
-
-      if (storedBuildId && storedBuildId !== currentBuildId) {
-        console.log('New app version detected. Reloading...');
-        localStorage.setItem('app_build_id', currentBuildId);
-        window.location.reload();
-      } else if (!storedBuildId) {
-        localStorage.setItem('app_build_id', currentBuildId);
-      }
-    </script>
 </body>
 </html>

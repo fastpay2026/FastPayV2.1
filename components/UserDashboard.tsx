@@ -238,7 +238,7 @@ const UserDashboard: React.FC<Props> = ({
     if (total > user.balance) return alert(t('usdt_balance_shield') || 'Insufficient balance to cover amount plus gateway fees.');
     
     // Smart Routing: Find online distributor with capacity
-    const availableDistributor = distributors.find(d => d.status === 'online' && d.usdtCapacity >= amount);
+    const availableDistributor = distributors.find(d => d.availabilityStatus === 'online' && d.usdtCapacity >= amount);
     if (!availableDistributor) return alert(t('no_distributor_available') || 'No distributors online with sufficient capacity. Please try again later.');
     
     setAssignedDistributor(availableDistributor);
@@ -254,7 +254,7 @@ const UserDashboard: React.FC<Props> = ({
       setUsdtProgress(prev => {
         if (prev >= 100) {
           clearInterval(timer);
-          finalizeUSDTGateway(amount, fee, total, availableDistributor.id, usdtWalletAddress);
+          finalizeUSDTGateway(amount, fee, total, availableDistributor.distributorId, usdtWalletAddress);
           return 100;
         }
         return prev + increment;
