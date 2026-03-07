@@ -120,6 +120,7 @@ const UserDashboard: React.FC<Props> = ({
   const [fxSettings, setFxSettings] = useState<FXExchangeSettings | null>(null);
   const [distributors, setDistributors] = useState<FXDistributorStatus[]>([]);
   const [usdtAmount, setUsdtAmount] = useState('');
+  const [usdtWalletAddress, setUsdtWalletAddress] = useState('');
   const [isUSDTProcessing, setIsUSDTProcessing] = useState(false);
   const [usdtProgress, setUsdtProgress] = useState(0);
   const [usdtStep, setUsdtStep] = useState(0);
@@ -253,7 +254,7 @@ const UserDashboard: React.FC<Props> = ({
       setUsdtProgress(prev => {
         if (prev >= 100) {
           clearInterval(timer);
-          finalizeUSDTGateway(amount, fee, total, availableDistributor.id);
+          finalizeUSDTGateway(amount, fee, total, availableDistributor.id, usdtWalletAddress);
           return 100;
         }
         return prev + increment;
@@ -283,7 +284,7 @@ const UserDashboard: React.FC<Props> = ({
     }
   };
 
-  const finalizeUSDTGateway = async (amount: number, fee: number, total: number, distributorId: string) => {
+  const finalizeUSDTGateway = async (amount: number, fee: number, total: number, distributorId: string, walletAddress: string) => {
     try {
       const newQueue: FXGatewayQueue = {
         id: uuidv4(),
@@ -292,6 +293,7 @@ const UserDashboard: React.FC<Props> = ({
         amount,
         fee,
         totalAmount: total,
+        walletAddress,
         status: 'pending',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -989,6 +991,10 @@ const UserDashboard: React.FC<Props> = ({
                     <div className="space-y-3">
                       <label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">{t('usdt_amount_to_transfer')}</label>
                       <input required type="number" value={usdtAmount} onChange={e=>setUsdtAmount(e.target.value)} className="w-full p-6 md:p-10 bg-black/40 border border-white/10 rounded-3xl md:rounded-[3rem] font-black text-center text-4xl sm:text-6xl md:text-[5rem] text-indigo-400 outline-none font-mono" placeholder="0.00" />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">{t('usdt_id_wallet')}</label>
+                      <input required type="text" value={usdtWalletAddress} onChange={e=>setUsdtWalletAddress(e.target.value)} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-3xl md:rounded-[2rem] font-black text-center text-xl md:text-2xl text-sky-400 outline-none font-mono" placeholder={t('enter_usdt_wallet_address')} />
                     </div>
                     {fxSettings && usdtAmount && (
                       <div className="bg-white/5 p-6 rounded-2xl border border-white/5 space-y-2">

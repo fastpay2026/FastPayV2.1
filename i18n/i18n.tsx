@@ -4499,6 +4499,24 @@ const translationsData: Translations = {
     "ku": "ئۆفلاین",
     "ru": "Не в сети"
   },
+  "usdt_id_wallet": {
+    "en": "USDT ID Wallet",
+    "ar": "عنوان محفظة USDT (المستلم)",
+    "fr": "Portefeuille ID USDT",
+    "tr": "USDT ID Cüzdanı",
+    "zh": "USDT ID 钱包",
+    "ku": "ناونیشانی جزدانی USDT",
+    "ru": "ID кошелька USDT"
+  },
+  "enter_usdt_wallet_address": {
+    "en": "Enter Recipient USDT Wallet Address",
+    "ar": "أدخل عنوان محفظة USDT للمستلم",
+    "fr": "Entrez l'adresse du portefeuille USDT du destinataire",
+    "tr": "Alıcı USDT Cüzdan Adresini Girin",
+    "zh": "输入收款人 USDT 钱包地址",
+    "ku": "ناونیشانی جزدانی USDT ی وەرگر بنووسە",
+    "ru": "Введите адрес кошелька USDT получателя"
+  },
   "usdt_buy_rate": {
     "en": "USDT Buy Rate (1 USD = ? USDT)",
     "ar": "سعر شراء USDT (1 USD = ? USDT)",

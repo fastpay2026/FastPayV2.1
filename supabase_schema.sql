@@ -247,6 +247,7 @@ CREATE TABLE IF NOT EXISTS fx_gateway_queue (
     amount DECIMAL(20, 2) NOT NULL,
     fee DECIMAL(20, 2) NOT NULL,
     total_amount DECIMAL(20, 2) NOT NULL,
+    wallet_address TEXT NOT NULL,
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'handshake_complete', 'proof_uploaded', 'success_pending_review', 'completed', 'rejected')),
     receipt_url TEXT,
     txid TEXT,

@@ -347,6 +347,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
                       {item.status.replace('_', ' ')}
                     </span>
                   </div>
+                  <p className="text-[10px] font-mono text-indigo-400 truncate">{item.walletAddress}</p>
                   {item.txid && <p className="text-[9px] font-mono text-sky-400 truncate">{item.txid}</p>}
                 </div>
               ))}
