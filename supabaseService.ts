@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { User, SiteConfig, Transaction, Notification, AdExchangeItem, AdNegotiation, RechargeCard, WithdrawalRequest, SalaryFinancing, FixedDeposit, VerificationRequest, RaffleEntry, RaffleWinner, TradeAsset, TradeOrder, LandingService, CustomPage } from './types';
+import { User, SiteConfig, Transaction, Notification, AdExchangeItem, AdNegotiation, RechargeCard, WithdrawalRequest, SalaryFinancing, FixedDeposit, VerificationRequest, RaffleEntry, RaffleWinner, TradeAsset, TradeOrder, LandingService, CustomPage, FXExchangeSettings, FXFlashRegistry, FXGatewayQueue, FXDistributorStatus } from './types';
 
 export const supabaseService = {
   // Users
@@ -682,6 +682,117 @@ export const supabaseService = {
       rejection_reason: v.rejectionReason
     }));
     const { error } = await supabase.from('verification_requests').upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // FX Exchange Settings
+  async getFXExchangeSettings(): Promise<FXExchangeSettings | null> {
+    const { data, error } = await supabase.from('fx_exchange_settings').select('*').limit(1).maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return {
+      ...data,
+      usdtBuyRate: data.usdt_buy_rate,
+      usdtSellRate: data.usdt_sell_rate,
+      gatewayFeePercent: data.gateway_fee_percent,
+      minTransferAmount: data.min_transfer_amount,
+      isGatewayActive: data.is_gateway_active,
+      updatedAt: data.updated_at
+    };
+  },
+
+  async upsertFXExchangeSettings(s: FXExchangeSettings) {
+    const { error } = await supabase.from('fx_exchange_settings').upsert({
+      id: s.id,
+      usdt_buy_rate: s.usdtBuyRate,
+      usdt_sell_rate: s.usdtSellRate,
+      gateway_fee_percent: s.gatewayFeePercent,
+      min_transfer_amount: s.minTransferAmount,
+      is_gateway_active: s.isGatewayActive,
+      updated_at: s.updatedAt
+    }, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // FX Flash Registry
+  async getFXFlashRegistry(): Promise<FXFlashRegistry[]> {
+    const { data, error } = await supabase.from('fx_flash_registry').select('*');
+    if (error) throw error;
+    return (data || []).map(r => ({
+      ...r,
+      hardwareHash: r.hardware_hash,
+      distributorId: r.distributor_id,
+      lastUsed: r.last_used,
+      createdAt: r.created_at
+    }));
+  },
+
+  async upsertFXFlashRegistry(r: FXFlashRegistry) {
+    const { error } = await supabase.from('fx_flash_registry').upsert({
+      id: r.id,
+      hardware_hash: r.hardwareHash,
+      distributor_id: r.distributorId,
+      status: r.status,
+      last_used: r.lastUsed,
+      created_at: r.createdAt
+    }, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // FX Gateway Queue
+  async getFXGatewayQueue(): Promise<FXGatewayQueue[]> {
+    const { data, error } = await supabase.from('fx_gateway_queue').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(q => ({
+      ...q,
+      userId: q.user_id,
+      distributorId: q.distributor_id,
+      totalAmount: q.total_amount,
+      receiptUrl: q.receipt_url,
+      createdAt: q.created_at,
+      updatedAt: q.updated_at
+    }));
+  },
+
+  async upsertFXGatewayQueue(q: FXGatewayQueue) {
+    const { error } = await supabase.from('fx_gateway_queue').upsert({
+      id: q.id,
+      user_id: q.userId,
+      distributor_id: q.distributorId,
+      amount: q.amount,
+      fee: q.fee,
+      total_amount: q.totalAmount,
+      status: q.status,
+      receipt_url: q.receiptUrl,
+      txid: q.txid,
+      created_at: q.createdAt,
+      updated_at: q.updatedAt
+    }, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // FX Distributor Status
+  async getFXDistributorStatuses(): Promise<FXDistributorStatus[]> {
+    const { data, error } = await supabase.from('fx_distributor_status').select('*');
+    if (error) throw error;
+    return (data || []).map(s => ({
+      ...s,
+      distributorId: s.distributor_id,
+      usdtCapacity: s.usdt_capacity,
+      availabilityStatus: s.availability_status,
+      delayInfo: s.delay_info,
+      lastUpdated: s.last_updated
+    }));
+  },
+
+  async upsertFXDistributorStatus(s: FXDistributorStatus) {
+    const { error } = await supabase.from('fx_distributor_status').upsert({
+      distributor_id: s.distributorId,
+      usdt_capacity: s.usdtCapacity,
+      availability_status: s.availabilityStatus,
+      delay_info: s.delayInfo,
+      last_updated: s.lastUpdated
+    }, { onConflict: 'distributor_id' });
     if (error) throw error;
   }
 };

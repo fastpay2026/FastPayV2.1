@@ -3,6 +3,26 @@ import { Language, RTL_LANGUAGES, Translations, I18nContextType } from '../types
 import axios from 'axios';
 
 const translationsData: Translations = {
+  "usdt_gateway_title": {
+    "en": "Secure USDT Gateway",
+    "ar": "بوابة USDT الآمنة",
+    "fr": "Passerelle USDT Sécurisée"
+  },
+  "usdt_processing_msg": {
+    "en": "Your USDT transfer request has been submitted and is being processed.",
+    "ar": "تم تقديم طلب تحويل USDT الخاص بك وجاري معالجته.",
+    "fr": "Votre demande de transfert USDT a été soumise et est en cours de traitement."
+  },
+  "usdt_balance_shield": {
+    "en": "Insufficient balance to cover amount plus gateway fees.",
+    "ar": "رصيد غير كافٍ لتغطية المبلغ بالإضافة إلى رسوم البوابة.",
+    "fr": "Solde insuffisant pour couvrir le montant plus les frais de passerelle."
+  },
+  "no_distributor_available": {
+    "en": "No distributors online with sufficient capacity. Please try again later.",
+    "ar": "لا يوجد موزعون متاحون عبر الإنترنت بسعة كافية. يرجى المحاولة مرة أخرى لاحقًا.",
+    "fr": "Aucun distributeur en ligne avec une capacité suffisante. Veuillez réessayer plus tard."
+  },
   "service_under_development": {
     "en": "This service is under development now",
     "ar": "هذه الخدمة قيد التطوير الآن",

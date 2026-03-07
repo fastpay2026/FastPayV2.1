@@ -6,6 +6,7 @@ import { User, SiteConfig, RechargeCard, Transaction, Notification, APIKey, Veri
 import MerchantDealCreator from './MerchantDealCreator';
 import { MerchantVerification } from './VerificationManager';
 import { AdExchange } from './AdExchange';
+import DistributorGatewayManager from './merchant/DistributorGatewayManager';
 import UnderDevelopment from './UnderDevelopment';
 
 interface Props {
@@ -34,7 +35,7 @@ const MerchantDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations,
   addNotification, onUpdateUser
 }) => {
-  const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'verification' | 'ads'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'usdt_gateway' | 'verification' | 'ads'>('main');
   const [modalType, setModalType] = useState<'send' | 'cards' | 'new_key' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
@@ -373,6 +374,7 @@ header('Location: ' . $payment->checkout_url);`
                <nav className="flex gap-4 md:gap-6">
                   {[
                     { id: 'main', l: 'الرئيسية' },
+                    { id: 'usdt_gateway', l: 'بوابة USDT' },
                     { id: 'gateway', l: 'بوابة المطورين & API' },
                     { id: 'ads', l: 'بورصة الإعلانات' },
                     { id: 'verification', l: 'توثيق الحساب' },
@@ -407,6 +409,7 @@ header('Location: ' . $payment->checkout_url);`
           <div className="absolute top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
             {[
               { id: 'main', l: 'الرئيسية', i: '🏠' },
+              { id: 'usdt_gateway', l: 'بوابة USDT', i: '🛡️' },
               { id: 'gateway', l: 'بوابة المطورين', i: '🔌' },
               { id: 'ads', l: 'بورصة الإعلانات', i: '📢' },
               { id: 'verification', l: 'توثيق الحساب', i: '🛡️' },
@@ -662,6 +665,12 @@ header('Location: ' . $payment->checkout_url);`
             )
          )}
 
+         {activeView === 'usdt_gateway' && (
+            <DistributorGatewayManager 
+              user={user} 
+              addNotification={addNotification} 
+            />
+         )}
 
          {activeView === 'verification' && (
             isServiceDisabled('verification') ? <UnderDevelopment /> : (

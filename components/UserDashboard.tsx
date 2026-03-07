@@ -1,10 +1,11 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing, AdExchangeItem, AdNegotiation } from '../types';
+import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing, AdExchangeItem, AdNegotiation, FXExchangeSettings, FXDistributorStatus, FXGatewayQueue } from '../types';
 import { AdExchange } from './AdExchange';
 import { useI18n } from '../i18n/i18n';
 import UnderDevelopment from './UnderDevelopment';
+import { supabaseService } from '../supabaseService';
 
 interface Props {
   user: User;
@@ -112,8 +113,34 @@ const UserDashboard: React.FC<Props> = ({
 }) => {
   const { t, language } = useI18n();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads'>('dashboard');
-  const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | 'withdraw_warning' | null>(null);
+  const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | 'withdraw_warning' | 'usdt_gateway' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // USDT Gateway States
+  const [fxSettings, setFxSettings] = useState<FXExchangeSettings | null>(null);
+  const [distributors, setDistributors] = useState<FXDistributorStatus[]>([]);
+  const [usdtAmount, setUsdtAmount] = useState('');
+  const [isUSDTProcessing, setIsUSDTProcessing] = useState(false);
+  const [usdtProgress, setUsdtProgress] = useState(0);
+  const [usdtStep, setUsdtStep] = useState(0);
+  const [usdtSuccess, setUsdtSuccess] = useState(false);
+  const [assignedDistributor, setAssignedDistributor] = useState<FXDistributorStatus | null>(null);
+
+  useEffect(() => {
+    const fetchFXData = async () => {
+      try {
+        const [settings, dists] = await Promise.all([
+          supabaseService.getFXExchangeSettings(),
+          supabaseService.getFXDistributorStatuses()
+        ]);
+        setFxSettings(settings);
+        setDistributors(dists);
+      } catch (e) {
+        console.error("Failed to fetch FX data", e);
+      }
+    };
+    fetchFXData();
+  }, []);
 
   const isServiceDisabled = (serviceId: string) => {
     return siteConfig.disabledServices?.includes(serviceId);
@@ -198,6 +225,46 @@ const UserDashboard: React.FC<Props> = ({
     }, 2000);
   };
 
+  const handleStartUSDTGateway = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = parseFloat(usdtAmount);
+    if (!fxSettings || !fxSettings.isGatewayActive) return alert(t('service_under_development'));
+    if (amount < fxSettings.minTransferAmount) return alert(t('min_invest_amount', { amount: fxSettings.minTransferAmount }));
+    
+    const fee = (amount * fxSettings.gatewayFeePercent) / 100;
+    const total = amount + fee;
+    
+    if (total > user.balance) return alert(t('usdt_balance_shield') || 'Insufficient balance to cover amount plus gateway fees.');
+    
+    // Smart Routing: Find online distributor with capacity
+    const availableDistributor = distributors.find(d => d.status === 'online' && d.usdtCapacity >= amount);
+    if (!availableDistributor) return alert(t('no_distributor_available') || 'No distributors online with sufficient capacity. Please try again later.');
+    
+    setAssignedDistributor(availableDistributor);
+    setIsUSDTProcessing(true);
+    setUsdtProgress(0);
+    setUsdtStep(0);
+    
+    const duration = 10000; // 10 seconds for "automated" feel
+    const intervalTime = 100;
+    const increment = (100 / (duration / intervalTime));
+
+    const timer = setInterval(() => {
+      setUsdtProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          finalizeUSDTGateway(amount, fee, total, availableDistributor.id);
+          return 100;
+        }
+        return prev + increment;
+      });
+    }, intervalTime);
+
+    const stepTimer = setInterval(() => {
+      setUsdtStep(prev => (prev + 1) % 5);
+    }, 2000);
+  };
+
   const finalizeTransfer = () => {
     const amount = parseFloat(transferData.amount);
     const target = accounts.find(a => a.username === transferData.recipient);
@@ -213,6 +280,53 @@ const UserDashboard: React.FC<Props> = ({
       addNotification(t('transfer_success_title'), t('transfer_success_msg', { amount, name: target.fullName }), 'money');
       setTransferSuccess(true);
       setTimeout(() => { setModalType(null); setIsTransferring(false); setTransferSuccess(false); setTransferData({ recipient: '', amount: '' }); }, 3000);
+    }
+  };
+
+  const finalizeUSDTGateway = async (amount: number, fee: number, total: number, distributorId: string) => {
+    try {
+      const newQueue: FXGatewayQueue = {
+        id: uuidv4(),
+        userId: user.id,
+        distributorId,
+        amount,
+        fee,
+        totalAmount: total,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      await supabaseService.upsertFXGatewayQueue(newQueue);
+      
+      const newBalance = user.balance - total;
+      onUpdateUser({ ...user, balance: newBalance });
+      setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
+      
+      setTransactions(prev => [{ 
+        id: uuidv4(), 
+        userId: user.id, 
+        type: 'withdrawal', 
+        amount: -total, 
+        timestamp: new Date().toLocaleString(), 
+        relatedUser: `USDT Gateway Order`, 
+        status: 'pending' 
+      }, ...prev]);
+      
+      addNotification(t('usdt_gateway_title') || 'USDT Gateway', t('usdt_processing_msg') || 'Your USDT transfer request has been submitted and is being processed.', 'money');
+      setUsdtSuccess(true);
+      
+      setTimeout(() => { 
+        setModalType(null); 
+        setIsUSDTProcessing(false); 
+        setUsdtSuccess(false); 
+        setUsdtAmount(''); 
+        setAssignedDistributor(null);
+      }, 3000);
+    } catch (e) {
+      console.error("Failed to finalize USDT Gateway", e);
+      alert("Failed to process USDT Gateway request. Please try again.");
+      setIsUSDTProcessing(false);
     }
   };
 
@@ -505,6 +619,9 @@ const UserDashboard: React.FC<Props> = ({
                       <h2 className="text-4xl sm:text-5xl md:text-8xl font-black font-mono tracking-tighter mb-8 md:mb-12 relative z-10">${user.balance.toLocaleString()}</h2>
                       <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 md:gap-6 relative z-10">
                          <button onClick={() => setModalType('transfer')} className="bg-sky-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-sky-500 shadow-2xl transition-all">{t('instant_transfer')}</button>
+                         {fxSettings?.isGatewayActive && (
+                           <button onClick={() => setModalType('usdt_gateway')} className="bg-indigo-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-indigo-500 shadow-2xl transition-all">USDT Gateway</button>
+                         )}
                          <button onClick={() => setModalType('coupon')} className="bg-emerald-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-emerald-500 transition-all shadow-2xl">{t('deposit_coupon')}</button>
                          <button 
                             onClick={() => {
@@ -859,6 +976,65 @@ const UserDashboard: React.FC<Props> = ({
              </div>
           </div>
        )}
+
+        {/* Modal: USDT Gateway */}
+        {modalType === 'usdt_gateway' && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">
+            <div className="bg-[#0f172a] border border-white/10 w-full max-w-3xl rounded-3xl md:rounded-[6rem] p-8 md:p-16 lg:p-24 overflow-hidden shadow-3xl text-center relative">
+              <button onClick={()=>setModalType(null)} className={`absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl transition-all ${isUSDTProcessing ? 'hidden' : ''}`}>✕</button>
+              {!isUSDTProcessing ? (
+                <form onSubmit={handleStartUSDTGateway} className="space-y-8 md:space-y-12 animate-in zoom-in duration-500">
+                  <div className="space-y-6 md:space-y-8 text-right">
+                    <h3 className="text-3xl md:text-5xl font-black text-white tracking-tighter text-center">Secure USDT Gateway</h3>
+                    <div className="space-y-3">
+                      <label className="text-[10px] md:text-xs font-black text-slate-500 mr-4 md:mr-8 uppercase">USDT Amount to Transfer</label>
+                      <input required type="number" value={usdtAmount} onChange={e=>setUsdtAmount(e.target.value)} className="w-full p-6 md:p-10 bg-black/40 border border-white/10 rounded-3xl md:rounded-[3rem] font-black text-center text-4xl sm:text-6xl md:text-[5rem] text-indigo-400 outline-none font-mono" placeholder="0.00" />
+                    </div>
+                    {fxSettings && usdtAmount && (
+                      <div className="bg-white/5 p-6 rounded-2xl border border-white/5 space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500 font-bold">Gateway Fee ({fxSettings.gatewayFeePercent}%)</span>
+                          <span className="text-white font-mono">${((parseFloat(usdtAmount) * fxSettings.gatewayFeePercent) / 100).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-lg font-black border-t border-white/10 pt-2">
+                          <span className="text-slate-300">Total to Deduct</span>
+                          <span className="text-emerald-400 font-mono">${(parseFloat(usdtAmount) + (parseFloat(usdtAmount) * fxSettings.gatewayFeePercent) / 100).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <button type="submit" className="w-full py-6 md:py-10 bg-indigo-600 rounded-2xl md:rounded-[3.5rem] font-black text-xl md:text-3xl shadow-3xl hover:bg-indigo-500 transition-all active:scale-95">Confirm USDT Transfer</button>
+                </form>
+              ) : (
+                <div className="space-y-16 py-12">
+                  {usdtSuccess ? (
+                    <div className="space-y-10 animate-in zoom-in duration-700">
+                      <div className="w-48 h-48 bg-emerald-500 rounded-full flex items-center justify-center text-[10rem] mx-auto shadow-3xl border-4 border-emerald-400 animate-pulse">✓</div>
+                      <h3 className="text-6xl font-black text-white tracking-tighter">Transfer Request Submitted</h3>
+                      <p className="text-slate-400 font-bold">Your request is being processed by the network.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-16">
+                      <div className="relative w-full h-16 bg-white/5 border border-white/10 rounded-full overflow-hidden shadow-inner">
+                        <div className="h-full bg-gradient-to-r from-indigo-600 to-purple-600 shadow-[0_0_40px_rgba(79,70,229,0.5)] transition-all duration-300" style={{ width: `${usdtProgress}%` }}></div>
+                        <div className="absolute inset-0 flex items-center justify-center font-mono font-black text-2xl mix-blend-difference">{Math.floor(usdtProgress)}%</div>
+                      </div>
+                      <p className="text-3xl font-black text-indigo-400 animate-pulse h-20 leading-relaxed px-10">
+                        {[
+                          "Initializing Secure Gateway...",
+                          "Scanning for Online Distributors...",
+                          "Establishing Encrypted Handshake...",
+                          "Verifying Liquidity Capacity...",
+                          "Routing Transaction through Node..."
+                        ][usdtStep]}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
        {modalType === 'coupon' && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl">

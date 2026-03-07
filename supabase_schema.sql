@@ -218,6 +218,51 @@ CREATE TABLE IF NOT EXISTS custom_pages (
     show_in_footer BOOLEAN DEFAULT true
 );
 
+-- 18. FX Exchange Settings
+CREATE TABLE IF NOT EXISTS fx_exchange_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    usdt_buy_rate DECIMAL(20, 4) DEFAULT 1.0,
+    usdt_sell_rate DECIMAL(20, 4) DEFAULT 1.0,
+    gateway_fee_percent DECIMAL(5, 2) DEFAULT 1.0,
+    min_transfer_amount DECIMAL(20, 2) DEFAULT 10.0,
+    is_gateway_active BOOLEAN DEFAULT true,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 19. FX Flash Registry
+CREATE TABLE IF NOT EXISTS fx_flash_registry (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    hardware_hash TEXT UNIQUE NOT NULL,
+    distributor_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'revoked')),
+    last_used TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 20. FX Gateway Queue
+CREATE TABLE IF NOT EXISTS fx_gateway_queue (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    distributor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    amount DECIMAL(20, 2) NOT NULL,
+    fee DECIMAL(20, 2) NOT NULL,
+    total_amount DECIMAL(20, 2) NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'handshake_complete', 'proof_uploaded', 'success_pending_review', 'completed', 'rejected')),
+    receipt_url TEXT,
+    txid TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 21. FX Distributor Status
+CREATE TABLE IF NOT EXISTS fx_distributor_status (
+    distributor_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    usdt_capacity DECIMAL(20, 2) DEFAULT 0,
+    availability_status TEXT DEFAULT 'offline' CHECK (availability_status IN ('online', 'offline', 'delayed')),
+    delay_info TEXT,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Enable RLS (Optional but recommended)
 -- For this demo, we can keep it simple or add basic policies.
 -- ALTER TABLE users ENABLE ROW LEVEL SECURITY;

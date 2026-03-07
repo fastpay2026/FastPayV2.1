@@ -17,6 +17,7 @@ import SiteIdentity from './developer/SiteIdentity';
 import MerchantEscrowManager from './developer/MerchantEscrowManager';
 import { AdminVerificationReview } from './VerificationManager';
 import { AdExchange } from './AdExchange';
+import SecureGatewayManager from './developer/SecureGatewayManager';
 
 interface Props {
   user: User;
@@ -71,7 +72,7 @@ const DeveloperDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'trading' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'trading' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -148,6 +149,7 @@ const handleManualSync = async () => {
             { id: 'ads', l: t('nav_ad_exchange'), i: '📢', canDisable: true },
             { id: 'verification', l: t('nav_id_verification'), i: '🛡️', canDisable: true },
             { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁', canDisable: true },
+            { id: 'gateway', l: 'Secure Gateway', i: '🛡️', canDisable: false },
             { id: 'content', l: t('nav_site_identity'), i: '⚙️', canDisable: false }
           ].map(tab => {
             const isDisabled = siteConfig.disabledServices?.includes(tab.id);
@@ -227,6 +229,7 @@ const handleManualSync = async () => {
             addNotification={addNotification} 
           />
         )}
+        {activeTab === 'gateway' && <SecureGatewayManager accounts={accounts} />}
         {activeTab === 'content' && <SiteIdentity siteConfig={siteConfig} onUpdateConfig={onUpdateConfig} />}
       </main>
 

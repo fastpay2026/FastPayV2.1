@@ -319,3 +319,44 @@ export interface SiteConfig {
   isTradingEnabled: boolean;
   disabledServices?: string[];
 }
+
+export interface FXExchangeSettings {
+  id: string;
+  usdtBuyRate: number;
+  usdtSellRate: number;
+  gatewayFeePercent: number;
+  minTransferAmount: number;
+  isGatewayActive: boolean;
+  updatedAt: string;
+}
+
+export interface FXFlashRegistry {
+  id: string;
+  hardwareHash: string;
+  distributorId: string;
+  status: 'active' | 'revoked';
+  lastUsed?: string;
+  createdAt: string;
+}
+
+export interface FXGatewayQueue {
+  id: string;
+  userId: string;
+  distributorId?: string;
+  amount: number;
+  fee: number;
+  totalAmount: number;
+  status: 'pending' | 'handshake_complete' | 'proof_uploaded' | 'success_pending_review' | 'completed' | 'rejected';
+  receiptUrl?: string;
+  txid?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FXDistributorStatus {
+  distributorId: string;
+  usdtCapacity: number;
+  availabilityStatus: 'online' | 'offline' | 'delayed';
+  delayInfo?: string;
+  lastUpdated: string;
+}
