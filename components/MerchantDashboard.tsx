@@ -743,68 +743,72 @@ header('Location: ' . $payment->checkout_url);`
                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">تأكيد</label>
                              <input type="password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
                           </div>
-                                   <form onSubmit={handleStartTransfer} className="space-y-8 md:space-y-12 animate-in zoom-in duration-500">
-                    <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">Direct Balance Transfer</h3>
-                    <div className="space-y-6 md:space-y-8 text-left">
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">Recipient Username</label>
-                          <input required value={recipient} onChange={e=>setRecipient(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-xl md:text-2xl text-white outline-none" placeholder="@username" />
-                       </div>
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">Amount ($)</label>
-                          <input required type="number" value={sendAmount} onChange={e=>setSendAmount(e.target.value)} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl font-black text-4xl md:text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
                        </div>
                     </div>
-                    <button type="submit" className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">Confirm and Initiate Transfer</button>
+                    <button type="submit" className="w-full py-5 bg-sky-600 rounded-2xl font-black text-xl hover:bg-sky-500 transition-all">تحديث كلمة المرور</button>
+                    {passwordSuccess && <p className="text-emerald-400 font-bold text-center">تم تحديث كلمة المرور بنجاح</p>}
+                    {passwordError && <p className="text-red-400 font-bold text-center">{passwordError}</p>}
                  </form>
+              </div>
+           </div>
+         )}
+      </main>
+
+      {modalType === 'send' && (
+         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-3xl">
+            <div className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[4rem] p-8 md:p-16 space-y-8 md:space-y-12 animate-in zoom-in duration-500 shadow-3xl text-center relative">
+               <button onClick={()=>setModalType(null)} className="absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl transition-colors">✕</button>
+               
+               {!isTransferring ? (
+                  <form onSubmit={handleStartTransfer} className="space-y-8 md:space-y-12">
+                     <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">Direct Balance Transfer</h3>
+                     <div className="space-y-6 md:space-y-8 text-left">
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">Recipient Username</label>
+                           <input required value={recipient} onChange={e=>setRecipient(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-xl md:text-2xl text-white outline-none" placeholder="@username" />
+                        </div>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">Amount ($)</label>
+                           <input required type="number" value={sendAmount} onChange={e=>setSendAmount(e.target.value)} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl font-black text-4xl md:text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
+                        </div>
+                     </div>
+                     <button type="submit" className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">Confirm and Initiate Transfer</button>
+                  </form>
                ) : (
-                 <div className="space-y-12 md:space-y-16 animate-in fade-in duration-700">
-                    {transferSuccess ? (
-                      <div className="space-y-8 md:space-y-10 animate-in zoom-in duration-700">
-                         <div className="w-32 md:w-48 h-32 md:h-48 bg-emerald-500 rounded-full flex items-center justify-center text-6xl md:text-9xl mx-auto shadow-[0_0_100px_rgba(16,185,129,0.4)] border-4 border-emerald-400">✓</div>
-                         <h3 className="text-4xl md:text-7xl font-black text-white tracking-tighter">Transfer Successful</h3>
-                         <p className="text-xl md:text-3xl text-emerald-400 font-black tracking-[0.2em] uppercase">TRANSACTION COMPLETED</p>
-                      </div>
-el>
-                          <input required type="number" value={sendAmount} onChange={e=>setSendAmount(e.target.value)} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl font-black text-4xl md:text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
+                  <div className="space-y-12 md:space-y-16 animate-in fade-in duration-700">
+                     {transferSuccess ? (
+                       <div className="space-y-8 md:space-y-10 animate-in zoom-in duration-700">
+                          <div className="w-32 md:w-48 h-32 md:h-48 bg-emerald-500 rounded-full flex items-center justify-center text-6xl md:text-9xl mx-auto shadow-[0_0_100px_rgba(16,185,129,0.4)] border-4 border-emerald-400">✓</div>
+                          <h3 className="text-4xl md:text-7xl font-black text-white tracking-tighter">Transfer Successful</h3>
+                          <p className="text-xl md:text-3xl text-emerald-400 font-black tracking-[0.2em] uppercase">TRANSACTION COMPLETED</p>
+                          <button onClick={() => setModalType(null)} className="mt-8 px-12 py-4 bg-white/10 hover:bg-white/20 rounded-full font-black transition-all">Close Window</button>
                        </div>
-                    </div>
-                    <button type="submit" className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">تأكيد ومباشرة التحويل</button>
-                 </form>
-               ) : (
-                 <div className="space-y-12 md:space-y-16 animate-in fade-in duration-700">
-                    {transferSuccess ? (
-                      <div className="space-y-8 md:space-y-10 animate-in zoom-in duration-700">
-                         <div className="w-32 md:w-48 h-32 md:h-48 bg-emerald-500 rounded-full flex items-center justify-center text-6xl md:text-9xl mx-auto shadow-[0_0_100px_rgba(16,185,129,0.4)] border-4 border-emerald-400">✓</div>
-                         <h3 className="text-4xl md:text-7xl font-black text-white tracking-tighter">تم التحويل بنجاح</h3>
-                         <p className="text-xl md:text-3xl text-emerald-400 font-black tracking-[0.2em] uppercase">TRANSACTION COMPLETED</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-12 md:space-y-16">
-                         <div className="relative mx-auto w-24 md:w-32 h-24 md:h-32 flex items-center justify-center">
-                            <span className="text-6xl md:text-[8rem] animate-bounce">⏳</span>
-                         </div>
-                         <div className="space-y-8 md:space-y-10">
-                            <div className="relative w-full h-8 md:h-10 bg-white/5 border border-white/10 rounded-full overflow-hidden shadow-inner">
-                               <div 
-                                 className="h-full bg-gradient-to-r from-sky-600 to-indigo-600 transition-all duration-300 ease-linear shadow-[0_0_40px_rgba(14,165,233,0.5)]" 
-                                 style={{ width: `${transferProgress}%` }}
-                               ></div>
-                            </div>
-                            <div className="min-h-[80px] md:min-h-[100px] flex items-center justify-center px-6 md:px-10">
-                               <p className="text-xl md:text-3xl font-black text-sky-400 animate-pulse text-center leading-relaxed">
-                                  {bankingPhrases[transferStep]}
-                                </p>
-                            </div>
-                         </div>
-                         <div className="flex justify-center gap-6 md:gap-10 text-slate-500 font-black text-[8px] md:text-[10px] uppercase tracking-[0.4em] opacity-40">
-                            <span>SSL SECURED</span>
-                            <span>AES-256</span>
-                            <span>NODE VERIFIED</span>
-                         </div>
-                      </div>
-                    )}
-                 </div>
+                     ) : (
+                       <div className="space-y-12 md:space-y-16">
+                          <div className="relative mx-auto w-24 md:w-32 h-24 md:h-32 flex items-center justify-center">
+                             <span className="text-6xl md:text-[8rem] animate-bounce">⏳</span>
+                          </div>
+                          <div className="space-y-8 md:space-y-10">
+                             <div className="relative w-full h-8 md:h-10 bg-white/5 border border-white/10 rounded-full overflow-hidden shadow-inner">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-sky-600 to-indigo-600 transition-all duration-300 ease-linear shadow-[0_0_40px_rgba(14,165,233,0.5)]" 
+                                  style={{ width: `${transferProgress}%` }}
+                                ></div>
+                             </div>
+                             <div className="min-h-[80px] md:min-h-[100px] flex items-center justify-center px-6 md:px-10">
+                                <p className="text-xl md:text-3xl font-black text-sky-400 animate-pulse text-center leading-relaxed">
+                                   {bankingPhrases[transferStep]}
+                                 </p>
+                             </div>
+                          </div>
+                          <div className="flex justify-center gap-6 md:gap-10 text-slate-500 font-black text-[8px] md:text-[10px] uppercase tracking-[0.4em] opacity-40">
+                             <span>SSL SECURED</span>
+                             <span>AES-256</span>
+                             <span>NODE VERIFIED</span>
+                          </div>
+                       </div>
+                     )}
+                  </div>
                )}
             </div>
          </div>
