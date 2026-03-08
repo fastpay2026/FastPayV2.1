@@ -3,6 +3,490 @@ import { Language, RTL_LANGUAGES, Translations, I18nContextType } from '../types
 import axios from 'axios';
 
 const translationsData: Translations = {
+  "secure_usdt_gateway": {
+    "en": "Secure USDT Gateway",
+    "ar": "بوابة USDT الآمنة",
+    "fr": "Passerelle USDT sécurisée"
+  },
+  "usdt_amount_to_transfer": {
+    "en": "USDT Amount to Transfer",
+    "ar": "مبلغ USDT للتحويل",
+    "fr": "Montant USDT à transférer"
+  },
+  "usdt_id_wallet": {
+    "en": "USDT Wallet ID / Address",
+    "ar": "عنوان / معرف محفظة USDT",
+    "fr": "ID / Adresse du portefeuille USDT"
+  },
+  "enter_usdt_wallet_address": {
+    "en": "Enter USDT wallet address",
+    "ar": "أدخل عنوان محفظة USDT",
+    "fr": "Entrez l'adresse du portefeuille USDT"
+  },
+  "gateway_fee": {
+    "en": "Gateway Fee",
+    "ar": "رسوم البوابة",
+    "fr": "Frais de passerelle"
+  },
+  "total_to_deduct": {
+    "en": "Total to Deduct",
+    "ar": "إجمالي الخصم",
+    "fr": "Total à déduire"
+  },
+  "confirm_usdt_transfer": {
+    "en": "Confirm USDT Transfer",
+    "ar": "تأكيد تحويل USDT",
+    "fr": "Confirmer le transfert USDT"
+  },
+  "transfer_request_submitted": {
+    "en": "Transfer Request Submitted",
+    "ar": "تم تقديم طلب التحويل",
+    "fr": "Demande de transfert soumise"
+  },
+  "request_processed_msg": {
+    "en": "Your request is being processed by our smart routing system.",
+    "ar": "يتم معالجة طلبك بواسطة نظام التوجيه الذكي الخاص بنا.",
+    "fr": "Votre demande est en cours de traitement par notre système de routage intelligent."
+  },
+  "initializing_secure_gateway": {
+    "en": "Initializing Secure Gateway...",
+    "ar": "تهيئة البوابة الآمنة...",
+    "fr": "Initialisation de la passerelle sécurisée..."
+  },
+  "scanning_online_distributors": {
+    "en": "Scanning Online Distributors...",
+    "ar": "البحث عن موزعين متصلين...",
+    "fr": "Recherche de distributeurs en ligne..."
+  },
+  "establishing_encrypted_handshake": {
+    "en": "Establishing Encrypted Handshake...",
+    "ar": "إنشاء مصافحة مشفرة...",
+    "fr": "Établissement d'une poignée de main cryptée..."
+  },
+  "verifying_liquidity_capacity": {
+    "en": "Verifying Liquidity Capacity...",
+    "ar": "التحقق من سعة السيولة...",
+    "fr": "Vérification de la capacité de liquidité..."
+  },
+  "routing_transaction_node": {
+    "en": "Routing Transaction to Best Node...",
+    "ar": "توجيه المعاملة إلى أفضل عقدة...",
+    "fr": "Routage de la transaction vers le meilleur nœud..."
+  },
+  "merchant_settings_title": {
+    "en": "Distributor Account Settings",
+    "ar": "إعدادات حساب الموزع",
+    "fr": "Paramètres du compte distributeur"
+  },
+  "full_name": {
+    "en": "Full Name",
+    "ar": "الاسم الكامل",
+    "fr": "Nom complet"
+  },
+  "email_address": {
+    "en": "Email Address",
+    "ar": "البريد الإلكتروني",
+    "fr": "Adresse e-mail"
+  },
+  "phone_number": {
+    "en": "Phone Number",
+    "ar": "رقم الهاتف",
+    "fr": "Numéro de téléphone"
+  },
+  "distributor_id": {
+    "en": "Distributor ID",
+    "ar": "معرف الموزع",
+    "fr": "ID du distributeur"
+  },
+  "account_security_title": {
+    "en": "Account Security (Change Password)",
+    "ar": "تأمين الحساب (تغيير كلمة المرور)",
+    "fr": "Sécurité du compte (Changer le mot de passe)"
+  },
+  "current_password": {
+    "en": "Current Password",
+    "ar": "كلمة المرور الحالية",
+    "fr": "Mot de passe actuel"
+  },
+  "new_password": {
+    "en": "New Password",
+    "ar": "الجديدة",
+    "fr": "Nouveau mot de passe"
+  },
+  "confirm_password": {
+    "en": "Confirm Password",
+    "ar": "تأكيد",
+    "fr": "Confirmer le mot de passe"
+  },
+  "update_password": {
+    "en": "Update Password",
+    "ar": "تحديث كلمة المرور",
+    "fr": "Mettre à jour le mot de passe"
+  },
+  "password_update_success": {
+    "en": "Password updated successfully",
+    "ar": "تم تحديث كلمة المرور بنجاح",
+    "fr": "Mot de passe mis à jour avec succès"
+  },
+  "not_set": {
+    "en": "Not set",
+    "ar": "غير محدد",
+    "fr": "Non défini"
+  },
+  "verified_account": {
+    "en": "Verified Account",
+    "ar": "حساب موثق",
+    "fr": "Compte vérifié"
+  },
+  "distributor_level": {
+    "en": "Level: Certified Distributor",
+    "ar": "المستوى: موزع معتمد",
+    "fr": "Niveau : Distributeur certifié"
+  },
+  "logout": {
+    "en": "Logout",
+    "ar": "خروج",
+    "fr": "Déconnexion"
+  },
+  "copy_code": {
+    "en": "Copy Code",
+    "ar": "نسخ الكود",
+    "fr": "Copier le code"
+  },
+  "not_used": {
+    "en": "Not Used",
+    "ar": "لم تستخدم",
+    "fr": "Non utilisé"
+  },
+  "cancel_card_desc": {
+    "en": "Cancel card and refund amount",
+    "ar": "إلغاء البطاقة واسترجاع المبلغ",
+    "fr": "Annuler la carte et rembourser le montant"
+  },
+  "cancel": {
+    "en": "Cancel",
+    "ar": "إلغاء",
+    "fr": "Annuler"
+  },
+  "no_cards_yet": {
+    "en": "No cards issued yet",
+    "ar": "لا توجد بطاقات حتى الآن",
+    "fr": "Aucune carte émise pour le moment"
+  },
+  "issue_recharge_cards": {
+    "en": "Issue Recharge Cards",
+    "ar": "إصدار بطاقات شحن",
+    "fr": "Émettre des cartes de recharge"
+  },
+  "card_value_usd": {
+    "en": "Single Card Value ($)",
+    "ar": "قيمة البطاقة الواحدة ($)",
+    "fr": "Valeur d'une seule carte ($)"
+  },
+  "required_quantity": {
+    "en": "Required Quantity",
+    "ar": "الكمية المطلوبة",
+    "fr": "Quantité requise"
+  },
+  "total_cost": {
+    "en": "Total Cost:",
+    "ar": "التكلفة الإجمالية:",
+    "fr": "Coût total :"
+  },
+  "confirm_issue_and_deduct": {
+    "en": "Confirm Issue and Deduct",
+    "ar": "تأكيد الإصدار والخصم",
+    "fr": "Confirmer l'émission et le débit"
+  },
+  "generate_api_key_title": {
+    "en": "Generate API Key",
+    "ar": "توليد مفتاح API",
+    "fr": "Générer une clé API"
+  },
+  "key_name_placeholder": {
+    "en": "e.g., Main Clothing Store",
+    "ar": "مثلاً: متجر الملابس الرئيسي",
+    "fr": "ex: Magasin de vêtements principal"
+  },
+  "api_key_security_notice": {
+    "en": "Once generated, you can use this key to link with our software libraries. Please keep it confidential.",
+    "ar": "بمجرد التوليد، يمكنك استخدام هذا المفتاح للربط مع مكتباتنا البرمجية. يرجى الحفاظ عليه سرياً.",
+    "fr": "Une fois générée, vous pouvez utiliser cette clé pour vous lier à nos bibliothèques logicielles. Veuillez la garder confidentielle."
+  },
+  "generate_key_now": {
+    "en": "Generate Key Now",
+    "ar": "توليد المفتاح الآن",
+    "fr": "Générer la clé maintenant"
+  },
+  "key_name_label": {
+    "en": "Key Name (for organization)",
+    "ar": "اسم المفتاح (للتنظيم)",
+    "fr": "Nom de la clé (pour l'organisation)"
+  },
+  "merchant_dashboard": {
+    "en": "Merchant Dashboard",
+    "ar": "لوحة تحكم التاجر",
+    "fr": "Tableau de bord marchand",
+    "tr": "Tüccar Paneli",
+    "zh": "商家仪表板",
+    "ku": "تەختەی بازرگان",
+    "ru": "Панель мерчанта"
+  },
+  "developer_portal_title": {
+    "en": "Developer Portal & API Gateway",
+    "ar": "بوابة المطورين وواجهة API",
+    "fr": "Portail développeur & Passerelle API"
+  },
+  "developer_portal_desc": {
+    "en": "Software integration tools to accept payments in your online store.",
+    "ar": "أدوات تكامل البرمجيات لقبول المدفوعات في متجرك عبر الإنترنت.",
+    "fr": "Outils d'intégration logicielle pour accepter les paiements dans votre boutique en ligne."
+  },
+  "generate_new_key": {
+    "en": "Generate New Key",
+    "ar": "إنشاء مفتاح جديد",
+    "fr": "Générer une nouvelle clé"
+  },
+  "access_key_management": {
+    "en": "Access Key Management",
+    "ar": "إدارة مفاتيح الوصول",
+    "fr": "Gestion des clés d'accès"
+  },
+  "name": {
+    "en": "Name",
+    "ar": "الاسم",
+    "fr": "Nom"
+  },
+  "api_key": {
+    "en": "API Key",
+    "ar": "مفتاح API",
+    "fr": "Clé API"
+  },
+  "requests": {
+    "en": "Requests",
+    "ar": "الطلبات",
+    "fr": "Demandes"
+  },
+  "issue_date": {
+    "en": "Issue Date",
+    "ar": "تاريخ الإصدار",
+    "fr": "Date d'émission"
+  },
+  "status": {
+    "en": "Status",
+    "ar": "الحالة",
+    "fr": "Statut"
+  },
+  "control": {
+    "en": "Control",
+    "ar": "التحكم",
+    "fr": "Contrôle"
+  },
+  "active": {
+    "en": "Active",
+    "ar": "نشط",
+    "fr": "Actif"
+  },
+  "revoked": {
+    "en": "Revoked",
+    "ar": "ملغى",
+    "fr": "Révoqué"
+  },
+  "show": {
+    "en": "Show",
+    "ar": "عرض",
+    "fr": "Afficher"
+  },
+  "hide": {
+    "en": "Hide",
+    "ar": "إخفاء",
+    "fr": "Masquer"
+  },
+  "copy": {
+    "en": "Copy",
+    "ar": "نسخ",
+    "fr": "Copier"
+  },
+  "integration_docs": {
+    "en": "Integration Documentation (SDK)",
+    "ar": "وثائق التكامل (SDK)",
+    "fr": "Documentation d'intégration (SDK)"
+  },
+  "payment_simulator": {
+    "en": "Payment Simulator",
+    "ar": "محاكي الدفع",
+    "fr": "Simulateur de paiement"
+  },
+  "simulator_desc": {
+    "en": "This interface is what your customer will see when calling our payment link from your site.",
+    "ar": "هذه الواجهة هي ما سيراه عميلك عند استدعاء رابط الدفع الخاص بنا من موقعك.",
+    "fr": "Cette interface est ce que votre client verra lors de l'appel de notre lien de paiement depuis votre site."
+  },
+  "no_api_keys": {
+    "en": "No API keys found. Start by generating a key to link your store.",
+    "ar": "لم يتم العثور على مفاتيح API. ابدأ بإنشاء مفتاح لربط متجرك.",
+    "fr": "Aucune clé API trouvée. Commencez par générer une clé pour lier votre boutique."
+  },
+  "usdt_gateway_status": {
+    "en": "USDT Gateway Status",
+    "ar": "حالة بوابة USDT",
+    "fr": "Statut de la passerelle USDT"
+  },
+  "gateway_status_desc": {
+    "en": "Control your visibility in the smart routing system",
+    "ar": "تحكم في ظهورك في نظام التوجيه الذكي",
+    "fr": "Contrôlez votre visibilité dans le système de routage intelligent"
+  },
+  "available_liquidity_usdt": {
+    "en": "Available Liquidity (USDT)",
+    "ar": "السيولة المتاحة (USDT)",
+    "fr": "Liquidité disponible (USDT)"
+  },
+  "liquidity_routing_desc": {
+    "en": "Orders will be routed to you based on this balance",
+    "ar": "سيتم توجيه الطلبات إليك بناءً على هذا الرصيد",
+    "fr": "Les commandes vous seront acheminées en fonction de ce solde"
+  },
+  "incoming_transfer_requests": {
+    "en": "Incoming Transfer Requests",
+    "ar": "طلبات التحويل الواردة",
+    "fr": "Demandes de transfert entrantes"
+  },
+  "pending_requests": {
+    "en": "Pending Requests",
+    "ar": "الطلبات المعلقة",
+    "fr": "Demandes en attente"
+  },
+  "total_amount": {
+    "en": "Total Amount",
+    "ar": "المبلغ الإجمالي",
+    "fr": "Montant total"
+  },
+  "net_to_recipient": {
+    "en": "Net to Recipient",
+    "ar": "الصافي للمستلم",
+    "fr": "Net au destinataire"
+  },
+  "timestamp": {
+    "en": "Timestamp",
+    "ar": "الطابع الزمني",
+    "fr": "Horodatage"
+  },
+  "action": {
+    "en": "Action",
+    "ar": "الإجراء",
+    "fr": "Action"
+  },
+  "process_order": {
+    "en": "Process Order",
+    "ar": "معالجة الطلب",
+    "fr": "Traiter la commande"
+  },
+  "no_requests_currently": {
+    "en": "No requests currently",
+    "ar": "لا توجد طلبات حالياً",
+    "fr": "Aucune demande actuellement"
+  },
+  "secure_order_processing": {
+    "en": "Secure Order Processing",
+    "ar": "معالجة الطلب الآمنة",
+    "fr": "Traitement sécurisé des commandes"
+  },
+  "required_transfer_details": {
+    "en": "Required Transfer Details",
+    "ar": "تفاصيل التحويل المطلوبة",
+    "fr": "Détails du transfert requis"
+  },
+  "start_hardware_handshake": {
+    "en": "Start Hardware Handshake",
+    "ar": "بدء المصافحة العتادية",
+    "fr": "Démarrer la poignée de main matérielle"
+  },
+  "confirm_flash_key": {
+    "en": "Confirm Flash Key",
+    "ar": "تأكيد مفتاح Flash",
+    "fr": "Confirmer la clé Flash"
+  },
+  "hardware_signature_desc": {
+    "en": "Please enter the pre-programmed physical hardware signature",
+    "ar": "يرجى إدخال التوقيع المادي المبرمج مسبقاً",
+    "fr": "Veuillez saisir la signature matérielle physique préprogrammée"
+  },
+  "confirm_handshake": {
+    "en": "Confirm Handshake",
+    "ar": "تأكيد المصافحة",
+    "fr": "Confirmer la poignée de main"
+  },
+  "transaction_id_txid": {
+    "en": "Transaction ID (TXID)",
+    "ar": "معرف المعاملة (TXID)",
+    "fr": "ID de transaction (TXID)"
+  },
+  "receipt_link": {
+    "en": "Transfer Receipt Link (Screenshot URL)",
+    "ar": "رابط إيصال التحويل (URL اللقطة)",
+    "fr": "Lien du reçu de transfert (URL de la capture d'écran)"
+  },
+  "submit_proof": {
+    "en": "Submit Transfer Proof for Review",
+    "ar": "إرسال إثبات التحويل للمراجعة",
+    "fr": "Soumettre la preuve de transfert pour examen"
+  },
+  "waiting_for_requests": {
+    "en": "Waiting for New Requests",
+    "ar": "في انتظار طلبات جديدة",
+    "fr": "En attente de nouvelles demandes"
+  },
+  "waiting_requests_desc": {
+    "en": "When a USDT transfer request compatible with your liquidity arrives, it will appear here for immediate processing.",
+    "ar": "عند وصول طلب تحويل USDT متوافق مع سيولتك، سيظهر هنا للمعالجة الفورية.",
+    "fr": "Lorsqu'une demande de transfert USDT compatible avec votre liquidité arrive, elle apparaîtra ici pour un traitement immédiat."
+  },
+  "authorized_flash_keys": {
+    "en": "Authorized Flash Keys",
+    "ar": "مفاتيح Flash المصرح بها",
+    "fr": "Clés Flash autorisées"
+  },
+  "no_flash_keys": {
+    "en": "No programmed keys found. Contact administration.",
+    "ar": "لم يتم العثور على مفاتيح مبرمجة. اتصل بالإدارة.",
+    "fr": "Aucune clé programmée trouvée. Contactez l'administration."
+  },
+  "status_updated": {
+    "en": "Status Updated",
+    "ar": "تم تحديث الحالة",
+    "fr": "Statut mis à jour"
+  },
+  "gateway_status_is": {
+    "en": "Your gateway status is now",
+    "ar": "حالة البوابة الخاصة بك الآن هي",
+    "fr": "Le statut de votre passerelle est maintenant"
+  },
+  "error_updating_status": {
+    "en": "Error updating status",
+    "ar": "خطأ في تحديث الحالة",
+    "fr": "Erreur lors de la mise à jour du statut"
+  },
+  "online": {
+    "en": "Online",
+    "ar": "متصل",
+    "fr": "En ligne"
+  },
+  "offline": {
+    "en": "Offline",
+    "ar": "غير متصل",
+    "fr": "Hors ligne"
+  },
+  "delayed": {
+    "en": "Delayed",
+    "ar": "متأخر",
+    "fr": "Retardé"
+  },
+  "merchant_settings": {
+    "en": "Merchant Settings",
+    "ar": "إعدادات التاجر",
+    "fr": "Paramètres marchand"
+  },
   "usdt_gateway_title": {
     "en": "Secure USDT Gateway",
     "ar": "بوابة USDT الآمنة",

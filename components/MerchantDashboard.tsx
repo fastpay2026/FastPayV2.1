@@ -370,15 +370,15 @@ header('Location: ' . $payment->checkout_url);`
               </div>
             )}
             <div className="space-y-1 hidden md:block">
-               <h1 className="text-xl md:text-2xl font-black tracking-tighter">Distributor Portal</h1>
+               <h1 className="text-xl md:text-2xl font-black tracking-tighter">{t('merchant_dashboard')}</h1>
                <nav className="flex gap-4 md:gap-6">
                   {[
-                    { id: 'main', l: 'Home' },
-                    { id: 'usdt_gateway', l: 'USDT Gateway' },
-                    { id: 'gateway', l: 'Developer Portal & API' },
-                    { id: 'ads', l: 'Ad Exchange' },
-                    { id: 'verification', l: 'Account Verification' },
-                    { id: 'settings', l: 'Account Settings' }
+                    { id: 'main', l: t('home') || 'Home' },
+                    { id: 'usdt_gateway', l: t('usdt_gateway_status') || 'USDT Gateway' },
+                    { id: 'gateway', l: t('developer_portal_title') || 'Developer Portal' },
+                    { id: 'ads', l: t('ad_exchange') || 'Ad Exchange' },
+                    { id: 'verification', l: t('account_verification') || 'Account Verification' },
+                    { id: 'settings', l: t('account_settings') || 'Account Settings' }
                  ].map((view) => (
                    <button 
                      key={view.id}
@@ -395,11 +395,11 @@ header('Location: ' . $payment->checkout_url);`
             <div className="text-left hidden lg:block border-l border-white/10 pl-6 mr-6">
                <p className="font-black text-white text-lg flex items-center gap-2">
                  {user.fullName}
-                 {user.isVerified && <span className="text-sky-400 text-sm" title="حساب موثق">☑️</span>}
+                 {user.isVerified && <span className="text-sky-400 text-sm" title={t('verified_account')}>☑️</span>}
                </p>
-               <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">المستوى: موزع معتمد</p>
+               <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">{t('distributor_level')}</p>
             </div>
-            <button onClick={onLogout} className="px-4 md:px-8 py-2 md:py-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl md:rounded-2xl font-black text-xs md:text-base hover:bg-red-600 hover:text-white transition-all active:scale-95 shadow-lg">خروج</button>
+            <button onClick={onLogout} className="px-4 md:px-8 py-2 md:py-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl md:rounded-2xl font-black text-xs md:text-base hover:bg-red-600 hover:text-white transition-all active:scale-95 shadow-lg">{t('logout')}</button>
          </div>
       </header>
 
@@ -408,12 +408,12 @@ header('Location: ' . $payment->checkout_url);`
         <div className="lg:hidden fixed inset-0 z-[190] bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="absolute top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
             {[
-              { id: 'main', l: 'Home', i: '🏠' },
-              { id: 'usdt_gateway', l: 'USDT Gateway', i: '🛡️' },
-              { id: 'gateway', l: 'Developer Portal', i: '🔌' },
-              { id: 'ads', l: 'Ad Exchange', i: '📢' },
-              { id: 'verification', l: 'Account Verification', i: '🛡️' },
-              { id: 'settings', l: 'Account Settings', i: '⚙️' }
+              { id: 'main', l: t('home') || 'Home', i: '🏠' },
+              { id: 'usdt_gateway', l: t('usdt_gateway_status') || 'USDT Gateway', i: '🛡️' },
+              { id: 'gateway', l: t('developer_portal_title') || 'Developer Portal', i: '🔌' },
+              { id: 'ads', l: t('ad_exchange') || 'Ad Exchange', i: '📢' },
+              { id: 'verification', l: t('account_verification') || 'Account Verification', i: '🛡️' },
+              { id: 'settings', l: t('account_settings') || 'Account Settings', i: '⚙️' }
             ].map(v => (
               <button 
                 key={v.id} 
@@ -437,16 +437,16 @@ header('Location: ' . $payment->checkout_url);`
                      <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
                      <div className="relative z-10 space-y-8 md:space-y-12">
                         <div>
-                           <p className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-4">Distributor Available Liquidity</p>
+                           <p className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-4">{t('available_liquidity_usdt')}</p>
                            <h2 className="text-5xl md:text-8xl font-black tracking-tighter">${user.balance.toLocaleString()}</h2>
                         </div>
                         <div className="flex flex-col sm:flex-row flex-wrap gap-4 md:gap-6">
                            <button onClick={() => setModalType('cards')} className="flex-1 py-6 md:py-8 bg-emerald-600 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl shadow-emerald-900/40 hover:bg-emerald-500 transition-all flex items-center justify-center gap-4 active:scale-95 group">
-                              <span>Issue Cards</span>
+                              <span>{t('issue_cards') || 'Issue Cards'}</span>
                               <span className="text-2xl md:text-3xl group-hover:rotate-12 transition-transform">🎫</span>
                            </button>
                            <button onClick={() => setModalType('send')} className="flex-1 py-6 md:py-8 bg-white/5 border border-white/10 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl backdrop-blur-xl hover:bg-white/10 transition-all flex items-center justify-center gap-4 active:scale-95 group">
-                              <span>تحويل مباشر</span>
+                              <span>{t('direct_transfer')}</span>
                               <span className="text-2xl md:text-3xl group-hover:translate-x-[-10px] transition-transform">📤</span>
                            </button>
                         </div>
@@ -455,10 +455,10 @@ header('Location: ' . $payment->checkout_url);`
 
                   <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                      {[
-                        { l: 'Total Cards', v: myGeneratedCards.length, i: '📦', c: 'text-white' },
-                        { l: 'Active Stock', v: myGeneratedCards.filter(c=>!c.isUsed).length, i: '⚡', c: 'text-sky-400' },
-                        { l: 'Successful Operations', v: myGeneratedCards.filter(c=>c.isUsed).length, i: '✅', c: 'text-emerald-500' },
-                        { l: 'Sales Revenue', v: `$${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}`, i: '💰', c: 'text-amber-500' }
+                        { l: t('total_cards') || 'Total Cards', v: myGeneratedCards.length, i: '📦', c: 'text-white' },
+                        { l: t('active_stock') || 'Active Stock', v: myGeneratedCards.filter(c=>!c.isUsed).length, i: '⚡', c: 'text-sky-400' },
+                        { l: t('successful_operations') || 'Successful Operations', v: myGeneratedCards.filter(c=>c.isUsed).length, i: '✅', c: 'text-emerald-500' },
+                        { l: t('sales_revenue') || 'Sales Revenue', v: `$${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}`, i: '💰', c: 'text-amber-500' }
                      ].map((stat, idx) => (
                        <div key={idx} className="p-6 md:p-10 bg-[#0f172a]/60 backdrop-blur-xl border border-white/5 rounded-2xl md:rounded-[3rem] shadow-xl hover:border-sky-500/30 transition-all group">
                           <div className="flex justify-between items-start mb-4 md:mb-6">
@@ -508,7 +508,7 @@ header('Location: ' . $payment->checkout_url);`
                                    <td className="p-6 md:p-10">
                                       <div className="flex items-center gap-4">
                                          <code className="bg-black/60 px-4 md:px-6 py-2 md:py-3 rounded-xl text-sky-400 font-black tracking-[0.1em] md:tracking-[0.2em] text-xs md:text-sm border border-white/5 shadow-inner group-hover:text-white group-hover:bg-sky-600 transition-all">{c.code}</code>
-                                         <button onClick={() => copyToClipboard(c.code)} className="p-2 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all text-xs" title="نسخ الكود">📋</button>
+                                         <button onClick={() => copyToClipboard(c.code)} className="p-2 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all text-xs" title={t('copy_code')}>📋</button>
                                       </div>
                                    </td>
                                    <td className="p-6 md:p-10 text-2xl md:text-3xl font-black text-white">${c.amount.toLocaleString()}</td>
@@ -523,7 +523,7 @@ header('Location: ' . $payment->checkout_url);`
                                           <span className="text-white text-lg md:text-xl">@{c.usedBy}</span>
                                         </div>
                                       ) : (
-                                        <span className="text-slate-700 italic text-sm">— لم تستخدم —</span>
+                                        <span className="text-slate-700 italic text-sm">— {t('not_used')} —</span>
                                       )}
                                    </td>
                                    <td className="p-6 md:p-10 text-[10px] md:text-xs text-slate-500 font-mono">
@@ -537,9 +537,9 @@ header('Location: ' . $payment->checkout_url);`
                                         <button 
                                           onClick={() => handleCancelCard(c)}
                                           className="px-3 md:px-4 py-1.5 md:py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg md:rounded-xl font-black text-[9px] md:text-[10px] hover:bg-red-600 hover:text-white transition-all active:scale-95"
-                                          title="إلغاء البطاقة واسترجاع المبلغ"
+                                          title={t('cancel_card_desc')}
                                         >
-                                          إلغاء
+                                          {t('cancel')}
                                         </button>
                                       )}
                                    </td>
@@ -549,7 +549,7 @@ header('Location: ' . $payment->checkout_url);`
                              <tr>
                                 <td colSpan={7} className="p-20 md:p-40 text-center opacity-30">
                                    <div className="text-6xl md:text-[8rem]">📋</div>
-                                   <p className="font-black text-xl md:text-2xl">لا توجد بطاقات حتى الآن</p>
+                                   <p className="font-black text-xl md:text-2xl">{t('no_cards_yet')}</p>
                                 </td>
                              </tr>
                            )}
@@ -566,29 +566,29 @@ header('Location: ' . $payment->checkout_url);`
             <div className="max-w-[1400px] mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                   <div className="space-y-2">
-                    <h2 className="text-4xl md:text-6xl font-black tracking-tighter">Developer Portal & API Gateway</h2>
-                    <p className="text-slate-500 font-bold text-base md:text-lg max-w-2xl">Software integration tools to accept payments in your online store.</p>
+                    <h2 className="text-4xl md:text-6xl font-black tracking-tighter">{t('developer_portal_title')}</h2>
+                    <p className="text-slate-500 font-bold text-base md:text-lg max-w-2xl">{t('developer_portal_desc')}</p>
                   </div>
                   <button onClick={() => setModalType('new_key')} className="w-full md:w-auto px-10 py-5 bg-sky-600 rounded-[2rem] font-black text-xl hover:bg-sky-500 transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-4">
-                    <span>Generate New Key</span>
+                    <span>{t('generate_new_key')}</span>
                     <span className="text-2xl">+</span>
                   </button>
                </div>
 
                <div className="bg-[#111827] border border-white/5 rounded-2xl md:rounded-[4rem] shadow-2xl overflow-hidden">
                   <div className="p-6 md:p-10 border-b border-white/5 flex justify-between items-center bg-white/5">
-                     <h3 className="text-xl md:text-2xl font-black text-white">Access Key Management</h3>
+                     <h3 className="text-xl md:text-2xl font-black text-white">{t('access_key_management')}</h3>
                   </div>
                   <div className="overflow-x-auto custom-scrollbar">
                      <table className="w-full text-right min-w-[1000px]">
                         <thead className="bg-white/5 text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">
                            <tr>
-                              <th className="p-6 md:p-8">Name</th>
-                              <th className="p-6 md:p-8">API Key</th>
-                              <th className="p-6 md:p-8">Requests</th>
-                              <th className="p-6 md:p-8">Issue Date</th>
-                              <th className="p-6 md:p-8 text-center">Status</th>
-                              <th className="p-6 md:p-8 text-center">Control</th>
+                              <th className="p-6 md:p-8">{t('name')}</th>
+                              <th className="p-6 md:p-8">{t('api_key')}</th>
+                              <th className="p-6 md:p-8">{t('requests')}</th>
+                              <th className="p-6 md:p-8">{t('issue_date')}</th>
+                              <th className="p-6 md:p-8 text-center">{t('status')}</th>
+                              <th className="p-6 md:p-8 text-center">{t('control')}</th>
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 font-bold">
@@ -705,48 +705,48 @@ header('Location: ' . $payment->checkout_url);`
 
          {activeView === 'settings' && (
            <div className="max-w-4xl mx-auto animate-in slide-in-from-bottom duration-500 space-y-8 md:space-y-12">
-              <h2 className="text-4xl md:text-6xl font-black tracking-tighter">إعدادات حساب الموزع</h2>
+              <h2 className="text-4xl md:text-6xl font-black tracking-tighter">{t('merchant_settings_title')}</h2>
               
               <div className="bg-[#0f172a]/60 backdrop-blur-3xl p-8 md:p-12 border border-white/5 rounded-2xl md:rounded-[4rem] shadow-2xl space-y-8 md:space-y-12">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                     <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-2">
-                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">الاسم الكامل</p>
+                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('full_name')}</p>
                        <p className="text-xl md:text-2xl font-black text-white">{user.fullName}</p>
                     </div>
                     <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-2">
-                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">البريد الإلكتروني</p>
+                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('email_address')}</p>
                        <p className="text-xl md:text-2xl font-black text-white">{user.email}</p>
                     </div>
                     <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-2">
-                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">رقم الهاتف</p>
-                       <p className="text-xl md:text-2xl font-black text-white" dir="ltr">{user.phoneNumber || 'غير محدد'}</p>
+                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('phone_number')}</p>
+                       <p className="text-xl md:text-2xl font-black text-white" dir="ltr">{user.phoneNumber || t('not_set')}</p>
                     </div>
                     <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-2">
-                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">معرف الموزع</p>
+                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('distributor_id')}</p>
                        <p className="text-lg md:text-xl font-mono text-sky-400">ID: {user.id.toUpperCase()}</p>
                     </div>
                  </div>
 
                  <form onSubmit={handleChangePassword} className="space-y-8 md:space-y-10 pt-10 border-t border-white/10">
-                    <h3 className="text-2xl md:text-3xl font-black border-r-8 border-sky-500 pr-8">تأمين الحساب (تغيير كلمة المرور)</h3>
+                    <h3 className="text-2xl md:text-3xl font-black border-r-8 border-sky-500 pr-8">{t('account_security_title')}</h3>
                     <div className="space-y-6">
                        <div className="space-y-3">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">كلمة المرور الحالية</label>
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">{t('current_password')}</label>
                           <input type="password" value={oldPassword} onChange={e=>setOldPassword(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
                        </div>
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-3">
-                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">الجديدة</label>
+                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">{t('new_password')}</label>
                              <input type="password" value={newPassword} onChange={e=>setNewPassword(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
                           </div>
                           <div className="space-y-3">
-                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">تأكيد</label>
+                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-6">{t('confirm_password')}</label>
                              <input type="password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500" />
                           </div>
                        </div>
                     </div>
-                    <button type="submit" className="w-full py-5 bg-sky-600 rounded-2xl font-black text-xl hover:bg-sky-500 transition-all">تحديث كلمة المرور</button>
-                    {passwordSuccess && <p className="text-emerald-400 font-bold text-center">تم تحديث كلمة المرور بنجاح</p>}
+                    <button type="submit" className="w-full py-5 bg-sky-600 rounded-2xl font-black text-xl hover:bg-sky-500 transition-all">{t('update_password')}</button>
+                    {passwordSuccess && <p className="text-emerald-400 font-bold text-center">{t('password_update_success')}</p>}
                     {passwordError && <p className="text-red-400 font-bold text-center">{passwordError}</p>}
                  </form>
               </div>
@@ -818,10 +818,10 @@ header('Location: ' . $payment->checkout_url);`
          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-3xl">
             <div className="bg-[#111827] border border-white/10 w-full max-w-2xl rounded-3xl md:rounded-[4rem] p-8 md:p-16 space-y-8 md:space-y-12 animate-in zoom-in duration-500 shadow-3xl text-center relative">
                <button onClick={()=>setModalType(null)} className="absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl transition-colors">✕</button>
-               <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">إصدار بطاقات شحن</h3>
+               <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">{t('issue_recharge_cards')}</h3>
                <div className="space-y-6 md:space-y-8 text-right">
                   <div className="space-y-3">
-                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">قيمة البطاقة الواحدة ($)</label>
+                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">{t('card_value_usd')}</label>
                      <div className="grid grid-cols-3 gap-3 md:gap-4">
                         {[10, 50, 100, 500, 1000, 5000].map(v => (
                           <button key={v} onClick={()=>setCardAmount(v)} className={`py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl border transition-all ${cardAmount === v ? 'bg-sky-600 border-sky-400 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'}`}>${v}</button>
@@ -829,15 +829,15 @@ header('Location: ' . $payment->checkout_url);`
                      </div>
                   </div>
                   <div className="space-y-3">
-                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">الكمية المطلوبة</label>
+                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">{t('required_quantity')}</label>
                      <input type="number" value={cardQuantity} onChange={e=>setCardQuantity(parseInt(e.target.value))} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-2xl text-white outline-none" />
                   </div>
                   <div className="p-6 md:p-8 bg-sky-600/10 border border-sky-500/20 rounded-2xl md:rounded-3xl flex justify-between items-center">
-                     <span className="text-slate-400 font-bold text-sm md:text-base">التكلفة الإجمالية:</span>
+                     <span className="text-slate-400 font-bold text-sm md:text-base">{t('total_cost')}</span>
                      <span className="text-2xl md:text-4xl font-black text-sky-400">${(cardAmount * cardQuantity).toLocaleString()}</span>
                   </div>
                </div>
-               <button onClick={handleGenerateCards} className="w-full py-6 md:py-8 bg-emerald-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-emerald-500 transition-all active:scale-95">تأكيد الإصدار والخصم</button>
+               <button onClick={handleGenerateCards} className="w-full py-6 md:py-8 bg-emerald-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-emerald-500 transition-all active:scale-95">{t('confirm_issue_and_deduct')}</button>
             </div>
          </div>
       )}
@@ -846,15 +846,15 @@ header('Location: ' . $payment->checkout_url);`
          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-3xl">
             <div className="bg-[#111827] border border-white/10 w-full max-w-xl rounded-3xl md:rounded-[4rem] p-8 md:p-16 space-y-8 md:space-y-12 animate-in zoom-in duration-500 shadow-3xl text-center relative">
                <button onClick={()=>setModalType(null)} className="absolute top-8 md:top-12 right-8 md:right-12 text-slate-500 hover:text-white text-2xl md:text-3xl transition-colors">✕</button>
-               <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">توليد مفتاح API</h3>
+               <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">{t('generate_api_key_title')}</h3>
                <div className="space-y-6 md:space-y-8 text-right">
                   <div className="space-y-3">
-                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">اسم المفتاح (للتنظيم)</label>
-                     <input value={newKeyName} onChange={e=>setNewKeyName(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-xl md:text-2xl text-white outline-none" placeholder="مثلاً: متجر الملابس الرئيسي" />
+                     <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">{t('key_name_label')}</label>
+                     <input value={newKeyName} onChange={e=>setNewKeyName(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-xl md:text-2xl text-white outline-none" placeholder={t('key_name_placeholder')} />
                   </div>
-                  <p className="text-slate-500 font-bold text-xs md:text-sm leading-relaxed">بمجرد التوليد، يمكنك استخدام هذا المفتاح للربط مع مكتباتنا البرمجية. يرجى الحفاظ عليه سرياً.</p>
+                  <p className="text-slate-500 font-bold text-xs md:text-sm leading-relaxed">{t('api_key_security_notice')}</p>
                </div>
-               <button onClick={handleGenerateApiKey} className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">توليد المفتاح الآن</button>
+               <button onClick={handleGenerateApiKey} className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">{t('generate_key_now')}</button>
             </div>
          </div>
       )}

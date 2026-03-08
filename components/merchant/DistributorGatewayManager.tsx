@@ -40,11 +40,10 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
       
       const myStatus = statuses.find(s => s.distributorId === user.id);
       setStatus(myStatus || {
-        id: crypto.randomUUID(),
         distributorId: user.id,
-        status: 'offline',
+        availabilityStatus: 'offline',
         usdtCapacity: 0,
-        lastActive: new Date().toISOString()
+        lastUpdated: new Date().toISOString()
       });
       
       setOrders(allOrders.filter(o => o.distributorId === user.id));
@@ -59,17 +58,17 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
   const handleUpdateStatus = async (newStatus: 'online' | 'offline' | 'delayed', capacity?: number) => {
     if (!status) return;
     try {
-      const updated = { 
+      const updated: FXDistributorStatus = { 
         ...status, 
-        status: newStatus, 
+        availabilityStatus: newStatus, 
         usdtCapacity: capacity !== undefined ? capacity : status.usdtCapacity,
-        lastActive: new Date().toISOString()
+        lastUpdated: new Date().toISOString()
       };
       await supabaseService.upsertFXDistributorStatus(updated);
       setStatus(updated);
-      addNotification('Status Updated', `Your gateway status is now ${newStatus}`, 'security');
+      addNotification(t('status_updated') || 'Status Updated', `${t('gateway_status_is')} ${newStatus}`, 'security');
     } catch (error) {
-      alert("Error updating status");
+      alert(t('error_updating_status') || "Error updating status");
     }
   };
 
@@ -124,12 +123,12 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 glass-card p-10 rounded-[3rem] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-6">
-            <div className={`p-6 rounded-3xl ${status?.status === 'online' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+            <div className={`p-6 rounded-3xl ${status?.availabilityStatus === 'online' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
               <Activity size={40} />
             </div>
             <div>
-              <h2 className="text-3xl font-black tracking-tighter">USDT Gateway Status</h2>
-              <p className="text-slate-500 font-bold">Control your visibility in the smart routing system</p>
+              <h2 className="text-3xl font-black tracking-tighter">{t('usdt_gateway_status')}</h2>
+              <p className="text-slate-500 font-bold">{t('gateway_status_desc')}</p>
             </div>
           </div>
           
@@ -139,12 +138,12 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                 key={s}
                 onClick={() => handleUpdateStatus(s)}
                 className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${
-                  status?.status === s 
+                  status?.availabilityStatus === s 
                     ? 'bg-sky-600 border-sky-400 text-white shadow-xl shadow-sky-900/20' 
                     : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'
                 }`}
               >
-                {s === 'online' ? 'Online' : s === 'offline' ? 'Offline' : 'Delayed'}
+                {s === 'online' ? t('online') : s === 'offline' ? t('offline') : t('delayed')}
               </button>
             ))}
           </div>
@@ -152,21 +151,21 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
 
         <div className="glass-card p-10 rounded-[3rem] border border-white/5 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">Available Liquidity (USDT)</h3>
+            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest">{t('available_liquidity_usdt')}</h3>
             <DollarSign className="text-emerald-400" size={20} />
           </div>
           <div className="flex gap-4">
             <input 
               type="number"
               value={status?.usdtCapacity}
-              onChange={(e) => handleUpdateStatus(status?.status || 'offline', parseFloat(e.target.value))}
+              onChange={(e) => handleUpdateStatus(status?.availabilityStatus || 'offline', parseFloat(e.target.value))}
               className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 font-black text-2xl text-emerald-400 outline-none focus:border-emerald-500 transition-all"
             />
             <div className="p-4 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/20 flex items-center justify-center">
               <span className="font-black">USDT</span>
             </div>
           </div>
-          <p className="text-[10px] text-slate-500 font-bold text-center">Orders will be routed to you based on this balance</p>
+          <p className="text-[10px] text-slate-500 font-bold text-center">{t('liquidity_routing_desc')}</p>
         </div>
       </div>
 

@@ -622,7 +622,7 @@ const UserDashboard: React.FC<Props> = ({
                       <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 md:gap-6 relative z-10">
                          <button onClick={() => setModalType('transfer')} className="bg-sky-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-sky-500 shadow-2xl transition-all">{t('instant_transfer')}</button>
                          {fxSettings?.isGatewayActive && (
-                           <button onClick={() => setModalType('usdt_gateway')} className="bg-indigo-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-indigo-500 shadow-2xl transition-all">USDT Gateway</button>
+                           <button onClick={() => setModalType('usdt_gateway')} className="bg-indigo-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-indigo-500 shadow-2xl transition-all"> {t('usdt_gateway_status') || 'USDT Gateway'} </button>
                          )}
                          <button onClick={() => setModalType('coupon')} className="bg-emerald-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-emerald-500 transition-all shadow-2xl">{t('deposit_coupon')}</button>
                          <button 
