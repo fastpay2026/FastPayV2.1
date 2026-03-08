@@ -30,7 +30,7 @@ export const AdExchange: React.FC<Props> = ({
   user, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations,
   accounts, setAccounts, transactions, setTransactions, addNotification, onUpdateUser, siteConfig
 }) => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [view, setView] = useState<'browse' | 'my_ads' | 'admin_review'>('browse');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAd, setSelectedAd] = useState<AdExchangeItem | null>(null);
@@ -89,7 +89,7 @@ export const AdExchange: React.FC<Props> = ({
         city: adForm.city
       },
       promotionStatus: 'none',
-      createdAt: new Date().toLocaleString('ar-SA')
+      createdAt: new Date().toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')
     };
 
     setAdExchangeItems(prev => [newAd, ...prev]);
@@ -177,7 +177,7 @@ export const AdExchange: React.FC<Props> = ({
       type: 'trade_buy',
       amount: -amount,
       relatedUser: ad.merchantName,
-      timestamp: new Date().toLocaleString('ar-SA'),
+      timestamp: new Date().toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US'),
       status: 'escrow',
       notes: `${t('purchase_desc')}: ${ad.title} (FPN Flow)`
     };
@@ -202,7 +202,7 @@ export const AdExchange: React.FC<Props> = ({
       buyerName: user.fullName,
       offerAmount: amount,
       status: 'pending',
-      createdAt: new Date().toLocaleString('ar-SA')
+      createdAt: new Date().toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')
     };
 
     setAdNegotiations(prev => [newOffer, ...prev]);
@@ -608,9 +608,9 @@ export const AdExchange: React.FC<Props> = ({
               <p className="text-slate-500 font-bold max-w-md mx-auto">{t('fpn_flow_desc')}</p>
             </div>
             <div className="flex justify-center gap-8 text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">
-              <span>AES-256</span>
-              <span>SECURE ESCROW</span>
-              <span>GLOBAL LEDGER</span>
+              <span>{t('aes_256')}</span>
+              <span>{t('secure_escrow')}</span>
+              <span>{t('global_ledger')}</span>
             </div>
           </div>
         </div>

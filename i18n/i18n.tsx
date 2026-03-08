@@ -5099,9 +5099,34 @@ const translationsData: Translations = {
     "zh": "请选择分销商并输入硬件签名",
     "ku": "تکایە دابەشکەرێک هەڵبژێرە و واژۆی ڕەقەکاڵایەک بنووسە",
     "ru": "Пожалуйста, выберите дистрибьютора и введите аппаратную подпись"
+  },
+  "aes_256": {
+    "en": "AES-256",
+    "ar": "تشفير AES-256",
+    "fr": "AES-256",
+    "tr": "AES-256",
+    "zh": "AES-256",
+    "ku": "AES-256",
+    "ru": "AES-256"
+  },
+  "secure_escrow": {
+    "en": "SECURE ESCROW",
+    "ar": "ضمان آمن",
+    "fr": "ESCROW SÉCURISÉ",
+    "tr": "GÜVENLİ EMANET",
+    "zh": "安全托管",
+    "ku": "سپاردەی پارێزراو",
+    "ru": "БЕЗОПАСНЫЙ ЭСКРОУ"
+  },
+  "global_ledger": {
+    "en": "GLOBAL LEDGER",
+    "ar": "دفتر حسابات عالمي",
+    "fr": "LIVRE GLOBAL",
+    "tr": "KÜRESEL DEFTER",
+    "zh": "全球账本",
+    "ku": "دەفتەری جیهانی",
+    "ru": "ГЛОБАЛЬНЫЙ РЕЕСТР"
   }
-
-
 };
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);

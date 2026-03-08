@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, APIKey, VerificationRequest, AdExchangeItem, AdNegotiation } from '../types';
-
+import { useI18n } from '../i18n/i18n';
 import MerchantDealCreator from './MerchantDealCreator';
 import { MerchantVerification } from './VerificationManager';
 import { AdExchange } from './AdExchange';
@@ -35,6 +35,7 @@ const MerchantDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations,
   addNotification, onUpdateUser
 }) => {
+  const { t } = useI18n();
   const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'usdt_gateway' | 'verification' | 'ads'>('main');
   const [modalType, setModalType] = useState<'send' | 'cards' | 'new_key' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
