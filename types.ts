@@ -348,8 +348,8 @@ export interface FXGatewayQueue {
   totalAmount: number;
   status: 'pending' | 'handshake_complete' | 'proof_uploaded' | 'success_pending_review' | 'completed' | 'rejected';
   walletAddress: string;
-  receiptUrl?: string;
-  txid?: string;
+  receipt_image?: string;
+  tx_id?: string;
   createdAt: string;
   updatedAt: string;
 }

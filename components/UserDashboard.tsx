@@ -126,22 +126,25 @@ const UserDashboard: React.FC<Props> = ({
   const [usdtStep, setUsdtStep] = useState(0);
   const [usdtSuccess, setUsdtSuccess] = useState(false);
   const [assignedDistributor, setAssignedDistributor] = useState<FXDistributorStatus | null>(null);
+  const [userGatewayQueue, setUserGatewayQueue] = useState<FXGatewayQueue[]>([]);
 
   useEffect(() => {
     const fetchFXData = async () => {
       try {
-        const [settings, dists] = await Promise.all([
+        const [settings, dists, queue] = await Promise.all([
           supabaseService.getFXExchangeSettings(),
-          supabaseService.getFXDistributorStatuses()
+          supabaseService.getFXDistributorStatuses(),
+          supabaseService.getFXGatewayQueue()
         ]);
         setFxSettings(settings);
         setDistributors(dists);
+        setUserGatewayQueue(queue.filter(q => q.userId === user.id));
       } catch (e) {
         console.error("Failed to fetch FX data", e);
       }
     };
     fetchFXData();
-  }, []);
+  }, [user.id]);
 
   const isServiceDisabled = (serviceId: string) => {
     return siteConfig.disabledServices?.includes(serviceId);
@@ -324,6 +327,8 @@ const UserDashboard: React.FC<Props> = ({
         setUsdtSuccess(false); 
         setUsdtAmount(''); 
         setAssignedDistributor(null);
+        // Refresh queue
+        supabaseService.getFXGatewayQueue().then(q => setUserGatewayQueue(q.filter(item => item.userId === user.id)));
       }, 3000);
     } catch (e) {
       console.error("Failed to finalize USDT Gateway", e);
@@ -646,7 +651,61 @@ const UserDashboard: React.FC<Props> = ({
 
                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
                       <div className="bg-[#0f172a]/80 p-6 md:p-10 rounded-3xl md:rounded-[4rem] border border-white/5 shadow-2xl">
-                         <h3 className="text-2xl md:text-3xl font-black mb-6 md:mb-8">{t('latest_transactions')}</h3>
+                                                {userGatewayQueue.length > 0 && (
+                         <div className="lg:col-span-2 bg-indigo-900/20 p-6 md:p-10 rounded-3xl md:rounded-[4rem] border border-indigo-500/30 shadow-2xl">
+                           <div className="flex items-center justify-between mb-8">
+                             <h3 className="text-2xl md:text-3xl font-black">{t('usdt_gateway_status') || 'USDT Gateway Requests'}</h3>
+                             <span className="px-4 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-[10px] font-black uppercase tracking-widest">
+                               {userGatewayQueue.filter(q => q.status !== 'completed').length} Active
+                             </span>
+                           </div>
+                           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                             {userGatewayQueue.map(item => (
+                               <div key={item.id} className="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-4">
+                                 <div className="flex justify-between items-start">
+                                   <div>
+                                     <p className="text-2xl font-black text-white">${item.amount.toLocaleString()}</p>
+                                     <p className="text-[10px] text-slate-500 font-black uppercase">Net Amount</p>
+                                   </div>
+                                   <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                     item.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
+                                     item.status === 'success_pending_review' ? 'bg-amber-500/10 text-amber-500' :
+                                     item.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
+                                     'bg-sky-500/10 text-sky-500'
+                                   }`}>
+                                     {item.status === 'pending' ? 'Processing' : 
+                                      item.status === 'pending_distributor' ? 'With Distributor' :
+                                      item.status === 'success_pending_review' ? 'Under Review' : 
+                                      item.status === 'rejected' ? 'Rejected' : 'Completed'}
+                                   </span>
+                                 </div>
+                                 <div className="space-y-1">
+                                   <p className="text-[10px] font-black text-slate-500 uppercase">Destination Wallet</p>
+                                   <p className="text-xs font-mono font-bold text-indigo-400 truncate">{item.walletAddress}</p>
+                                 </div>
+                                 {item.tx_id && (
+                                   <div className="space-y-1">
+                                     <p className="text-[10px] font-black text-slate-500 uppercase">Transaction Hash (TXID)</p>
+                                     <p className="text-[10px] font-mono font-bold text-amber-400 truncate">{item.tx_id}</p>
+                                   </div>
+                                 )}
+                                 {item.receipt_image && (
+                                   <a 
+                                     href={item.receipt_image} 
+                                     target="_blank" 
+                                     rel="noopener noreferrer"
+                                     className="block text-[10px] font-black text-sky-400 hover:text-sky-300 underline uppercase tracking-widest"
+                                   >
+                                     View Transfer Receipt
+                                   </a>
+                                 )}
+                                 <p className="text-[10px] text-slate-600 font-bold">{new Date(item.createdAt).toLocaleString()}</p>
+                               </div>
+                             ))}
+                           </div>
+                         </div>
+                       )}
+                       <h3 className="text-2xl md:text-3xl font-black mb-6 md:mb-8">{t('latest_transactions')}</h3>
                          <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto custom-scrollbar">
                             {transactions.filter(t=>t.userId===user.id).slice(0, 10).map(t => (
                                <div key={t.id} className="flex justify-between items-center p-4 md:p-6 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5">

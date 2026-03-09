@@ -749,7 +749,8 @@ export const supabaseService = {
       distributorId: q.distributor_id,
       walletAddress: q.wallet_address,
       totalAmount: q.total_amount,
-      receiptUrl: q.receipt_url,
+      receipt_image: q.receipt_image,
+      tx_id: q.tx_id,
       createdAt: q.created_at,
       updatedAt: q.updated_at
     }));
@@ -765,8 +766,8 @@ export const supabaseService = {
       total_amount: q.totalAmount,
       wallet_address: q.walletAddress,
       status: q.status,
-      receipt_url: q.receiptUrl,
-      txid: q.txid,
+      receipt_image: q.receipt_image,
+      tx_id: q.tx_id,
       created_at: q.createdAt,
       updated_at: q.updatedAt
     }, { onConflict: 'id' });

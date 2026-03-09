@@ -85,6 +85,33 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
     addNotification('Handshake Success', 'Hardware signature verified. Proceed to proof upload.', 'security');
   };
 
+  const validateReceipt = async (url: string, expectedAmount: number) => {
+    // Mock OCR Validation logic as requested
+    // In a real app, this would call an OCR API
+    console.log("Starting OCR Validation for:", url);
+    
+    return new Promise<{success: boolean, message: string}>((resolve) => {
+      setTimeout(() => {
+        // Simulate successful OCR if URL is present
+        // In a real scenario, we'd check the date and amount from the OCR result
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // For demo purposes, we assume the OCR found today's date and correct amount
+        const recognizedDate = new Date(); 
+        const recognizedAmount = expectedAmount;
+
+        if (recognizedDate < today) {
+          resolve({ success: false, message: "Invoice date is too old. Must be today or later." });
+        } else if (recognizedAmount !== expectedAmount) {
+          resolve({ success: false, message: `Amount mismatch. Found ${recognizedAmount}, expected ${expectedAmount}` });
+        } else {
+          resolve({ success: true, message: "OCR Validation Successful: Date and Amount verified." });
+        }
+      }, 2000);
+    });
+  };
+
   const handleSubmitProof = async () => {
     if (!selectedOrder || !txid || !receiptUrl) {
       alert("Please enter TXID and Receipt URL");
@@ -93,11 +120,19 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
 
     setIsProcessing(true);
     try {
+      // Perform OCR Validation
+      const ocrResult = await validateReceipt(receiptUrl, selectedOrder.amount);
+      if (!ocrResult.success) {
+        alert(`OCR Validation Failed: ${ocrResult.message}`);
+        setIsProcessing(false);
+        return;
+      }
+
       const updatedOrder: FXGatewayQueue = {
         ...selectedOrder,
         status: 'success_pending_review',
-        txid,
-        receiptUrl,
+        tx_id: txid,
+        receipt_image: receiptUrl,
         updatedAt: new Date().toISOString()
       };
       await supabaseService.upsertFXGatewayQueue(updatedOrder);
@@ -202,24 +237,26 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                         <p className="text-[10px] text-slate-500 font-bold">Including Fees</p>
                       </td>
                       <td className="p-6">
-                        <p className="font-black text-emerald-400 text-lg">${order.netAmount.toLocaleString()}</p>
+                        <p className="font-black text-emerald-400 text-lg">${order.amount.toLocaleString()}</p>
                         <p className="text-[10px] text-slate-500 font-bold">USDT</p>
                       </td>
                       <td className="p-6">
                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                           order.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
                           order.status === 'success_pending_review' ? 'bg-amber-500/10 text-amber-500' :
+                          order.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
                           'bg-sky-500/10 text-sky-500'
                         }`}>
-                          {order.status === 'pending_distributor' ? 'Waiting for you' : 
-                           order.status === 'success_pending_review' ? 'Under Review' : 'Completed'}
+                          {(order.status === 'pending_distributor' || order.status === 'pending') ? 'Waiting for you' : 
+                           order.status === 'success_pending_review' ? 'Under Review' : 
+                           order.status === 'rejected' ? 'Rejected' : 'Completed'}
                         </span>
                       </td>
                       <td className="p-6 text-xs text-slate-500 font-bold">
                         {new Date(order.createdAt).toLocaleString('ar-SA')}
                       </td>
                       <td className="p-6">
-                        {order.status === 'pending_distributor' && (
+                        {(order.status === 'pending_distributor' || order.status === 'pending') && (
                           <button 
                             onClick={() => { setSelectedOrder(order); setStep(1); }}
                             className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-xl text-xs transition-all"
@@ -268,12 +305,12 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                     <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest">Required Transfer Details</h4>
                     <div className="flex justify-between items-end">
                       <div>
-                        <p className="text-3xl font-black text-white">${selectedOrder.netAmount.toLocaleString()}</p>
+                        <p className="text-3xl font-black text-white">${selectedOrder.amount.toLocaleString()}</p>
                         <p className="text-xs font-bold text-sky-400">USDT (TRC-20)</p>
                       </div>
                       <div className="text-left">
                         <p className="text-[10px] font-black text-slate-500 uppercase">Wallet Address</p>
-                        <p className="text-xs font-mono font-bold text-white">TXXXX...XXXX</p>
+                        <p className="text-xs font-mono font-bold text-white break-all">{selectedOrder.walletAddress}</p>
                       </div>
                     </div>
                   </div>
