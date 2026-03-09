@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { User, SiteConfig, Transaction, Notification, AdExchangeItem, AdNegotiation, RechargeCard, WithdrawalRequest, SalaryFinancing, FixedDeposit, VerificationRequest, RaffleEntry, RaffleWinner, TradeAsset, TradeOrder, LandingService, CustomPage, FXExchangeSettings, FXFlashRegistry, FXGatewayQueue, FXDistributorStatus } from './types';
+import { User, SiteConfig, Transaction, Notification, AdExchangeItem, AdNegotiation, RechargeCard, WithdrawalRequest, SalaryFinancing, FixedDeposit, VerificationRequest, RaffleEntry, RaffleWinner, TradeAsset, TradeOrder, LandingService, CustomPage, FXExchangeSettings, DistributorSecurityKey, FXGatewayQueue, FXDistributorStatus } from './types';
 
 export const supabaseService = {
   // Users
@@ -714,24 +714,28 @@ export const supabaseService = {
     if (error) throw error;
   },
 
-  // FX Flash Registry
-  async getFXFlashRegistry(): Promise<FXFlashRegistry[]> {
-    const { data, error } = await supabase.from('fx_flash_registry').select('*');
+  // Distributor Security Keys
+  async getDistributorSecurityKeys(): Promise<DistributorSecurityKey[]> {
+    const { data, error } = await supabase.from('distributor_security_keys').select('*');
     if (error) throw error;
     return (data || []).map(r => ({
       ...r,
-      hardwareHash: r.hardware_hash,
       distributorId: r.distributor_id,
+      vendorId: r.vendor_id,
+      productId: r.product_id,
+      serialNumber: r.serial_number,
       lastUsed: r.last_used,
       createdAt: r.created_at
     }));
   },
 
-  async upsertFXFlashRegistry(r: FXFlashRegistry) {
-    const { error } = await supabase.from('fx_flash_registry').upsert({
+  async upsertDistributorSecurityKey(r: DistributorSecurityKey) {
+    const { error } = await supabase.from('distributor_security_keys').upsert({
       id: r.id,
-      hardware_hash: r.hardwareHash,
       distributor_id: r.distributorId,
+      vendor_id: r.vendorId,
+      product_id: r.productId,
+      serial_number: r.serialNumber,
       status: r.status,
       last_used: r.lastUsed,
       created_at: r.createdAt

@@ -1578,33 +1578,6 @@ const translationsData: Translations = {
     "ku": "کۆدکردنی AES-256 بە شێوەیەکی خۆکار بۆ ئەم دانیشتنە چالاک کراوە",
     "ru": "Шифрование AES-256 автоматически включено для этой сессии"
   },
-  "full_name": {
-    "en": "Full Name",
-    "ar": "الاسم الكامل",
-    "fr": "Nom complet",
-    "tr": "Ad Soyad",
-    "zh": "全名",
-    "ku": "ناوی تەواو",
-    "ru": "Полное имя"
-  },
-  "phone_number": {
-    "en": "Phone Number",
-    "ar": "رقم الهاتف",
-    "fr": "Numéro de téléphone",
-    "tr": "Telefon Numarası",
-    "zh": "电话号码",
-    "ku": "ژمارەی تەلەفۆن",
-    "ru": "Номер телефона"
-  },
-  "email_label": {
-    "en": "Email Address",
-    "ar": "البريد الإلكتروني",
-    "fr": "Adresse e-mail",
-    "tr": "E-posta Adresi",
-    "zh": "电子邮件地址",
-    "ku": "ناونیشانی ئیمەیڵ",
-    "ru": "Адрес электронной почты"
-  },
   "confirm_password": {
     "en": "Confirm Password",
     "ar": "تأكيد كلمة المرور",
@@ -3080,15 +3053,6 @@ const translationsData: Translations = {
     "zh": "激活",
     "ku": "چالاککردن",
     "ru": "Активировать"
-  },
-  "password": {
-    "en": "Password",
-    "ar": "كلمة المرور",
-    "fr": "Mot de passe",
-    "tr": "Şifre",
-    "zh": "密码",
-    "ku": "وشەی نهێنی",
-    "ru": "Пароль"
   },
   "delete": {
     "en": "Delete",

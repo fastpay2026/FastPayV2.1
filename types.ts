@@ -330,10 +330,12 @@ export interface FXExchangeSettings {
   updatedAt: string;
 }
 
-export interface FXFlashRegistry {
+export interface DistributorSecurityKey {
   id: string;
-  hardwareHash: string;
   distributorId: string;
+  vendorId: number;
+  productId: number;
+  serialNumber: string;
   status: 'active' | 'revoked';
   lastUsed?: string;
   createdAt: string;
@@ -346,7 +348,7 @@ export interface FXGatewayQueue {
   amount: number;
   fee: number;
   totalAmount: number;
-  status: 'pending' | 'handshake_complete' | 'proof_uploaded' | 'success_pending_review' | 'completed' | 'rejected';
+  status: 'pending' | 'pending_distributor' | 'handshake_complete' | 'proof_uploaded' | 'success_pending_review' | 'completed' | 'rejected';
   walletAddress: string;
   receipt_image?: string;
   tx_id?: string;

@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { User, FXExchangeSettings, FXFlashRegistry, FXGatewayQueue } from '../../types';
+import { User, FXExchangeSettings, DistributorSecurityKey, FXGatewayQueue } from '../../types';
 import { supabaseService } from '../../supabaseService';
 import { useI18n } from '../../i18n/i18n';
-import { Shield, Cpu, Key, Activity, Settings, RefreshCw, Trash2, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Shield, Cpu, Key, Activity, Settings, RefreshCw, Trash2, CheckCircle, XCircle, Clock, Usb, Save, Plus } from 'lucide-react';
 
 interface Props {
   accounts: User[];
@@ -12,14 +12,15 @@ interface Props {
 const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
   const { t } = useI18n();
   const [settings, setSettings] = useState<FXExchangeSettings | null>(null);
-  const [registry, setRegistry] = useState<FXFlashRegistry[]>([]);
+  const [registry, setRegistry] = useState<DistributorSecurityKey[]>([]);
   const [queue, setQueue] = useState<FXGatewayQueue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Flash Programming State
   const [selectedDistributor, setSelectedDistributor] = useState<string>('');
-  const [hardwareSignature, setHardwareSignature] = useState<string>('');
-  const [isProgramming, setIsProgramming] = useState(false);
+  const [isReadingUsb, setIsReadingUsb] = useState(false);
+  const [usbData, setUsbData] = useState<{ vendorId: number; productId: number; serialNumber: string } | null>(null);
 
   const distributors = accounts.filter(a => a.role === 'DISTRIBUTOR');
 
@@ -32,10 +33,10 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
     try {
       const [s, r, q] = await Promise.all([
         supabaseService.getFXExchangeSettings(),
-        supabaseService.getFXFlashRegistry(),
+        supabaseService.getDistributorSecurityKeys(),
         supabaseService.getFXGatewayQueue()
       ]);
-      setSettings(s || {
+      setSettings(s[0] || {
         id: crypto.randomUUID(),
         usdtBuyRate: 1.0,
         usdtSellRate: 1.0,
@@ -53,63 +54,83 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
     }
   };
 
-  const handleUpdateSettings = async (newSettings: FXExchangeSettings) => {
+  const handleReadUsb = async () => {
+    setIsReadingUsb(true);
     try {
-      await supabaseService.upsertFXExchangeSettings(newSettings);
-      setSettings(newSettings);
+      // @ts-ignore
+      const device = await navigator.usb.requestDevice({ filters: [] });
+      await device.open();
+      
+      setUsbData({
+        vendorId: device.vendorId,
+        productId: device.productId,
+        serialNumber: device.serialNumber || 'N/A'
+      });
+      
+      alert(`USB Detected: ${device.productName || 'Unknown Device'}`);
     } catch (error) {
-      alert(t('error_updating_settings'));
+      console.error("WebUSB Error:", error);
+      alert("Failed to read USB device. Make sure your browser supports WebUSB and you've granted permission.");
+    } finally {
+      setIsReadingUsb(false);
     }
   };
 
   const handleProgramFlash = async () => {
-    if (!selectedDistributor || !hardwareSignature) {
-      alert(t('select_distributor_and_signature'));
+    if (!selectedDistributor || !usbData) {
+      alert("Please select a distributor and scan a USB device.");
       return;
     }
 
-    setIsProgramming(true);
+    setIsSaving(true);
     try {
-      const newKey: FXFlashRegistry = {
+      const newKey: DistributorSecurityKey = {
         id: crypto.randomUUID(),
-        hardwareHash: hardwareSignature,
         distributorId: selectedDistributor,
+        vendorId: usbData.vendorId,
+        productId: usbData.productId,
+        serialNumber: usbData.serialNumber,
         status: 'active',
         createdAt: new Date().toISOString()
       };
-      await supabaseService.upsertFXFlashRegistry(newKey);
+      await supabaseService.upsertDistributorSecurityKey(newKey);
       setRegistry([...registry, newKey]);
-      setHardwareSignature('');
+      setUsbData(null);
       setSelectedDistributor('');
-      alert(t('flash_key_programmed_success'));
+      alert("Flash key registered successfully.");
     } catch (error) {
-      alert(t('error_programming_flash_key'));
+      alert("Error registering flash key");
     } finally {
-      setIsProgramming(false);
+      setIsSaving(false);
     }
   };
 
-  const handleToggleKeyStatus = async (key: FXFlashRegistry) => {
+  const handleToggleKeyStatus = async (key: DistributorSecurityKey) => {
     try {
-      const updatedKey: FXFlashRegistry = {
+      const updatedKey: DistributorSecurityKey = {
         ...key,
         status: key.status === 'active' ? 'revoked' : 'active'
       };
-      await supabaseService.upsertFXFlashRegistry(updatedKey);
+      await supabaseService.upsertDistributorSecurityKey(updatedKey);
       setRegistry(registry.map(r => r.id === key.id ? updatedKey : r));
     } catch (error) {
-      alert(t('error_updating_key_status'));
+      alert("Error updating key status");
     }
   };
 
-  const generateSignature = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let sig = 'FP-';
-    for (let i = 0; i < 16; i++) {
-      sig += chars.charAt(Math.floor(Math.random() * chars.length));
-      if ((i + 1) % 4 === 0 && i < 15) sig += '-';
+  const handleSaveSettings = async (updatedSettings?: any) => {
+    const settingsToSave = updatedSettings || settings;
+    if (!settingsToSave) return;
+    setIsSaving(true);
+    try {
+      await supabaseService.upsertFXExchangeSettings(settingsToSave);
+      setSettings(settingsToSave);
+      alert("Settings saved successfully.");
+    } catch (error) {
+      alert("Error saving settings");
+    } finally {
+      setIsSaving(false);
     }
-    setHardwareSignature(sig);
   };
 
   if (isLoading) return <div className="flex items-center justify-center h-64"><RefreshCw className="animate-spin text-sky-500" /></div>;
@@ -121,9 +142,9 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
         <div>
           <h2 className="text-4xl font-black tracking-tighter flex items-center gap-4">
             <Shield className="text-sky-500 w-10 h-10" />
-            {t('secure_gateway_flash_programming')}
+            USDT Gateway & Security Key Management
           </h2>
-          <p className="text-slate-400 font-bold mt-2">{t('manage_hidden_liquidity_channels')}</p>
+          <p className="text-slate-400 font-bold mt-2">Manage distributor security keys and global gateway settings</p>
         </div>
         <button onClick={fetchData} className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-white/10">
           <RefreshCw size={20} />
@@ -139,70 +160,92 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
             </div>
             <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
               <Key className="text-sky-400" />
-              {t('flash_key_programming_module')}
+              Register New Distributor Flash Key
             </h3>
             
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-3">{t('target_distributor')}</label>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Target Distributor</label>
                   <select 
                     value={selectedDistributor}
                     onChange={(e) => setSelectedDistributor(e.target.value)}
                     className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-bold text-white focus:border-sky-500 transition-all outline-none"
                   >
-                    <option value="">{t('select_distributor_placeholder')}</option>
+                    <option value="">Select Distributor...</option>
                     {distributors.map(d => (
-                      <option key={d.id} value={d.id}>{d.fullName} (@{d.username})</option>
+                      <option key={d.id} value={d.id}>{d.full_name} (@{d.username})</option>
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-3">{t('hardware_signature_unique_hash')}</label>
-                  <div className="flex gap-3">
-                    <input 
-                      type="text"
-                      value={hardwareSignature}
-                      onChange={(e) => setHardwareSignature(e.target.value)}
-                      placeholder={t('hardware_signature_placeholder')}
-                      className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 font-mono font-bold text-sky-400 focus:border-sky-500 transition-all outline-none"
-                    />
-                    <button 
-                      onClick={generateSignature}
-                      className="p-4 bg-sky-500/10 text-sky-400 rounded-2xl hover:bg-sky-500 hover:text-white transition-all border border-sky-500/20"
-                    >
-                      <RefreshCw size={20} />
-                    </button>
+                
+                <div className="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Hardware Detection</h4>
+                    <Usb size={16} className={isReadingUsb ? 'animate-spin text-sky-400' : 'text-slate-600'} />
                   </div>
+                  
+                  {!usbData ? (
+                    <button 
+                      onClick={handleReadUsb}
+                      disabled={isReadingUsb}
+                      className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3"
+                    >
+                      <RefreshCw size={14} className={isReadingUsb ? 'animate-spin' : ''} />
+                      Scan USB Device
+                    </button>
+                  ) : (
+                    <div className="space-y-3 animate-in zoom-in">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-500">Vendor ID:</span>
+                        <span className="font-mono text-sky-400 font-bold">0x{usbData.vendorId.toString(16).toUpperCase()}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-500">Product ID:</span>
+                        <span className="font-mono text-sky-400 font-bold">0x{usbData.productId.toString(16).toUpperCase()}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-500">Serial:</span>
+                        <span className="font-mono text-sky-400 font-bold">{usbData.serialNumber}</span>
+                      </div>
+                      <button 
+                        onClick={() => setUsbData(null)}
+                        className="w-full py-2 text-[10px] font-black text-red-400 uppercase tracking-widest hover:text-red-300"
+                      >
+                        Clear & Rescan
+                      </button>
+                    </div>
+                  )}
                 </div>
+
                 <button 
                   onClick={handleProgramFlash}
-                  disabled={isProgramming}
+                  disabled={isSaving || !usbData || !selectedDistributor}
                   className="w-full py-5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-black rounded-2xl shadow-xl shadow-sky-900/20 transition-all flex items-center justify-center gap-3"
                 >
-                  {isProgramming ? <RefreshCw className="animate-spin" /> : <Cpu size={20} />}
-                  {t('program_new_hardware_key')}
+                  {isSaving ? <RefreshCw className="animate-spin" /> : <Plus size={20} />}
+                  Link Physical Security Key
                 </button>
               </div>
               
               <div className="bg-black/40 rounded-3xl p-8 border border-white/5 space-y-4">
-                <h4 className="text-sm font-black text-slate-500 uppercase tracking-widest">{t('programming_instructions')}</h4>
+                <h4 className="text-sm font-black text-slate-500 uppercase tracking-widest">Security Instructions</h4>
                 <ul className="space-y-3 text-sm font-bold text-slate-400">
                   <li className="flex items-start gap-3">
-                    <span className="text-sky-500">01.</span>
-                    {t('instruction_1')}
+                    <span className="text-sky-500 font-black">01.</span>
+                    Connect the physical USB key to your computer.
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="text-sky-500">02.</span>
-                    {t('instruction_2')}
+                    <span className="text-sky-500 font-black">02.</span>
+                    Select the distributor who will receive this key.
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="text-sky-500">03.</span>
-                    {t('instruction_3')}
+                    <span className="text-sky-500 font-black">03.</span>
+                    Click "Scan USB Device" and grant browser permission.
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="text-sky-500">04.</span>
-                    {t('instruction_4')}
+                    <span className="text-sky-500 font-black">04.</span>
+                    Verify the Vendor/Product ID and Serial Number before linking.
                   </li>
                 </ul>
               </div>
@@ -214,21 +257,21 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
             <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
               <h3 className="text-xl font-black flex items-center gap-3">
                 <Shield className="text-emerald-400" size={20} />
-                {t('authorized_flash_registry')}
+                Authorized Flash Registry
               </h3>
               <span className="px-4 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest">
-                {registry.length} {t('active_keys')}
+                {registry.length} Active Keys
               </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-right">
                 <thead>
                   <tr className="bg-black/20 text-slate-500 text-[10px] font-black uppercase tracking-widest">
-                    <th className="p-6">{t('distributor')}</th>
-                    <th className="p-6">{t('hardware_hash')}</th>
-                    <th className="p-6">{t('status')}</th>
-                    <th className="p-6">{t('last_used')}</th>
-                    <th className="p-6">{t('actions')}</th>
+                    <th className="p-6">Distributor</th>
+                    <th className="p-6">Hardware ID (V:P)</th>
+                    <th className="p-6">Serial Number</th>
+                    <th className="p-6">Status</th>
+                    <th className="p-6">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -239,22 +282,24 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
                         <td className="p-6">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-xs">
-                              {dist?.fullName.charAt(0)}
+                              {dist?.full_name?.charAt(0) || 'U'}
                             </div>
                             <div>
-                              <p className="font-black text-sm">{dist?.fullName || 'Unknown'}</p>
+                              <p className="font-black text-sm">{dist?.full_name || 'Unknown'}</p>
                               <p className="text-[10px] text-slate-500 font-bold">@{dist?.username}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="p-6 font-mono text-xs text-sky-400 font-bold">{key.hardwareHash}</td>
+                        <td className="p-6">
+                          <code className="text-xs bg-black/40 px-3 py-1 rounded-lg text-sky-400 font-bold border border-white/5">
+                            0x{key.vendorId.toString(16).toUpperCase()}:0x{key.productId.toString(16).toUpperCase()}
+                          </code>
+                        </td>
+                        <td className="p-6 text-xs font-mono text-slate-400 font-bold">{key.serialNumber}</td>
                         <td className="p-6">
                           <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${key.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                             {key.status}
                           </span>
-                        </td>
-                        <td className="p-6 text-xs text-slate-500 font-bold">
-                          {key.lastUsed ? new Date(key.lastUsed).toLocaleString() : 'Never'}
                         </td>
                         <td className="p-6">
                           <button 
@@ -279,49 +324,47 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
           <div className="glass-card p-8 rounded-[3rem] border border-white/5 space-y-8">
             <h3 className="text-xl font-black flex items-center gap-3">
               <Settings className="text-slate-400" size={20} />
-              {t('gateway_settings')}
+              Gateway Settings
             </h3>
             
             <div className="space-y-6">
               <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                <span className="text-sm font-bold text-slate-400">{t('gateway_status')}</span>
+                <span className="text-sm font-bold text-slate-400">Gateway Status</span>
                 <button 
-                  onClick={() => settings && handleUpdateSettings({ ...settings, isGatewayActive: !settings.isGatewayActive })}
+                  onClick={() => settings && handleSaveSettings({ ...settings, isGatewayActive: !settings.isGatewayActive })}
                   className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${settings?.isGatewayActive ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}
                 >
-                  {settings?.isGatewayActive ? t('online') : t('offline')}
+                  {settings?.isGatewayActive ? 'ONLINE' : 'OFFLINE'}
                 </button>
               </div>
 
               <div className="space-y-4">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('usdt_buy_rate')}</label>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">USDT Buy Rate</label>
                 <input 
                   type="number"
                   value={settings?.usdtBuyRate}
-                  onChange={(e) => settings && handleUpdateSettings({ ...settings, usdtBuyRate: parseFloat(e.target.value) })}
+                  onChange={(e) => settings && setSettings({ ...settings, usdtBuyRate: parseFloat(e.target.value) })}
                   className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-bold text-white outline-none focus:border-sky-500"
                 />
               </div>
 
               <div className="space-y-4">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('gateway_fee')} (%)</label>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Gateway Fee (%)</label>
                 <input 
                   type="number"
                   value={settings?.gatewayFeePercent}
-                  onChange={(e) => settings && handleUpdateSettings({ ...settings, gatewayFeePercent: parseFloat(e.target.value) })}
+                  onChange={(e) => settings && setSettings({ ...settings, gatewayFeePercent: parseFloat(e.target.value) })}
                   className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-bold text-white outline-none focus:border-sky-500"
                 />
               </div>
 
-              <div className="space-y-4">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('min_transfer_amount')}</label>
-                <input 
-                  type="number"
-                  value={settings?.minTransferAmount}
-                  onChange={(e) => settings && handleUpdateSettings({ ...settings, minTransferAmount: parseFloat(e.target.value) })}
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-bold text-white outline-none focus:border-sky-500"
-                />
-              </div>
+              <button 
+                onClick={handleSaveSettings}
+                disabled={isSaving}
+                className="w-full py-4 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-2xl transition-all"
+              >
+                {isSaving ? <RefreshCw className="animate-spin mx-auto" /> : 'Save Settings'}
+              </button>
             </div>
           </div>
 
@@ -329,7 +372,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
           <div className="glass-card p-8 rounded-[3rem] border border-white/5 space-y-6">
             <h3 className="text-xl font-black flex items-center gap-3">
               <Activity className="text-sky-400" size={20} />
-              {t('recent_gateway_activity')}
+              Recent Activity
             </h3>
             <div className="space-y-4">
               {queue.slice(0, 5).map(item => (
@@ -348,10 +391,9 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
                     </span>
                   </div>
                   <p className="text-[10px] font-mono text-indigo-400 truncate">{item.walletAddress}</p>
-                  {item.txid && <p className="text-[9px] font-mono text-sky-400 truncate">{item.txid}</p>}
                 </div>
               ))}
-              {queue.length === 0 && <p className="text-center text-slate-500 font-bold text-sm py-8">{t('no_recent_activity')}</p>}
+              {queue.length === 0 && <p className="text-center text-slate-500 font-bold text-sm py-8">No recent activity</p>}
             </div>
           </div>
         </div>

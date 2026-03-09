@@ -229,11 +229,13 @@ CREATE TABLE IF NOT EXISTS fx_exchange_settings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 19. FX Flash Registry
-CREATE TABLE IF NOT EXISTS fx_flash_registry (
+-- 19. Distributor Security Keys
+CREATE TABLE IF NOT EXISTS distributor_security_keys (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    hardware_hash TEXT UNIQUE NOT NULL,
     distributor_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    vendor_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    serial_number TEXT NOT NULL,
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'revoked')),
     last_used TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -248,7 +250,7 @@ CREATE TABLE IF NOT EXISTS fx_gateway_queue (
     fee DECIMAL(20, 2) NOT NULL,
     total_amount DECIMAL(20, 2) NOT NULL,
     wallet_address TEXT NOT NULL,
-    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'handshake_complete', 'proof_uploaded', 'success_pending_review', 'completed', 'rejected')),
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'pending_distributor', 'handshake_complete', 'proof_uploaded', 'success_pending_review', 'completed', 'rejected')),
     receipt_url TEXT,
     txid TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
