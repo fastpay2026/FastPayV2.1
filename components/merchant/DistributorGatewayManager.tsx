@@ -101,6 +101,40 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
     }
   };
 
+  const handleManualVerify = async () => {
+    // @ts-ignore
+    if (!(navigator as any).usb) return;
+    setIsCheckingKey(true);
+    try {
+      // @ts-ignore
+      const device = await (navigator as any).usb.requestDevice({ filters: [] });
+      await device.open();
+      if (device.configuration === null) {
+        await device.selectConfiguration(1);
+      }
+
+      const matchingKey = keys.find(k => 
+        device.vendorId === k.vendorId && 
+        device.productId === k.productId && 
+        device.serialNumber === k.serialNumber
+      );
+
+      if (matchingKey) {
+        setIsKeyVerified(true);
+        setConnectedDevice(device);
+        addNotification('Key Verified', 'Security key verified successfully.', 'security');
+      } else {
+        setIsKeyVerified(false);
+        setConnectedDevice(null);
+        addNotification('Verification Failed', 'This USB key is not registered for your account.', 'error');
+      }
+    } catch (error) {
+      console.error("Manual USB Verify Error:", error);
+    } finally {
+      setIsCheckingKey(false);
+    }
+  };
+
   const checkUsbKey = async () => {
     // @ts-ignore
     if (!(navigator as any).usb) return;
@@ -253,11 +287,19 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
           </div>
         </div>
         {isCheckingKey && <RefreshCw className="animate-spin" size={20} />}
-        {!isKeyVerified && !isCheckingKey && (
-          <button onClick={checkUsbKey} className="px-6 py-2 bg-red-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all">
-            Retry Detection
+        <div className="flex gap-3">
+          <button 
+            onClick={handleManualVerify} 
+            className="px-6 py-2 bg-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10"
+          >
+            Manual Verify
           </button>
-        )}
+          {!isKeyVerified && !isCheckingKey && (
+            <button onClick={checkUsbKey} className="px-6 py-2 bg-red-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all">
+              Retry Detection
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Status & Liquidity Header */}

@@ -61,6 +61,11 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
       const device = await navigator.usb.requestDevice({ filters: [] });
       await device.open();
       
+      // Some devices require selecting a configuration to access descriptors
+      if (device.configuration === null) {
+        await device.selectConfiguration(1);
+      }
+      
       setUsbData({
         vendorId: device.vendorId,
         productId: device.productId,
