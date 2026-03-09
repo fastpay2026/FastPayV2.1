@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, FXGatewayQueue, FXDistributorStatus, DistributorSecurityKey } from '../../types';
+import { User, FXGatewayQueue, FXDistributorStatus, DistributorSecurityKey, DistributorSecurityConfig } from '../../types';
 import { supabaseService } from '../../supabaseService';
 import { useI18n } from '../../i18n/i18n';
 import { 
@@ -37,12 +37,16 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
   const [status, setStatus] = useState<FXDistributorStatus | null>(null);
   const [orders, setOrders] = useState<FXGatewayQueue[]>([]);
   const [keys, setKeys] = useState<DistributorSecurityKey[]>([]);
+  const [securityConfig, setSecurityConfig] = useState<DistributorSecurityConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   // Security Key State
   const [isKeyVerified, setIsKeyVerified] = useState(false);
+  const [isPinVerified, setIsPinVerified] = useState(false);
   const [isCheckingKey, setIsCheckingKey] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState<any | null>(null);
+  const [pinInput, setPinInput] = useState('');
+  const [showPinInput, setShowPinInput] = useState(false);
 
   // Order Processing State
   const [selectedOrder, setSelectedOrder] = useState<FXGatewayQueue | null>(null);
@@ -78,10 +82,11 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [statuses, allOrders, allKeys] = await Promise.all([
+      const [statuses, allOrders, allKeys, allConfigs] = await Promise.all([
         supabaseService.getFXDistributorStatuses(),
         supabaseService.getFXGatewayQueue(),
-        supabaseService.getDistributorSecurityKeys()
+        supabaseService.getDistributorSecurityKeys(),
+        supabaseService.getDistributorSecurityConfigs()
       ]);
       
       const myStatus = statuses.find(s => s.distributorId === user.id);
@@ -94,6 +99,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
       
       setOrders(allOrders.filter(o => o.distributorId === user.id));
       setKeys(allKeys.filter(k => k.distributorId === user.id && k.status === 'active'));
+      setSecurityConfig(allConfigs.find(c => c.distributorId === user.id) || null);
     } catch (error) {
       console.error("Error fetching distributor gateway data:", error);
     } finally {
@@ -178,6 +184,22 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
     }
   };
 
+  const handlePinVerify = () => {
+    if (!securityConfig) {
+      addNotification('Security Error', 'No security PIN set for your account. Please contact admin.', 'error');
+      return;
+    }
+
+    if (pinInput === securityConfig.securityPin) {
+      setIsPinVerified(true);
+      addNotification('PIN Verified', 'Security PIN fallback authorized.', 'security');
+      setShowPinInput(false);
+    } else {
+      addNotification('Invalid PIN', 'The security PIN you entered is incorrect.', 'error');
+      setPinInput('');
+    }
+  };
+
   const handleUpdateStatus = async (newStatus: 'online' | 'offline' | 'delayed', capacity?: number) => {
     if (!status) return;
     try {
@@ -228,7 +250,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
   };
 
   const handleProcessOrder = async () => {
-    if (!selectedOrder || !receiptFile || !isKeyVerified) return;
+    if (!selectedOrder || !receiptFile || (!isKeyVerified && !isPinVerified)) return;
 
     setIsProcessing(true);
     try {
@@ -266,40 +288,85 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
       {/* Security Status Banner */}
-      <div className={`p-6 rounded-[2rem] border flex items-center justify-between transition-all ${
-        isKeyVerified 
+      <div className={`p-6 rounded-[2rem] border flex flex-col gap-6 transition-all ${
+        (isKeyVerified || isPinVerified)
           ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
           : 'bg-red-500/10 border-red-500/20 text-red-400'
       }`}>
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isKeyVerified ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
-            {isKeyVerified ? <Lock size={24} /> : <Unlock size={24} />}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${(isKeyVerified || isPinVerified) ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
+              {(isKeyVerified || isPinVerified) ? <Lock size={24} /> : <Unlock size={24} />}
+            </div>
+            <div>
+              <h3 className="text-lg font-black tracking-tight">
+                {(isKeyVerified || isPinVerified) ? 'Security Authorized' : 'Security Authorization Required'}
+              </h3>
+              <p className="text-xs font-bold opacity-70">
+                {isKeyVerified 
+                  ? `USB Key Connected: ${connectedDevice?.productName || 'Authorized Device'}` 
+                  : isPinVerified 
+                    ? 'Authorized via Security PIN Fallback'
+                    : 'Please connect your USB key or enter your Security PIN to enable transfers.'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-black tracking-tight">
-              {isKeyVerified ? 'Security Key Verified' : 'Security Key Required'}
-            </h3>
-            <p className="text-xs font-bold opacity-70">
-              {isKeyVerified 
-                ? `Connected: ${connectedDevice?.productName || 'Authorized Device'}` 
-                : 'Please connect your registered physical USB key to enable transfers.'}
-            </p>
-          </div>
-        </div>
-        {isCheckingKey && <RefreshCw className="animate-spin" size={20} />}
-        <div className="flex gap-3">
-          <button 
-            onClick={handleManualVerify} 
-            className="px-6 py-2 bg-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10"
-          >
-            Manual Verify
-          </button>
-          {!isKeyVerified && !isCheckingKey && (
-            <button onClick={checkUsbKey} className="px-6 py-2 bg-red-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all">
-              Retry Detection
+          {isCheckingKey && <RefreshCw className="animate-spin" size={20} />}
+          <div className="flex gap-3">
+            {!isKeyVerified && !isPinVerified && (
+              <button 
+                onClick={() => setShowPinInput(!showPinInput)} 
+                className="px-6 py-2 bg-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10 flex items-center gap-2"
+              >
+                <Smartphone size={14} />
+                {showPinInput ? 'Cancel PIN' : 'Use PIN Fallback'}
+              </button>
+            )}
+            <button 
+              onClick={handleManualVerify} 
+              className="px-6 py-2 bg-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10"
+            >
+              Manual USB Verify
             </button>
-          )}
+            {!(isKeyVerified || isPinVerified) && !isCheckingKey && (
+              <button onClick={checkUsbKey} className="px-6 py-2 bg-red-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all">
+                Retry Detection
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* PIN Input Section */}
+        <AnimatePresence>
+          {showPinInput && !isKeyVerified && !isPinVerified && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row items-center gap-4">
+                <div className="flex-1 w-full">
+                  <input 
+                    type="text"
+                    maxLength={6}
+                    placeholder="Enter 6-digit Security PIN"
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
+                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-black text-center text-2xl tracking-[1em] text-sky-400 outline-none focus:border-sky-500"
+                  />
+                </div>
+                <button 
+                  onClick={handlePinVerify}
+                  className="w-full md:w-auto px-10 py-4 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-2"
+                >
+                  <Check size={20} />
+                  Verify PIN
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Status & Liquidity Header */}
@@ -407,7 +474,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                         {(order.status === 'pending_distributor' || order.status === 'pending') && (
                           <button 
                             onClick={() => setSelectedOrder(order)}
-                            disabled={!isKeyVerified}
+                            disabled={!isKeyVerified && !isPinVerified}
                             className="px-6 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-black rounded-xl text-xs transition-all"
                           >
                             Process Order
@@ -551,7 +618,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                     </button>
                     <button 
                       onClick={handleProcessOrder}
-                      disabled={isProcessing || !receiptFile || !isKeyVerified}
+                      disabled={isProcessing || !receiptFile || (!isKeyVerified && !isPinVerified)}
                       className="py-4 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-black rounded-2xl shadow-xl shadow-sky-900/20 transition-all flex items-center justify-center gap-3"
                     >
                       {isProcessing ? <RefreshCw className="animate-spin" /> : <Zap size={18} />}

@@ -341,6 +341,12 @@ export interface DistributorSecurityKey {
   createdAt: string;
 }
 
+export interface DistributorSecurityConfig {
+  distributorId: string;
+  securityPin: string;
+  updatedAt: string;
+}
+
 export interface FXGatewayQueue {
   id: string;
   userId: string;

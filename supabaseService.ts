@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { User, SiteConfig, Transaction, Notification, AdExchangeItem, AdNegotiation, RechargeCard, WithdrawalRequest, SalaryFinancing, FixedDeposit, VerificationRequest, RaffleEntry, RaffleWinner, TradeAsset, TradeOrder, LandingService, CustomPage, FXExchangeSettings, DistributorSecurityKey, FXGatewayQueue, FXDistributorStatus } from './types';
+import { User, SiteConfig, Transaction, Notification, AdExchangeItem, AdNegotiation, RechargeCard, WithdrawalRequest, SalaryFinancing, FixedDeposit, VerificationRequest, RaffleEntry, RaffleWinner, TradeAsset, TradeOrder, LandingService, CustomPage, FXExchangeSettings, DistributorSecurityKey, FXGatewayQueue, FXDistributorStatus, DistributorSecurityConfig } from './types';
 
 export const supabaseService = {
   // Users
@@ -740,6 +740,26 @@ export const supabaseService = {
       last_used: r.lastUsed,
       created_at: r.createdAt
     }, { onConflict: 'id' });
+    if (error) throw error;
+  },
+
+  // Distributor Security Configs
+  async getDistributorSecurityConfigs(): Promise<DistributorSecurityConfig[]> {
+    const { data, error } = await supabase.from('distributor_security_configs').select('*');
+    if (error) throw error;
+    return (data || []).map(c => ({
+      distributorId: c.distributor_id,
+      securityPin: c.security_pin,
+      updatedAt: c.updated_at
+    }));
+  },
+
+  async upsertDistributorSecurityConfig(c: DistributorSecurityConfig) {
+    const { error } = await supabase.from('distributor_security_configs').upsert({
+      distributor_id: c.distributorId,
+      security_pin: c.securityPin,
+      updated_at: c.updatedAt
+    }, { onConflict: 'distributor_id' });
     if (error) throw error;
   },
 

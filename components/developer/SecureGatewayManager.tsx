@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { User, FXExchangeSettings, DistributorSecurityKey, FXGatewayQueue } from '../../types';
+import { User, FXExchangeSettings, DistributorSecurityKey, FXGatewayQueue, DistributorSecurityConfig } from '../../types';
 import { supabaseService } from '../../supabaseService';
 import { useI18n } from '../../i18n/i18n';
-import { Shield, Cpu, Key, Activity, Settings, RefreshCw, Trash2, CheckCircle, XCircle, Clock, Usb, Save, Plus } from 'lucide-react';
+import { Shield, Cpu, Key, Activity, Settings, RefreshCw, Trash2, CheckCircle, XCircle, Clock, Usb, Save, Plus, Lock } from 'lucide-react';
 
 interface Props {
   accounts: User[];
@@ -13,6 +13,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
   const { t } = useI18n();
   const [settings, setSettings] = useState<FXExchangeSettings | null>(null);
   const [registry, setRegistry] = useState<DistributorSecurityKey[]>([]);
+  const [securityConfigs, setSecurityConfigs] = useState<DistributorSecurityConfig[]>([]);
   const [queue, setQueue] = useState<FXGatewayQueue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -21,6 +22,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
   const [selectedDistributor, setSelectedDistributor] = useState<string>('');
   const [isReadingUsb, setIsReadingUsb] = useState(false);
   const [usbData, setUsbData] = useState<{ vendorId: number; productId: number; serialNumber: string } | null>(null);
+  const [securityPin, setSecurityPin] = useState<string>('');
 
   const distributors = accounts.filter(a => a.role === 'DISTRIBUTOR');
 
@@ -31,10 +33,11 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [s, r, q] = await Promise.all([
+      const [s, r, q, c] = await Promise.all([
         supabaseService.getFXExchangeSettings(),
         supabaseService.getDistributorSecurityKeys(),
-        supabaseService.getFXGatewayQueue()
+        supabaseService.getFXGatewayQueue(),
+        supabaseService.getDistributorSecurityConfigs()
       ]);
       setSettings(s[0] || {
         id: crypto.randomUUID(),
@@ -47,6 +50,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
       });
       setRegistry(r);
       setQueue(q);
+      setSecurityConfigs(c);
     } catch (error) {
       console.error("Error fetching gateway data:", error);
     } finally {
@@ -138,6 +142,41 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
     }
   };
 
+  const handleSavePin = async () => {
+    if (!selectedDistributor || !securityPin) {
+      alert("Please select a distributor and enter a 6-digit PIN.");
+      return;
+    }
+
+    if (securityPin.length !== 6) {
+      alert("PIN must be exactly 6 digits.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const config: DistributorSecurityConfig = {
+        distributorId: selectedDistributor,
+        securityPin: securityPin,
+        updatedAt: new Date().toISOString()
+      };
+      await supabaseService.upsertDistributorSecurityConfig(config);
+      setSecurityConfigs(prev => {
+        const existing = prev.find(c => c.distributorId === selectedDistributor);
+        if (existing) {
+          return prev.map(c => c.distributorId === selectedDistributor ? config : c);
+        }
+        return [...prev, config];
+      });
+      setSecurityPin('');
+      alert("Security PIN updated successfully.");
+    } catch (error) {
+      alert("Error saving security PIN");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) return <div className="flex items-center justify-center h-64"><RefreshCw className="animate-spin text-sky-500" /></div>;
 
   return (
@@ -182,6 +221,34 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
                       <option key={d.id} value={d.id}>{d.full_name} (@{d.username})</option>
                     ))}
                   </select>
+                </div>
+
+                {/* PIN Fallback Management */}
+                <div className="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Security PIN Fallback</h4>
+                    <Lock size={16} className="text-slate-600" />
+                  </div>
+                  <div className="space-y-3">
+                    <input 
+                      type="text"
+                      maxLength={6}
+                      placeholder="Enter 6-digit PIN"
+                      value={securityPin}
+                      onChange={(e) => setSecurityPin(e.target.value.replace(/\D/g, ''))}
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-black text-center text-xl tracking-[1em] text-sky-400 outline-none focus:border-sky-500"
+                    />
+                    <button 
+                      onClick={handleSavePin}
+                      disabled={isSaving || !selectedDistributor || !securityPin}
+                      className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+                    >
+                      Update Security PIN
+                    </button>
+                    {selectedDistributor && securityConfigs.find(c => c.distributorId === selectedDistributor) && (
+                      <p className="text-[10px] text-emerald-500 font-bold text-center">PIN is currently set for this distributor</p>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-4">
