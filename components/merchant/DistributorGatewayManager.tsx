@@ -39,6 +39,8 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
   const [keys, setKeys] = useState<DistributorSecurityKey[]>([]);
   const [securityConfig, setSecurityConfig] = useState<DistributorSecurityConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isVerifyingPin, setIsVerifyingPin] = useState(false);
   
   // Security Key State
   const [isKeyVerified, setIsKeyVerified] = useState(false);
@@ -184,13 +186,22 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
     }
   };
 
-  const handlePinVerify = () => {
+  const handlePinVerify = async () => {
     if (!securityConfig) {
       addNotification('Security Error', 'No security PIN set for your account. Please contact admin.', 'error');
       return;
     }
 
-    if (pinInput === securityConfig.securityPin) {
+    if (!pinInput || pinInput.length < 4) {
+      addNotification('Invalid Input', 'Please enter a valid security PIN.', 'error');
+      return;
+    }
+
+    setIsVerifyingPin(true);
+    // Add a small artificial delay for better UX feedback
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    if (String(pinInput) === String(securityConfig.securityPin)) {
       setIsPinVerified(true);
       addNotification('PIN Verified', 'Security PIN fallback authorized.', 'security');
       setShowPinInput(false);
@@ -198,22 +209,34 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
       addNotification('Invalid PIN', 'The security PIN you entered is incorrect.', 'error');
       setPinInput('');
     }
+    setIsVerifyingPin(false);
   };
 
   const handleUpdateStatus = async (newStatus: 'online' | 'offline' | 'delayed', capacity?: number) => {
-    if (!status) return;
+    setIsUpdatingStatus(true);
     try {
-      const updated: FXDistributorStatus = { 
-        ...status, 
-        availabilityStatus: newStatus, 
-        usdtCapacity: capacity !== undefined ? capacity : status.usdtCapacity,
+      const currentStatus = status || {
+        distributorId: user.id,
+        availabilityStatus: 'offline',
+        usdtCapacity: 0,
         lastUpdated: new Date().toISOString()
       };
+
+      const updated: FXDistributorStatus = { 
+        ...currentStatus, 
+        availabilityStatus: newStatus, 
+        usdtCapacity: capacity !== undefined ? capacity : currentStatus.usdtCapacity,
+        lastUpdated: new Date().toISOString()
+      };
+      
       await supabaseService.upsertFXDistributorStatus(updated);
       setStatus(updated);
       addNotification(t('status_updated') || 'Status Updated', `${t('gateway_status_is')} ${newStatus}`, 'security');
     } catch (error) {
-      alert(t('error_updating_status') || "Error updating status");
+      console.error("Status Update Error:", error);
+      addNotification('Error', 'Failed to update gateway status. Please try again.', 'error');
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -358,9 +381,10 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                 </div>
                 <button 
                   onClick={handlePinVerify}
-                  className="w-full md:w-auto px-10 py-4 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-2"
+                  disabled={isVerifyingPin || pinInput.length < 4}
+                  className="w-full md:w-auto px-10 py-4 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-2"
                 >
-                  <Check size={20} />
+                  {isVerifyingPin ? <RefreshCw className="animate-spin" size={20} /> : <Check size={20} />}
                   Verify PIN
                 </button>
               </div>
@@ -387,13 +411,18 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
               <button 
                 key={s}
                 onClick={() => handleUpdateStatus(s)}
-                className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${
+                disabled={isUpdatingStatus}
+                className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border disabled:opacity-50 ${
                   status?.availabilityStatus === s 
                     ? 'bg-sky-600 border-sky-400 text-white shadow-xl shadow-sky-900/20' 
                     : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'
                 }`}
               >
-                {s === 'online' ? t('online') : s === 'offline' ? t('offline') : t('delayed')}
+                {isUpdatingStatus && status?.availabilityStatus !== s ? (
+                  <RefreshCw className="animate-spin" size={14} />
+                ) : (
+                  s === 'online' ? t('online') : s === 'offline' ? t('offline') : t('delayed')
+                )}
               </button>
             ))}
           </div>
