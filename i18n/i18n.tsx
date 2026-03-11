@@ -3,91 +3,6 @@ import { Language, RTL_LANGUAGES, Translations, I18nContextType } from '../types
 import axios from 'axios';
 
 const translationsData: Translations = {
-  "secure_usdt_gateway": {
-    "en": "Secure USDT Gateway",
-    "ar": "بوابة USDT الآمنة",
-    "fr": "Passerelle USDT sécurisée"
-  },
-  "usdt_amount_to_transfer": {
-    "en": "USDT Amount to Transfer",
-    "ar": "مبلغ USDT للتحويل",
-    "fr": "Montant USDT à transférer"
-  },
-  "usdt_id_wallet": {
-    "en": "USDT Wallet ID / Address",
-    "ar": "عنوان / معرف محفظة USDT",
-    "fr": "ID / Adresse du portefeuille USDT"
-  },
-  "enter_usdt_wallet_address": {
-    "en": "Enter USDT wallet address",
-    "ar": "أدخل عنوان محفظة USDT",
-    "fr": "Entrez l'adresse du portefeuille USDT"
-  },
-  "gateway_fee": {
-    "en": "Gateway Fee",
-    "ar": "رسوم البوابة",
-    "fr": "Frais de passerelle"
-  },
-  "total_to_deduct": {
-    "en": "Total to Deduct",
-    "ar": "إجمالي الخصم",
-    "fr": "Total à déduire"
-  },
-  "confirm_usdt_transfer": {
-    "en": "Confirm USDT Transfer",
-    "ar": "تأكيد تحويل USDT",
-    "fr": "Confirmer le transfert USDT"
-  },
-  "transfer_request_submitted": {
-    "en": "Transfer Request Submitted",
-    "ar": "تم تقديم طلب التحويل",
-    "fr": "Demande de transfert soumise"
-  },
-  "request_processed_msg": {
-    "en": "Your request is being processed by our smart routing system.",
-    "ar": "يتم معالجة طلبك بواسطة نظام التوجيه الذكي الخاص بنا.",
-    "fr": "Votre demande est en cours de traitement par notre système de routage intelligent."
-  },
-  "initializing_secure_gateway": {
-    "en": "Initializing Secure Gateway...",
-    "ar": "تهيئة البوابة الآمنة...",
-    "fr": "Initialisation de la passerelle sécurisée..."
-  },
-  "scanning_online_distributors": {
-    "en": "Scanning Online Distributors...",
-    "ar": "البحث عن موزعين متصلين...",
-    "fr": "Recherche de distributeurs en ligne..."
-  },
-  "establishing_encrypted_handshake": {
-    "en": "Establishing Encrypted Handshake...",
-    "ar": "إنشاء مصافحة مشفرة...",
-    "fr": "Établissement d'une poignée de main cryptée..."
-  },
-  "verifying_liquidity_capacity": {
-    "en": "Verifying Liquidity Capacity...",
-    "ar": "التحقق من سعة السيولة...",
-    "fr": "Vérification de la capacité de liquidité..."
-  },
-  "routing_transaction_node": {
-    "en": "Routing Transaction to Best Node...",
-    "ar": "توجيه المعاملة إلى أفضل عقدة...",
-    "fr": "Routage de la transaction vers le meilleur nœud..."
-  },
-  "merchant_settings_title": {
-    "en": "Distributor Account Settings",
-    "ar": "إعدادات حساب الموزع",
-    "fr": "Paramètres du compte distributeur"
-  },
-  "full_name": {
-    "en": "Full Name",
-    "ar": "الاسم الكامل",
-    "fr": "Nom complet"
-  },
-  "email_address": {
-    "en": "Email Address",
-    "ar": "البريد الإلكتروني",
-    "fr": "Adresse e-mail"
-  },
   "phone_number": {
     "en": "Phone Number",
     "ar": "رقم الهاتف",
@@ -113,11 +28,6 @@ const translationsData: Translations = {
     "ar": "الجديدة",
     "fr": "Nouveau mot de passe"
   },
-  "confirm_password": {
-    "en": "Confirm Password",
-    "ar": "تأكيد",
-    "fr": "Confirmer le mot de passe"
-  },
   "update_password": {
     "en": "Update Password",
     "ar": "تحديث كلمة المرور",
@@ -142,11 +52,6 @@ const translationsData: Translations = {
     "en": "Level: Certified Distributor",
     "ar": "المستوى: موزع معتمد",
     "fr": "Niveau : Distributeur certifié"
-  },
-  "logout": {
-    "en": "Logout",
-    "ar": "خروج",
-    "fr": "Déconnexion"
   },
   "copy_code": {
     "en": "Copy Code",
@@ -466,16 +371,6 @@ const translationsData: Translations = {
     "en": "Error updating status",
     "ar": "خطأ في تحديث الحالة",
     "fr": "Erreur lors de la mise à jour du statut"
-  },
-  "online": {
-    "en": "Online",
-    "ar": "متصل",
-    "fr": "En ligne"
-  },
-  "offline": {
-    "en": "Offline",
-    "ar": "غير متصل",
-    "fr": "Hors ligne"
   },
   "delayed": {
     "en": "Delayed",
@@ -2253,15 +2148,6 @@ const translationsData: Translations = {
     "ku": "چالاکی وەبەرهێنان",
     "ru": "Инвестиционная деятельность"
   },
-  "active": {
-    "en": "Active",
-    "ar": "نشط",
-    "fr": "Actif",
-    "tr": "Aktif",
-    "zh": "活跃",
-    "ku": "چالاک",
-    "ru": "Активен"
-  },
   "expected_profit": {
     "en": "Expected Profit",
     "ar": "الربح المتوقع",
@@ -2523,24 +2409,6 @@ const translationsData: Translations = {
     "ku": "گۆڕینی وشەی نهێنی",
     "ru": "Сменить пароль"
   },
-  "current_password": {
-    "en": "Current Password",
-    "ar": "كلمة المرور الحالية",
-    "fr": "Mot de passe actuel",
-    "tr": "Mevcut Şifre",
-    "zh": "当前密码",
-    "ku": "وشەی نهێنی ئێستا",
-    "ru": "Текущий пароль"
-  },
-  "new_password": {
-    "en": "New Password",
-    "ar": "الجديدة",
-    "fr": "Nouveau mot de passe",
-    "tr": "Yeni Şifre",
-    "zh": "新密码",
-    "ku": "نوێ",
-    "ru": "Новый пароль"
-  },
   "confirm_new_password": {
     "en": "Confirm New Password",
     "ar": "تأكيد الجديدة",
@@ -2648,15 +2516,6 @@ const translationsData: Translations = {
     "zh": "提交提款请求",
     "ku": "ناردنی داواکاری کشانەوە",
     "ru": "Отправить запрос на вывод средств"
-  },
-  "cancel": {
-    "en": "Cancel",
-    "ar": "إلغاء",
-    "fr": "Annuler",
-    "tr": "İptal",
-    "zh": "取消",
-    "ku": "پاشگەزبوونەوە",
-    "ru": "Отмена"
   },
   "salary_pre_financing_request": {
     "en": "Salary Pre-Financing Request",
@@ -2981,15 +2840,6 @@ const translationsData: Translations = {
     "zh": "排名",
     "ku": "پلە",
     "ru": "Ранг"
-  },
-  "status": {
-    "en": "Status",
-    "ar": "الحالة",
-    "fr": "Statut",
-    "tr": "Durum",
-    "zh": "状态",
-    "ku": "بارودۆخ",
-    "ru": "Статус"
   },
   "advanced_control": {
     "en": "Advanced Control",

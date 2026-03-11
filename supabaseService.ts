@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { User, SiteConfig, Transaction, Notification, AdExchangeItem, AdNegotiation, RechargeCard, WithdrawalRequest, SalaryFinancing, FixedDeposit, VerificationRequest, RaffleEntry, RaffleWinner, TradeAsset, TradeOrder, LandingService, CustomPage, FXExchangeSettings, DistributorSecurityKey, FXGatewayQueue, FXDistributorStatus, DistributorSecurityConfig } from './types';
+import { User, SiteConfig, Transaction, Notification, AdExchangeItem, AdNegotiation, RechargeCard, WithdrawalRequest, SalaryFinancing, FixedDeposit, VerificationRequest, RaffleEntry, RaffleWinner, TradeAsset, TradeOrder, LandingService, CustomPage, FXExchangeSettings, SecurityKey, FXGatewayQueue, FXDistributorStatus, SecurityConfig } from './types';
 
 export const supabaseService = {
   // Users
@@ -715,7 +715,7 @@ export const supabaseService = {
   },
 
   // Distributor Security Keys
-  async getDistributorSecurityKeys(): Promise<DistributorSecurityKey[]> {
+  async getDistributorSecurityKeys(): Promise<SecurityKey[]> {
     const { data, error } = await supabase.from('distributor_security_keys').select('*');
     if (error) throw error;
     return (data || []).map(r => ({
@@ -729,7 +729,7 @@ export const supabaseService = {
     }));
   },
 
-  async upsertDistributorSecurityKey(r: DistributorSecurityKey) {
+  async upsertDistributorSecurityKey(r: SecurityKey) {
     const { error } = await supabase.from('distributor_security_keys').upsert({
       id: r.id,
       distributor_id: r.distributorId,
@@ -744,7 +744,7 @@ export const supabaseService = {
   },
 
   // Distributor Security Configs
-  async getDistributorSecurityConfigs(): Promise<DistributorSecurityConfig[]> {
+  async getDistributorSecurityConfigs(): Promise<SecurityConfig[]> {
     const { data, error } = await supabase.from('distributor_security_configs').select('*');
     if (error) throw error;
     return (data || []).map(c => ({
@@ -754,7 +754,7 @@ export const supabaseService = {
     }));
   },
 
-  async upsertDistributorSecurityConfig(c: DistributorSecurityConfig) {
+  async upsertDistributorSecurityConfig(c: SecurityConfig) {
     const { error } = await supabase.from('distributor_security_configs').upsert({
       distributor_id: c.distributorId,
       security_pin: c.securityPin,

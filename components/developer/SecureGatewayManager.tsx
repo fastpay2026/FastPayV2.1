@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { User, FXExchangeSettings, DistributorSecurityKey, FXGatewayQueue, DistributorSecurityConfig } from '../../types';
+import { User, FXExchangeSettings, SecurityKey, FXGatewayQueue, SecurityConfig } from '../../types';
 import { supabaseService } from '../../supabaseService';
 import { useI18n } from '../../i18n/i18n';
 import { Shield, Cpu, Key, Activity, Settings, RefreshCw, Trash2, CheckCircle, XCircle, Clock, Usb, Save, Plus, Lock } from 'lucide-react';
@@ -12,8 +12,8 @@ interface Props {
 const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
   const { t } = useI18n();
   const [settings, setSettings] = useState<FXExchangeSettings | null>(null);
-  const [registry, setRegistry] = useState<DistributorSecurityKey[]>([]);
-  const [securityConfigs, setSecurityConfigs] = useState<DistributorSecurityConfig[]>([]);
+  const [registry, setRegistry] = useState<SecurityKey[]>([]);
+  const [securityConfigs, setSecurityConfigs] = useState<SecurityConfig[]>([]);
   const [queue, setQueue] = useState<FXGatewayQueue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -39,7 +39,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
         supabaseService.getFXGatewayQueue(),
         supabaseService.getDistributorSecurityConfigs()
       ]);
-      setSettings(s[0] || {
+      setSettings(s || {
         id: crypto.randomUUID(),
         usdtBuyRate: 1.0,
         usdtSellRate: 1.0,
@@ -93,7 +93,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
 
     setIsSaving(true);
     try {
-      const newKey: DistributorSecurityKey = {
+      const newKey: SecurityKey = {
         id: crypto.randomUUID(),
         distributorId: selectedDistributor,
         vendorId: usbData.vendorId,
@@ -114,9 +114,9 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
     }
   };
 
-  const handleToggleKeyStatus = async (key: DistributorSecurityKey) => {
+  const handleToggleKeyStatus = async (key: SecurityKey) => {
     try {
-      const updatedKey: DistributorSecurityKey = {
+      const updatedKey: SecurityKey = {
         ...key,
         status: key.status === 'active' ? 'revoked' : 'active'
       };
@@ -155,7 +155,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
 
     setIsSaving(true);
     try {
-      const config: DistributorSecurityConfig = {
+      const config: SecurityConfig = {
         distributorId: selectedDistributor,
         securityPin: securityPin,
         updatedAt: new Date().toISOString()
@@ -218,7 +218,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
                   >
                     <option value="">Select Distributor...</option>
                     {distributors.map(d => (
-                      <option key={d.id} value={d.id}>{d.full_name} (@{d.username})</option>
+                      <option key={d.id} value={d.id}>{d.fullName} (@{d.username})</option>
                     ))}
                   </select>
                 </div>
@@ -354,10 +354,10 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
                         <td className="p-6">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-xs">
-                              {dist?.full_name?.charAt(0) || 'U'}
+                              {dist?.fullName?.charAt(0) || 'U'}
                             </div>
                             <div>
-                              <p className="font-black text-sm">{dist?.full_name || 'Unknown'}</p>
+                              <p className="font-black text-sm">{dist?.fullName || 'Unknown'}</p>
                               <p className="text-[10px] text-slate-500 font-bold">@{dist?.username}</p>
                             </div>
                           </div>

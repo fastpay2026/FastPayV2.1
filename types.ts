@@ -330,7 +330,7 @@ export interface FXExchangeSettings {
   updatedAt: string;
 }
 
-export interface DistributorSecurityKey {
+export interface SecurityKey {
   id: string;
   distributorId: string;
   vendorId: number;
@@ -341,7 +341,7 @@ export interface DistributorSecurityKey {
   createdAt: string;
 }
 
-export interface DistributorSecurityConfig {
+export interface SecurityConfig {
   distributorId: string;
   securityPin: string;
   updatedAt: string;

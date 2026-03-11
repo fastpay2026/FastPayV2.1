@@ -251,8 +251,8 @@ CREATE TABLE IF NOT EXISTS fx_gateway_queue (
     total_amount DECIMAL(20, 2) NOT NULL,
     wallet_address TEXT NOT NULL,
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'pending_distributor', 'handshake_complete', 'proof_uploaded', 'success_pending_review', 'completed', 'rejected')),
-    receipt_url TEXT,
-    txid TEXT,
+    receipt_image TEXT,
+    tx_id TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -264,6 +264,13 @@ CREATE TABLE IF NOT EXISTS fx_distributor_status (
     availability_status TEXT DEFAULT 'offline' CHECK (availability_status IN ('online', 'offline', 'delayed')),
     delay_info TEXT,
     last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 22. Distributor Security Configs
+CREATE TABLE IF NOT EXISTS distributor_security_configs (
+    distributor_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    security_pin TEXT NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Enable RLS (Optional but recommended)

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, FXGatewayQueue, FXDistributorStatus, DistributorSecurityKey, DistributorSecurityConfig } from '../../types';
+import { User, FXGatewayQueue, FXDistributorStatus, SecurityKey, SecurityConfig } from '../../types';
 import { supabaseService } from '../../supabaseService';
 import { useI18n } from '../../i18n/i18n';
 import { 
@@ -36,8 +36,8 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
   const { t } = useI18n();
   const [status, setStatus] = useState<FXDistributorStatus | null>(null);
   const [orders, setOrders] = useState<FXGatewayQueue[]>([]);
-  const [keys, setKeys] = useState<DistributorSecurityKey[]>([]);
-  const [securityConfig, setSecurityConfig] = useState<DistributorSecurityConfig | null>(null);
+  const [keys, setKeys] = useState<SecurityKey[]>([]);
+  const [securityConfig, setSecurityConfig] = useState<SecurityConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isVerifyingPin, setIsVerifyingPin] = useState(false);
