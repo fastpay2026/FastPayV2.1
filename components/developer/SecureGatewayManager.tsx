@@ -170,8 +170,9 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
       });
       setSecurityPin('');
       alert("Security PIN updated successfully.");
-    } catch (error) {
-      alert("Error saving security PIN");
+    } catch (error: any) {
+      console.error("PIN Save Error:", error);
+      alert("Error saving security PIN: " + (error?.message || String(error)));
     } finally {
       setIsSaving(false);
     }

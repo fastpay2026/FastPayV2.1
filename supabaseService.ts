@@ -755,12 +755,20 @@ export const supabaseService = {
   },
 
   async upsertDistributorSecurityConfig(c: SecurityConfig) {
-    const { error } = await supabase.from('distributor_security_configs').upsert({
-      distributor_id: c.distributorId,
-      security_pin: c.securityPin,
-      updated_at: c.updatedAt
-    }, { onConflict: 'distributor_id' });
-    if (error) throw error;
+    try {
+      const { error } = await supabase.from('distributor_security_configs').upsert({
+        distributor_id: c.distributorId,
+        security_pin: c.securityPin,
+        updated_at: c.updatedAt
+      }, { onConflict: 'distributor_id' });
+      if (error) {
+        console.error("Supabase Security Config Error:", error);
+        throw error;
+      }
+    } catch (err) {
+      console.error("Critical Security Config Error:", err);
+      throw err;
+    }
   },
 
   // FX Gateway Queue

@@ -198,18 +198,24 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
     }
 
     setIsVerifyingPin(true);
-    // Add a small artificial delay for better UX feedback
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      // Add a small artificial delay for better UX feedback
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-    if (String(pinInput) === String(securityConfig.securityPin)) {
-      setIsPinVerified(true);
-      addNotification('PIN Verified', 'Security PIN fallback authorized.', 'security');
-      setShowPinInput(false);
-    } else {
-      addNotification('Invalid PIN', 'The security PIN you entered is incorrect.', 'error');
-      setPinInput('');
+      if (String(pinInput) === String(securityConfig.securityPin)) {
+        setIsPinVerified(true);
+        addNotification('PIN Verified', 'Security PIN fallback authorized.', 'security');
+        setShowPinInput(false);
+      } else {
+        addNotification('Invalid PIN', 'The security PIN you entered is incorrect.', 'error');
+        setPinInput('');
+      }
+    } catch (error) {
+      console.error("PIN Verification Error:", error);
+      addNotification('Error', 'An error occurred during PIN verification.', 'error');
+    } finally {
+      setIsVerifyingPin(false);
     }
-    setIsVerifyingPin(false);
   };
 
   const handleUpdateStatus = async (newStatus: 'online' | 'offline' | 'delayed', capacity?: number) => {
