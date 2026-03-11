@@ -716,21 +716,24 @@ export const supabaseService = {
   },
 
   async upsertDistributorSecurityKey(r: SecurityKey) {
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
+    const localUserId = localStorage.getItem('fp_v21_current_user_id');
+    const loggedInUserId = user?.id || localUserId;
 
     console.log("=== API CALL INFO (Security Key) ===");
     console.log("Supabase API URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Logged In User ID (Auth):", user?.id);
+    console.log("Logged In User ID:", loggedInUserId);
+    console.log("Target Distributor ID:", r.distributor_id);
     console.log("====================================");
 
-    if (authError || !user || !user.id || user.id === '00000000-0000-0000-0000-000000000001') {
+    if (!loggedInUserId || loggedInUserId === '00000000-0000-0000-0000-000000000001') {
       alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
       throw new Error("User not logged in or using a fake ID");
     }
 
+    // Use the distributor_id passed from the UI (since Developer sets it for Distributor)
     const keyToSave = {
-      ...r,
-      distributor_id: user.id
+      ...r
     };
 
     console.log(`Attempting upsert for security key, distributor_id: ${keyToSave.distributor_id}`);
@@ -759,13 +762,15 @@ export const supabaseService = {
   },
 
   async verifyDistributorPIN(pin: string): Promise<boolean> {
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
+    const localUserId = localStorage.getItem('fp_v21_current_user_id');
+    const loggedInUserId = user?.id || localUserId;
 
     console.log("=== PIN VERIFICATION INFO ===");
-    console.log("Logged In User ID (Auth):", user?.id);
+    console.log("Logged In User ID:", loggedInUserId);
     console.log("=============================");
 
-    if (authError || !user || !user.id || user.id === '00000000-0000-0000-0000-000000000001') {
+    if (!loggedInUserId || loggedInUserId === '00000000-0000-0000-0000-000000000001') {
       alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
       throw new Error("User not logged in or using a fake ID");
     }
@@ -773,7 +778,7 @@ export const supabaseService = {
     const { data, error } = await supabase
       .from('distributor_security_configs')
       .select('security_pin')
-      .eq('distributor_id', user.id)
+      .eq('distributor_id', loggedInUserId)
       .maybeSingle();
 
     if (error) {
@@ -789,21 +794,24 @@ export const supabaseService = {
   },
 
   async upsertDistributorSecurityConfig(c: SecurityConfig) {
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
+    const localUserId = localStorage.getItem('fp_v21_current_user_id');
+    const loggedInUserId = user?.id || localUserId;
 
     console.log("=== API CALL INFO (Security Config) ===");
     console.log("Supabase API URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Logged In User ID (Auth):", user?.id);
+    console.log("Logged In User ID:", loggedInUserId);
+    console.log("Target Distributor ID:", c.distributor_id);
     console.log("=======================================");
 
-    if (authError || !user || !user.id || user.id === '00000000-0000-0000-0000-000000000001') {
+    if (!loggedInUserId || loggedInUserId === '00000000-0000-0000-0000-000000000001') {
       alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
       throw new Error("User not logged in or using a fake ID");
     }
 
+    // Use the distributor_id passed from the UI (since Developer sets it for Distributor)
     const configToSave = {
-      ...c,
-      distributor_id: user.id
+      ...c
     };
 
     console.log(`Attempting upsert for distributor_id: ${configToSave.distributor_id}`);
