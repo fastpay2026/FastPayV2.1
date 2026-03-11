@@ -758,6 +758,36 @@ export const supabaseService = {
     return data || [];
   },
 
+  async verifyDistributorPIN(pin: string): Promise<boolean> {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    console.log("=== PIN VERIFICATION INFO ===");
+    console.log("Logged In User ID (Auth):", user?.id);
+    console.log("=============================");
+
+    if (authError || !user || !user.id || user.id === '00000000-0000-0000-0000-000000000001') {
+      alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
+      throw new Error("User not logged in or using a fake ID");
+    }
+
+    const { data, error } = await supabase
+      .from('distributor_security_configs')
+      .select('security_pin')
+      .eq('distributor_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching PIN config:", error);
+      throw new Error("حدث خطأ أثناء التحقق من الـ PIN");
+    }
+
+    if (!data) {
+      throw new Error("لم يتم إعداد PIN أمان لهذا الحساب. يرجى مراجعة الإدارة.");
+    }
+
+    return data.security_pin === pin;
+  },
+
   async upsertDistributorSecurityConfig(c: SecurityConfig) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 

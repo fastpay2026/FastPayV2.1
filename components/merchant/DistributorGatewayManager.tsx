@@ -187,11 +187,6 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
   };
 
   const handlePinVerify = async () => {
-    if (!securityConfig) {
-      addNotification('Security Error', 'No security PIN set for your account. Please contact admin.', 'error');
-      return;
-    }
-
     if (!pinInput || pinInput.length < 4) {
       addNotification('Invalid Input', 'Please enter a valid security PIN.', 'error');
       return;
@@ -199,20 +194,19 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
 
     setIsVerifyingPin(true);
     try {
-      // Add a small artificial delay for better UX feedback
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const isValid = await supabaseService.verifyDistributorPIN(pinInput);
 
-      if (String(pinInput) === String(securityConfig.security_pin)) {
+      if (isValid) {
         setIsPinVerified(true);
-        addNotification('PIN Verified', 'Security PIN fallback authorized.', 'security');
+        addNotification('PIN Verified', 'Security PIN fallback authorized. You can now process transfers.', 'security');
         setShowPinInput(false);
       } else {
         addNotification('Invalid PIN', 'The security PIN you entered is incorrect.', 'error');
         setPinInput('');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("PIN Verification Error:", error);
-      addNotification('Error', 'An error occurred during PIN verification.', 'error');
+      addNotification('Error', error.message || 'An error occurred during PIN verification.', 'error');
     } finally {
       setIsVerifyingPin(false);
     }
