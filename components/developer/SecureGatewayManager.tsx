@@ -7,9 +7,10 @@ import { Shield, Cpu, Key, Activity, Settings, RefreshCw, Trash2, CheckCircle, X
 
 interface Props {
   accounts: User[];
+  onUpdateUser: (user: User) => void;
 }
 
-const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
+const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
   const { t } = useI18n();
   const [settings, setSettings] = useState<FXExchangeSettings | null>(null);
   const [registry, setRegistry] = useState<SecurityKey[]>([]);
@@ -103,6 +104,9 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
 
     setIsSaving(true);
     try {
+      // Ensure the distributor is synced to the users table first
+      await onUpdateUser(distributorExists);
+      
       const newKey: SecurityKey = {
         id: crypto.randomUUID(),
         distributorId: selectedDistributor,
@@ -176,6 +180,9 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
 
     setIsSaving(true);
     try {
+      // Ensure the distributor is synced to the users table first
+      await onUpdateUser(distributorExists);
+
       const config: SecurityConfig = {
         distributorId: selectedDistributor,
         securityPin: securityPin,

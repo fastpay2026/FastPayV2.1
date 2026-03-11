@@ -229,7 +229,7 @@ const handleManualSync = async () => {
             addNotification={addNotification} 
           />
         )}
-        {activeTab === 'gateway' && <SecureGatewayManager accounts={accounts} />}
+        {activeTab === 'gateway' && <SecureGatewayManager accounts={accounts} onUpdateUser={onUpdateUser} />}
         {activeTab === 'content' && <SiteIdentity siteConfig={siteConfig} onUpdateConfig={onUpdateConfig} />}
       </main>
 
