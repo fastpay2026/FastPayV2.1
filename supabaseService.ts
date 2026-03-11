@@ -730,17 +730,31 @@ export const supabaseService = {
   },
 
   async upsertDistributorSecurityKey(r: SecurityKey) {
-    const { error } = await supabase.from('distributor_security_keys').upsert({
-      id: r.id,
-      distributor_id: r.distributorId,
-      vendor_id: r.vendorId,
-      product_id: r.productId,
-      serial_number: r.serialNumber,
-      status: r.status,
-      last_used: r.lastUsed,
-      created_at: r.createdAt
-    }, { onConflict: 'id' });
-    if (error) throw error;
+    console.log(`Attempting upsert for security key, distributor_id: ${r.distributorId}`);
+    try {
+      const { error } = await supabase.from('distributor_security_keys').upsert({
+        id: r.id,
+        distributor_id: r.distributorId,
+        vendor_id: r.vendorId,
+        product_id: r.productId,
+        serial_number: r.serialNumber,
+        status: r.status,
+        last_used: r.lastUsed,
+        created_at: r.createdAt
+      }, { onConflict: 'id' });
+      
+      if (error) {
+        if (error.code === '23503') {
+          console.error(`Foreign Key Violation: The distributor_id ${r.distributorId} does not exist in the users table.`);
+          throw new Error(`الموزع المحدد غير موجود في قاعدة البيانات (ID: ${r.distributorId})`);
+        }
+        console.error("Supabase Security Key Error:", error);
+        throw error;
+      }
+    } catch (err: any) {
+      console.error("Critical Security Key Error for ID:", r.distributorId, err);
+      throw err;
+    }
   },
 
   // Distributor Security Configs
@@ -755,18 +769,24 @@ export const supabaseService = {
   },
 
   async upsertDistributorSecurityConfig(c: SecurityConfig) {
+    console.log(`Attempting upsert for distributor_id: ${c.distributorId}`);
     try {
       const { error } = await supabase.from('distributor_security_configs').upsert({
         distributor_id: c.distributorId,
         security_pin: c.securityPin,
         updated_at: c.updatedAt
       }, { onConflict: 'distributor_id' });
+      
       if (error) {
+        if (error.code === '23503') {
+          console.error(`Foreign Key Violation: The distributor_id ${c.distributorId} does not exist in the users table.`);
+          throw new Error(`الموزع المحدد غير موجود في قاعدة البيانات (ID: ${c.distributorId})`);
+        }
         console.error("Supabase Security Config Error:", error);
         throw error;
       }
-    } catch (err) {
-      console.error("Critical Security Config Error:", err);
+    } catch (err: any) {
+      console.error("Critical Security Config Error for ID:", c.distributorId, err);
       throw err;
     }
   },

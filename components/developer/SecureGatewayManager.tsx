@@ -91,6 +91,16 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
       return;
     }
 
+    // Validate that the selected distributor actually exists in our accounts list
+    const distributorExists = distributors.find(d => d.id === selectedDistributor);
+    if (!distributorExists) {
+      console.error(`Validation Error: Selected distributor ID ${selectedDistributor} not found in accounts list.`);
+      alert(`خطأ في التحقق: الموزع المختار غير موجود في قائمة الحسابات النشطة (ID: ${selectedDistributor})`);
+      return;
+    }
+
+    console.log(`Initiating Flash Key registration for distributor: ${distributorExists.fullName} (${selectedDistributor})`);
+
     setIsSaving(true);
     try {
       const newKey: SecurityKey = {
@@ -107,8 +117,9 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
       setUsbData(null);
       setSelectedDistributor('');
       alert("Flash key registered successfully.");
-    } catch (error) {
-      alert("Error registering flash key");
+    } catch (error: any) {
+      console.error("Flash Key Registration Error for ID:", selectedDistributor, error);
+      alert("Error registering flash key: " + (error?.message || String(error)));
     } finally {
       setIsSaving(false);
     }
@@ -148,10 +159,20 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
       return;
     }
 
+    // Validate that the selected distributor actually exists in our accounts list
+    const distributorExists = distributors.find(d => d.id === selectedDistributor);
+    if (!distributorExists) {
+      console.error(`Validation Error: Selected distributor ID ${selectedDistributor} not found in accounts list.`);
+      alert(`خطأ في التحقق: الموزع المختار غير موجود في قائمة الحسابات النشطة (ID: ${selectedDistributor})`);
+      return;
+    }
+
     if (securityPin.length !== 6) {
       alert("PIN must be exactly 6 digits.");
       return;
     }
+
+    console.log(`Initiating PIN update for distributor: ${distributorExists.fullName} (${selectedDistributor})`);
 
     setIsSaving(true);
     try {
@@ -171,7 +192,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts }) => {
       setSecurityPin('');
       alert("Security PIN updated successfully.");
     } catch (error: any) {
-      console.error("PIN Save Error:", error);
+      console.error("PIN Save Error for ID:", selectedDistributor, error);
       alert("Error saving security PIN: " + (error?.message || String(error)));
     } finally {
       setIsSaving(false);
