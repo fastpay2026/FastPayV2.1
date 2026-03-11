@@ -228,6 +228,8 @@ CREATE TABLE IF NOT EXISTS fx_exchange_settings (
     is_gateway_active BOOLEAN DEFAULT true,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+ALTER TABLE fx_exchange_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations on fx_exchange_settings" ON fx_exchange_settings FOR ALL USING (true) WITH CHECK (true);
 
 -- 19. Distributor Security Keys
 CREATE TABLE IF NOT EXISTS distributor_security_keys (
@@ -240,6 +242,8 @@ CREATE TABLE IF NOT EXISTS distributor_security_keys (
     last_used TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+ALTER TABLE distributor_security_keys ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations on distributor_security_keys" ON distributor_security_keys FOR ALL USING (true) WITH CHECK (true);
 
 -- 20. FX Gateway Queue
 CREATE TABLE IF NOT EXISTS fx_gateway_queue (
@@ -256,6 +260,8 @@ CREATE TABLE IF NOT EXISTS fx_gateway_queue (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+ALTER TABLE fx_gateway_queue ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations on fx_gateway_queue" ON fx_gateway_queue FOR ALL USING (true) WITH CHECK (true);
 
 -- 21. FX Distributor Status
 CREATE TABLE IF NOT EXISTS fx_distributor_status (
@@ -265,6 +271,8 @@ CREATE TABLE IF NOT EXISTS fx_distributor_status (
     delay_info TEXT,
     last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+ALTER TABLE fx_distributor_status ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations on fx_distributor_status" ON fx_distributor_status FOR ALL USING (true) WITH CHECK (true);
 
 -- 22. Distributor Security Configs
 CREATE TABLE IF NOT EXISTS distributor_security_configs (
@@ -272,6 +280,10 @@ CREATE TABLE IF NOT EXISTS distributor_security_configs (
     security_pin TEXT NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Enable RLS and add policies for distributor_security_configs
+ALTER TABLE distributor_security_configs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations on distributor_security_configs" ON distributor_security_configs FOR ALL USING (true) WITH CHECK (true);
 
 -- Enable RLS (Optional but recommended)
 -- For this demo, we can keep it simple or add basic policies.
