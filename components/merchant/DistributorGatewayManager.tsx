@@ -91,17 +91,17 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
         supabaseService.getDistributorSecurityConfigs()
       ]);
       
-      const myStatus = statuses.find(s => s.distributorId === user.id);
+      const myStatus = statuses.find(s => s.distributor_id === user.id);
       setStatus(myStatus || {
-        distributorId: user.id,
-        availabilityStatus: 'offline',
-        usdtCapacity: 0,
-        lastUpdated: new Date().toISOString()
+        distributor_id: user.id,
+        availability_status: 'offline',
+        usdt_capacity: 0,
+        last_updated: new Date().toISOString()
       });
       
-      setOrders(allOrders.filter(o => o.distributorId === user.id));
-      setKeys(allKeys.filter(k => k.distributorId === user.id && k.status === 'active'));
-      setSecurityConfig(allConfigs.find(c => c.distributorId === user.id) || null);
+      setOrders(allOrders.filter(o => o.distributor_id === user.id));
+      setKeys(allKeys.filter(k => k.distributor_id === user.id && k.status === 'active'));
+      setSecurityConfig(allConfigs.find(c => c.distributor_id === user.id) || null);
     } catch (error) {
       console.error("Error fetching distributor gateway data:", error);
     } finally {
@@ -122,9 +122,9 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
       }
 
       const matchingKey = keys.find(k => 
-        device.vendorId === k.vendorId && 
-        device.productId === k.productId && 
-        device.serialNumber === k.serialNumber
+        device.vendorId === k.vendor_id && 
+        device.productId === k.product_id && 
+        device.serialNumber === k.serial_number
       );
 
       if (matchingKey) {
@@ -161,18 +161,18 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
       // Find a matching key in our registry
       const matchingKey = keys.find(k => 
         devices.some((d: any) => 
-          d.vendorId === k.vendorId && 
-          d.productId === k.productId && 
-          d.serialNumber === k.serialNumber
+          d.vendorId === k.vendor_id && 
+          d.productId === k.product_id && 
+          d.serialNumber === k.serial_number
         )
       );
 
       if (matchingKey) {
         setIsKeyVerified(true);
         const device = devices.find((d: any) => 
-          d.vendorId === matchingKey.vendorId && 
-          d.productId === matchingKey.productId && 
-          d.serialNumber === matchingKey.serialNumber
+          d.vendorId === matchingKey.vendor_id && 
+          d.productId === matchingKey.product_id && 
+          d.serialNumber === matchingKey.serial_number
         );
         setConnectedDevice(device || null);
       } else {
@@ -202,7 +202,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
       // Add a small artificial delay for better UX feedback
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      if (String(pinInput) === String(securityConfig.securityPin)) {
+      if (String(pinInput) === String(securityConfig.security_pin)) {
         setIsPinVerified(true);
         addNotification('PIN Verified', 'Security PIN fallback authorized.', 'security');
         setShowPinInput(false);
@@ -222,17 +222,17 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
     setIsUpdatingStatus(true);
     try {
       const currentStatus = status || {
-        distributorId: user.id,
-        availabilityStatus: 'offline',
-        usdtCapacity: 0,
-        lastUpdated: new Date().toISOString()
+        distributor_id: user.id,
+        availability_status: 'offline',
+        usdt_capacity: 0,
+        last_updated: new Date().toISOString()
       };
 
       const updated: FXDistributorStatus = { 
         ...currentStatus, 
-        availabilityStatus: newStatus, 
-        usdtCapacity: capacity !== undefined ? capacity : currentStatus.usdtCapacity,
-        lastUpdated: new Date().toISOString()
+        availability_status: newStatus, 
+        usdt_capacity: capacity !== undefined ? capacity : currentStatus.usdt_capacity,
+        last_updated: new Date().toISOString()
       };
       
       await supabaseService.upsertFXDistributorStatus(updated);
@@ -296,7 +296,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
         status: 'success_pending_review',
         receipt_image: 'mock_receipt_url_' + Date.now(), // In real app, upload to Supabase Storage
         tx_id: 'TX' + Math.random().toString(36).substring(2, 10).toUpperCase(),
-        updatedAt: new Date().toISOString()
+        updated_at: new Date().toISOString()
       };
 
       await supabaseService.upsertFXGatewayQueue(updatedOrder);
@@ -403,7 +403,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 glass-card p-10 rounded-[3rem] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-6">
-            <div className={`p-6 rounded-3xl ${status?.availabilityStatus === 'online' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+            <div className={`p-6 rounded-3xl ${status?.availability_status === 'online' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
               <Activity size={40} />
             </div>
             <div>
@@ -419,12 +419,12 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                 onClick={() => handleUpdateStatus(s)}
                 disabled={isUpdatingStatus}
                 className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border disabled:opacity-50 ${
-                  status?.availabilityStatus === s 
+                  status?.availability_status === s 
                     ? 'bg-sky-600 border-sky-400 text-white shadow-xl shadow-sky-900/20' 
                     : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'
                 }`}
               >
-                {isUpdatingStatus && status?.availabilityStatus !== s ? (
+                {isUpdatingStatus && status?.availability_status !== s ? (
                   <RefreshCw className="animate-spin" size={14} />
                 ) : (
                   s === 'online' ? t('online') : s === 'offline' ? t('offline') : t('delayed')
@@ -442,8 +442,8 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
           <div className="flex gap-4">
             <input 
               type="number"
-              value={status?.usdtCapacity}
-              onChange={(e) => handleUpdateStatus(status?.availabilityStatus || 'offline', parseFloat(e.target.value))}
+              value={status?.usdt_capacity}
+              onChange={(e) => handleUpdateStatus(status?.availability_status || 'offline', parseFloat(e.target.value))}
               className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 font-black text-2xl text-emerald-400 outline-none focus:border-emerald-500 transition-all"
             />
             <div className="p-4 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/20 flex items-center justify-center">
@@ -483,7 +483,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                   {orders.map(order => (
                     <tr key={order.id} className="hover:bg-white/5 transition-colors group">
                       <td className="p-6">
-                        <p className="font-black text-lg">${order.totalAmount.toLocaleString()}</p>
+                        <p className="font-black text-lg">${order.total_amount.toLocaleString()}</p>
                         <p className="text-[10px] text-slate-500 font-bold">Including Fees</p>
                       </td>
                       <td className="p-6">
@@ -503,7 +503,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                         </span>
                       </td>
                       <td className="p-6 text-xs text-slate-500 font-bold">
-                        {new Date(order.createdAt).toLocaleString('ar-SA')}
+                        {new Date(order.created_at).toLocaleString('ar-SA')}
                       </td>
                       <td className="p-6">
                         {(order.status === 'pending_distributor' || order.status === 'pending') && (
@@ -544,7 +544,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                       <CheckCircle size={16} />
                     </div>
                     <span className="text-xs font-mono font-bold text-slate-400">
-                      0x{k.vendorId.toString(16).toUpperCase()}:0x{k.productId.toString(16).toUpperCase()}
+                      0x{k.vendor_id.toString(16).toUpperCase()}:0x{k.product_id.toString(16).toUpperCase()}
                     </span>
                   </div>
                   <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
@@ -587,7 +587,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                   <h3 className="text-2xl font-black tracking-tight">Process Transfer</h3>
                   <div className="text-right">
                     <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Amount Due</p>
-                    <p className="text-2xl font-black text-sky-400">${selectedOrder.totalAmount.toLocaleString()}</p>
+                    <p className="text-2xl font-black text-sky-400">${selectedOrder.total_amount.toLocaleString()}</p>
                   </div>
                 </div>
 

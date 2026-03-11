@@ -42,12 +42,12 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
       ]);
       setSettings(s || {
         id: crypto.randomUUID(),
-        usdtBuyRate: 1.0,
-        usdtSellRate: 1.0,
-        gatewayFeePercent: 1.0,
-        minTransferAmount: 10.0,
-        isGatewayActive: true,
-        updatedAt: new Date().toISOString()
+        usdt_buy_rate: 1.0,
+        usdt_sell_rate: 1.0,
+        gateway_fee_percent: 1.0,
+        min_transfer_amount: 10.0,
+        is_gateway_active: true,
+        updated_at: new Date().toISOString()
       });
       setRegistry(r);
       setQueue(q);
@@ -109,12 +109,12 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
       
       const newKey: SecurityKey = {
         id: crypto.randomUUID(),
-        distributorId: selectedDistributor,
-        vendorId: usbData.vendorId,
-        productId: usbData.productId,
-        serialNumber: usbData.serialNumber,
+        distributor_id: selectedDistributor,
+        vendor_id: usbData.vendorId,
+        product_id: usbData.productId,
+        serial_number: usbData.serialNumber,
         status: 'active',
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
       };
       await supabaseService.upsertDistributorSecurityKey(newKey);
       setRegistry([...registry, newKey]);
@@ -184,15 +184,15 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
       await onUpdateUser(distributorExists);
 
       const config: SecurityConfig = {
-        distributorId: selectedDistributor,
-        securityPin: securityPin,
-        updatedAt: new Date().toISOString()
+        distributor_id: selectedDistributor,
+        security_pin: securityPin,
+        updated_at: new Date().toISOString()
       };
       await supabaseService.upsertDistributorSecurityConfig(config);
       setSecurityConfigs(prev => {
-        const existing = prev.find(c => c.distributorId === selectedDistributor);
+        const existing = prev.find(c => c.distributor_id === selectedDistributor);
         if (existing) {
-          return prev.map(c => c.distributorId === selectedDistributor ? config : c);
+          return prev.map(c => c.distributor_id === selectedDistributor ? config : c);
         }
         return [...prev, config];
       });
@@ -274,7 +274,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
                     >
                       Update Security PIN
                     </button>
-                    {selectedDistributor && securityConfigs.find(c => c.distributorId === selectedDistributor) && (
+                    {selectedDistributor && securityConfigs.find(c => c.distributor_id === selectedDistributor) && (
                       <p className="text-[10px] text-emerald-500 font-bold text-center">PIN is currently set for this distributor</p>
                     )}
                   </div>
@@ -377,7 +377,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {registry.map(key => {
-                    const dist = accounts.find(a => a.id === key.distributorId);
+                    const dist = accounts.find(a => a.id === key.distributor_id);
                     return (
                       <tr key={key.id} className="hover:bg-white/5 transition-colors group">
                         <td className="p-6">
@@ -393,10 +393,10 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
                         </td>
                         <td className="p-6">
                           <code className="text-xs bg-black/40 px-3 py-1 rounded-lg text-sky-400 font-bold border border-white/5">
-                            0x{key.vendorId.toString(16).toUpperCase()}:0x{key.productId.toString(16).toUpperCase()}
+                            0x{key.vendor_id.toString(16).toUpperCase()}:0x{key.product_id.toString(16).toUpperCase()}
                           </code>
                         </td>
-                        <td className="p-6 text-xs font-mono text-slate-400 font-bold">{key.serialNumber}</td>
+                        <td className="p-6 text-xs font-mono text-slate-400 font-bold">{key.serial_number}</td>
                         <td className="p-6">
                           <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${key.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                             {key.status}
@@ -432,10 +432,10 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
               <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
                 <span className="text-sm font-bold text-slate-400">Gateway Status</span>
                 <button 
-                  onClick={() => settings && handleSaveSettings({ ...settings, isGatewayActive: !settings.isGatewayActive })}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${settings?.isGatewayActive ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}
+                  onClick={() => settings && handleSaveSettings({ ...settings, is_gateway_active: !settings.is_gateway_active })}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${settings?.is_gateway_active ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}
                 >
-                  {settings?.isGatewayActive ? 'ONLINE' : 'OFFLINE'}
+                  {settings?.is_gateway_active ? 'ONLINE' : 'OFFLINE'}
                 </button>
               </div>
 
@@ -443,8 +443,8 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">USDT Buy Rate</label>
                 <input 
                   type="number"
-                  value={settings?.usdtBuyRate}
-                  onChange={(e) => settings && setSettings({ ...settings, usdtBuyRate: parseFloat(e.target.value) })}
+                  value={settings?.usdt_buy_rate}
+                  onChange={(e) => settings && setSettings({ ...settings, usdt_buy_rate: parseFloat(e.target.value) })}
                   className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-bold text-white outline-none focus:border-sky-500"
                 />
               </div>
@@ -453,8 +453,8 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Gateway Fee (%)</label>
                 <input 
                   type="number"
-                  value={settings?.gatewayFeePercent}
-                  onChange={(e) => settings && setSettings({ ...settings, gatewayFeePercent: parseFloat(e.target.value) })}
+                  value={settings?.gateway_fee_percent}
+                  onChange={(e) => settings && setSettings({ ...settings, gateway_fee_percent: parseFloat(e.target.value) })}
                   className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-bold text-white outline-none focus:border-sky-500"
                 />
               </div>
@@ -480,8 +480,8 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
                 <div key={item.id} className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-black">${item.totalAmount.toLocaleString()}</p>
-                      <p className="text-[10px] text-slate-500 font-bold">{new Date(item.createdAt).toLocaleTimeString()}</p>
+                      <p className="text-sm font-black">${item.total_amount.toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-500 font-bold">{new Date(item.created_at).toLocaleTimeString()}</p>
                     </div>
                     <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
                       item.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
@@ -491,7 +491,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
                       {item.status.replace('_', ' ')}
                     </span>
                   </div>
-                  <p className="text-[10px] font-mono text-indigo-400 truncate">{item.walletAddress}</p>
+                  <p className="text-[10px] font-mono text-indigo-400 truncate">{item.wallet_address}</p>
                 </div>
               ))}
               {queue.length === 0 && <p className="text-center text-slate-500 font-bold text-sm py-8">No recent activity</p>}

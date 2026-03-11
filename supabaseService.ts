@@ -689,28 +689,11 @@ export const supabaseService = {
   async getFXExchangeSettings(): Promise<FXExchangeSettings | null> {
     const { data, error } = await supabase.from('fx_exchange_settings').select('*').limit(1).maybeSingle();
     if (error) throw error;
-    if (!data) return null;
-    return {
-      ...data,
-      usdtBuyRate: data.usdt_buy_rate,
-      usdtSellRate: data.usdt_sell_rate,
-      gatewayFeePercent: data.gateway_fee_percent,
-      minTransferAmount: data.min_transfer_amount,
-      isGatewayActive: data.is_gateway_active,
-      updatedAt: data.updated_at
-    };
+    return data || null;
   },
 
   async upsertFXExchangeSettings(s: FXExchangeSettings) {
-    const { error } = await supabase.from('fx_exchange_settings').upsert({
-      id: s.id,
-      usdt_buy_rate: s.usdtBuyRate,
-      usdt_sell_rate: s.usdtSellRate,
-      gateway_fee_percent: s.gatewayFeePercent,
-      min_transfer_amount: s.minTransferAmount,
-      is_gateway_active: s.isGatewayActive,
-      updated_at: s.updatedAt
-    }, { onConflict: 'id' });
+    const { error } = await supabase.from('fx_exchange_settings').upsert(s, { onConflict: 'id' });
     if (error) throw error;
   },
 
@@ -718,41 +701,24 @@ export const supabaseService = {
   async getDistributorSecurityKeys(): Promise<SecurityKey[]> {
     const { data, error } = await supabase.from('distributor_security_keys').select('*');
     if (error) throw error;
-    return (data || []).map(r => ({
-      ...r,
-      distributorId: r.distributor_id,
-      vendorId: r.vendor_id,
-      productId: r.product_id,
-      serialNumber: r.serial_number,
-      lastUsed: r.last_used,
-      createdAt: r.created_at
-    }));
+    return data || [];
   },
 
   async upsertDistributorSecurityKey(r: SecurityKey) {
-    console.log(`Attempting upsert for security key, distributor_id: ${r.distributorId}`);
+    console.log(`Attempting upsert for security key, distributor_id: ${r.distributor_id}`);
     try {
-      const { error } = await supabase.from('distributor_security_keys').upsert({
-        id: r.id,
-        distributor_id: r.distributorId,
-        vendor_id: r.vendorId,
-        product_id: r.productId,
-        serial_number: r.serialNumber,
-        status: r.status,
-        last_used: r.lastUsed,
-        created_at: r.createdAt
-      }, { onConflict: 'id' });
+      const { error } = await supabase.from('distributor_security_keys').upsert(r, { onConflict: 'id' });
       
       if (error) {
         if (error.code === '23503') {
-          console.error(`Foreign Key Violation: The distributor_id ${r.distributorId} does not exist in the users table.`);
-          throw new Error(`الموزع المحدد غير موجود في قاعدة البيانات (ID: ${r.distributorId})`);
+          console.error(`Foreign Key Violation: The distributor_id ${r.distributor_id} does not exist in the users table.`);
+          throw new Error(`الموزع المحدد غير موجود في قاعدة البيانات (ID: ${r.distributor_id})`);
         }
         console.error("Supabase Security Key Error:", error);
         throw error;
       }
     } catch (err: any) {
-      console.error("Critical Security Key Error for ID:", r.distributorId, err);
+      console.error("Critical Security Key Error for ID:", r.distributor_id, err);
       throw err;
     }
   },
@@ -761,32 +727,24 @@ export const supabaseService = {
   async getDistributorSecurityConfigs(): Promise<SecurityConfig[]> {
     const { data, error } = await supabase.from('distributor_security_configs').select('*');
     if (error) throw error;
-    return (data || []).map(c => ({
-      distributorId: c.distributor_id,
-      securityPin: c.security_pin,
-      updatedAt: c.updated_at
-    }));
+    return data || [];
   },
 
   async upsertDistributorSecurityConfig(c: SecurityConfig) {
-    console.log(`Attempting upsert for distributor_id: ${c.distributorId}`);
+    console.log(`Attempting upsert for distributor_id: ${c.distributor_id}`);
     try {
-      const { error } = await supabase.from('distributor_security_configs').upsert({
-        distributor_id: c.distributorId,
-        security_pin: c.securityPin,
-        updated_at: c.updatedAt
-      }, { onConflict: 'distributor_id' });
+      const { error } = await supabase.from('distributor_security_configs').upsert(c, { onConflict: 'distributor_id' });
       
       if (error) {
         if (error.code === '23503') {
-          console.error(`Foreign Key Violation: The distributor_id ${c.distributorId} does not exist in the users table.`);
-          throw new Error(`الموزع المحدد غير موجود في قاعدة البيانات (ID: ${c.distributorId})`);
+          console.error(`Foreign Key Violation: The distributor_id ${c.distributor_id} does not exist in the users table.`);
+          throw new Error(`الموزع المحدد غير موجود في قاعدة البيانات (ID: ${c.distributor_id})`);
         }
         console.error("Supabase Security Config Error:", error);
         throw error;
       }
     } catch (err: any) {
-      console.error("Critical Security Config Error for ID:", c.distributorId, err);
+      console.error("Critical Security Config Error for ID:", c.distributor_id, err);
       throw err;
     }
   },
@@ -795,34 +753,11 @@ export const supabaseService = {
   async getFXGatewayQueue(): Promise<FXGatewayQueue[]> {
     const { data, error } = await supabase.from('fx_gateway_queue').select('*').order('created_at', { ascending: false });
     if (error) throw error;
-    return (data || []).map(q => ({
-      ...q,
-      userId: q.user_id,
-      distributorId: q.distributor_id,
-      walletAddress: q.wallet_address,
-      totalAmount: q.total_amount,
-      receipt_image: q.receipt_image,
-      tx_id: q.tx_id,
-      createdAt: q.created_at,
-      updatedAt: q.updated_at
-    }));
+    return data || [];
   },
 
   async upsertFXGatewayQueue(q: FXGatewayQueue) {
-    const { error } = await supabase.from('fx_gateway_queue').upsert({
-      id: q.id,
-      user_id: q.userId,
-      distributor_id: q.distributorId,
-      amount: q.amount,
-      fee: q.fee,
-      total_amount: q.totalAmount,
-      wallet_address: q.walletAddress,
-      status: q.status,
-      receipt_image: q.receipt_image,
-      tx_id: q.tx_id,
-      created_at: q.createdAt,
-      updated_at: q.updatedAt
-    }, { onConflict: 'id' });
+    const { error } = await supabase.from('fx_gateway_queue').upsert(q, { onConflict: 'id' });
     if (error) throw error;
   },
 
@@ -830,24 +765,11 @@ export const supabaseService = {
   async getFXDistributorStatuses(): Promise<FXDistributorStatus[]> {
     const { data, error } = await supabase.from('fx_distributor_status').select('*');
     if (error) throw error;
-    return (data || []).map(s => ({
-      ...s,
-      distributorId: s.distributor_id,
-      usdtCapacity: s.usdt_capacity,
-      availabilityStatus: s.availability_status,
-      delayInfo: s.delay_info,
-      lastUpdated: s.last_updated
-    }));
+    return data || [];
   },
 
   async upsertFXDistributorStatus(s: FXDistributorStatus) {
-    const { error } = await supabase.from('fx_distributor_status').upsert({
-      distributor_id: s.distributorId,
-      usdt_capacity: s.usdtCapacity,
-      availability_status: s.availabilityStatus,
-      delay_info: s.delayInfo,
-      last_updated: s.lastUpdated
-    }, { onConflict: 'distributor_id' });
+    const { error } = await supabase.from('fx_distributor_status').upsert(s, { onConflict: 'distributor_id' });
     if (error) throw error;
   }
 };

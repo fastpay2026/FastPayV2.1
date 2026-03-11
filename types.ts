@@ -322,50 +322,50 @@ export interface SiteConfig {
 
 export interface FXExchangeSettings {
   id: string;
-  usdtBuyRate: number;
-  usdtSellRate: number;
-  gatewayFeePercent: number;
-  minTransferAmount: number;
-  isGatewayActive: boolean;
-  updatedAt: string;
+  usdt_buy_rate: number;
+  usdt_sell_rate: number;
+  gateway_fee_percent: number;
+  min_transfer_amount: number;
+  is_gateway_active: boolean;
+  updated_at: string;
 }
 
 export interface SecurityKey {
   id: string;
-  distributorId: string;
-  vendorId: number;
-  productId: number;
-  serialNumber: string;
+  distributor_id: string;
+  vendor_id: number;
+  product_id: number;
+  serial_number: string;
   status: 'active' | 'revoked';
-  lastUsed?: string;
-  createdAt: string;
+  last_used?: string;
+  created_at: string;
 }
 
 export interface SecurityConfig {
-  distributorId: string;
-  securityPin: string;
-  updatedAt: string;
+  distributor_id: string;
+  security_pin: string;
+  updated_at: string;
 }
 
 export interface FXGatewayQueue {
   id: string;
-  userId: string;
-  distributorId?: string;
+  user_id: string;
+  distributor_id?: string;
   amount: number;
   fee: number;
-  totalAmount: number;
+  total_amount: number;
   status: 'pending' | 'pending_distributor' | 'handshake_complete' | 'proof_uploaded' | 'success_pending_review' | 'completed' | 'rejected';
-  walletAddress: string;
+  wallet_address: string;
   receipt_image?: string;
   tx_id?: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface FXDistributorStatus {
-  distributorId: string;
-  usdtCapacity: number;
-  availabilityStatus: 'online' | 'offline' | 'delayed';
-  delayInfo?: string;
-  lastUpdated: string;
+  distributor_id: string;
+  usdt_capacity: number;
+  availability_status: 'online' | 'offline' | 'delayed';
+  delay_info?: string;
+  last_updated: string;
 }

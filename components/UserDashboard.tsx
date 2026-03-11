@@ -138,7 +138,7 @@ const UserDashboard: React.FC<Props> = ({
         ]);
         setFxSettings(settings);
         setDistributors(dists);
-        setUserGatewayQueue(queue.filter(q => q.userId === user.id));
+        setUserGatewayQueue(queue.filter(q => q.user_id === user.id));
       } catch (e) {
         console.error("Failed to fetch FX data", e);
       }
@@ -241,7 +241,7 @@ const UserDashboard: React.FC<Props> = ({
     if (total > user.balance) return alert(t('usdt_balance_shield') || 'Insufficient balance to cover amount plus gateway fees.');
     
     // Smart Routing: Find online distributor with capacity
-    const availableDistributor = distributors.find(d => d.availabilityStatus === 'online' && d.usdtCapacity >= amount);
+    const availableDistributor = distributors.find(d => d.availability_status === 'online' && d.usdt_capacity >= amount);
     if (!availableDistributor) return alert(t('no_distributor_available') || 'No distributors online with sufficient capacity. Please try again later.');
     
     setAssignedDistributor(availableDistributor);
@@ -257,7 +257,7 @@ const UserDashboard: React.FC<Props> = ({
       setUsdtProgress(prev => {
         if (prev >= 100) {
           clearInterval(timer);
-          finalizeUSDTGateway(amount, fee, total, availableDistributor.distributorId, usdtWalletAddress);
+          finalizeUSDTGateway(amount, fee, total, availableDistributor.distributor_id, usdtWalletAddress);
           return 100;
         }
         return prev + increment;
@@ -291,15 +291,15 @@ const UserDashboard: React.FC<Props> = ({
     try {
       const newQueue: FXGatewayQueue = {
         id: uuidv4(),
-        userId: user.id,
-        distributorId,
+        user_id: user.id,
+        distributor_id: distributorId,
         amount,
         fee,
-        totalAmount: total,
-        walletAddress,
+        total_amount: total,
+        wallet_address: walletAddress,
         status: 'pending',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
       
       await supabaseService.upsertFXGatewayQueue(newQueue);
@@ -328,7 +328,7 @@ const UserDashboard: React.FC<Props> = ({
         setUsdtAmount(''); 
         setAssignedDistributor(null);
         // Refresh queue
-        supabaseService.getFXGatewayQueue().then(q => setUserGatewayQueue(q.filter(item => item.userId === user.id)));
+        supabaseService.getFXGatewayQueue().then(q => setUserGatewayQueue(q.filter(item => item.user_id === user.id)));
       }, 3000);
     } catch (e) {
       console.error("Failed to finalize USDT Gateway", e);
@@ -651,7 +651,7 @@ const UserDashboard: React.FC<Props> = ({
 
                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
                       <div className="bg-[#0f172a]/80 p-6 md:p-10 rounded-3xl md:rounded-[4rem] border border-white/5 shadow-2xl">
-                                                {userGatewayQueue.length > 0 && (
+                        {userGatewayQueue.length > 0 && (
                          <div className="lg:col-span-2 bg-indigo-900/20 p-6 md:p-10 rounded-3xl md:rounded-[4rem] border border-indigo-500/30 shadow-2xl">
                            <div className="flex items-center justify-between mb-8">
                              <h3 className="text-2xl md:text-3xl font-black">{t('usdt_gateway_status') || 'USDT Gateway Requests'}</h3>
@@ -681,7 +681,7 @@ const UserDashboard: React.FC<Props> = ({
                                  </div>
                                  <div className="space-y-1">
                                    <p className="text-[10px] font-black text-slate-500 uppercase">Destination Wallet</p>
-                                   <p className="text-xs font-mono font-bold text-indigo-400 truncate">{item.walletAddress}</p>
+                                   <p className="text-xs font-mono font-bold text-indigo-400 truncate">{item.wallet_address}</p>
                                  </div>
                                  {item.tx_id && (
                                    <div className="space-y-1">
@@ -699,7 +699,7 @@ const UserDashboard: React.FC<Props> = ({
                                      View Transfer Receipt
                                    </a>
                                  )}
-                                 <p className="text-[10px] text-slate-600 font-bold">{new Date(item.createdAt).toLocaleString()}</p>
+                                 <p className="text-[10px] text-slate-600 font-bold">{new Date(item.created_at).toLocaleString()}</p>
                                </div>
                              ))}
                            </div>

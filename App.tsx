@@ -323,19 +323,20 @@ const App: React.FC = () => {
         await supabaseService.updateUser(user);
       } catch (e: any) {
         console.error("Failed to sync user to Supabase", e);
-        alert(t('supabaseSyncError', { message: e.message || t('unknownError') }));
+        // alert(t('supabaseSyncError', { message: e.message || t('unknownError') }));
+        throw e; // Re-throw to allow caller to catch
       }
     }
   }, []);
 
-  const handleUpdateUser = (updatedUser: User) => {
+  const handleUpdateUser = async (updatedUser: User) => {
     setAccounts(prev => prev.map(acc => acc.id === updatedUser.id ? updatedUser : acc));
-    syncUser(updatedUser);
+    return await syncUser(updatedUser);
   };
 
-  const handleAddUser = (newUser: User) => {
+  const handleAddUser = async (newUser: User) => {
     setAccounts(prev => [...prev, newUser]);
-    syncUser(newUser);
+    return await syncUser(newUser);
   };
 
   const currentUser = useMemo(() => accounts.find(acc => acc.id === currentUserId) || null, [accounts, currentUserId]);
