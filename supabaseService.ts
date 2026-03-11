@@ -705,20 +705,32 @@ export const supabaseService = {
   },
 
   async upsertDistributorSecurityKey(r: SecurityKey) {
-    console.log(`Attempting upsert for security key, distributor_id: ${r.distributor_id}`);
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
+      throw new Error("User not logged in");
+    }
+
+    const keyToSave = {
+      ...r,
+      distributor_id: user.id
+    };
+
+    console.log(`Attempting upsert for security key, distributor_id: ${keyToSave.distributor_id}`);
     try {
-      const { error } = await supabase.from('distributor_security_keys').upsert(r, { onConflict: 'id' });
+      const { error } = await supabase.from('distributor_security_keys').upsert(keyToSave, { onConflict: 'id' });
       
       if (error) {
         if (error.code === '23503') {
-          console.error(`Foreign Key Violation: The distributor_id ${r.distributor_id} does not exist in the users table.`);
-          throw new Error(`الموزع المحدد غير موجود في قاعدة البيانات (ID: ${r.distributor_id})`);
+          console.error(`Foreign Key Violation: The distributor_id ${keyToSave.distributor_id} does not exist in the users table.`);
+          throw new Error(`الموزع المحدد غير موجود في قاعدة البيانات (ID: ${keyToSave.distributor_id})`);
         }
         console.error("Supabase Security Key Error:", error);
         throw error;
       }
     } catch (err: any) {
-      console.error("Critical Security Key Error for ID:", r.distributor_id, err);
+      console.error("Critical Security Key Error for ID:", keyToSave.distributor_id, err);
       throw err;
     }
   },
@@ -731,20 +743,32 @@ export const supabaseService = {
   },
 
   async upsertDistributorSecurityConfig(c: SecurityConfig) {
-    console.log(`Attempting upsert for distributor_id: ${c.distributor_id}`);
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
+      throw new Error("User not logged in");
+    }
+
+    const configToSave = {
+      ...c,
+      distributor_id: user.id
+    };
+
+    console.log(`Attempting upsert for distributor_id: ${configToSave.distributor_id}`);
     try {
-      const { error } = await supabase.from('distributor_security_configs').upsert(c, { onConflict: 'distributor_id' });
+      const { error } = await supabase.from('distributor_security_configs').upsert(configToSave, { onConflict: 'distributor_id' });
       
       if (error) {
         if (error.code === '23503') {
-          console.error(`Foreign Key Violation: The distributor_id ${c.distributor_id} does not exist in the users table.`);
-          throw new Error(`الموزع المحدد غير موجود في قاعدة البيانات (ID: ${c.distributor_id})`);
+          console.error(`Foreign Key Violation: The distributor_id ${configToSave.distributor_id} does not exist in the users table.`);
+          throw new Error(`الموزع المحدد غير موجود في قاعدة البيانات (ID: ${configToSave.distributor_id})`);
         }
         console.error("Supabase Security Config Error:", error);
         throw error;
       }
     } catch (err: any) {
-      console.error("Critical Security Config Error for ID:", c.distributor_id, err);
+      console.error("Critical Security Config Error for ID:", configToSave.distributor_id, err);
       throw err;
     }
   },
