@@ -716,29 +716,21 @@ export const supabaseService = {
   },
 
   async upsertDistributorSecurityKey(r: SecurityKey) {
-    let user = currentSupabaseUser;
-    if (!user) {
-      const { data } = await supabase.auth.getUser();
-      user = data.user;
-    }
-    
-    // Fallback to localStorage if Supabase Auth is not used (for the custom login system)
-    const localUserId = localStorage.getItem('fp_v21_current_user_id');
-    const finalUserId = user?.id || localUserId;
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     console.log("=== API CALL INFO (Security Key) ===");
     console.log("Supabase API URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Logged In User ID:", finalUserId);
+    console.log("Logged In User ID (Auth):", user?.id);
     console.log("====================================");
 
-    if (!finalUserId) {
+    if (authError || !user || !user.id || user.id === '00000000-0000-0000-0000-000000000001') {
       alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
-      throw new Error("User not logged in");
+      throw new Error("User not logged in or using a fake ID");
     }
 
     const keyToSave = {
       ...r,
-      distributor_id: finalUserId
+      distributor_id: user.id
     };
 
     console.log(`Attempting upsert for security key, distributor_id: ${keyToSave.distributor_id}`);
@@ -767,29 +759,21 @@ export const supabaseService = {
   },
 
   async upsertDistributorSecurityConfig(c: SecurityConfig) {
-    let user = currentSupabaseUser;
-    if (!user) {
-      const { data } = await supabase.auth.getUser();
-      user = data.user;
-    }
-    
-    // Fallback to localStorage if Supabase Auth is not used (for the custom login system)
-    const localUserId = localStorage.getItem('fp_v21_current_user_id');
-    const finalUserId = user?.id || localUserId;
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     console.log("=== API CALL INFO (Security Config) ===");
     console.log("Supabase API URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Logged In User ID:", finalUserId);
+    console.log("Logged In User ID (Auth):", user?.id);
     console.log("=======================================");
 
-    if (!finalUserId) {
+    if (authError || !user || !user.id || user.id === '00000000-0000-0000-0000-000000000001') {
       alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
-      throw new Error("User not logged in");
+      throw new Error("User not logged in or using a fake ID");
     }
 
     const configToSave = {
       ...c,
-      distributor_id: finalUserId
+      distributor_id: user.id
     };
 
     console.log(`Attempting upsert for distributor_id: ${configToSave.distributor_id}`);
