@@ -729,6 +729,20 @@ export const supabaseService = {
       throw new Error("User not logged in with official session");
     }
 
+    let isAdmin = user.user_metadata?.role === 'ADMIN' || user.app_metadata?.role === 'ADMIN' || user.user_metadata?.role === 'DEVELOPER';
+
+    if (!isAdmin) {
+      // Fallback: check users table
+      const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
+      if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
+        isAdmin = true;
+      }
+    }
+
+    if (!isAdmin && r.distributor_id !== user.id) {
+      throw new Error("غير مصرح: لا يمكنك تعديل بيانات موزع آخر");
+    }
+
     // Use the distributor_id passed from the UI (since Developer sets it for Distributor)
     const keyToSave = {
       ...r
@@ -801,6 +815,20 @@ export const supabaseService = {
     if (!user || !user.id) {
       alert("يرجى تسجيل الدخول الرسمي لكي يتعرف النظام على هويتك الحقيقية.");
       throw new Error("User not logged in with official session");
+    }
+
+    let isAdmin = user.user_metadata?.role === 'ADMIN' || user.app_metadata?.role === 'ADMIN' || user.user_metadata?.role === 'DEVELOPER';
+
+    if (!isAdmin) {
+      // Fallback: check users table
+      const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
+      if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
+        isAdmin = true;
+      }
+    }
+
+    if (!isAdmin && c.distributor_id !== user.id) {
+      throw new Error("غير مصرح: لا يمكنك تعديل بيانات موزع آخر");
     }
 
     // Use the distributor_id passed from the UI (since Developer sets it for Distributor)

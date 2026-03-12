@@ -79,7 +79,7 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
     setError('');
 
     const user = accounts.find(
-      (acc) => acc.username === username && acc.password === password && (selectedRole === 'DEVELOPER' ? acc.role === 'DEVELOPER' : acc.role === selectedRole)
+      (acc) => acc.username === username && acc.password === password && (selectedRole === 'DEVELOPER' ? (acc.role === 'DEVELOPER' || acc.role === 'ADMIN') : acc.role === selectedRole)
     );
 
     if (user) {
