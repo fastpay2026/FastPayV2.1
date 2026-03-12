@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, VerificationRequest } from '../types';
+import { useI18n } from '../i18n/i18n';
 
 // AES-256 Simulation (Frontend only)
 // In a real app, this would be handled server-side or via Web Crypto API
@@ -28,6 +29,7 @@ interface MerchantProps {
 export const MerchantVerification: React.FC<MerchantProps> = ({ 
   user, onUpdateUser, verificationRequests, setVerificationRequests, addNotification 
 }) => {
+  const { t } = useI18n();
   const [files, setFiles] = useState<{ idFront: string; idBack: string; commercialRegister: string }>({
     idFront: '',
     idBack: '',
@@ -49,7 +51,7 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!files.idFront || !files.idBack || !files.commercialRegister) {
-      return alert('يرجى رفع جميع الوثائق المطلوبة');
+      return alert(t('all_docs_required'));
     }
 
     setIsUploading(true);
@@ -74,7 +76,7 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
         return updated;
       });
       onUpdateUser({ ...user, verificationStatus: 'pending' });
-      addNotification('توثيق الحساب', 'تم إرسال طلب التوثيق بنجاح، سيتم مراجعته من قبل الإدارة.', 'security');
+      addNotification(t('account_verification'), t('verification_request_sent'), 'security');
       setIsUploading(false);
     }, 2000);
   };
@@ -84,10 +86,10 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
       <div className="bg-emerald-500/10 border border-emerald-500/20 p-12 rounded-[3rem] text-center space-y-6">
         <div className="text-8xl">🛡️</div>
         <h3 className="text-4xl font-black text-white flex items-center justify-center gap-3">
-          حساب موثق رسمياً
+          {t('account_verified_officially')}
           <span className="text-sky-400 text-3xl">☑️</span>
         </h3>
-        <p className="text-emerald-400 font-bold">تم التحقق من هويتك بنجاح. أنت الآن تتمتع بكامل صلاحيات التاجر الموثق.</p>
+        <p className="text-emerald-400 font-bold">{t('verification_success_msg')}</p>
       </div>
     );
   }
@@ -96,16 +98,16 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
     return (
       <div className="bg-red-500/10 border border-red-500/20 p-12 rounded-[3rem] text-center space-y-6 animate-in zoom-in">
         <div className="text-8xl">❌</div>
-        <h3 className="text-4xl font-black text-white">تم رفض طلب التوثيق</h3>
+        <h3 className="text-4xl font-black text-white">{t('verification_request_rejected')}</h3>
         <div className="bg-red-500/5 p-6 rounded-2xl border border-red-500/10">
-          <p className="text-red-400 font-bold text-lg">السبب: {user.verificationReason || 'لم يتم ذكر سبب محدد'}</p>
+          <p className="text-red-400 font-bold text-lg">{t('rejection_reason')} {user.verificationReason || 'لم يتم ذكر سبب محدد'}</p>
         </div>
-        <p className="text-slate-500 font-bold">يرجى مراجعة الملاحظات وإعادة رفع الوثائق الصحيحة.</p>
+        <p className="text-slate-500 font-bold">{t('resubmit_request')}</p>
         <button 
           onClick={() => onUpdateUser({ ...user, verificationStatus: 'none' })} 
           className="px-12 py-4 bg-red-600 text-white rounded-2xl font-black shadow-xl hover:bg-red-500 transition-all active:scale-95"
         >
-          إعادة المحاولة 🔄
+          {t('resubmit_request')} 🔄
         </button>
       </div>
     );
@@ -115,8 +117,8 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
     return (
       <div className="bg-amber-500/10 border border-amber-500/20 p-12 rounded-[3rem] text-center space-y-6">
         <div className="text-8xl animate-pulse">⏳</div>
-        <h3 className="text-4xl font-black text-white">طلبك قيد المراجعة</h3>
-        <p className="text-amber-400 font-bold">يقوم فريق الامتثال بمراجعة وثائقك الآن. سيتم إشعارك فور اتخاذ القرار.</p>
+        <h3 className="text-4xl font-black text-white">{t('verification_pending')}</h3>
+        <p className="text-amber-400 font-bold">{t('verification_pending_msg')}</p>
       </div>
     );
   }
@@ -124,21 +126,21 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
       <div className="text-center space-y-4">
-        <h2 className="text-6xl font-black tracking-tighter">توثيق هوية التاجر</h2>
-        <p className="text-slate-500 font-bold text-lg">ارفع مستمسكاتك الرسمية للحصول على الشارة الزرقاء وزيادة حدود العمليات.</p>
+        <h2 className="text-6xl font-black tracking-tighter">{t('merchant_verification_title')}</h2>
+        <p className="text-slate-500 font-bold text-lg">{t('verification_desc')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-[#0f172a] border border-white/5 rounded-[4rem] p-16 space-y-12 shadow-2xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
-            <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">صورة الهوية (الوجه الأمامي)</label>
+            <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">{t('id_front')}</label>
             <div className="relative h-64 bg-black/40 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center overflow-hidden group hover:border-sky-500 transition-all">
               {files.idFront ? (
                 <img src={files.idFront} className="w-full h-full object-cover" alt="ID Front" />
               ) : (
                 <div className="text-center space-y-2">
                   <span className="text-4xl">🪪</span>
-                  <p className="text-xs font-bold text-slate-500">اضغط للرفع</p>
+                  <p className="text-xs font-bold text-slate-500">{t('click_to_upload')}</p>
                 </div>
               )}
               <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'idFront')} className="absolute inset-0 opacity-0 cursor-pointer" />
@@ -146,14 +148,14 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
           </div>
 
           <div className="space-y-4">
-            <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">صورة الهوية (الوجه الخلفي)</label>
+            <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">{t('id_back')}</label>
             <div className="relative h-64 bg-black/40 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center overflow-hidden group hover:border-sky-500 transition-all">
               {files.idBack ? (
                 <img src={files.idBack} className="w-full h-full object-cover" alt="ID Back" />
               ) : (
                 <div className="text-center space-y-2">
                   <span className="text-4xl">🪪</span>
-                  <p className="text-xs font-bold text-slate-500">اضغط للرفع</p>
+                  <p className="text-xs font-bold text-slate-500">{t('click_to_upload')}</p>
                 </div>
               )}
               <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'idBack')} className="absolute inset-0 opacity-0 cursor-pointer" />
@@ -161,14 +163,14 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
           </div>
 
           <div className="md:col-span-2 space-y-4">
-            <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">السجل التجاري / وثيقة العمل الحر</label>
+            <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">{t('commercial_registry')}</label>
             <div className="relative h-64 bg-black/40 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center overflow-hidden group hover:border-sky-500 transition-all">
               {files.commercialRegister ? (
                 <img src={files.commercialRegister} className="w-full h-full object-cover" alt="Commercial Register" />
               ) : (
                 <div className="text-center space-y-2">
                   <span className="text-4xl">📜</span>
-                  <p className="text-xs font-bold text-slate-500">ارفع وثيقة السجل التجاري</p>
+                  <p className="text-xs font-bold text-slate-500">{t('click_to_upload')}</p>
                 </div>
               )}
               <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'commercialRegister')} className="absolute inset-0 opacity-0 cursor-pointer" />
@@ -192,11 +194,11 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
           {isUploading ? (
             <>
               <span className="animate-spin">🔄</span>
-              جاري التشفير والرفع...
+              {t('verifying_docs')}
             </>
           ) : (
             <>
-              إرسال طلب التوثيق
+              {t('submit_verification')}
               <span className="text-3xl">🚀</span>
             </>
           )}
@@ -218,6 +220,7 @@ interface AdminProps {
 export const AdminVerificationReview: React.FC<AdminProps> = ({ 
   verificationRequests, setVerificationRequests, accounts, setAccounts, onUpdateUser, addNotification 
 }) => {
+  const { t } = useI18n();
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
   const [zoom, setZoom] = useState(1);
   const [rotate, setRotate] = useState(0);

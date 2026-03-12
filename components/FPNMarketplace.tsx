@@ -22,6 +22,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { User, MarketplaceAd, NegotiationOffer, Notification, Transaction } from '../types';
 import CryptoJS from 'crypto-js';
+import { useI18n } from '../i18n/i18n';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -52,6 +53,7 @@ const FPNMarketplace: React.FC<Props> = ({
   setAccounts,
   isAdmin = false
 }) => {
+  const { t, language } = useI18n();
   const [activeTab, setActiveTab] = useState<'browse' | 'my-ads' | 'post' | 'admin'>('browse');
   const [searchQuery, setSearchQuery] = useState('');
   const [isPosting, setIsPosting] = useState(false);
@@ -83,7 +85,7 @@ const FPNMarketplace: React.FC<Props> = ({
 
   const handlePostAd = () => {
     if (!newAd.title || !newAd.description || !newAd.price) {
-      addNotification('خطأ', 'يرجى ملء جميع الحقول', 'system');
+      addNotification(t('error'), t('fill_all_fields'), 'system');
       return;
     }
 
@@ -105,11 +107,11 @@ const FPNMarketplace: React.FC<Props> = ({
       const updatedUser: User = { 
         ...user, 
         status: 'suspended', 
-        statusReason: 'انتهاك سياسة حماية البيانات (Anti-Leakage): محاولة تسريب بيانات اتصال.' 
+        statusReason: t('security_policy_violation')
       };
       onUpdateUser(updatedUser);
       setAds(prev => [ad, ...prev]);
-      addNotification('تم تعليق الحساب', 'تم اكتشاف محاولة تسريب بيانات اتصال. تم حظر الإعلان وحسابك آلياً.', 'security');
+      addNotification(t('account_suspended'), t('account_suspended_msg'), 'security');
       setActiveTab('browse');
       return;
     }
@@ -117,13 +119,13 @@ const FPNMarketplace: React.FC<Props> = ({
     setAds(prev => [ad, ...prev]);
     setNewAd({ title: '', description: '', price: '', isNegotiable: false });
     setActiveTab('my-ads');
-    addNotification('نجاح', 'تم نشر الإعلان بنجاح', 'system');
+    addNotification(t('success'), t('ad_posted_success'), 'system');
   };
 
   const handleMakeOffer = (ad: MarketplaceAd) => {
     const amount = parseFloat(negotiationAmount);
     if (isNaN(amount) || amount <= 0) {
-      addNotification('خطأ', 'يرجى إدخال مبلغ صحيح', 'system');
+      addNotification(t('error'), t('invalid_amount'), 'system');
       return;
     }
 
@@ -145,12 +147,12 @@ const FPNMarketplace: React.FC<Props> = ({
 
     setNegotiationAmount('');
     setSelectedAd(null);
-    addNotification('تم إرسال العرض', `تم إرسال عرضك بقيمة ${amount} FPN للتاجر.`, 'user');
+    addNotification(t('success'), t('offer_sent_msg').replace('${amount}', amount.toString()), 'user');
     
     // Simulate notification for the seller if they are in the same session (demo purpose)
     const seller = accounts.find(u => u.id === ad.sellerId);
     if (seller && seller.id === user.id) {
-       addNotification('تنبيه البورصة', `لديك عرض جديد بقيمة ${amount} FPN على إعلانك: ${ad.title}`, 'user');
+       addNotification(t('exchange_alert'), t('new_offer_alert').replace('${amount}', amount.toString()).replace('${title}', ad.title), 'user');
     }
   };
 
@@ -165,12 +167,12 @@ const FPNMarketplace: React.FC<Props> = ({
       }
       return a;
     }));
-    addNotification('تم قبول العرض', `تم تحديث سعر الإعلان إلى ${offer.amount} FPN.`, 'money');
+    addNotification(t('success'), t('offer_accepted_msg').replace('${amount}', offer.amount.toString()), 'money');
   };
 
   const handleUploadShipping = (ad: MarketplaceAd) => {
     if (!shippingDoc) {
-      addNotification('خطأ', 'يرجى إدخال رقم تتبع الشحن أو تفاصيل المستند', 'system');
+      addNotification(t('error'), t('shipping_doc_placeholder'), 'system');
       return;
     }
 
@@ -206,24 +208,24 @@ const FPNMarketplace: React.FC<Props> = ({
 
     setIsUploadingShipping(null);
     setShippingDoc('');
-    addNotification('تم شحن الطلب', `تم رفع مستند الشحن وتحويل مبلغ ${finalPrice} FPN إلى محفظتك.`, 'money');
+    addNotification(t('success'), t('order_shipped_msg').replace('${amount}', finalPrice.toString()), 'money');
   };
 
   const handleUnblockAd = (adId: string) => {
     setAds(prev => prev.map(a => a.id === adId ? { ...a, status: 'active' } : a));
-    addNotification('تم فك الحظر', 'تمت إعادة تفعيل الإعلان بنجاح.', 'system');
+    addNotification(t('success'), t('unblocked_success'), 'system');
   };
 
   const handleUnblockUser = (userId: string) => {
     setAccounts(prev => prev.map(acc => acc.id === userId ? { ...acc, status: 'active' } : acc));
-    addNotification('تم فك حظر المستخدم', 'تمت إعادة تفعيل حساب المستخدم بنجاح.', 'security');
+    addNotification(t('success'), t('user_unblocked_success'), 'security');
   };
 
   const startFPNFlow = (ad: MarketplaceAd, offer?: NegotiationOffer) => {
     const finalPrice = offer ? offer.amount : ad.price;
     
     if (user.balance < finalPrice) {
-      addNotification('رصيد غير كافٍ', 'عذراً، رصيدك الحالي لا يغطي قيمة هذه العملية.', 'money');
+      addNotification(t('error'), t('insufficient_balance_msg'), 'money');
       return;
     }
 
@@ -272,7 +274,7 @@ const FPNMarketplace: React.FC<Props> = ({
     setIsFlowActive(false);
     setFlowAd(null);
     setFlowOffer(null);
-    addNotification('تم تأمين المبلغ', 'تم حجز المبلغ في نظام الاعتماد المستندي FPN بنجاح.', 'money');
+    addNotification(t('success'), t('escrow_secured_msg'), 'money');
   };
 
   const filteredAds = useMemo(() => {
@@ -297,27 +299,27 @@ const FPNMarketplace: React.FC<Props> = ({
     return (
       <div className="flex flex-col items-center justify-center p-12 bg-slate-900/50 rounded-3xl border border-red-500/30 text-center">
         <AlertTriangle className="w-20 h-20 text-red-500 mb-6" />
-        <h2 className="text-3xl font-bold text-white mb-4">تم تعليق الحساب</h2>
+        <h2 className="text-3xl font-bold text-white mb-4">{t('account_suspended')}</h2>
         <p className="text-slate-400 max-w-md mb-8">
-          {user.statusReason || 'تم تعليق حسابك لمراجعة الأنشطة الأخيرة.'}
+          {user.statusReason || t('account_suspended_msg')}
         </p>
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
-          يرجى التواصل مع الإدارة لفك الحظر.
+          {t('contact_admin_unblock')}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 text-right" dir="rtl">
+    <div className="space-y-8 text-right" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Header Info */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900/80 p-6 md:p-8 rounded-3xl border border-white/5 backdrop-blur-xl">
         <div className="space-y-1">
           <h1 className="text-xl md:text-3xl font-bold text-white flex items-center gap-3">
             <Shield className="text-emerald-500 w-6 h-6 md:w-10 md:h-10" />
-            بورصة FPN المالية المتكاملة
+            {t('fpn_marketplace')}
           </h1>
-          <p className="text-slate-400 text-xs md:text-sm">نظام تداول آمن مشفر ببروتوكول AES-256</p>
+          <p className="text-slate-400 text-xs md:text-sm">{t('secure_trading_system')}</p>
         </div>
         <div className="flex flex-col items-start md:items-end w-full md:w-auto">
           <div className="flex items-center gap-2 text-[10px] md:text-xs font-mono text-emerald-500/70 break-all">
@@ -340,7 +342,7 @@ const FPNMarketplace: React.FC<Props> = ({
           )}
         >
           <Search className="w-4 h-4" />
-          تصفح السوق
+          {t('browse_marketplace')}
         </button>
         <button
           onClick={() => setActiveTab('my-ads')}
@@ -350,7 +352,7 @@ const FPNMarketplace: React.FC<Props> = ({
           )}
         >
           <ShoppingBag className="w-4 h-4" />
-          إعلاناتي
+          {t('my_ads')}
         </button>
         <button
           onClick={() => setActiveTab('post')}
@@ -360,7 +362,7 @@ const FPNMarketplace: React.FC<Props> = ({
           )}
         >
           <Plus className="w-4 h-4" />
-          نشر إعلان
+          {t('post_ad')}
         </button>
         {isAdmin && (
           <button
@@ -371,7 +373,7 @@ const FPNMarketplace: React.FC<Props> = ({
             )}
           >
             <Shield className="w-4 h-4" />
-            إدارة البورصة
+            {t('admin_panel')}
           </button>
         )}
       </div>
@@ -390,7 +392,7 @@ const FPNMarketplace: React.FC<Props> = ({
               <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
               <input
                 type="text"
-                placeholder="ابحث عن سلع، معادن، أو أصول..."
+                placeholder={t('search_placeholder_items_services')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-900 border border-white/10 rounded-2xl py-4 pr-12 pl-4 text-white focus:outline-none focus:border-emerald-500/50 transition-all"
@@ -410,7 +412,7 @@ const FPNMarketplace: React.FC<Props> = ({
                     </div>
                     {ad.isNegotiable && (
                       <span className="text-[10px] uppercase tracking-wider font-bold bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20">
-                        قابل للتفاوض
+                        {t('negotiable')}
                       </span>
                     )}
                   </div>
@@ -425,12 +427,12 @@ const FPNMarketplace: React.FC<Props> = ({
                       onClick={() => setSelectedAd(ad)}
                       className="bg-white text-black px-4 md:px-5 py-2 rounded-xl text-xs md:text-sm font-bold hover:bg-emerald-500 hover:text-white transition-all"
                     >
-                      تفاصيل
+                      {t('details')}
                     </button>
                   </div>
                   <div className="mt-2 text-[10px] text-slate-500 flex items-center gap-1">
                     <UserIcon className="w-3 h-3" />
-                    التاجر: {ad.sellerName}
+                    {t('seller')}: {ad.sellerName}
                   </div>
                 </motion.div>
               ))}
@@ -448,7 +450,7 @@ const FPNMarketplace: React.FC<Props> = ({
           >
             {myAds.length === 0 ? (
               <div className="p-12 text-center bg-slate-900/50 rounded-3xl border border-dashed border-white/10">
-                <p className="text-slate-500">ليس لديك أي إعلانات نشطة حالياً.</p>
+                <p className="text-slate-500">{t('no_ads_found')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-6">
@@ -464,7 +466,7 @@ const FPNMarketplace: React.FC<Props> = ({
                             ad.status === 'sold' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
                             "bg-slate-500/10 text-slate-500 border-slate-500/20"
                           )}>
-                            {ad.status === 'active' ? 'نشط' : ad.status === 'sold' ? 'بانتظار الشحن' : 'مكتمل'}
+                            {ad.status === 'active' ? t('active') : ad.status === 'sold' ? t('awaiting_shipping') : t('completed')}
                           </span>
                         </div>
                         <p className="text-slate-400 text-sm mb-4">{ad.description}</p>
@@ -478,33 +480,33 @@ const FPNMarketplace: React.FC<Props> = ({
                               className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-600 transition-all flex items-center gap-2"
                             >
                               <Plus className="w-3 h-3" />
-                              رفع مستند الشحن
+                              {t('upload_shipping_doc')}
                             </button>
                           )}
                         </div>
 
                         {isUploadingShipping === ad.id && (
                           <div className="mt-4 p-4 bg-slate-950 rounded-2xl border border-emerald-500/30 animate-in slide-in-from-top duration-300">
-                            <label className="block text-xs font-bold text-emerald-500 mb-2">رقم تتبع الشحن / تفاصيل المستند</label>
+                            <label className="block text-xs font-bold text-emerald-500 mb-2">{t('shipping_doc_label')}</label>
                             <div className="flex gap-2">
                               <input
                                 type="text"
                                 value={shippingDoc}
                                 onChange={(e) => setShippingDoc(e.target.value)}
-                                placeholder="مثال: DHL-9420-X..."
+                                placeholder={t('shipping_doc_placeholder')}
                                 className="flex-grow bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-emerald-500"
                               />
                               <button
                                 onClick={() => handleUploadShipping(ad)}
                                 className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-600"
                               >
-                                تأكيد
+                                {t('confirm')}
                               </button>
                               <button
                                 onClick={() => setIsUploadingShipping(null)}
                                 className="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold"
                               >
-                                إلغاء
+                                {t('cancel')}
                               </button>
                             </div>
                           </div>
@@ -514,11 +516,11 @@ const FPNMarketplace: React.FC<Props> = ({
                       <div className="w-full md:w-80 bg-slate-950/50 rounded-2xl p-4 border border-white/5">
                         <h4 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
                           <MessageSquare className="w-4 h-4 text-emerald-500" />
-                          عروض التفاوض ({ad.offers.length})
+                          {t('negotiation_portal')} ({ad.offers.length})
                         </h4>
                         <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
                           {ad.offers.length === 0 ? (
-                            <p className="text-xs text-slate-600 italic">لا توجد عروض حالياً</p>
+                            <p className="text-xs text-slate-600 italic">{t('no_offers_yet')}</p>
                           ) : (
                             ad.offers.map(offer => (
                               <div key={offer.id} className="p-3 bg-slate-900 rounded-xl border border-white/5 flex justify-between items-center">
@@ -538,7 +540,7 @@ const FPNMarketplace: React.FC<Props> = ({
                                     "text-[10px] font-bold",
                                     offer.status === 'accepted' ? "text-emerald-500" : "text-red-500"
                                   )}>
-                                    {offer.status === 'accepted' ? 'مقبول' : 'مرفوض'}
+                                    {offer.status === 'accepted' ? t('accepted') : t('rejected')}
                                   </span>
                                 )}
                               </div>
@@ -564,15 +566,15 @@ const FPNMarketplace: React.FC<Props> = ({
           >
             <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
               <Plus className="text-emerald-500" />
-              نشر إعلان جديد في البورصة
+              {t('post_new_ad')}
             </h2>
             
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">عنوان الإعلان</label>
+                <label className="block text-sm font-medium text-slate-400 mb-2">{t('ad_title')}</label>
                 <input
                   type="text"
-                  placeholder="مثال: سبائك ذهب عيار 24"
+                  placeholder={t('ad_title_placeholder')}
                   value={newAd.title}
                   onChange={(e) => setNewAd({ ...newAd, title: e.target.value })}
                   className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-emerald-500/50"
@@ -580,10 +582,10 @@ const FPNMarketplace: React.FC<Props> = ({
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">وصف السلعة / الأصل</label>
+                <label className="block text-sm font-medium text-slate-400 mb-2">{t('ad_description')}</label>
                 <textarea
                   rows={4}
-                  placeholder="اشرح تفاصيل السلعة، الجودة، والكمية..."
+                  placeholder={t('ad_description_placeholder')}
                   value={newAd.description}
                   onChange={(e) => setNewAd({ ...newAd, description: e.target.value })}
                   className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-emerald-500/50"
@@ -592,7 +594,7 @@ const FPNMarketplace: React.FC<Props> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">السعر (FPN)</label>
+                  <label className="block text-sm font-medium text-slate-400 mb-2">{t('ad_price')}</label>
                   <input
                     type="number"
                     placeholder="0.00"
@@ -619,23 +621,23 @@ const FPNMarketplace: React.FC<Props> = ({
                         newAd.isNegotiable ? "translate-x-6" : "translate-x-0"
                       )} />
                     </div>
-                    <span className="text-sm text-slate-300 group-hover:text-white transition-all">قابل للتفاوض</span>
+                    <span className="text-sm text-slate-300 group-hover:text-white transition-all">{t('negotiable')}</span>
                   </label>
                 </div>
               </div>
-
+ 
               <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start gap-4">
                 <Shield className="w-6 h-6 text-amber-500 shrink-0" />
                 <p className="text-xs text-amber-200/80 leading-relaxed">
-                  تنبيه: نظام Anti-Leakage يقوم بفحص الإعلان آلياً. أي محاولة لوضع أرقام هواتف، إيميلات، أو حسابات تواصل اجتماعي ستؤدي لحظر الإعلان وتعليق حسابك فوراً.
+                  {t('anti_leakage_warning')}
                 </p>
               </div>
-
+ 
               <button
                 onClick={handlePostAd}
                 className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-bold text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20"
               >
-                تأكيد ونشر الإعلان
+                {t('confirm_and_post')}
               </button>
             </div>
           </motion.div>
@@ -651,22 +653,22 @@ const FPNMarketplace: React.FC<Props> = ({
           >
             <div className="bg-slate-900/80 border border-white/5 rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-2xl">
               <div className="p-6 md:p-8 border-b border-white/5 bg-white/5">
-                <h3 className="text-lg md:text-xl font-bold text-white">الإعلانات المحظورة (Anti-Leakage)</h3>
+                <h3 className="text-lg md:text-xl font-bold text-white">{t('blocked_ads_title')}</h3>
               </div>
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-right min-w-[600px]">
                   <thead className="bg-slate-950 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     <tr>
-                      <th className="p-4 md:p-6">الإعلان</th>
-                      <th className="p-4 md:p-6">التاجر</th>
-                      <th className="p-4 md:p-6">السبب</th>
-                      <th className="p-4 md:p-6 text-center">الإجراء</th>
+                      <th className="p-4 md:p-6">{t('ad_column')}</th>
+                      <th className="p-4 md:p-6">{t('seller_column')}</th>
+                      <th className="p-4 md:p-6">{t('reason_column')}</th>
+                      <th className="p-4 md:p-6 text-center">{t('action_column')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {ads.filter(a => a.status === 'blocked').length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="p-12 text-center text-slate-600 italic">لا توجد إعلانات محظورة حالياً.</td>
+                        <td colSpan={4} className="p-12 text-center text-slate-600 italic">{t('no_blocked_ads')}</td>
                       </tr>
                     ) : (
                       ads.filter(a => a.status === 'blocked').map(ad => (
@@ -677,14 +679,14 @@ const FPNMarketplace: React.FC<Props> = ({
                           </td>
                           <td className="p-4 md:p-6 text-slate-400 text-sm">{ad.sellerName}</td>
                           <td className="p-4 md:p-6">
-                            <span className="text-[10px] text-red-400 bg-red-400/10 px-2 py-1 rounded-lg border border-red-400/20">تسريب بيانات</span>
+                            <span className="text-[10px] text-red-400 bg-red-400/10 px-2 py-1 rounded-lg border border-red-400/20">{t('data_leakage')}</span>
                           </td>
                           <td className="p-4 md:p-6 text-center">
                             <button
                               onClick={() => handleUnblockAd(ad.id)}
                               className="bg-emerald-500 text-white px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold hover:bg-emerald-600 transition-all"
                             >
-                              فك الحظر
+                              {t('unblock_button')}
                             </button>
                           </td>
                         </tr>
@@ -697,21 +699,21 @@ const FPNMarketplace: React.FC<Props> = ({
 
             <div className="bg-slate-900/80 border border-white/5 rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-2xl">
               <div className="p-6 md:p-8 border-b border-white/5 bg-white/5">
-                <h3 className="text-lg md:text-xl font-bold text-white">المستخدمون المعلقون</h3>
+                <h3 className="text-lg md:text-xl font-bold text-white">{t('suspended_users_title')}</h3>
               </div>
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-right min-w-[500px]">
                   <thead className="bg-slate-950 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     <tr>
-                      <th className="p-4 md:p-6">المستخدم</th>
-                      <th className="p-4 md:p-6">السبب</th>
-                      <th className="p-4 md:p-6 text-center">الإجراء</th>
+                      <th className="p-4 md:p-6">{t('user_column')}</th>
+                      <th className="p-4 md:p-6">{t('reason_column')}</th>
+                      <th className="p-4 md:p-6 text-center">{t('action_column')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {accounts.filter(u => u.status === 'suspended').length === 0 ? (
                       <tr>
-                        <td colSpan={3} className="p-12 text-center text-slate-600 italic">لا يوجد مستخدمون معلقون حالياً.</td>
+                        <td colSpan={3} className="p-12 text-center text-slate-600 italic">{t('no_suspended_users')}</td>
                       </tr>
                     ) : (
                       accounts.filter(u => u.status === 'suspended').map(acc => (
@@ -726,7 +728,7 @@ const FPNMarketplace: React.FC<Props> = ({
                               onClick={() => handleUnblockUser(acc.id)}
                               className="bg-emerald-500 text-white px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold hover:bg-emerald-600 transition-all"
                             >
-                              فك الحظر
+                              {t('unblock_button')}
                             </button>
                           </td>
                         </tr>
@@ -761,22 +763,22 @@ const FPNMarketplace: React.FC<Props> = ({
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{selectedAd.title}</h2>
               <div className="flex items-center gap-2 text-slate-500 text-xs md:text-sm mb-6 md:mb-8">
                 <UserIcon className="w-4 h-4" />
-                بواسطة: {selectedAd.sellerName}
+                {t('by_seller')}: {selectedAd.sellerName}
               </div>
-
+ 
               <p className="text-slate-300 text-sm md:text-base leading-relaxed mb-8 md:mb-10">{selectedAd.description}</p>
-
+ 
               <div className="bg-slate-950 rounded-2xl md:rounded-3xl p-6 md:p-8 border border-white/5 mb-8 md:mb-10">
                 <div className="flex justify-between items-center mb-6 md:mb-8">
-                  <span className="text-slate-400 text-sm md:text-base">السعر الحالي</span>
+                  <span className="text-slate-400 text-sm md:text-base">{t('current_price')}</span>
                   <div className="text-2xl md:text-4xl font-bold text-white">
                     {selectedAd.price.toLocaleString()} <span className="text-sm md:text-base font-normal text-slate-500">FPN</span>
                   </div>
                 </div>
-
+ 
                 {selectedAd.sellerId === user.id ? (
                   <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl md:rounded-2xl text-blue-400 text-center text-xs md:text-sm">
-                    هذا إعلانك الخاص. يمكنك متابعة العروض من تبويب "إعلاناتي".
+                    {t('own_ad_warning')}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -784,7 +786,7 @@ const FPNMarketplace: React.FC<Props> = ({
                       <div className="flex flex-col sm:flex-row gap-3">
                         <input
                           type="number"
-                          placeholder="ضع عرضك هنا..."
+                          placeholder={t('offer_placeholder')}
                           value={negotiationAmount}
                           onChange={(e) => setNegotiationAmount(e.target.value)}
                           className="flex-grow bg-slate-900 border border-white/10 rounded-xl md:rounded-2xl p-4 text-white focus:outline-none focus:border-amber-500/50 text-sm md:text-base"
@@ -793,7 +795,7 @@ const FPNMarketplace: React.FC<Props> = ({
                           onClick={() => handleMakeOffer(selectedAd)}
                           className="bg-amber-500 text-black px-6 py-4 rounded-xl md:rounded-2xl font-bold hover:bg-amber-600 transition-all text-sm md:text-base"
                         >
-                          تفاوض
+                          {t('negotiate_button')}
                         </button>
                       </div>
                     )}
@@ -803,7 +805,7 @@ const FPNMarketplace: React.FC<Props> = ({
                       className="w-full bg-emerald-500 text-white py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-base md:text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3"
                     >
                       <Shield className="w-5 h-5" />
-                      شراء عبر FPN LC
+                      {t('buy_via_lc')}
                     </button>
                   </div>
                 )}
@@ -811,7 +813,7 @@ const FPNMarketplace: React.FC<Props> = ({
               
               <div className="flex items-center gap-3 text-[10px] md:text-xs text-slate-500 justify-center">
                 <Shield className="w-4 h-4" />
-                جميع العمليات محمية بنظام الاعتماد المستندي FPN
+                {t('escrow_protection_msg')}
               </div>
             </div>
           </motion.div>
@@ -837,9 +839,9 @@ const FPNMarketplace: React.FC<Props> = ({
                 <Lock className="w-10 h-10 text-emerald-500 animate-pulse" />
               </div>
 
-              <h2 className="text-2xl font-bold text-white mb-4">بروتوكول FPN Flow نشط</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">{t('fpn_flow_active')}</h2>
               <p className="text-slate-400 text-sm mb-8 leading-relaxed">
-                جاري تأمين المبلغ في نظام الاعتماد المستندي FPN... يرجى عدم إغلاق الصفحة.
+                {t('securing_funds_msg')}
               </p>
 
               <div className="relative w-32 h-32 mx-auto mb-8">
@@ -867,13 +869,13 @@ const FPNMarketplace: React.FC<Props> = ({
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center text-3xl font-mono font-bold text-white">
-                  {flowTimer}s
+                  {flowTimer}{t('seconds_short')}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="text-xs text-emerald-500/70 font-mono">ENCRYPTING_TRANSACTION_ID...</div>
-                <div className="text-xs text-slate-600 font-mono">SECURE_CHANNEL_ESTABLISHED</div>
+                <div className="text-xs text-emerald-500/70 font-mono">{t('encrypting_transaction')}</div>
+                <div className="text-xs text-slate-600 font-mono">{t('secure_channel_established')}</div>
               </div>
             </div>
           </motion.div>

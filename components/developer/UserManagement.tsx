@@ -92,7 +92,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
         <h2 className="text-3xl md:text-5xl font-black tracking-tighter">{t('elite_accounts_mgmt')}</h2>
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           <button onClick={() => setIsModalOpen(true)} className="bg-emerald-600 px-8 py-3 rounded-2xl font-black shadow-lg hover:bg-emerald-500 transition-all">+ {t('add_member')}</button>
-          <input type="text" placeholder={t('search_placeholder')} value={userSearch} onChange={e => setUserSearch(e.target.value)} className="bg-white/5 p-4 rounded-2xl border border-white/10 w-full md:w-80 outline-none" />
+          <input type="text" placeholder={t('search_placeholder_card_user')} value={userSearch} onChange={e => setUserSearch(e.target.value)} className="bg-white/5 p-4 rounded-2xl border border-white/10 w-full md:w-80 outline-none" />
         </div>
       </div>
       <div className="bg-[#0f172a] rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl">

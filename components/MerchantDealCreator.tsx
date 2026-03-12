@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { User, Transaction, Notification, VerificationRequest, AdExchangeItem, AdNegotiation, SiteConfig } from '../types';
 import { MerchantVerification } from './VerificationManager';
 import { AdExchange } from './AdExchange';
+import { useI18n } from '../i18n/i18n';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface Props {
   user: User;
@@ -28,6 +30,7 @@ const MerchantDealCreator: React.FC<Props> = ({
   user, onLogout, addNotification, onUpdateUser, setTransactions, transactions, accounts, setAccounts,
   verificationRequests, setVerificationRequests, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations, siteConfig
 }) => {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'overview' | 'create' | 'history' | 'verification' | 'ads'>('overview');
   const [dealForm, setDealForm] = useState({
     buyerName: '',
@@ -47,14 +50,22 @@ const MerchantDealCreator: React.FC<Props> = ({
   const [uploadComplete, setUploadComplete] = useState(false);
 
   const uploadPhrases = [
-    "Starting document encryption via FastPay-Secure-Tunnel protocol...",
-    "Scanning digital fingerprint and ensuring data integrity...",
-    "Syncing shipping document with Global Ledger...",
-    "Verifying quantities and specifications via AI...",
-    "Securing rights via immutable Smart Contract...",
-    "Sending instant notification to Riyadh-Node-01 audit center...",
-    "Preparing final audit file for human review..."
+    t('banking_phrase_1'),
+    t('banking_phrase_2'),
+    t('banking_phrase_3'),
+    t('banking_phrase_4'),
+    t('banking_phrase_5'),
+    t('banking_phrase_6'),
+    t('banking_phrase_7')
   ];
+
+  const goodsTypeMap = {
+    "Commercial Metals": t('commercial_metals'),
+    "Clothing": t('clothing'),
+    "Car Tires": t('car_tires'),
+    "Construction Materials": t('construction_materials'),
+    "Car Spare Parts": t('car_spare_parts')
+  };
 
   const handleCreateDeal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,11 +74,11 @@ const MerchantDealCreator: React.FC<Props> = ({
     // Validate buyer existence
     const buyerExists = accounts.some(acc => acc.username === dealForm.buyerName);
     if (!buyerExists) {
-      return alert('Sorry, the buyer name was not found in the network. Please enter a valid Username.');
+      return alert(t('buyer_not_found'));
     }
 
     if (isNaN(amount) || amount <= 0) {
-      return alert('Please enter a valid amount');
+      return alert(t('invalid_amount'));
     }
 
     setIsProcessing(true);
@@ -90,15 +101,19 @@ const MerchantDealCreator: React.FC<Props> = ({
 
       setTransactions(prev => [newTransaction, ...prev]);
       addNotification(
-        'Deal Created', 
-        `Deal created for ${dealForm.goodsType} with ${dealForm.buyerName} for $${amount.toLocaleString()}${isLCEnabled ? ' (LC System Active)' : ''}`, 
+        t('deal_created_title'), 
+        t('deal_created_msg')
+          .replace('${type}', goodsTypeMap[dealForm.goodsType as keyof typeof goodsTypeMap] || dealForm.goodsType)
+          .replace('${buyer}', dealForm.buyerName)
+          .replace('${amount}', `$${amount.toLocaleString()}`)
+          .replace('${lc}', isLCEnabled ? ` (${t('lc_system_title')} ${t('active')})` : ''), 
         'money'
       );
       
       setIsProcessing(false);
       setDealForm({ buyerName: '', goodsType: 'Commercial Metals', quantity: '', totalAmount: '', notes: '' });
       setActiveTab('history');
-      alert('Deal created successfully and sent to buyer ✅');
+      alert(t('deal_success_alert'));
     }, 2000);
   };
 
@@ -148,7 +163,7 @@ const MerchantDealCreator: React.FC<Props> = ({
       }
       return t;
     }));
-    addNotification('Shipping Update', 'Shipping document uploaded successfully and deal status changed to Shipped. Awaiting administrative review.', 'system');
+    addNotification(t('shipping_update_title'), t('shipping_update_msg'), 'system');
   };
 
   const merchantTransactions = useMemo(() => 
@@ -183,10 +198,13 @@ const MerchantDealCreator: React.FC<Props> = ({
             <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
               <span className="text-lg">🏪</span>
             </div>
-            <h1 className="text-lg font-black tracking-tighter">Merchant Suite</h1>
+            <h1 className="text-lg font-black tracking-tighter">{t('merchant_suite')}</h1>
           </div>
         </div>
-        <button onClick={onLogout} className="text-red-500 font-black text-sm">Logout</button>
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher />
+          <button onClick={onLogout} className="text-red-500 font-black text-sm">{t('logout')}</button>
+        </div>
       </header>
 
       {/* Sidebar */}
@@ -196,18 +214,18 @@ const MerchantDealCreator: React.FC<Props> = ({
             <div className="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.4)]">
               <span className="text-xl">🏪</span>
             </div>
-            <h1 className="text-xl font-black tracking-tighter text-white">Merchant Suite</h1>
+            <h1 className="text-xl font-black tracking-tighter text-white">{t('merchant_suite')}</h1>
           </div>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Global Infrastructure 2026</p>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{t('global_infra')}</p>
         </div>
 
         <nav className="flex-1 p-6 space-y-2 mt-20 lg:mt-0">
           {[
-            { id: 'overview', label: 'Overview', icon: '📊' },
-            { id: 'create', label: 'Create New Deal', icon: '➕' },
-            { id: 'history', label: 'Deal History', icon: '📜' },
-            { id: 'ads', label: 'Ad Exchange', icon: '📢' },
-            { id: 'verification', label: 'Account Verification', icon: '🛡️' },
+            { id: 'overview', label: t('overview'), icon: '📊' },
+            { id: 'create', label: t('create_new_deal'), icon: '➕' },
+            { id: 'history', label: t('deal_history'), icon: '📜' },
+            { id: 'ads', label: t('ad_exchange'), icon: '📢' },
+            { id: 'verification', label: t('account_verification'), icon: '🛡️' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -224,16 +242,16 @@ const MerchantDealCreator: React.FC<Props> = ({
           <div className="bg-black/40 p-6 rounded-3xl border border-white/5 relative overflow-hidden">
             {hasEscrow && (
               <div className="absolute top-0 left-0 bg-amber-500 text-[8px] font-black px-2 py-0.5 rounded-br-lg animate-pulse">
-                Reserved (Escrow)
+                {t('reserved_escrow')}
               </div>
             )}
-            <p className="text-[10px] text-slate-500 font-black uppercase mb-2">Available Liquidity</p>
+            <p className="text-[10px] text-slate-500 font-black uppercase mb-2">{t('available_liquidity')}</p>
             <div className="flex items-baseline gap-2">
               <p className="text-2xl font-black text-teal-400">${user.balance.toLocaleString()}</p>
-              {hasEscrow && <span className="text-[10px] text-amber-500 font-bold">(+${stats.reservedAmount.toLocaleString()} Reserved)</span>}
+              {hasEscrow && <span className="text-[10px] text-amber-500 font-bold">(+${stats.reservedAmount.toLocaleString()} {t('reserved')})</span>}
             </div>
           </div>
-          <button onClick={onLogout} className="w-full py-4 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl font-black hover:bg-red-500 hover:text-white transition-all hidden lg:block">Logout</button>
+          <button onClick={onLogout} className="w-full py-4 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl font-black hover:bg-red-500 hover:text-white transition-all hidden lg:block">{t('logout')}</button>
         </div>
       </aside>
 
@@ -243,9 +261,9 @@ const MerchantDealCreator: React.FC<Props> = ({
         <header className="h-24 bg-black/20 backdrop-blur-xl border-b border-white/5 px-6 lg:px-12 flex justify-between items-center z-10 hidden lg:flex">
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-black tracking-tighter">
-              {activeTab === 'overview' && 'Merchant Dashboard'}
-              {activeTab === 'create' && 'Deal Creation Portal'}
-              {activeTab === 'history' && 'Transaction History'}
+              {activeTab === 'overview' && t('merchant_dashboard')}
+              {activeTab === 'create' && t('deal_creation_portal')}
+              {activeTab === 'history' && t('transaction_history')}
             </h2>
           </div>
           <div className="flex items-center gap-6">
@@ -254,7 +272,7 @@ const MerchantDealCreator: React.FC<Props> = ({
                 {user.fullName}
                 {user.isVerified && <BadgeCheck className="w-5 h-5 fill-[#1877F2] text-white" />}
               </p>
-              <p className="text-[10px] text-teal-500 font-black uppercase">Certified FastPay Merchant</p>
+              <p className="text-[10px] text-teal-500 font-black uppercase">{t('certified_merchant')}</p>
             </div>
             <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
               <span className="text-xl">🛡️</span>
@@ -267,9 +285,9 @@ const MerchantDealCreator: React.FC<Props> = ({
             <div className="space-y-8 lg:space-y-12 animate-in fade-in duration-500">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                 {[
-                  { label: 'Total Trading Volume', value: `$${stats.totalVolume.toLocaleString()}`, icon: '💰', color: 'text-teal-400' },
-                  { label: 'Executed Deals', value: stats.dealsCount, icon: '🤝', color: 'text-sky-400' },
-                  { label: 'Active LC Credits', value: stats.activeLC, icon: '🔒', color: 'text-amber-500' },
+                  { label: t('total_trading_volume'), value: `$${stats.totalVolume.toLocaleString()}`, icon: '💰', color: 'text-teal-400' },
+                  { label: t('executed_deals'), value: stats.dealsCount, icon: '🤝', color: 'text-sky-400' },
+                  { label: t('active_lc_credits'), value: stats.activeLC, icon: '🔒', color: 'text-amber-500' },
                 ].map((s, i) => (
                   <div key={i} className="bg-[#111] p-6 lg:p-10 rounded-3xl lg:rounded-[3rem] border border-white/5 shadow-2xl space-y-4">
                     <div className="flex justify-between items-center">
@@ -283,33 +301,33 @@ const MerchantDealCreator: React.FC<Props> = ({
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                 <div className="bg-[#111] p-6 lg:p-12 rounded-3xl lg:rounded-[4rem] border border-white/5 space-y-6 lg:space-y-8">
-                  <h3 className="text-xl lg:text-2xl font-black text-white">Recent Activities</h3>
+                  <h3 className="text-xl lg:text-2xl font-black text-white">{t('recent_activities')}</h3>
                   <div className="space-y-4">
                     {merchantTransactions.slice(0, 5).map((t, i) => (
                       <div key={i} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 lg:p-6 bg-black/40 rounded-2xl lg:rounded-3xl border border-white/5 gap-4">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 bg-teal-500/10 text-teal-400 rounded-full flex items-center justify-center">🤝</div>
                           <div>
-                            <p className="font-bold text-white text-sm lg:text-base">Deal with {t.relatedUser}</p>
+                            <p className="font-bold text-white text-sm lg:text-base">{t('deal_with')} {t.relatedUser}</p>
                             <p className="text-[10px] text-slate-500">{t.timestamp}</p>
                           </div>
                         </div>
                         <p className="text-lg lg:text-xl font-black text-teal-400">${Math.abs(t.amount).toLocaleString()}</p>
                       </div>
                     ))}
-                    {merchantTransactions.length === 0 && <p className="text-center py-10 text-slate-600 font-bold">No previous transactions</p>}
+                    {merchantTransactions.length === 0 && <p className="text-center py-10 text-slate-600 font-bold">{t('no_previous_transactions')}</p>}
                   </div>
                 </div>
 
                 <div className="bg-teal-500/5 border border-teal-500/10 rounded-3xl lg:rounded-[4rem] p-6 lg:p-12 flex flex-col justify-center items-center text-center space-y-6 lg:space-y-8">
                   <div className="w-16 lg:w-24 h-16 lg:h-24 bg-teal-500/20 rounded-full flex items-center justify-center text-3xl lg:text-5xl shadow-[0_0_40px_rgba(20,184,166,0.2)]">🛡️</div>
                   <div className="space-y-4">
-                    <h3 className="text-2xl lg:text-3xl font-black text-white">Integrated Protection System</h3>
+                    <h3 className="text-2xl lg:text-3xl font-black text-white">{t('protection_system_title')}</h3>
                     <p className="text-slate-400 font-bold text-sm lg:text-base leading-relaxed max-w-md mx-auto">
-                      All your deals are protected by AES-256 military-grade encryption. Every transaction is verified via the central Riyadh node to ensure the highest levels of reliability.
+                      {t('protection_system_desc')}
                     </p>
                   </div>
-                  <button onClick={() => setActiveTab('create')} className="w-full sm:w-auto px-10 py-4 bg-teal-600 rounded-2xl font-black hover:bg-teal-500 transition-all shadow-xl">Start New Deal Now</button>
+                  <button onClick={() => setActiveTab('create')} className="w-full sm:w-auto px-10 py-4 bg-teal-600 rounded-2xl font-black hover:bg-teal-500 transition-all shadow-xl">{t('start_new_deal')}</button>
                 </div>
               </div>
             </div>
@@ -321,53 +339,53 @@ const MerchantDealCreator: React.FC<Props> = ({
                 <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-teal-500 to-transparent"></div>
                 
                 <div className="space-y-2">
-                  <h3 className="text-2xl lg:text-4xl font-black tracking-tighter">Commercial Deal Details</h3>
-                  <p className="text-sm lg:text-base text-slate-500 font-bold">Enter the required data to create an LC-guaranteed payment request.</p>
+                  <h3 className="text-2xl lg:text-4xl font-black tracking-tighter">{t('commercial_deal_details')}</h3>
+                  <p className="text-sm lg:text-base text-slate-500 font-bold">{t('commercial_deal_desc')}</p>
                 </div>
 
                 <form onSubmit={handleCreateDeal} className="space-y-6 lg:space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-500 ml-4 uppercase tracking-widest">Buyer Name (Username)</label>
+                      <label className="text-[10px] font-black text-slate-500 ml-4 uppercase tracking-widest">{t('buyer_name_label')}</label>
                       <input 
                         required
                         type="text" 
                         value={dealForm.buyerName}
                         onChange={e => setDealForm({...dealForm, buyerName: e.target.value})}
                         className="w-full p-4 lg:p-6 bg-black/40 border border-white/10 rounded-2xl lg:rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all"
-                        placeholder="e.g.: user123"
+                        placeholder={t('buyer_name_placeholder')}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-500 ml-4 uppercase tracking-widest">Goods Type</label>
+                      <label className="text-[10px] font-black text-slate-500 ml-4 uppercase tracking-widest">{t('goods_type_label')}</label>
                       <select 
                         value={dealForm.goodsType}
                         onChange={e => setDealForm({...dealForm, goodsType: e.target.value})}
                         className="w-full p-4 lg:p-6 bg-black/40 border border-white/10 rounded-2xl lg:rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all cursor-pointer text-left"
                       >
-                        <option value="Commercial Metals">Commercial Metals</option>
-                        <option value="Clothing">Clothing</option>
-                        <option value="Car Tires">Car Tires</option>
-                        <option value="Construction Materials">Construction Materials</option>
-                        <option value="Car Spare Parts">Car Spare Parts</option>
+                        <option value="Commercial Metals">{t('commercial_metals')}</option>
+                        <option value="Clothing">{t('clothing')}</option>
+                        <option value="Car Tires">{t('car_tires')}</option>
+                        <option value="Construction Materials">{t('construction_materials')}</option>
+                        <option value="Car Spare Parts">{t('car_spare_parts')}</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-500 ml-4 uppercase tracking-widest">Quantity</label>
+                      <label className="text-[10px] font-black text-slate-500 ml-4 uppercase tracking-widest">{t('quantity_label')}</label>
                       <input 
                         required
                         type="text" 
                         value={dealForm.quantity}
                         onChange={e => setDealForm({...dealForm, quantity: e.target.value})}
                         className="w-full p-4 lg:p-6 bg-black/40 border border-white/10 rounded-2xl lg:rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all"
-                        placeholder="e.g.: 1000 units"
+                        placeholder={t('quantity_placeholder')}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-500 ml-4 uppercase tracking-widest">Total Amount ($)</label>
+                      <label className="text-[10px] font-black text-slate-500 ml-4 uppercase tracking-widest">{t('total_amount_label')}</label>
                       <input 
                         required
                         type="number" 
@@ -380,13 +398,13 @@ const MerchantDealCreator: React.FC<Props> = ({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 ml-4 uppercase tracking-widest">Additional Notes (Optional)</label>
+                    <label className="text-[10px] font-black text-slate-500 ml-4 uppercase tracking-widest">{t('additional_notes_label')}</label>
                     <textarea 
                       maxLength={500}
                       value={dealForm.notes}
                       onChange={e => setDealForm({...dealForm, notes: e.target.value})}
                       className="w-full p-4 lg:p-6 bg-black/40 border border-white/10 rounded-2xl lg:rounded-3xl font-black text-white outline-none focus:border-teal-500 transition-all min-h-[120px] resize-none"
-                      placeholder="Write any additional notes here (max 500 characters)..."
+                      placeholder={t('additional_notes_placeholder')}
                     />
                     <div className="text-right">
                       <span className="text-[10px] text-slate-600 font-bold">{dealForm.notes.length}/500</span>
@@ -395,11 +413,11 @@ const MerchantDealCreator: React.FC<Props> = ({
 
                   <div className="p-6 lg:p-8 bg-teal-500/5 border border-teal-500/10 rounded-2xl lg:rounded-[2.5rem] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="space-y-1">
-                      <p className="font-black text-teal-400 text-base lg:text-lg">Documentary Credit System (FastPay)</p>
-                      <p className="text-[10px] lg:text-xs text-slate-500 font-bold">This system is mandatory to ensure the rights of both parties; the amount will be held from the buyer and only released upon uploading the shipping document.</p>
+                      <p className="font-black text-teal-400 text-base lg:text-lg">{t('lc_system_title')}</p>
+                      <p className="text-[10px] lg:text-xs text-slate-500 font-bold">{t('lc_system_desc')}</p>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 bg-teal-500/20 rounded-full border border-teal-500/30 shrink-0">
-                      <span className="text-teal-400 text-[10px] lg:text-xs font-black">Always Active</span>
+                      <span className="text-teal-400 text-[10px] lg:text-xs font-black">{t('always_active')}</span>
                       <span className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></span>
                     </div>
                   </div>
@@ -412,11 +430,11 @@ const MerchantDealCreator: React.FC<Props> = ({
                     {isProcessing ? (
                       <>
                         <span className="w-6 h-6 lg:w-8 lg:h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></span>
-                        <span>Processing data...</span>
+                        <span>{t('processing_data')}</span>
                       </>
                     ) : (
                       <>
-                        <span>Confirm and Create Deal</span>
+                        <span>{t('confirm_and_create_deal')}</span>
                         <span className="text-2xl lg:text-3xl">🤝</span>
                       </>
                     )}
@@ -432,10 +450,10 @@ const MerchantDealCreator: React.FC<Props> = ({
                 <table className="w-full text-right min-w-[800px]">
                   <thead className="bg-white/5 text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] border-b border-white/5">
                     <tr>
-                      <th className="p-6 lg:p-10">Buyer</th>
-                      <th className="p-6 lg:p-10">Amount</th>
-                      <th className="p-6 lg:p-10">Timestamp</th>
-                      <th className="p-6 lg:p-10 text-center">Status</th>
+                      <th className="p-6 lg:p-10">{t('buyer')}</th>
+                      <th className="p-6 lg:p-10">{t('amount')}</th>
+                      <th className="p-6 lg:p-10">{t('timestamp')}</th>
+                      <th className="p-6 lg:p-10 text-center">{t('status')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 font-bold">
@@ -457,14 +475,14 @@ const MerchantDealCreator: React.FC<Props> = ({
                               t.status === 'escrow' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                               'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                             }`}>
-                              {t.status === 'shipped' ? 'Shipped' : t.status === 'escrow' ? 'Escrow' : 'Completed'}
+                              {t.status === 'shipped' ? t('shipped') : t.status === 'escrow' ? t('escrow') : t('completed')}
                             </span>
                             {t.status === 'escrow' && (
                               <button 
                                 onClick={() => handleUploadShippingDoc(t.id)}
                                 className="text-[9px] lg:text-[10px] text-teal-400 hover:text-white underline transition-colors"
                               >
-                                Upload Shipping Document
+                                {t('upload_shipping_doc')}
                               </button>
                             )}
                           </div>
@@ -475,7 +493,7 @@ const MerchantDealCreator: React.FC<Props> = ({
                       <tr>
                         <td colSpan={4} className="p-20 lg:p-40 text-center opacity-30">
                           <div className="text-6xl lg:text-8xl mb-4">📜</div>
-                          <p className="text-xl lg:text-2xl font-black">No deals registered</p>
+                          <p className="text-xl lg:text-2xl font-black">{t('no_deals_registered')}</p>
                         </td>
                       </tr>
                     )}
@@ -516,11 +534,11 @@ const MerchantDealCreator: React.FC<Props> = ({
         {/* Security Footer */}
         <footer className="h-16 bg-black/40 border-t border-white/5 px-12 flex items-center justify-between z-10">
           <div className="flex gap-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
-            <span>AES-256 ENCRYPTION</span>
-            <span>RIYADH-NODE-01</span>
-            <span>SECURE SESSION</span>
+            <span>{t('aes_256_encryption')}</span>
+            <span>{t('riyadh_node')}</span>
+            <span>{t('secure_session')}</span>
           </div>
-          <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Final FastPay Global Financial Infrastructure</p>
+          <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">{t('final_infra_msg')}</p>
         </footer>
       </main>
 
@@ -540,8 +558,8 @@ const MerchantDealCreator: React.FC<Props> = ({
                   📄
                 </div>
                 <div className="space-y-4">
-                  <h3 className="text-4xl font-black tracking-tighter">Upload Shipping Document</h3>
-                  <p className="text-slate-500 font-bold">Please upload the shipping bill in PDF format only to verify the transaction.</p>
+                  <h3 className="text-4xl font-black tracking-tighter">{t('upload_shipping_doc_title')}</h3>
+                  <p className="text-slate-500 font-bold">{t('upload_shipping_doc_desc')}</p>
                 </div>
                 
                 <div className="relative group">
@@ -552,7 +570,7 @@ const MerchantDealCreator: React.FC<Props> = ({
                       const file = e.target.files?.[0];
                       if (file) {
                         if (file.type !== 'application/pdf') {
-                          return alert('Sorry, only PDF files are allowed.');
+                          return alert(t('only_pdf_allowed'));
                         }
                         startUploadAnimation();
                       }
@@ -561,8 +579,8 @@ const MerchantDealCreator: React.FC<Props> = ({
                   />
                   <div className="w-full py-12 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-white/5 group-hover:bg-white/10 group-hover:border-teal-500/40 transition-all flex flex-col items-center gap-4">
                     <span className="text-4xl">📤</span>
-                    <span className="font-black text-teal-400">Click here or drag file to upload</span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">PDF ONLY - MAX 10MB</span>
+                    <span className="font-black text-teal-400">{t('click_to_upload')}</span>
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{t('pdf_only_limit')}</span>
                   </div>
                 </div>
               </div>
@@ -604,8 +622,8 @@ const MerchantDealCreator: React.FC<Props> = ({
                 </div>
 
                 <div className="flex justify-center gap-8 text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">
-                  <span>Verifying Rights</span>
-                  <span>Smart Audit</span>
+                  <span>{t('verifying_rights')}</span>
+                  <span>{t('smart_audit')}</span>
                   <span>AES-256</span>
                 </div>
               </div>
@@ -615,17 +633,17 @@ const MerchantDealCreator: React.FC<Props> = ({
                   ✓
                 </div>
                 <div className="space-y-6">
-                  <h3 className="text-5xl font-black tracking-tighter">Document Uploaded Successfully</h3>
+                  <h3 className="text-5xl font-black tracking-tighter">{t('doc_upload_success_title')}</h3>
                   <div className="p-8 bg-emerald-500/10 border border-emerald-500/20 rounded-[2.5rem] space-y-2">
-                    <p className="text-xl font-black text-emerald-400">Audit will be completed within 4 hours</p>
-                    <p className="text-sm text-slate-500 font-bold">Thank you for adhering to FastPay Global standards to ensure the rights of both parties.</p>
+                    <p className="text-xl font-black text-emerald-400">{t('audit_time_msg')}</p>
+                    <p className="text-sm text-slate-500 font-bold">{t('thank_you_standards')}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setUploadModalTransactionId(null)}
                   className="w-full py-6 bg-white/5 border border-white/10 rounded-2xl font-black text-xl hover:bg-white/10 transition-all"
                 >
-                  Close Window
+                  {t('close_window')}
                 </button>
               </div>
             )}

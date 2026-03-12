@@ -231,14 +231,15 @@ const App: React.FC = () => {
 
   // Cleanup siteConfig to use keys for default values (migration)
   useEffect(() => {
-    if (!isInitialLoad.current) {
+    if (isSupabaseConfigured) {
       const defaultMappings: { [key: string]: string } = {
         "السيادة المالية في عصر السرعة": "hero_title",
         "بوابة FastPay Network لإدارة الأصول والتداول الفوري وحماية الثروات الرقمية بأعلى معايير الأمان العالمية.": "hero_subtitle",
         "افتح حسابك الملكي": "hero_cta_text",
         "تواصل مع الإدارة": "sales_cta_text",
         "الخدمات": "services_title",
-        "حلول متكاملة مصممة للنخبة، تجمع بين السرعة والأمان والابتكار العالمي.": "services_subtitle",
+        "حلول مالية متكاملة مصممة لتجمع بين السرعة والامان والابتكار العالمي": "services_subtitle",
+        "( حلول مالية متكاملة مصممة لتجمع بين السرعة والامان والابتكار العالمي )": "services_subtitle",
         "البنية التحتية المالية العالمية": "gallery_title",
         "FastPay Network هي المعيار العالمي للمدفوعات الرقمية عالية الأمان، نجمع بين التكنولوجيا المتطورة والخدمات المالية المتميزة.": "footer_about",
         "روابط سريعة": "footer_links_title",
@@ -275,7 +276,7 @@ const App: React.FC = () => {
         return hasChanged ? newConfig : prev;
       });
     }
-  }, [siteConfig]); // Run whenever siteConfig changes (e.g. after load)
+  }, [siteConfig, isSupabaseConfigured]); // Run whenever siteConfig changes (e.g. after load)
 
   // Generic Sync Effect for Arrays
   const useSyncEffect = (data: any[], syncFn: (item: any) => Promise<void>, label: string, bulkSync?: (items: any[]) => Promise<void>) => {

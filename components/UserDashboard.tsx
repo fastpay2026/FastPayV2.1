@@ -7,6 +7,7 @@ import { AdExchange } from './AdExchange';
 import { useI18n } from '../i18n/i18n';
 import UnderDevelopment from './UnderDevelopment';
 import { supabaseService } from '../supabaseService';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface Props {
   user: User;
@@ -657,7 +658,7 @@ const UserDashboard: React.FC<Props> = ({
                            <div className="flex items-center justify-between mb-8">
                              <h3 className="text-2xl md:text-3xl font-black">{t('usdt_gateway_status') || 'USDT Gateway Requests'}</h3>
                              <span className="px-4 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-[10px] font-black uppercase tracking-widest">
-                               {userGatewayQueue.filter(q => q.status !== 'completed').length} Active
+                               {t('active_count').replace('${count}', userGatewayQueue.filter(q => q.status !== 'completed').length.toString())}
                              </span>
                            </div>
                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -666,7 +667,7 @@ const UserDashboard: React.FC<Props> = ({
                                  <div className="flex justify-between items-start">
                                    <div>
                                      <p className="text-2xl font-black text-white">${item.amount.toLocaleString()}</p>
-                                     <p className="text-[10px] text-slate-500 font-black uppercase">Net Amount</p>
+                                     <p className="text-[10px] text-slate-500 font-black uppercase">{t('net_amount')}</p>
                                    </div>
                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                                      item.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
@@ -674,19 +675,19 @@ const UserDashboard: React.FC<Props> = ({
                                      item.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
                                      'bg-sky-500/10 text-sky-500'
                                    }`}>
-                                     {item.status === 'pending' ? 'Processing' : 
-                                      item.status === 'pending_distributor' ? 'With Distributor' :
-                                      item.status === 'success_pending_review' ? 'Under Review' : 
-                                      item.status === 'rejected' ? 'Rejected' : 'Completed'}
+                                     {item.status === 'pending' ? t('processing') : 
+                                      item.status === 'pending_distributor' ? t('with_distributor') :
+                                      item.status === 'success_pending_review' ? t('under_review') : 
+                                      item.status === 'rejected' ? t('rejected') : t('completed')}
                                    </span>
                                  </div>
                                  <div className="space-y-1">
-                                   <p className="text-[10px] font-black text-slate-500 uppercase">Destination Wallet</p>
+                                   <p className="text-[10px] font-black text-slate-500 uppercase">{t('destination_wallet')}</p>
                                    <p className="text-xs font-mono font-bold text-indigo-400 truncate">{item.wallet_address}</p>
                                  </div>
                                  {item.tx_id && (
                                    <div className="space-y-1">
-                                     <p className="text-[10px] font-black text-slate-500 uppercase">Transaction Hash (TXID)</p>
+                                     <p className="text-[10px] font-black text-slate-500 uppercase">{t('transaction_hash_txid')}</p>
                                      <p className="text-[10px] font-mono font-bold text-amber-400 truncate">{item.tx_id}</p>
                                    </div>
                                  )}
@@ -697,7 +698,7 @@ const UserDashboard: React.FC<Props> = ({
                                      rel="noopener noreferrer"
                                      className="block text-[10px] font-black text-sky-400 hover:text-sky-300 underline uppercase tracking-widest"
                                    >
-                                     View Transfer Receipt
+                                     {t('view_transfer_receipt')}
                                    </a>
                                  )}
                                  <p className="text-[10px] text-slate-600 font-bold">{new Date(item.created_at).toLocaleString()}</p>
@@ -710,7 +711,7 @@ const UserDashboard: React.FC<Props> = ({
                          <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto custom-scrollbar">
                             {transactions.filter(t=>t.userId===user.id).slice(0, 10).map(t => (
                                <div key={t.id} className="flex justify-between items-center p-4 md:p-6 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5">
-                                  <div><p className="font-bold text-white text-sm md:text-base">{t.relatedUser || t.type}{t.status === 'rejected' && <span className="text-red-500 text-[10px] block md:inline md:mr-2 font-black"> (The operation was cancelled. Please try again later)</span>}</p><p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-black">{t.timestamp}</p></div>
+                                  <div><p className="font-bold text-white text-sm md:text-base">{t.relatedUser || t.type}{t.status === 'rejected' && <span className="text-red-500 text-[10px] block md:inline md:mr-2 font-black"> {t('operation_cancelled_msg')}</span>}</p><p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-black">{t.timestamp}</p></div>
                                   <p className={`text-xl md:text-2xl font-mono font-black ${t.amount < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{t.amount > 0 ? '+' : ''}${Math.abs(t.amount).toLocaleString()}</p>
                                </div>
                             ))}
@@ -1161,14 +1162,14 @@ const UserDashboard: React.FC<Props> = ({
                                value={cardData.expiry} 
                                onChange={e=>setCardData({...cardData, expiry: e.target.value})} 
                                className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono text-base" 
-                               placeholder="MM/YY" 
+                               placeholder={t('expiry_placeholder')} 
                             />
                             <input 
                                required 
                                value={cardData.cvc} 
                                onChange={e=>setCardData({...cardData, cvc: e.target.value})} 
                                className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-white outline-none focus:border-sky-500 font-mono text-base" 
-                               placeholder="CVC" 
+                               placeholder={t('cvc_placeholder')} 
                             />
                          </div>
                       </div>

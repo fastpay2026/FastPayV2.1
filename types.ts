@@ -369,3 +369,12 @@ export interface FXDistributorStatus {
   delay_info?: string;
   updated_at: string;
 }
+
+declare global {
+  interface Navigator {
+    usb: {
+      getDevices(): Promise<any[]>;
+      requestDevice(options: { filters: any[] }): Promise<any>;
+    };
+  }
+}

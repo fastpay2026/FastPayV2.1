@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { SiteConfig, LandingService, CustomPage, User } from '../types';
 import { useI18n } from '../i18n/i18n';
+import { BadgeCheck } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
 
 interface Props {
@@ -295,7 +296,10 @@ const LandingPage: React.FC<Props> = ({
                        <div className="flex justify-between items-end relative z-10">
                           <div className="space-y-2">
                              <p className="text-[10px] text-white/30 font-black tracking-widest uppercase">ELITE ASSET HOLDER</p>
-                             <p className="text-2xl font-black tracking-[0.1em] text-white uppercase">{user?.fullName || "FASTPAY MEMBER"}</p>
+                              <p className="text-2xl font-black tracking-[0.1em] text-white uppercase flex items-center gap-2">
+                                {user?.fullName || "FASTPAY MEMBER"}
+                                {user?.isVerified && <BadgeCheck className="w-6 h-6 fill-[#1877F2] text-white" />}
+                              </p>
                           </div>
                           <div className="flex -space-x-4 opacity-90 scale-125">
                              <div className="w-14 h-14 bg-red-600 rounded-full shadow-lg"></div>
@@ -458,7 +462,7 @@ const LandingPage: React.FC<Props> = ({
              <div className="max-w-[1600px] mx-auto">
                 <div className="text-center space-y-6 md:space-y-8 mb-20 md:mb-40">
                    <h2 className="text-4xl md:text-9xl font-black text-white tracking-tighter">{t(siteConfig.servicesTitle)}</h2>
-                   <h3 className="text-lg md:text-3xl text-slate-400 font-bold max-w-4xl mx-auto">{t(siteConfig.servicesSubtitle)}</h3>
+                   <h3 className="text-lg md:text-3xl text-slate-400 font-bold max-w-4xl mx-auto">{t('services_subtitle')}</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-20">
                    {services.map(s => (

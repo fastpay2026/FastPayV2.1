@@ -5,6 +5,15 @@ import { supabaseService } from '../../supabaseService';
 import { useI18n } from '../../i18n/i18n';
 import { Shield, Cpu, Key, Activity, Settings, RefreshCw, Trash2, CheckCircle, XCircle, Clock, Usb, Save, Plus, Lock } from 'lucide-react';
 
+declare global {
+  interface Navigator {
+    usb: {
+      getDevices(): Promise<any[]>;
+      requestDevice(options: { filters: any[] }): Promise<any>;
+    };
+  }
+}
+
 interface Props {
   accounts: User[];
   onUpdateUser: (user: User) => void;
@@ -62,7 +71,22 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
   const handleReadUsb = async () => {
     setIsReadingUsb(true);
     try {
-      // @ts-ignore
+      // Check if WebUSB is allowed
+      if (!navigator.usb) {
+        throw new Error("WebUSB is not supported in this browser or environment.");
+      }
+      
+      // Check if WebUSB is allowed
+      try {
+        await navigator.usb.getDevices();
+      } catch (e: any) {
+        if (e.name === 'SecurityError') {
+          throw new Error("WebUSB access is blocked by the browser's security policy (often due to iframe restrictions). Please open the app in a new tab to use this feature.");
+        }
+        // If it's another error, we might still be able to proceed, or it might be a real error.
+        console.warn("WebUSB getDevices check failed, but proceeding:", e);
+      }
+
       const device = await navigator.usb.requestDevice({ filters: [] });
       await device.open();
       
@@ -78,9 +102,9 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
       });
       
       alert(`USB Detected: ${device.productName || 'Unknown Device'}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("WebUSB Error:", error);
-      alert("Failed to read USB device. Make sure your browser supports WebUSB and you've granted permission.");
+      alert(error.message || "Failed to read USB device. Make sure your browser supports WebUSB and you've granted permission.");
     } finally {
       setIsReadingUsb(false);
     }

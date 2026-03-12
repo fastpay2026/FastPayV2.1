@@ -18,6 +18,7 @@ import MerchantEscrowManager from './developer/MerchantEscrowManager';
 import { AdminVerificationReview } from './VerificationManager';
 import { AdExchange } from './AdExchange';
 import SecureGatewayManager from './developer/SecureGatewayManager';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface Props {
   user: User;
@@ -127,6 +128,9 @@ const handleManualSync = async () => {
       {/* Sidebar Navigation */}
       <aside className={`fixed lg:static inset-y-0 right-0 w-80 bg-slate-900 border-l border-white/5 flex flex-col shadow-2xl z-[180] overflow-y-auto custom-scrollbar transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-10 border-b border-white/5 text-center">
+           <div className="mb-4">
+             <LanguageSwitcher />
+           </div>
            <img src={siteConfig.logoUrl} style={{ width: `120px` }} className="mx-auto mb-4" alt="Logo" />
            <p className="text-[10px] font-black text-sky-400 uppercase tracking-widest">{t('executive_ops_mgmt')}</p>
            <div className="mt-4 flex items-center justify-center gap-2">

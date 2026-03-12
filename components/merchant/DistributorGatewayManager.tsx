@@ -324,14 +324,14 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
             </div>
             <div>
               <h3 className="text-lg font-black tracking-tight">
-                {(isKeyVerified || isPinVerified) ? 'Security Authorized' : 'Security Authorization Required'}
+                {(isKeyVerified || isPinVerified) ? t('security_authorized') : t('security_auth_required')}
               </h3>
               <p className="text-xs font-bold opacity-70">
                 {isKeyVerified 
-                  ? `USB Key Connected: ${connectedDevice?.productName || 'Authorized Device'}` 
+                  ? t('usb_key_connected').replace('${name}', connectedDevice?.productName || 'Authorized Device')
                   : isPinVerified 
-                    ? 'Authorized via Security PIN Fallback'
-                    : 'Please connect your USB key or enter your Security PIN to enable transfers.'}
+                    ? t('pin_fallback_authorized')
+                    : t('connect_usb_or_pin')}
               </p>
             </div>
           </div>
@@ -343,18 +343,18 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                 className="px-6 py-2 bg-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10 flex items-center gap-2"
               >
                 <Smartphone size={14} />
-                {showPinInput ? 'Cancel PIN' : 'Use PIN Fallback'}
+                {showPinInput ? t('cancel_pin') : t('use_pin_fallback')}
               </button>
             )}
             <button 
               onClick={handleManualVerify} 
               className="px-6 py-2 bg-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10"
             >
-              Manual USB Verify
+              {t('manual_usb_verify')}
             </button>
             {!(isKeyVerified || isPinVerified) && !isCheckingKey && (
               <button onClick={checkUsbKey} className="px-6 py-2 bg-red-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all">
-                Retry Detection
+                {t('retry_detection')}
               </button>
             )}
           </div>
@@ -374,7 +374,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                   <input 
                     type="text"
                     maxLength={6}
-                    placeholder="Enter 6-digit Security PIN"
+                    placeholder={t('enter_6_digit_pin')}
                     value={pinInput}
                     onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
                     className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 font-black text-center text-2xl tracking-[1em] text-sky-400 outline-none focus:border-sky-500"
@@ -386,7 +386,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                   className="w-full md:w-auto px-10 py-4 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-2"
                 >
                   {isVerifyingPin ? <RefreshCw className="animate-spin" size={20} /> : <Check size={20} />}
-                  Verify PIN
+                  {t('verify_pin')}
                 </button>
               </div>
             </motion.div>
@@ -457,21 +457,21 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
             <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
               <h3 className="text-xl font-black flex items-center gap-3">
                 <Clock className="text-sky-400" size={20} />
-                Incoming Transfer Requests
+                {t('incoming_transfer_requests')}
               </h3>
               <span className="px-4 py-1 bg-sky-500/10 text-sky-400 rounded-full text-[10px] font-black uppercase tracking-widest">
-                {orders.filter(o => o.status === 'pending_distributor').length} Pending Requests
+                {t('pending_requests_count').replace('${count}', orders.filter(o => o.status === 'pending_distributor').length.toString())}
               </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-right">
                 <thead>
                   <tr className="bg-black/20 text-slate-500 text-[10px] font-black uppercase tracking-widest">
-                    <th className="p-6">Total Amount</th>
-                    <th className="p-6">Net to Recipient</th>
-                    <th className="p-6">Status</th>
-                    <th className="p-6">Timestamp</th>
-                    <th className="p-6">Action</th>
+                    <th className="p-6">{t('total_amount')}</th>
+                    <th className="p-6">{t('net_to_recipient')}</th>
+                    <th className="p-6">{t('status')}</th>
+                    <th className="p-6">{t('timestamp')}</th>
+                    <th className="p-6">{t('action')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -479,7 +479,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                     <tr key={order.id} className="hover:bg-white/5 transition-colors group">
                       <td className="p-6">
                         <p className="font-black text-lg">${order.total_amount.toLocaleString()}</p>
-                        <p className="text-[10px] text-slate-500 font-bold">Including Fees</p>
+                        <p className="text-[10px] text-slate-500 font-bold">{t('including_fees')}</p>
                       </td>
                       <td className="p-6">
                         <p className="font-black text-emerald-400 text-lg">${order.amount.toLocaleString()}</p>
@@ -492,9 +492,9 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                           order.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
                           'bg-sky-500/10 text-sky-500'
                         }`}>
-                          {(order.status === 'pending_distributor' || order.status === 'pending') ? 'Waiting for you' : 
-                           order.status === 'success_pending_review' ? 'Under Review' : 
-                           order.status === 'rejected' ? 'Rejected' : 'Completed'}
+                          {(order.status === 'pending_distributor' || order.status === 'pending') ? t('waiting_for_you') : 
+                           order.status === 'success_pending_review' ? t('under_review') : 
+                           order.status === 'rejected' ? t('rejected') : t('completed')}
                         </span>
                       </td>
                       <td className="p-6 text-xs text-slate-500 font-bold">
@@ -507,7 +507,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                             disabled={!isKeyVerified && !isPinVerified}
                             className="px-6 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-black rounded-xl text-xs transition-all"
                           >
-                            Process Order
+                            {t('process_order')}
                           </button>
                         )}
                       </td>
@@ -515,7 +515,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                   ))}
                   {orders.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="p-20 text-center text-slate-600 font-bold">No requests currently</td>
+                      <td colSpan={5} className="p-20 text-center text-slate-600 font-bold">{t('no_requests_currently')}</td>
                     </tr>
                   )}
                 </tbody>
@@ -529,7 +529,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
           <div className="glass-card p-8 rounded-[3rem] border border-white/5 space-y-6">
             <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
               <Key size={16} />
-              Authorized Flash Keys
+              {t('authorized_flash_keys')}
             </h3>
             <div className="space-y-3">
               {keys.map(k => (
@@ -542,19 +542,17 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                       0x{k.vendor_id.toString(16).toUpperCase()}:0x{k.product_id.toString(16).toUpperCase()}
                     </span>
                   </div>
-                  <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
+                  <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">{t('active')}</span>
                 </div>
               ))}
-              {keys.length === 0 && <p className="text-center text-[10px] text-slate-600 font-bold py-4">No programmed keys found. Contact administration.</p>}
+              {keys.length === 0 && <p className="text-center text-[10px] text-slate-600 font-bold py-4">{t('no_programmed_keys')}</p>}
             </div>
           </div>
 
           <div className="p-8 bg-black/40 rounded-[3rem] border border-white/5">
-            <h4 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Distributor Notice</h4>
+            <h4 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">{t('distributor_notice')}</h4>
             <p className="text-sm font-bold text-slate-400 leading-relaxed">
-              All transfers must be verified using your physical security key. Ensure the key is connected before attempting to process orders. 
-              <br /><br />
-              Upload a clear image of the transfer receipt for automated OCR validation.
+              {t('distributor_notice_desc')}
             </p>
           </div>
         </div>
@@ -579,9 +577,9 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
             >
               <div className="p-10 space-y-8">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-black tracking-tight">Process Transfer</h3>
+                  <h3 className="text-2xl font-black tracking-tight">{t('process_transfer')}</h3>
                   <div className="text-right">
-                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Amount Due</p>
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest">{t('amount_due')}</p>
                     <p className="text-2xl font-black text-sky-400">${selectedOrder.total_amount.toLocaleString()}</p>
                   </div>
                 </div>
@@ -590,7 +588,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                   <div className="p-6 bg-sky-500/10 rounded-3xl border border-sky-500/20 space-y-4">
                     <h4 className="text-[10px] font-black text-sky-400 uppercase tracking-widest flex items-center gap-2">
                       <Wallet size={12} />
-                      Target USDT Wallet Address
+                      {t('target_usdt_wallet')}
                     </h4>
                     <div className="flex items-center justify-between bg-black/20 p-4 rounded-2xl">
                       <code className="text-sm font-mono text-white break-all">{selectedOrder.wallet_address}</code>
@@ -611,7 +609,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                     <div className="flex items-center justify-between">
                       <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                         <Upload size={12} />
-                        Upload Transfer Receipt
+                        {t('upload_transfer_receipt')}
                       </h4>
                       {receiptFile && <Check size={16} className="text-emerald-500" />}
                     </div>
@@ -620,8 +618,8 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                       <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/10 rounded-2xl cursor-pointer hover:bg-white/5 transition-all group">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <ImageIcon className="w-10 h-10 text-slate-500 group-hover:text-sky-400 transition-colors mb-3" />
-                          <p className="text-sm font-bold text-slate-400">Click to upload or drag and drop</p>
-                          <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest mt-1">PNG, JPG or PDF (Max 5MB)</p>
+                          <p className="text-sm font-bold text-slate-400">{t('click_to_upload_desc')}</p>
+                          <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest mt-1">{t('upload_formats_limit')}</p>
                         </div>
                         <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
                       </label>
@@ -633,7 +631,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                             onClick={() => { setReceiptFile(null); setReceiptPreview(null); }}
                             className="p-3 bg-red-500 text-white rounded-xl font-black text-xs uppercase tracking-widest"
                           >
-                            Remove & Change
+                            {t('remove_change')}
                           </button>
                         </div>
                       </div>
@@ -651,9 +649,9 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                        ocrStatus === 'success' ? <CheckCircle size={16} /> :
                        <AlertCircle size={16} />}
                       <span className="text-xs font-bold">
-                        {ocrStatus === 'processing' ? 'Analyzing receipt with OCR...' :
-                         ocrStatus === 'success' ? 'Receipt validated successfully. Date and amount match.' :
-                         ocrError || 'OCR validation failed. Please ensure the image is clear.'}
+                        {ocrStatus === 'processing' ? t('analyzing_ocr') :
+                         ocrStatus === 'success' ? t('receipt_validated_success') :
+                         t('ocr_failed')}
                       </span>
                     </div>
                   )}
@@ -664,7 +662,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                       disabled={isProcessing}
                       className="py-4 bg-white/5 hover:bg-white/10 text-white font-black rounded-2xl transition-all"
                     >
-                      Cancel
+                      {t('cancel')}
                     </button>
                     <button 
                       onClick={handleProcessOrder}
@@ -672,7 +670,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                       className="py-4 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-black rounded-2xl shadow-xl shadow-sky-900/20 transition-all flex items-center justify-center gap-3"
                     >
                       {isProcessing ? <RefreshCw className="animate-spin" /> : <Zap size={18} />}
-                      Complete Transfer
+                      {t('complete_transfer')}
                     </button>
                   </div>
                 </div>

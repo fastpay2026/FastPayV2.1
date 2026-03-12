@@ -9,6 +9,7 @@ import { MerchantVerification } from './VerificationManager';
 import { AdExchange } from './AdExchange';
 import DistributorGatewayManager from './merchant/DistributorGatewayManager';
 import UnderDevelopment from './UnderDevelopment';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface Props {
   user: User;
@@ -36,7 +37,7 @@ const MerchantDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations,
   addNotification, onUpdateUser
 }) => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'usdt_gateway' | 'verification' | 'ads'>('main');
   const [modalType, setModalType] = useState<'send' | 'cards' | 'new_key' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -53,7 +54,7 @@ const MerchantDashboard: React.FC<Props> = ({
   useEffect(() => {
     if (user.balance > prevBalanceRef.current) {
       const diff = user.balance - prevBalanceRef.current;
-      addNotification('Account Recharged', `Administration added $${diff.toLocaleString()} to your balance.`, 'money');
+      addNotification(t('account_recharged_notif'), t('admin_recharge_msg').replace('${amount}', diff.toLocaleString()), 'money');
     }
     prevBalanceRef.current = user.balance;
   }, [user.balance, addNotification]);
@@ -79,14 +80,14 @@ const MerchantDashboard: React.FC<Props> = ({
   };
 
   const bankingPhrases = [
-    "Opening encrypted connection with Central Commercial Registry...",
-    "Verifying liquidity sufficiency in Distributor Sovereign Wallet...",
-    "Generating unique digital signature via FastPay-Secure protocol...",
-    "Scanning international compliance standards (KYC/AML)...",
-    "Securing transfer via AES-256 military-grade encryption...",
-    "Sending final settlement data to Main Banking Server...",
-    "Updating balances in globally distributed ledger...",
-    "Generating transaction receipt and confirming transfer..."
+    t('banking_phrase_1'),
+    t('banking_phrase_2'),
+    t('banking_phrase_3'),
+    t('banking_phrase_4'),
+    t('banking_phrase_5'),
+    t('banking_phrase_6'),
+    t('banking_phrase_7'),
+    t('banking_phrase_8')
   ];
 
   const currencies = [
@@ -99,12 +100,11 @@ const MerchantDashboard: React.FC<Props> = ({
 
   const handleGenerateCards = () => {
     const totalCost = cardAmount * cardQuantity;
-    if (totalCost > user.balance) return alert('Insufficient balance in distributor wallet');
+    if (totalCost > user.balance) return alert(t('insufficient_balance_distributor'));
     
     const newCards: RechargeCard[] = [];
     const now = new Date();
     const ts = now.toISOString();
-    const displayTs = now.toLocaleString();
 
     for (let i = 0; i < cardQuantity; i++) {
       newCards.push({
@@ -126,10 +126,10 @@ const MerchantDashboard: React.FC<Props> = ({
       type: 'generate_card', 
       amount: -totalCost, 
       timestamp: ts, 
-      relatedUser: `Generated ${cardQuantity} cards` 
+      relatedUser: t('generated_cards_count').replace('${count}', cardQuantity.toString()) 
     }, ...prev]);
     
-    addNotification('Card Generation', `Generated ${cardQuantity} cards worth $${totalCost} successfully.`, 'money');
+    addNotification(t('card_generation'), t('card_generation_notif').replace('${count}', cardQuantity.toString()).replace('${amount}', totalCost.toLocaleString()), 'money');
     setModalType(null);
   };
 
@@ -138,8 +138,8 @@ const MerchantDashboard: React.FC<Props> = ({
     const value = parseFloat(sendAmount);
     const target = accounts.find(acc => acc.username === recipient && acc.id !== user.id);
     
-    if (!target) return alert('Error: Recipient username not found in the system');
-    if (value > user.balance || isNaN(value) || value <= 0) return alert('Error: Insufficient balance or invalid amount');
+    if (!target) return alert(t('recipient_not_found'));
+    if (value > user.balance || isNaN(value) || value <= 0) return alert(t('insufficient_balance_invalid'));
 
     setIsTransferring(true);
     setTransferProgress(0);
@@ -203,7 +203,7 @@ const MerchantDashboard: React.FC<Props> = ({
         timestamp: ts 
       }, ...prev]);
 
-      addNotification('Transfer Successful', `Transferred $${value} to ${target.fullName} successfully.`, 'money');
+      addNotification(t('transfer_successful_notif'), t('transfer_successful_msg').replace('${amount}', `$${value}`).replace('${name}', target.fullName), 'money');
       setTransferSuccess(true);
       
       setTimeout(() => {
@@ -216,7 +216,7 @@ const MerchantDashboard: React.FC<Props> = ({
   };
 
   const handleGenerateApiKey = () => {
-    if (!newKeyName.trim()) return alert('Please enter a name for the key');
+    if (!newKeyName.trim()) return alert(t('enter_key_name'));
     const newKey: APIKey = {
       id: uuidv4(),
       key: `pk_live_${uuidv4().replace(/-/g, '')}`,
@@ -228,23 +228,23 @@ const MerchantDashboard: React.FC<Props> = ({
     onUpdateUser({ ...user, apiKeys: [...(user.apiKeys || []), newKey] });
     setModalType(null);
     setNewKeyName('');
-    addNotification('API Security', `New key generated: ${newKeyName}`, 'security');
+    addNotification(t('api_security'), t('new_key_generated').replace('${name}', newKeyName), 'security');
   };
 
   const handleRevokeKey = (id: string) => {
-    if (!confirm('Are you sure you want to revoke this key? Linked services will stop immediately.')) return;
+    if (!confirm(t('revoke_key_confirm'))) return;
     const updatedKeys = (user.apiKeys || []).map(k => k.id === id ? { ...k, status: 'revoked' as const } : k);
     onUpdateUser({ ...user, apiKeys: updatedKeys });
-    addNotification('API Security', 'API access key revoked.', 'security');
+    addNotification(t('api_security'), t('key_revoked'), 'security');
   };
 
   const handleCancelCard = (card: RechargeCard) => {
     if (!card || card.isUsed) {
-      alert('Error: This card cannot be cancelled');
+      alert(t('card_cancel_error'));
       return;
     }
     
-    if (!confirm(`Are you sure you want to cancel card (${card.code})? It will be deleted and its value ($${card.amount}) will be refunded to your balance.`)) return;
+    if (!confirm(t('card_cancel_confirm').replace('${code}', card.code).replace('${amount}', `$${card.amount}`))) return;
 
     const refundAmount = card.amount;
     const cardCode = card.code;
@@ -264,10 +264,10 @@ const MerchantDashboard: React.FC<Props> = ({
       type: 'receive',
       amount: refundAmount,
       timestamp: ts,
-      relatedUser: `Card Cancellation: ${cardCode}`
+      relatedUser: t('card_cancellation_ref').replace('${code}', cardCode)
     }, ...prev]);
 
-    addNotification('Card Cancelled', `Card cancelled successfully and $${refundAmount} refunded to your wallet.`, 'money');
+    addNotification(t('card_cancelled'), t('card_cancelled_msg').replace('${amount}', `$${refundAmount}`), 'money');
   };
 
   const handleChangePassword = (e: React.FormEvent) => {
@@ -276,15 +276,15 @@ const MerchantDashboard: React.FC<Props> = ({
     setPasswordSuccess(false);
 
     if (oldPassword !== user.password) {
-      setPasswordError('Current password is incorrect');
+      setPasswordError(t('current_password_incorrect'));
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+      setPasswordError(t('password_min_length'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+      setPasswordError(t('passwords_do_not_match'));
       return;
     }
 
@@ -293,7 +293,7 @@ const MerchantDashboard: React.FC<Props> = ({
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    addNotification('Account Security', 'Distributor password updated successfully.', 'security');
+    addNotification(t('account_security'), t('password_updated_success'), 'security');
     setTimeout(() => setPasswordSuccess(false), 3000);
   };
 
@@ -341,11 +341,11 @@ header('Location: ' . $payment->checkout_url);`
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('Copied to clipboard');
+    alert(t('copied_to_clipboard'));
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex flex-col bg-[#020617] text-white text-left font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[150] flex flex-col bg-[#020617] text-white font-sans overflow-hidden" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="absolute inset-0 bg-mesh opacity-20 pointer-events-none"></div>
 
       {/* Currency Ticker */}
@@ -375,12 +375,12 @@ header('Location: ' . $payment->checkout_url);`
                <h1 className="text-xl md:text-2xl font-black tracking-tighter">{t('merchant_dashboard')}</h1>
                <nav className="flex gap-4 md:gap-6">
                   {[
-                    { id: 'main', l: t('home') || 'Home' },
-                    { id: 'usdt_gateway', l: t('usdt_gateway_status') || 'USDT Gateway' },
-                    { id: 'gateway', l: t('developer_portal_title') || 'Developer Portal' },
-                    { id: 'ads', l: t('ad_exchange') || 'Ad Exchange' },
-                    { id: 'verification', l: t('account_verification') || 'Account Verification' },
-                    { id: 'settings', l: t('account_settings') || 'Account Settings' }
+                    { id: 'main', l: t('home') },
+                    { id: 'usdt_gateway', l: t('usdt_gateway_status') },
+                    { id: 'gateway', l: t('developer_portal_title') },
+                    { id: 'ads', l: t('ad_exchange') },
+                    { id: 'verification', l: t('account_verification') },
+                    { id: 'settings', l: t('account_settings') }
                  ].map((view) => (
                    <button 
                      key={view.id}
@@ -410,12 +410,12 @@ header('Location: ' . $payment->checkout_url);`
         <div className="lg:hidden fixed inset-0 z-[190] bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="absolute top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
             {[
-              { id: 'main', l: t('home') || 'Home', i: '🏠' },
-              { id: 'usdt_gateway', l: t('usdt_gateway_status') || 'USDT Gateway', i: '🛡️' },
-              { id: 'gateway', l: t('developer_portal_title') || 'Developer Portal', i: '🔌' },
-              { id: 'ads', l: t('ad_exchange') || 'Ad Exchange', i: '📢' },
-              { id: 'verification', l: t('account_verification') || 'Account Verification', i: '🛡️' },
-              { id: 'settings', l: t('account_settings') || 'Account Settings', i: '⚙️' }
+              { id: 'main', l: t('home'), i: '🏠' },
+              { id: 'usdt_gateway', l: t('usdt_gateway_status'), i: '🛡️' },
+              { id: 'gateway', l: t('developer_portal_title'), i: '🔌' },
+              { id: 'ads', l: t('ad_exchange'), i: '📢' },
+              { id: 'verification', l: t('account_verification'), i: '🛡️' },
+              { id: 'settings', l: t('account_settings'), i: '⚙️' }
             ].map(v => (
               <button 
                 key={v.id} 
@@ -444,7 +444,7 @@ header('Location: ' . $payment->checkout_url);`
                         </div>
                         <div className="flex flex-col sm:flex-row flex-wrap gap-4 md:gap-6">
                            <button onClick={() => setModalType('cards')} className="flex-1 py-6 md:py-8 bg-emerald-600 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl shadow-emerald-900/40 hover:bg-emerald-500 transition-all flex items-center justify-center gap-4 active:scale-95 group">
-                              <span>{t('issue_cards') || 'Issue Cards'}</span>
+                              <span>{t('issue_cards')}</span>
                               <span className="text-2xl md:text-3xl group-hover:rotate-12 transition-transform">🎫</span>
                            </button>
                            <button onClick={() => setModalType('send')} className="flex-1 py-6 md:py-8 bg-white/5 border border-white/10 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl backdrop-blur-xl hover:bg-white/10 transition-all flex items-center justify-center gap-4 active:scale-95 group">
@@ -457,10 +457,10 @@ header('Location: ' . $payment->checkout_url);`
 
                   <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                      {[
-                        { l: t('total_cards') || 'Total Cards', v: myGeneratedCards.length, i: '📦', c: 'text-white' },
-                        { l: t('active_stock') || 'Active Stock', v: myGeneratedCards.filter(c=>!c.isUsed).length, i: '⚡', c: 'text-sky-400' },
-                        { l: t('successful_operations') || 'Successful Operations', v: myGeneratedCards.filter(c=>c.isUsed).length, i: '✅', c: 'text-emerald-500' },
-                        { l: t('sales_revenue') || 'Sales Revenue', v: `$${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}`, i: '💰', c: 'text-amber-500' }
+                        { l: t('total_cards'), v: myGeneratedCards.length, i: '📦', c: 'text-white' },
+                        { l: t('active_stock'), v: myGeneratedCards.filter(c=>!c.isUsed).length, i: '⚡', c: 'text-sky-400' },
+                        { l: t('successful_operations'), v: myGeneratedCards.filter(c=>c.isUsed).length, i: '✅', c: 'text-emerald-500' },
+                        { l: t('sales_revenue'), v: `$${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}`, i: '💰', c: 'text-amber-500' }
                      ].map((stat, idx) => (
                        <div key={idx} className="p-6 md:p-10 bg-[#0f172a]/60 backdrop-blur-xl border border-white/5 rounded-2xl md:rounded-[3rem] shadow-xl hover:border-sky-500/30 transition-all group">
                           <div className="flex justify-between items-start mb-4 md:mb-6">
@@ -476,12 +476,12 @@ header('Location: ' . $payment->checkout_url);`
                <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
                   <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                      <h3 className="text-2xl md:text-4xl font-black tracking-tighter flex items-center gap-4">
-                        <span>📊</span> Detailed Card Sales Log
+                        <span>📊</span> {t('card_sales_log')}
                      </h3>
                      <div className="w-full md:w-96 relative">
                         <input 
                           type="text"
-                          placeholder="Search by card code or user..."
+                          placeholder={t('search_placeholder_card_user')}
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           className="w-full p-4 md:p-5 pl-14 bg-white/5 border border-white/10 rounded-2xl font-bold text-white outline-none focus:border-sky-500 transition-all shadow-inner"
@@ -494,13 +494,13 @@ header('Location: ' . $payment->checkout_url);`
                      <table className="w-full text-right min-w-[1000px]">
                         <thead className="bg-white/5 text-[10px] md:text-[11px] font-black uppercase text-slate-500 tracking-[0.2em] border-b border-white/5">
                            <tr>
-                              <th className="p-6 md:p-10">Digital Card Code</th>
-                              <th className="p-6 md:p-10">Value</th>
-                              <th className="p-6 md:p-10">Status</th>
-                              <th className="p-6 md:p-10">Beneficiary</th>
-                              <th className="p-6 md:p-10">Creation Time</th>
-                              <th className="p-6 md:p-10">Usage Time</th>
-                              <th className="p-6 md:p-10 text-center">Control</th>
+                              <th className="p-6 md:p-10">{t('card_code')}</th>
+                              <th className="p-6 md:p-10">{t('value')}</th>
+                              <th className="p-6 md:p-10">{t('status')}</th>
+                              <th className="p-6 md:p-10">{t('beneficiary')}</th>
+                              <th className="p-6 md:p-10">{t('creation_time')}</th>
+                              <th className="p-6 md:p-10">{t('usage_time')}</th>
+                              <th className="p-6 md:p-10 text-center">{t('control')}</th>
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 font-bold">
@@ -516,7 +516,7 @@ header('Location: ' . $payment->checkout_url);`
                                    <td className="p-6 md:p-10 text-2xl md:text-3xl font-black text-white">${c.amount.toLocaleString()}</td>
                                    <td className="p-6 md:p-10">
                                       <span className={`px-4 md:px-6 py-1.5 md:py-2.5 rounded-full text-[9px] md:text-[10px] font-black border transition-colors ${c.isUsed ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}`}>
-                                         {c.isUsed ? 'Used' : 'Available for Sale'}
+                                         {c.isUsed ? t('used') : t('available_for_sale')}
                                       </span>
                                    </td>
                                    <td className="p-6 md:p-10">
@@ -529,10 +529,10 @@ header('Location: ' . $payment->checkout_url);`
                                       )}
                                    </td>
                                    <td className="p-6 md:p-10 text-[10px] md:text-xs text-slate-500 font-mono">
-                                      {new Date(c.createdAt).toLocaleString('ar-SA')}
+                                      {new Date(c.createdAt).toLocaleString(language === 'ar' ? 'ar-SA' : language === 'fr' ? 'fr-FR' : 'en-US')}
                                    </td>
                                    <td className="p-6 md:p-10 text-[10px] md:text-xs font-mono">
-                                      {c.isUsed && c.usedAt ? <span className="text-emerald-400">{new Date(c.usedAt).toLocaleString('ar-SA')}</span> : <span className="text-slate-600">...</span>}
+                                      {c.isUsed && c.usedAt ? <span className="text-emerald-400">{new Date(c.usedAt).toLocaleString(language === 'ar' ? 'ar-SA' : language === 'fr' ? 'fr-FR' : 'en-US')}</span> : <span className="text-slate-600">...</span>}
                                    </td>
                                    <td className="p-6 md:p-10 text-center">
                                       {!c.isUsed && (
@@ -606,27 +606,27 @@ header('Location: ' . $payment->checkout_url);`
                                   <td className="p-6 md:p-8">
                                      <div className="flex items-center gap-4 bg-black/40 px-6 py-3 rounded-2xl border border-white/5 w-max">
                                         <code className="text-sky-300 font-mono text-xs tracking-widest">{isKeyVisibleId === k.id ? k.key : '••••••••••••••••••••••••'}</code>
-                                        <button onClick={() => setIsKeyVisibleId(isKeyVisibleId === k.id ? null : k.id)} className="text-[10px] font-black text-slate-500 hover:text-white">{isKeyVisibleId === k.id ? 'Hide' : 'Show'}</button>
-                                        <button onClick={() => copyToClipboard(k.key)} className="text-[10px] font-black text-sky-500">Copy</button>
+                                        <button onClick={() => setIsKeyVisibleId(isKeyVisibleId === k.id ? null : k.id)} className="text-[10px] font-black text-slate-500 hover:text-white">{isKeyVisibleId === k.id ? t('hide') : t('show')}</button>
+                                        <button onClick={() => copyToClipboard(k.key)} className="text-[10px] font-black text-sky-500">{t('copy')}</button>
                                      </div>
                                   </td>
                                   <td className="p-6 md:p-8 text-white font-mono">{k.requests}</td>
                                   <td className="p-6 md:p-8 text-xs text-slate-500 font-mono">{k.createdAt}</td>
                                   <td className="p-6 md:p-8 text-center">
                                      <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border ${k.status === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                                        {k.status === 'active' ? 'Active' : 'Revoked'}
+                                        {k.status === 'active' ? t('active') : t('revoked')}
                                      </span>
                                   </td>
                                   <td className="p-6 md:p-8 text-center">
                                      {k.status === 'active' && (
-                                       <button onClick={() => handleRevokeKey(k.id)} className="text-red-500 hover:bg-red-500/10 px-4 py-2 rounded-xl transition-all font-black text-xs">Revoke</button>
+                                       <button onClick={() => handleRevokeKey(k.id)} className="text-red-500 hover:bg-red-500/10 px-4 py-2 rounded-xl transition-all font-black text-xs">{t('revoke')}</button>
                                      )}
                                   </td>
                                </tr>
                              ))
                            ) : (
                              <tr>
-                               <td colSpan={6} className="p-20 text-center italic text-slate-600">No API keys found. Start by generating a key to link your store.</td>
+                               <td colSpan={6} className="p-20 text-center italic text-slate-600">{t('no_api_keys')}</td>
                              </tr>
                            )}
                         </tbody>
@@ -638,7 +638,7 @@ header('Location: ' . $payment->checkout_url);`
                   <div className="lg:col-span-2">
                      <div className="bg-[#111827] p-6 md:p-12 border border-white/5 rounded-2xl md:rounded-[4rem] shadow-2xl space-y-10">
                         <div className="flex flex-col sm:flex-row justify-between items-center border-b border-white/5 pb-8 gap-4">
-                           <h3 className="text-2xl md:text-3xl font-black text-emerald-400">Integration Documentation (SDK)</h3>
+                           <h3 className="text-2xl md:text-3xl font-black text-emerald-400">{t('integration_doc')}</h3>
                            <div className="flex bg-black/40 p-1 rounded-2xl border border-white/10">
                               {(['nodejs', 'python', 'php'] as const).map(l => (
                                  <button key={l} onClick={() => setActiveLang(l)} className={`px-4 md:px-6 py-2 rounded-xl text-[10px] md:text-xs font-black uppercase transition-all ${activeLang === l ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>{l}</button>
@@ -654,8 +654,8 @@ header('Location: ' . $payment->checkout_url);`
                   </div>
                   <div className="bg-gradient-to-br from-[#020617] to-slate-900 p-8 md:p-12 border border-white/10 rounded-2xl md:rounded-[4rem] shadow-2xl flex flex-col items-center justify-center text-center gap-8">
                      <div className="w-20 md:w-24 h-20 md:h-24 bg-sky-600/10 rounded-full flex items-center justify-center text-4xl md:text-5xl">🛠️</div>
-                     <h3 className="text-xl md:text-2xl font-black uppercase tracking-widest">Payment Simulator</h3>
-                     <p className="text-slate-400 font-bold text-sm md:text-base">This interface is what your customer will see when calling our payment link from your site.</p>
+                     <h3 className="text-xl md:text-2xl font-black uppercase tracking-widest">{t('payment_simulator')}</h3>
+                     <p className="text-slate-400 font-bold text-sm md:text-base">{t('payment_simulator_desc')}</p>
                      <div className="p-6 bg-[#020617] rounded-3xl border border-white/10 w-full flex flex-col gap-4 animate-pulse">
                         {siteConfig.logoUrl && <img src={siteConfig.logoUrl} className="h-6 opacity-50" alt="Logo" />}
                         <div className="h-8 bg-white/5 rounded-lg"></div>
@@ -725,7 +725,7 @@ header('Location: ' . $payment->checkout_url);`
                     </div>
                     <div className="p-6 md:p-8 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5 space-y-2">
                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('distributor_id')}</p>
-                       <p className="text-lg md:text-xl font-mono text-sky-400">ID: {user.id.toUpperCase()}</p>
+                       <p className="text-lg md:text-xl font-mono text-sky-400">{t('id_label')} {user.id.toUpperCase()}</p>
                     </div>
                  </div>
 
@@ -763,27 +763,27 @@ header('Location: ' . $payment->checkout_url);`
                
                {!isTransferring ? (
                   <form onSubmit={handleStartTransfer} className="space-y-8 md:space-y-12">
-                     <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">Direct Balance Transfer</h3>
+                     <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white">{t('direct_balance_transfer')}</h3>
                      <div className="space-y-6 md:space-y-8 text-left">
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">Recipient Username</label>
-                           <input required value={recipient} onChange={e=>setRecipient(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-xl md:text-2xl text-white outline-none" placeholder="@username" />
+                           <label className="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">{t('recipient_username')}</label>
+                           <input required value={recipient} onChange={e=>setRecipient(e.target.value)} className="w-full p-5 md:p-6 bg-black/40 border border-white/10 rounded-2xl font-black text-xl md:text-2xl text-white outline-none" placeholder={t('username_placeholder') || '@username'} />
                         </div>
                         <div className="space-y-3">
-                           <label className="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">Amount ($)</label>
+                           <label className="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">{t('amount_usd')}</label>
                            <input required type="number" value={sendAmount} onChange={e=>setSendAmount(e.target.value)} className="w-full p-6 md:p-8 bg-black/40 border border-white/10 rounded-2xl font-black text-4xl md:text-5xl text-center text-sky-400 outline-none" placeholder="0.00" />
                         </div>
                      </div>
-                     <button type="submit" className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">Confirm and Initiate Transfer</button>
+                     <button type="submit" className="w-full py-6 md:py-8 bg-sky-600 rounded-2xl md:rounded-[3rem] font-black text-xl md:text-2xl shadow-xl hover:bg-sky-500 transition-all active:scale-95">{t('confirm_initiate_transfer')}</button>
                   </form>
                ) : (
                   <div className="space-y-12 md:space-y-16 animate-in fade-in duration-700">
                      {transferSuccess ? (
                        <div className="space-y-8 md:space-y-10 animate-in zoom-in duration-700">
                           <div className="w-32 md:w-48 h-32 md:h-48 bg-emerald-500 rounded-full flex items-center justify-center text-6xl md:text-9xl mx-auto shadow-[0_0_100px_rgba(16,185,129,0.4)] border-4 border-emerald-400">✓</div>
-                          <h3 className="text-4xl md:text-7xl font-black text-white tracking-tighter">Transfer Successful</h3>
-                          <p className="text-xl md:text-3xl text-emerald-400 font-black tracking-[0.2em] uppercase">TRANSACTION COMPLETED</p>
-                          <button onClick={() => setModalType(null)} className="mt-8 px-12 py-4 bg-white/10 hover:bg-white/20 rounded-full font-black transition-all">Close Window</button>
+                          <h3 className="text-4xl md:text-7xl font-black text-white tracking-tighter">{t('transfer_successful')}</h3>
+                          <p className="text-xl md:text-3xl text-emerald-400 font-black tracking-[0.2em] uppercase">{t('transaction_completed')}</p>
+                          <button onClick={() => setModalType(null)} className="mt-8 px-12 py-4 bg-white/10 hover:bg-white/20 rounded-full font-black transition-all">{t('close_window')}</button>
                        </div>
                      ) : (
                        <div className="space-y-12 md:space-y-16">
@@ -804,9 +804,9 @@ header('Location: ' . $payment->checkout_url);`
                              </div>
                           </div>
                           <div className="flex justify-center gap-6 md:gap-10 text-slate-500 font-black text-[8px] md:text-[10px] uppercase tracking-[0.4em] opacity-40">
-                             <span>SSL SECURED</span>
-                             <span>AES-256</span>
-                             <span>NODE VERIFIED</span>
+                             <span>{t('ssl_secured')}</span>
+                             <span>{t('aes_256')}</span>
+                             <span>{t('node_verified')}</span>
                           </div>
                        </div>
                      )}
