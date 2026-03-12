@@ -38,16 +38,34 @@ const TradingPlatform: React.FC = () => {
   };
 
   const handleTrade = async (type: 'Buy' | 'Sell') => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from('trading_positions').insert({
+    console.log(`Attempting to ${type} trade...`);
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error("Auth error or no user:", authError);
+      alert("يجب تسجيل الدخول أولاً لتنفيذ الصفقات!");
+      return;
+    }
+    
+    console.log("User ID:", user.id);
+    
+    // محاولة تنفيذ الصفقة
+    const { data, error } = await supabase.from('trading_positions').insert({
       user_id: user.id,
       symbol: symbol.split(':')[1],
       type,
       volume: 0.1,
-      price: 0, // Should be fetched from live price
+      entry_price: 70500, // سعر تجريبي مؤقت
       status: 'OPEN'
     });
+
+    if (error) {
+      console.error("Supabase insert error:", error);
+      alert("حدث خطأ أثناء تنفيذ الصفقة: " + error.message);
+    } else {
+      console.log("Trade inserted successfully:", data);
+      alert("تم تنفيذ الصفقة بنجاح!");
+    }
   };
 
   return (
