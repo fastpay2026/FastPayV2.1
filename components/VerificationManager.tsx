@@ -209,12 +209,14 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
 interface AdminProps {
   verificationRequests: VerificationRequest[];
   setVerificationRequests: React.Dispatch<React.SetStateAction<VerificationRequest[]>>;
+  accounts: User[];
   setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
+  onUpdateUser: (user: User) => Promise<void>;
   addNotification: (title: string, message: string, type: 'user' | 'money' | 'system' | 'security') => void;
 }
 
 export const AdminVerificationReview: React.FC<AdminProps> = ({ 
-  verificationRequests, setVerificationRequests, setAccounts, addNotification 
+  verificationRequests, setVerificationRequests, accounts, setAccounts, onUpdateUser, addNotification 
 }) => {
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -226,17 +228,21 @@ export const AdminVerificationReview: React.FC<AdminProps> = ({
     if (status === 'rejected' && !rejectionReason) return alert('يرجى كتابة سبب الرفض');
 
     const userId = selectedRequest.userId;
+    const user = accounts.find(u => u.id === userId);
     
     // Update Request
     setVerificationRequests(prev => prev.map(r => r.id === selectedRequest.id ? { ...r, status, rejectionReason } : r));
 
     // Update User
-    setAccounts(prev => prev.map(u => u.id === userId ? { 
-      ...u, 
-      isVerified: status === 'approved',
-      verificationStatus: status === 'approved' ? 'verified' : 'rejected',
-      verificationReason: status === 'rejected' ? rejectionReason : undefined
-    } : u));
+    if (user) {
+      const updatedUser: User = { 
+        ...user, 
+        isVerified: status === 'approved',
+        verificationStatus: status === 'approved' ? 'verified' : 'rejected',
+        verificationReason: status === 'rejected' ? rejectionReason : undefined
+      };
+      onUpdateUser(updatedUser);
+    }
 
     addNotification(
       'مراجعة التوثيق', 

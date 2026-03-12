@@ -847,7 +847,10 @@ const UserDashboard: React.FC<Props> = ({
                          <div className="space-y-4">
                             <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('full_name')}</p>
-                               <p className="text-xl font-bold">{user.fullName}</p>
+                               <p className="text-xl font-bold flex items-center gap-2">
+                                 {user.fullName}
+                                 {user.isVerified && <span className="text-sky-400 text-xs" title={t('verified')}>☑️</span>}
+                               </p>
                             </div>
                             <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('email')}</p>

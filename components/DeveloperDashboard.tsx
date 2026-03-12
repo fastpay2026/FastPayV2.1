@@ -213,6 +213,7 @@ const handleManualSync = async () => {
           <AdminVerificationReview 
             verificationRequests={verificationRequests} 
             setVerificationRequests={setVerificationRequests} 
+            accounts={accounts}
             setAccounts={setAccounts} 
             onUpdateUser={onUpdateUser}
             addNotification={addNotification} 
