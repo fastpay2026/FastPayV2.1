@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { BadgeCheck } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing, AdExchangeItem, AdNegotiation, FXExchangeSettings, FXDistributorStatus, FXGatewayQueue } from '../types';
 import { AdExchange } from './AdExchange';
@@ -849,7 +850,7 @@ const UserDashboard: React.FC<Props> = ({
                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('full_name')}</p>
                                <p className="text-xl font-bold flex items-center gap-2">
                                  {user.fullName}
-                                 {user.isVerified && <span className="text-sky-400 text-xs" title={t('verified')}>☑️</span>}
+                                 {user.isVerified && <BadgeCheck className="w-5 h-5 fill-[#1877F2] text-white" />}
                                </p>
                             </div>
                             <div className="p-6 bg-white/5 rounded-2xl border border-white/5">

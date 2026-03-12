@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { BadgeCheck } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, Role } from '../../types';
 import { useI18n } from '../../i18n/i18n';
@@ -117,7 +118,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
                       <div>
                         <p className="text-white flex items-center gap-2">
                           {u.fullName}
-                          {u.isVerified && <span className="text-sky-400 text-xs" title={t('verified')}>☑️</span>}
+                          {u.isVerified && <BadgeCheck className="w-4 h-4 fill-[#1877F2] text-white inline-block ml-1" />}
                         </p>
                         <p className="text-xs text-sky-400 font-mono">@{u.username}</p>
                         {u.phoneNumber && <p className="text-[10px] text-slate-500">{u.phoneNumber}</p>}

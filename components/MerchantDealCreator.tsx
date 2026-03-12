@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
+import { BadgeCheck } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, Transaction, Notification, VerificationRequest, AdExchangeItem, AdNegotiation, SiteConfig } from '../types';
 import { MerchantVerification } from './VerificationManager';
@@ -251,7 +252,7 @@ const MerchantDealCreator: React.FC<Props> = ({
             <div className="text-left border-l border-white/10 pl-6">
               <p className="font-black text-white flex items-center gap-2">
                 {user.fullName}
-                {user.isVerified && <span className="text-sky-400 text-sm" title="Verified Account">☑️</span>}
+                {user.isVerified && <BadgeCheck className="w-5 h-5 fill-[#1877F2] text-white" />}
               </p>
               <p className="text-[10px] text-teal-500 font-black uppercase">Certified FastPay Merchant</p>
             </div>

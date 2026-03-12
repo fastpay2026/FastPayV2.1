@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { BadgeCheck } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, APIKey, VerificationRequest, AdExchangeItem, AdNegotiation } from '../types';
 import { useI18n } from '../i18n/i18n';
@@ -396,7 +397,7 @@ header('Location: ' . $payment->checkout_url);`
             <div className="text-left hidden lg:block border-l border-white/10 pl-6 mr-6">
                <p className="font-black text-white text-lg flex items-center gap-2">
                  {user.fullName}
-                 {user.isVerified && <span className="text-sky-400 text-sm" title={t('verified_account')}>☑️</span>}
+                 {user.isVerified && <BadgeCheck className="w-5 h-5 fill-[#1877F2] text-white" />}
                </p>
                <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">{t('distributor_level')}</p>
             </div>
