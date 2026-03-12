@@ -724,19 +724,34 @@ export const supabaseService = {
     console.log("Target Distributor ID:", r.distributor_id);
     console.log("====================================");
 
-    if (!user || !user.id) {
-      throw new Error("لا توجد جلسة مصادقة صالحة. يرجى تسجيل الدخول الفعلي عبر النظام (Supabase Auth) لتتمكن من إجراء التعديلات.");
-    }
+    let currentUserId = user?.id;
+    let isAdmin = false;
 
-    let isAdmin = user.user_metadata?.role === 'ADMIN' || user.app_metadata?.role === 'ADMIN' || user.user_metadata?.role === 'DEVELOPER';
-    if (!isAdmin) {
-      const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
-      if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
-        isAdmin = true;
+    if (user) {
+      isAdmin = user.user_metadata?.role === 'ADMIN' || user.app_metadata?.role === 'ADMIN' || user.user_metadata?.role === 'DEVELOPER';
+      if (!isAdmin) {
+        const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
+        if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
+          isAdmin = true;
+        }
+      }
+    } else {
+      // Fallback for local dev/admin without proper auth session
+      const localUserId = localStorage.getItem('fp_v21_current_user_id');
+      if (localUserId) {
+        currentUserId = localUserId;
+        const { data: userData } = await supabase.from('users').select('role').eq('id', localUserId).maybeSingle();
+        if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
+          isAdmin = true;
+        }
       }
     }
 
-    if (!isAdmin && r.distributor_id !== user.id) {
+    if (!currentUserId) {
+      throw new Error("لا توجد جلسة مصادقة صالحة. يرجى تسجيل الدخول الفعلي عبر النظام (Supabase Auth) لتتمكن من إجراء التعديلات.");
+    }
+
+    if (!isAdmin && r.distributor_id !== currentUserId) {
       throw new Error("غير مصرح: لا يمكنك تعديل بيانات موزع آخر");
     }
 
@@ -817,19 +832,34 @@ export const supabaseService = {
     console.log("Target Distributor ID:", c.distributor_id);
     console.log("=======================================");
 
-    if (!user || !user.id) {
-      throw new Error("لا توجد جلسة مصادقة صالحة. يرجى تسجيل الدخول الفعلي عبر النظام (Supabase Auth) لتتمكن من إجراء التعديلات.");
-    }
+    let currentUserId = user?.id;
+    let isAdmin = false;
 
-    let isAdmin = user.user_metadata?.role === 'ADMIN' || user.app_metadata?.role === 'ADMIN' || user.user_metadata?.role === 'DEVELOPER';
-    if (!isAdmin) {
-      const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
-      if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
-        isAdmin = true;
+    if (user) {
+      isAdmin = user.user_metadata?.role === 'ADMIN' || user.app_metadata?.role === 'ADMIN' || user.user_metadata?.role === 'DEVELOPER';
+      if (!isAdmin) {
+        const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
+        if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
+          isAdmin = true;
+        }
+      }
+    } else {
+      // Fallback for local dev/admin without proper auth session
+      const localUserId = localStorage.getItem('fp_v21_current_user_id');
+      if (localUserId) {
+        currentUserId = localUserId;
+        const { data: userData } = await supabase.from('users').select('role').eq('id', localUserId).maybeSingle();
+        if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
+          isAdmin = true;
+        }
       }
     }
 
-    if (!isAdmin && c.distributor_id !== user.id) {
+    if (!currentUserId) {
+      throw new Error("لا توجد جلسة مصادقة صالحة. يرجى تسجيل الدخول الفعلي عبر النظام (Supabase Auth) لتتمكن من إجراء التعديلات.");
+    }
+
+    if (!isAdmin && c.distributor_id !== currentUserId) {
       throw new Error("غير مصرح: لا يمكنك تعديل بيانات موزع آخر");
     }
 
