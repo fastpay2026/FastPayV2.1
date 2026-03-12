@@ -89,7 +89,7 @@ export const AdExchange: React.FC<Props> = ({
         city: adForm.city
       },
       promotionStatus: 'none',
-      createdAt: new Date().toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')
+      createdAt: new Date().toISOString()
     };
 
     setAdExchangeItems(prev => [newAd, ...prev]);
@@ -177,7 +177,7 @@ export const AdExchange: React.FC<Props> = ({
       type: 'trade_buy',
       amount: -amount,
       relatedUser: ad.merchantName,
-      timestamp: new Date().toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US'),
+      timestamp: new Date().toISOString(),
       status: 'escrow',
       notes: `${t('purchase_desc')}: ${ad.title} (FPN Flow)`
     };
@@ -202,7 +202,7 @@ export const AdExchange: React.FC<Props> = ({
       buyerName: user.fullName,
       offerAmount: amount,
       status: 'pending',
-      createdAt: new Date().toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')
+      createdAt: new Date().toISOString()
     };
 
     setAdNegotiations(prev => [newOffer, ...prev]);

@@ -64,11 +64,15 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
         idFront: encryptData(files.idFront),
         idBack: encryptData(files.idBack),
         commercialRegister: encryptData(files.commercialRegister),
-        submittedAt: new Date().toLocaleString('ar-SA'),
+        submittedAt: new Date().toISOString(),
         status: 'pending'
       };
 
-      setVerificationRequests(prev => [...prev, newRequest]);
+      setVerificationRequests(prev => {
+        const updated = [...prev, newRequest];
+        console.log("Updated verification requests state:", updated);
+        return updated;
+      });
       onUpdateUser({ ...user, verificationStatus: 'pending' });
       addNotification('توثيق الحساب', 'تم إرسال طلب التوثيق بنجاح، سيتم مراجعته من قبل الإدارة.', 'security');
       setIsUploading(false);
@@ -285,7 +289,15 @@ export const AdminVerificationReview: React.FC<AdminProps> = ({
                       </div>
                     </div>
                   </td>
-                  <td className="p-8 text-slate-400 font-mono">{r.submittedAt}</td>
+                  <td className="p-8 text-slate-400 font-mono text-xs">
+                    {new Date(r.submittedAt).toLocaleString('ar-SA', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </td>
                   <td className="p-8">
                     <span className="px-4 py-1 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase">قيد المراجعة</span>
                   </td>

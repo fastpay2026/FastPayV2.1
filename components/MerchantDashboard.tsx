@@ -183,7 +183,7 @@ const MerchantDashboard: React.FC<Props> = ({
     const target = accounts.find(acc => acc.username === recipient && acc.id !== user.id);
     
     if (target) {
-      const ts = new Date().toLocaleString();
+      const ts = new Date().toISOString();
 
       setAccounts(prev => prev.map(acc => {
         if (acc.id === user.id) return { ...acc, balance: acc.balance - value };
@@ -220,7 +220,7 @@ const MerchantDashboard: React.FC<Props> = ({
       id: uuidv4(),
       key: `pk_live_${uuidv4().replace(/-/g, '')}`,
       name: newKeyName,
-      createdAt: new Date().toLocaleString(),
+      createdAt: new Date().toISOString(),
       status: 'active',
       requests: 0
     };

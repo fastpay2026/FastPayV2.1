@@ -21,7 +21,7 @@ const CardGenerator: React.FC<Props> = ({ rechargeCards, setRechargeCards, user 
       amount: cardForm.amount,
       isUsed: false,
       generatedBy: user.id,
-      createdAt: new Date().toLocaleString()
+      createdAt: new Date().toISOString()
     }));
     setRechargeCards(prev => [...prev, ...newBatch]);
     setIsModalOpen(false);

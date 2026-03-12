@@ -280,7 +280,7 @@ const UserDashboard: React.FC<Props> = ({
         return acc;
       }));
       onUpdateUser({ ...user, balance: user.balance - amount });
-      setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'send', amount: -amount, relatedUser: `${t('transfer_to')} @${target.username}`, timestamp: new Date().toLocaleString() }, ...prev]);
+      setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'send', amount: -amount, relatedUser: `${t('transfer_to')} @${target.username}`, timestamp: new Date().toISOString() }, ...prev]);
       addNotification(t('transfer_success_title'), t('transfer_success_msg', { amount, name: target.fullName }), 'money');
       setTransferSuccess(true);
       setTimeout(() => { setModalType(null); setIsTransferring(false); setTransferSuccess(false); setTransferData({ recipient: '', amount: '' }); }, 3000);
@@ -313,7 +313,7 @@ const UserDashboard: React.FC<Props> = ({
         userId: user.id, 
         type: 'withdrawal', 
         amount: -total, 
-        timestamp: new Date().toLocaleString(), 
+        timestamp: new Date().toISOString(), 
         relatedUser: `USDT Gateway Order`, 
         status: 'pending' 
       }, ...prev]);
@@ -420,7 +420,7 @@ const UserDashboard: React.FC<Props> = ({
       duration: salaryForm.duration,
       startDate: new Date().toLocaleDateString(),
       status: 'pending',
-      requestedAt: new Date().toLocaleString()
+      requestedAt: new Date().toISOString()
     };
     setSalaryPlans(prev => [newPlan, ...prev]);
     addNotification(t('salary_apply_success_title'), t('salary_apply_success_msg', { amount: salaryForm.amount }), 'system');
@@ -443,13 +443,13 @@ const UserDashboard: React.FC<Props> = ({
         iban: withdrawData.iban,
         swiftCode: withdrawData.swift,
         status: 'pending',
-        requestedAt: new Date().toLocaleString()
+        requestedAt: new Date().toISOString()
      };
      setWithdrawalRequests(prev => [newRequest, ...prev]);
      const newBalance = user.balance - amount;
      onUpdateUser({ ...user, balance: newBalance });
      setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
-     setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'withdrawal', amount: -amount, timestamp: new Date().toLocaleString(), relatedUser: t('swift_withdrawal_desc'), relatedId: newRequest.id, status: 'pending' }, ...prev]);
+     setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'withdrawal', amount: -amount, timestamp: new Date().toISOString(), relatedUser: t('swift_withdrawal_desc'), relatedId: newRequest.id, status: 'pending' }, ...prev]);
      addNotification(t('withdraw_request_success_title'), t('withdraw_request_success_msg', { amount }), 'money');
      setModalType(null);
      alert(t('withdraw_request_alert'));
@@ -500,7 +500,7 @@ const UserDashboard: React.FC<Props> = ({
     onUpdateUser({ ...user, balance: newBalance });
     setAccounts(prev => prev.map(acc => acc.id === user.id ? { ...acc, balance: newBalance } : acc));
     
-    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'fixed_deposit', amount: -investAmount, timestamp: new Date().toLocaleString(), relatedUser: `${t('invest_desc')}: ${t(selectedPlan.name)}` }, ...prev]);
+    setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'fixed_deposit', amount: -investAmount, timestamp: new Date().toISOString(), relatedUser: `${t('invest_desc')}: ${t(selectedPlan.name)}` }, ...prev]);
     addNotification(t('invest_start_title'), t('invest_start_msg', { amount: investAmount }), 'money');
     setModalType(null);
     setSelectedPlan(null);
@@ -517,7 +517,7 @@ const UserDashboard: React.FC<Props> = ({
       username: user.username,
       fullName: user.fullName,
       ticketNumber: `FP-RAFF-${Math.floor(100000 + Math.random() * 900000)}`,
-      enteredAt: new Date().toLocaleString()
+      enteredAt: new Date().toISOString()
     };
 
     setRaffleEntries(prev => [...prev, newEntry]);

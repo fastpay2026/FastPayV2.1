@@ -285,10 +285,13 @@ const App: React.FC = () => {
       if (isSupabaseConfigured && !isInitialLoad.current) {
         const currentData = JSON.stringify(data);
         if (currentData !== prevData.current) {
+          console.log(`Syncing ${label}... Data changed.`);
           // Data changed, sync it
           if (bulkSync) {
+            console.log(`Using bulk sync for ${label}`);
             bulkSync(data).catch(e => console.error(`Bulk Sync ${label} error:`, e));
           } else {
+            console.log(`Using individual sync for ${label} (first 5 items)`);
             // For simplicity in this demo, we sync the first few items
             data.slice(0, 5).forEach(item => syncFn(item).catch(e => console.error(`Sync ${label} error:`, e)));
           }

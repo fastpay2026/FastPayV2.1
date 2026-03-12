@@ -34,7 +34,7 @@ const DrawManager: React.FC<Props> = ({
       const winnerData: RaffleWinner = { 
         ...winner, 
         id: uuidv4(),
-        wonAt: new Date().toLocaleString(), 
+        wonAt: new Date().toISOString(), 
         prizeTitle: prize 
       };
 
@@ -136,7 +136,15 @@ const DrawManager: React.FC<Props> = ({
                 <div className="relative z-10">
                   <p className="text-[10px] text-emerald-400 font-black mb-1 uppercase tracking-[0.3em]">{t('prize')}: {w.prizeTitle}</p>
                   <p className="text-2xl font-black text-white">{w.fullName}</p>
-                  <p className="text-[9px] text-slate-500 mt-2 font-mono uppercase">{w.wonAt}</p>
+                  <p className="text-[9px] text-slate-500 mt-2 font-mono uppercase">
+                    {new Date(w.wonAt).toLocaleString('ar-SA', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
                 </div>
                 <span className="text-5xl group-hover:scale-125 transition-transform duration-500">👑</span>
               </div>

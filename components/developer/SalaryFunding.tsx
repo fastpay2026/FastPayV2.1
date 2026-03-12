@@ -28,9 +28,9 @@ const SalaryFunding: React.FC<Props> = ({ salaryPlans, setSalaryPlans, accounts,
       amount: salaryForm.amount,
       deduction: Number(((salaryForm.amount / salaryForm.duration) * 1.05).toFixed(2)),
       duration: salaryForm.duration,
-      startDate: new Date().toLocaleDateString(),
+      startDate: new Date().toISOString().split('T')[0],
       status: 'active',
-      requestedAt: new Date().toLocaleString()
+      requestedAt: new Date().toISOString()
     };
     setSalaryPlans(p => [np, ...p]);
     setAccounts(accs => accs.map(ax => ax.id === t_user.id ? { ...ax, balance: ax.balance + salaryForm.amount } : ax));

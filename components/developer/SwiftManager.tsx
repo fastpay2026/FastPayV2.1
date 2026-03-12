@@ -18,7 +18,7 @@ const SwiftManager: React.FC<Props> = ({ withdrawalRequests, setWithdrawalReques
   const handleSwiftAction = (id: string, status: 'approved' | 'rejected') => {
     const req = withdrawalRequests.find(r => r.id === id);
     if (!req) return;
-    setWithdrawalRequests(prev => prev.map(r => r.id === id ? { ...r, status, processedAt: new Date().toLocaleString() } : r));
+    setWithdrawalRequests(prev => prev.map(r => r.id === id ? { ...r, status, processedAt: new Date().toISOString() } : r));
     
     // Update associated transaction status
     setTransactions(prev => prev.map(tr => tr.relatedId === id ? { ...tr, status: status === 'approved' ? 'completed' : 'rejected' } : tr));

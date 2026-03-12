@@ -313,8 +313,13 @@ export const supabaseService = {
 
   // Verification Requests
   async getVerifications(): Promise<VerificationRequest[]> {
+    console.log("Fetching verification requests...");
     const { data, error } = await supabase.from('verification_requests').select('*').order('submitted_at', { ascending: false });
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching verification requests:", error);
+      throw error;
+    }
+    console.log(`Fetched ${data?.length || 0} verification requests.`);
     return (data || []).map(v => ({
       ...v,
       userId: v.user_id,
@@ -328,6 +333,7 @@ export const supabaseService = {
   },
 
   async upsertVerification(v: VerificationRequest) {
+    console.log("Upserting single verification request:", v.id);
     const { error } = await supabase.from('verification_requests').upsert({
       id: v.id,
       user_id: v.userId,
@@ -340,7 +346,11 @@ export const supabaseService = {
       status: v.status,
       rejection_reason: v.rejectionReason
     }, { onConflict: 'id' });
-    if (error) throw error;
+    if (error) {
+      console.error("Error upserting verification request:", error);
+      throw error;
+    }
+    console.log("Successfully upserted verification request:", v.id);
   },
 
   // Recharge Cards
@@ -680,6 +690,8 @@ export const supabaseService = {
   },
 
   async bulkUpsertVerifications(items: VerificationRequest[]) {
+    if (items.length === 0) return;
+    console.log(`Bulk upserting ${items.length} verification requests...`);
     const payload = items.map(v => ({
       id: v.id,
       user_id: v.userId,
@@ -693,7 +705,11 @@ export const supabaseService = {
       rejection_reason: v.rejectionReason
     }));
     const { error } = await supabase.from('verification_requests').upsert(payload, { onConflict: 'id' });
-    if (error) throw error;
+    if (error) {
+      console.error("Error in bulk upsert verifications:", error);
+      throw error;
+    }
+    console.log("Successfully bulk upserted verification requests.");
   },
 
   // FX Exchange Settings
