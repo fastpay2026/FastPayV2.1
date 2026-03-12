@@ -23,7 +23,8 @@ import {
   Zap,
   AlertCircle,
   Image as ImageIcon,
-  Check
+  Check,
+  Copy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -586,6 +587,26 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
                 </div>
 
                 <div className="space-y-6">
+                  <div className="p-6 bg-sky-500/10 rounded-3xl border border-sky-500/20 space-y-4">
+                    <h4 className="text-[10px] font-black text-sky-400 uppercase tracking-widest flex items-center gap-2">
+                      <Wallet size={12} />
+                      Target USDT Wallet Address
+                    </h4>
+                    <div className="flex items-center justify-between bg-black/20 p-4 rounded-2xl">
+                      <code className="text-sm font-mono text-white break-all">{selectedOrder.wallet_address}</code>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedOrder.wallet_address);
+                          addNotification('Copied', 'Wallet address copied to clipboard', 'success');
+                        }}
+                        className="p-2 hover:bg-white/10 rounded-xl transition-colors text-sky-400"
+                        title="Copy Address"
+                      >
+                        <Copy size={16} />
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
