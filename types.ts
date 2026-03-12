@@ -367,5 +367,5 @@ export interface FXDistributorStatus {
   usdt_capacity: number;
   availability_status: 'online' | 'offline' | 'delayed';
   delay_info?: string;
-  last_updated: string;
+  updated_at: string;
 }

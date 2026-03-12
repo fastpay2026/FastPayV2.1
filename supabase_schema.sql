@@ -269,7 +269,7 @@ CREATE TABLE IF NOT EXISTS fx_distributor_status (
     usdt_capacity DECIMAL(20, 2) DEFAULT 0,
     availability_status TEXT DEFAULT 'offline' CHECK (availability_status IN ('online', 'offline', 'delayed')),
     delay_info TEXT,
-    last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE fx_distributor_status ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all operations on fx_distributor_status" ON fx_distributor_status FOR ALL USING (true) WITH CHECK (true);

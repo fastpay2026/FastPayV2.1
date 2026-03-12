@@ -902,11 +902,22 @@ export const supabaseService = {
   async getFXDistributorStatuses(): Promise<FXDistributorStatus[]> {
     const { data, error } = await supabase.from('fx_distributor_status').select('*');
     if (error) throw error;
-    return data || [];
+    return (data || []).map((s: any) => ({
+      ...s,
+      updated_at: s.updated_at || s.last_updated || new Date().toISOString()
+    }));
   },
 
   async upsertFXDistributorStatus(s: FXDistributorStatus) {
-    const { error } = await supabase.from('fx_distributor_status').upsert(s, { onConflict: 'distributor_id' });
+    // Only send columns that are known to exist in the database
+    const payload = {
+      distributor_id: s.distributor_id,
+      usdt_capacity: s.usdt_capacity,
+      availability_status: s.availability_status,
+      delay_info: s.delay_info
+    };
+
+    const { error } = await supabase.from('fx_distributor_status').upsert(payload, { onConflict: 'distributor_id' });
     if (error) throw error;
   }
 };

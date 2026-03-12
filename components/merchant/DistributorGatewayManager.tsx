@@ -97,7 +97,7 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
         distributor_id: user.id,
         availability_status: 'offline',
         usdt_capacity: 0,
-        last_updated: new Date().toISOString()
+        updated_at: new Date().toISOString()
       });
       
       setOrders(allOrders.filter(o => o.distributor_id === user.id));
@@ -220,14 +220,14 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
         distributor_id: user.id,
         availability_status: 'offline',
         usdt_capacity: 0,
-        last_updated: new Date().toISOString()
+        updated_at: new Date().toISOString()
       };
 
       const updated: FXDistributorStatus = { 
         ...currentStatus, 
         availability_status: newStatus, 
         usdt_capacity: capacity !== undefined ? capacity : currentStatus.usdt_capacity,
-        last_updated: new Date().toISOString()
+        updated_at: new Date().toISOString()
       };
       
       await supabaseService.upsertFXDistributorStatus(updated);
