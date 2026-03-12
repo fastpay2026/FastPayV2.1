@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Role, User } from '../types';
 import { useI18n } from '../i18n/i18n';
+import { supabase } from '../supabaseClient';
 
 interface Props {
   onClose: () => void;
@@ -73,7 +74,7 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
     setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -85,6 +86,19 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
       if (user.status === 'suspended' || user.status === 'disabled') {
         setError('هذا الحساب معطل حالياً، يرجى مراجعة الإدارة');
       } else {
+        // Attempt to sign in with Supabase Auth to establish a real session
+        try {
+          const { error: authError } = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: password,
+          });
+          if (authError) {
+            console.warn("Supabase Auth Warning:", authError.message);
+          }
+        } catch (authErr) {
+          console.error("Supabase Auth Error:", authErr);
+        }
+        
         setAuthenticatedUser(user);
         setIsAuthenticating(true);
       }

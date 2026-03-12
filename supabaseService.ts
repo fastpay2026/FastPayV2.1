@@ -717,18 +717,16 @@ export const supabaseService = {
 
   async upsertDistributorSecurityKey(r: SecurityKey) {
     const { data: { user } } = await supabase.auth.getUser();
-    const localUserId = localStorage.getItem('fp_v21_current_user_id');
-    const loggedInUserId = user?.id || localUserId;
 
     console.log("=== API CALL INFO (Security Key) ===");
     console.log("Supabase API URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Logged In User ID:", loggedInUserId);
+    console.log("Logged In User ID:", user?.id);
     console.log("Target Distributor ID:", r.distributor_id);
     console.log("====================================");
 
-    if (!loggedInUserId || loggedInUserId === '00000000-0000-0000-0000-000000000001') {
-      alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
-      throw new Error("User not logged in or using a fake ID");
+    if (!user || !user.id) {
+      alert("يرجى تسجيل الدخول الرسمي لكي يتعرف النظام على هويتك الحقيقية.");
+      throw new Error("User not logged in with official session");
     }
 
     // Use the distributor_id passed from the UI (since Developer sets it for Distributor)
@@ -763,22 +761,20 @@ export const supabaseService = {
 
   async verifyDistributorPIN(pin: string): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser();
-    const localUserId = localStorage.getItem('fp_v21_current_user_id');
-    const loggedInUserId = user?.id || localUserId;
 
     console.log("=== PIN VERIFICATION INFO ===");
-    console.log("Logged In User ID:", loggedInUserId);
+    console.log("Logged In User ID:", user?.id);
     console.log("=============================");
 
-    if (!loggedInUserId || loggedInUserId === '00000000-0000-0000-0000-000000000001') {
-      alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
-      throw new Error("User not logged in or using a fake ID");
+    if (!user || !user.id) {
+      alert("يرجى تسجيل الدخول الرسمي لكي يتعرف النظام على هويتك الحقيقية.");
+      throw new Error("User not logged in with official session");
     }
 
     const { data, error } = await supabase
       .from('distributor_security_configs')
       .select('security_pin')
-      .eq('distributor_id', loggedInUserId)
+      .eq('distributor_id', user.id)
       .maybeSingle();
 
     if (error) {
@@ -795,18 +791,16 @@ export const supabaseService = {
 
   async upsertDistributorSecurityConfig(c: SecurityConfig) {
     const { data: { user } } = await supabase.auth.getUser();
-    const localUserId = localStorage.getItem('fp_v21_current_user_id');
-    const loggedInUserId = user?.id || localUserId;
 
     console.log("=== API CALL INFO (Security Config) ===");
     console.log("Supabase API URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Logged In User ID:", loggedInUserId);
+    console.log("Logged In User ID:", user?.id);
     console.log("Target Distributor ID:", c.distributor_id);
     console.log("=======================================");
 
-    if (!loggedInUserId || loggedInUserId === '00000000-0000-0000-0000-000000000001') {
-      alert("يرجى تسجيل الدخول أولاً لتنفيذ هذه العملية.");
-      throw new Error("User not logged in or using a fake ID");
+    if (!user || !user.id) {
+      alert("يرجى تسجيل الدخول الرسمي لكي يتعرف النظام على هويتك الحقيقية.");
+      throw new Error("User not logged in with official session");
     }
 
     // Use the distributor_id passed from the UI (since Developer sets it for Distributor)
