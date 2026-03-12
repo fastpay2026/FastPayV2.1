@@ -570,6 +570,7 @@ const UserDashboard: React.FC<Props> = ({
              <nav className="hidden xl:flex items-center h-full">
                 {[
                   { id: 'dashboard', l: t('nav_overview'), i: '🏠' },
+                  { id: 'trading_platform', l: 'محرك الصفقات', i: '🚀' },
                   { id: 'investment', l: t('nav_invest_plans'), i: '💎' },
                   { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
                   { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
@@ -597,6 +598,7 @@ const UserDashboard: React.FC<Props> = ({
            <div className="absolute top-16 md:top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
              {[
                { id: 'dashboard', l: t('nav_overview'), i: '🏠' },
+               { id: 'trading_platform', l: 'محرك الصفقات', i: '🚀' },
                { id: 'investment', l: t('nav_invest_plans'), i: '💎' },
                { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
                { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
@@ -800,7 +802,12 @@ const UserDashboard: React.FC<Props> = ({
           )}
 
 
-          {activeTab === 'salary' && (
+          {activeTab === 'trading_platform' && (
+             <Suspense fallback={<div className="flex-1 flex items-center justify-center text-white">Loading...</div>}>
+                <TradingPlatform />
+             </Suspense>
+          )}
+
              isServiceDisabled('salary') ? <UnderDevelopment /> : (
              <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500 pb-40">
                 <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
