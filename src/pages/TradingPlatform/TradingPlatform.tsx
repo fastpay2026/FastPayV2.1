@@ -1,16 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TradingViewChart from './components/TradingViewChart';
 import { LayoutDashboard, BarChart3, ListChecks, Settings, Bell } from 'lucide-react';
+import { supabase } from '../../../supabaseClient';
 
 const TradingPlatform: React.FC = () => {
   const [symbol, setSymbol] = useState('BINANCE:BTCUSDT');
-  const [activeTab, setActiveTab] = useState('Trade');
+  const [balance, setBalance] = useState({ balance: 0, equity: 0, margin: 0, freeMargin: 0 });
+  const [positions, setPositions] = useState<any[]>([]);
 
-  const balance = { balance: 10000, equity: 10050, margin: 500, freeMargin: 9550 };
-  const positions = [
-    { id: 1, symbol: 'BTCUSDT', type: 'Buy', volume: 0.1, price: 50000, sl: 49000, tp: 52000, profit: 50 },
-    { id: 2, symbol: 'EURUSD', type: 'Sell', volume: 1.0, price: 1.05, sl: 1.06, tp: 1.04, profit: -20 },
-  ];
+  useEffect(() => {
+    fetchWallet();
+    fetchPositions();
+
+    const channel = supabase
+      .channel('realtime_trading')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, fetchWallet)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trading_positions' }, fetchPositions)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchWallet = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from('wallets').select('*').eq('user_id', user.id).single();
+    if (data) setBalance({ balance: data.balance, equity: data.equity, margin: data.margin, freeMargin: data.free_margin });
+  };
+
+  const fetchPositions = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from('trading_positions').select('*').eq('user_id', user.id).eq('status', 'OPEN');
+    if (data) setPositions(data);
+  };
+
+  const handleTrade = async (type: 'Buy' | 'Sell') => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('trading_positions').insert({
+      user_id: user.id,
+      symbol: symbol.split(':')[1],
+      type,
+      volume: 0.1,
+      price: 0, // Should be fetched from live price
+      status: 'OPEN'
+    });
+  };
 
   return (
     <div className="flex h-screen bg-[#0b0e11] text-slate-300 font-sans overflow-hidden">
@@ -52,17 +90,17 @@ const TradingPlatform: React.FC = () => {
           {/* لوحة تنفيذ الصفقات الجانبية */}
           <div className="w-48 bg-[#131722] border-l border-white/10 p-4 flex flex-col gap-4">
             <h3 className="text-white font-bold text-sm">Order</h3>
-            <button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-1.5 rounded text-sm font-bold">BUY</button>
-            <button className="w-full bg-red-600 hover:bg-red-500 text-white py-1.5 rounded text-sm font-bold">SELL</button>
+            <button onClick={() => handleTrade('Buy')} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-1.5 rounded text-sm font-bold">BUY</button>
+            <button onClick={() => handleTrade('Sell')} className="w-full bg-red-600 hover:bg-red-500 text-white py-1.5 rounded text-sm font-bold">SELL</button>
           </div>
         </div>
         
         {/* منطقة الرصيد */}
         <div className="h-10 bg-[#1e2329] border-t border-white/10 flex items-center px-4 gap-6 text-xs font-mono">
-          <span>Balance: <span className="text-white">${balance.balance}</span></span>
-          <span>Equity: <span className="text-white">${balance.equity}</span></span>
-          <span>Margin: <span className="text-white">${balance.margin}</span></span>
-          <span>Free Margin: <span className="text-white">${balance.freeMargin}</span></span>
+          <span>Balance: <span className="text-white">${balance.balance.toFixed(2)}</span></span>
+          <span>Equity: <span className="text-white">${balance.equity.toFixed(2)}</span></span>
+          <span>Margin: <span className="text-white">${balance.margin.toFixed(2)}</span></span>
+          <span>Free Margin: <span className="text-white">${balance.freeMargin.toFixed(2)}</span></span>
         </div>
 
         {/* جدول الصفقات (Terminal) */}
@@ -85,10 +123,10 @@ const TradingPlatform: React.FC = () => {
                   <td className="p-2 text-white font-bold">{p.symbol}</td>
                   <td className={`p-2 ${p.type === 'Buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p.type}</td>
                   <td className="p-2">{p.volume}</td>
-                  <td className="p-2">{p.price}</td>
-                  <td className="p-2">{p.sl}</td>
-                  <td className="p-2">{p.tp}</td>
-                  <td className={`p-2 ${p.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{p.profit}</td>
+                  <td className="p-2">{p.entry_price}</td>
+                  <td className="p-2">{p.sl || '-'}</td>
+                  <td className="p-2">{p.tp || '-'}</td>
+                  <td className={`p-2 ${p.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{p.profit?.toFixed(2) || '0.00'}</td>
                 </tr>
               ))}
             </tbody>

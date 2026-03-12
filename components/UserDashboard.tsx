@@ -9,6 +9,8 @@ import UnderDevelopment from './UnderDevelopment';
 import { supabaseService } from '../supabaseService';
 import LanguageSwitcher from './LanguageSwitcher';
 
+const TradingPlatform = React.lazy(() => import('../src/pages/TradingPlatform/TradingPlatform'));
+
 interface Props {
   user: User;
   onLogout: () => void;
@@ -808,6 +810,7 @@ const UserDashboard: React.FC<Props> = ({
              </Suspense>
           )}
 
+          {activeTab === 'salary' && (
              isServiceDisabled('salary') ? <UnderDevelopment /> : (
              <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom duration-500 pb-40">
                 <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
