@@ -13,8 +13,8 @@ import { Role, User, SiteConfig, LandingService, Transaction, Notification, Cust
 import { supabaseService } from './supabaseService';
 import { isSupabaseConfigured } from './supabaseClient';
 
-const TradingPlatform = React.lazy(() => import('./src/pages/TradingPlatform/TradingPlatform'));
 
+const TradingPlatform = React.lazy(() => import('./src/pages/TradingPlatform/TradingPlatform'));
 
 const App: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => localStorage.getItem('fp_v21_current_user_id'));
@@ -392,7 +392,7 @@ const App: React.FC = () => {
       case 'ADMIN': return <DeveloperDashboard {...commonProps} />;
       case 'DISTRIBUTOR': return <MerchantDashboard {...commonProps} />;
       case 'MERCHANT': return <MerchantDealCreator {...commonProps} />;
-      case 'USER': return <UserDashboard {...commonProps} TradingPlatform={TradingPlatform} />;
+      case 'USER': return <UserDashboard {...commonProps} />;
       default: return null;
     }
   }

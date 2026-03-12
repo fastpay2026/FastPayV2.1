@@ -35,7 +35,6 @@ interface Props {
   setAdExchangeItems: React.Dispatch<React.SetStateAction<AdExchangeItem[]>>;
   adNegotiations: AdNegotiation[];
   setAdNegotiations: React.Dispatch<React.SetStateAction<AdNegotiation[]>>;
-  TradingPlatform: React.LazyExoticComponent<React.FC>;
 }
 
 const TradingViewWidget: React.FC<{ symbol: string }> = ({ symbol }) => {
@@ -112,11 +111,10 @@ const UserDashboard: React.FC<Props> = ({
   user, onLogout, siteConfig, accounts, setAccounts, rechargeCards, setRechargeCards, 
   transactions, setTransactions, addNotification, onUpdateUser, fixedDeposits, setFixedDeposits, tradeAssets,
   raffleEntries, setRaffleEntries, raffleWinners, withdrawalRequests, setWithdrawalRequests,
-  salaryPlans, setSalaryPlans, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations,
-  TradingPlatform
+  salaryPlans, setSalaryPlans, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const { t, language } = useI18n();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads' | 'trading_platform'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads'>('dashboard');
   const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | 'withdraw_warning' | 'usdt_gateway' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -572,8 +570,6 @@ const UserDashboard: React.FC<Props> = ({
              <nav className="hidden xl:flex items-center h-full">
                 {[
                   { id: 'dashboard', l: t('nav_overview'), i: '🏠' },
-                  { id: 'trading', l: t('nav_trading_engine'), i: '📈' },
-                  { id: 'trading_platform', l: 'محرك الصفقات', i: '🚀' },
                   { id: 'investment', l: t('nav_invest_plans'), i: '💎' },
                   { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
                   { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
@@ -601,7 +597,6 @@ const UserDashboard: React.FC<Props> = ({
            <div className="absolute top-16 md:top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
              {[
                { id: 'dashboard', l: t('nav_overview'), i: '🏠' },
-               { id: 'trading', l: t('nav_trading_engine'), i: '📈' },
                { id: 'investment', l: t('nav_invest_plans'), i: '💎' },
                { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
                { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
@@ -804,19 +799,6 @@ const UserDashboard: React.FC<Props> = ({
              )
           )}
 
-          {activeTab === 'trading' && (
-             isServiceDisabled('trading') ? <UnderDevelopment /> : (
-             <div className="flex-1 flex flex-col animate-in zoom-in duration-500 h-full overflow-hidden">
-                <TradingViewWidget symbol="BINANCE:BTCUSDT" />
-             </div>
-             )
-          )}
-
-          {activeTab === 'trading_platform' && (
-             <Suspense fallback={<div className="flex-1 flex items-center justify-center text-white">Loading...</div>}>
-                <TradingPlatform />
-             </Suspense>
-          )}
 
           {activeTab === 'salary' && (
              isServiceDisabled('salary') ? <UnderDevelopment /> : (
