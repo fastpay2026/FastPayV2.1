@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useI18n } from './i18n/i18n.tsx';
 import { v4 as uuidv4 } from 'uuid';
 import LandingPage from './components/LandingPage';
@@ -12,6 +12,8 @@ import UserDashboard from './components/UserDashboard';
 import { Role, User, SiteConfig, LandingService, Transaction, Notification, CustomPage, SalaryFinancing, TradeAsset, WithdrawalRequest, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from './types';
 import { supabaseService } from './supabaseService';
 import { isSupabaseConfigured } from './supabaseClient';
+
+const TradingPlatform = React.lazy(() => import('./src/pages/TradingPlatform/TradingPlatform'));
 
 
 const App: React.FC = () => {
@@ -390,7 +392,7 @@ const App: React.FC = () => {
       case 'ADMIN': return <DeveloperDashboard {...commonProps} />;
       case 'DISTRIBUTOR': return <MerchantDashboard {...commonProps} />;
       case 'MERCHANT': return <MerchantDealCreator {...commonProps} />;
-      case 'USER': return <UserDashboard {...commonProps} />;
+      case 'USER': return <UserDashboard {...commonProps} TradingPlatform={TradingPlatform} />;
       default: return null;
     }
   }

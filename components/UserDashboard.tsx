@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, Suspense } from 'react';
 import { BadgeCheck } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing, AdExchangeItem, AdNegotiation, FXExchangeSettings, FXDistributorStatus, FXGatewayQueue } from '../types';
@@ -35,6 +35,7 @@ interface Props {
   setAdExchangeItems: React.Dispatch<React.SetStateAction<AdExchangeItem[]>>;
   adNegotiations: AdNegotiation[];
   setAdNegotiations: React.Dispatch<React.SetStateAction<AdNegotiation[]>>;
+  TradingPlatform: React.LazyExoticComponent<React.FC>;
 }
 
 const TradingViewWidget: React.FC<{ symbol: string }> = ({ symbol }) => {
@@ -111,10 +112,11 @@ const UserDashboard: React.FC<Props> = ({
   user, onLogout, siteConfig, accounts, setAccounts, rechargeCards, setRechargeCards, 
   transactions, setTransactions, addNotification, onUpdateUser, fixedDeposits, setFixedDeposits, tradeAssets,
   raffleEntries, setRaffleEntries, raffleWinners, withdrawalRequests, setWithdrawalRequests,
-  salaryPlans, setSalaryPlans, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
+  salaryPlans, setSalaryPlans, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations,
+  TradingPlatform
 }) => {
   const { t, language } = useI18n();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'trading' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads' | 'trading_platform'>('dashboard');
   const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | 'withdraw_warning' | 'usdt_gateway' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -571,6 +573,7 @@ const UserDashboard: React.FC<Props> = ({
                 {[
                   { id: 'dashboard', l: t('nav_overview'), i: '🏠' },
                   { id: 'trading', l: t('nav_trading_engine'), i: '📈' },
+                  { id: 'trading_platform', l: 'محرك الصفقات', i: '🚀' },
                   { id: 'investment', l: t('nav_invest_plans'), i: '💎' },
                   { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
                   { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
@@ -807,6 +810,12 @@ const UserDashboard: React.FC<Props> = ({
                 <TradingViewWidget symbol="BINANCE:BTCUSDT" />
              </div>
              )
+          )}
+
+          {activeTab === 'trading_platform' && (
+             <Suspense fallback={<div className="flex-1 flex items-center justify-center text-white">Loading...</div>}>
+                <TradingPlatform />
+             </Suspense>
           )}
 
           {activeTab === 'salary' && (
