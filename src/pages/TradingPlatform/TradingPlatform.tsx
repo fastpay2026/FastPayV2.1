@@ -2,13 +2,19 @@ import React, { useState, useEffect } from 'react';
 import TradingViewChart from './components/TradingViewChart';
 import { LayoutDashboard, BarChart3, ListChecks, Settings, Bell } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
+import { User } from '../../../types';
 
-const TradingPlatform: React.FC = () => {
+interface TradingPlatformProps {
+  user: User;
+}
+
+const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [symbol, setSymbol] = useState('BINANCE:BTCUSDT');
   const [balance, setBalance] = useState({ balance: 0, equity: 0, margin: 0, freeMargin: 0 });
   const [positions, setPositions] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!user) return;
     fetchWallet();
     fetchPositions();
 
@@ -21,41 +27,27 @@ const TradingPlatform: React.FC = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   const fetchWallet = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
     const { data } = await supabase.from('wallets').select('*').eq('user_id', user.id).single();
     if (data) setBalance({ balance: data.balance, equity: data.equity, margin: data.margin, freeMargin: data.free_margin });
   };
 
   const fetchPositions = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
     const { data } = await supabase.from('trading_positions').select('*').eq('user_id', user.id).eq('status', 'OPEN');
     if (data) setPositions(data);
   };
 
   const handleTrade = async (type: 'Buy' | 'Sell') => {
-    console.log(`Attempting to ${type} trade...`);
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log(`Attempting to ${type} trade for user:`, user.id);
     
-    if (authError || !user) {
-      console.error("Auth error or no user:", authError);
-      alert("يجب تسجيل الدخول أولاً لتنفيذ الصفقات!");
-      return;
-    }
-    
-    console.log("User ID:", user.id);
-    
-    // محاولة تنفيذ الصفقة
     const { data, error } = await supabase.from('trading_positions').insert({
       user_id: user.id,
       symbol: symbol.split(':')[1],
       type,
       volume: 0.1,
-      entry_price: 70500, // سعر تجريبي مؤقت
+      entry_price: 70500,
       status: 'OPEN'
     });
 
@@ -63,7 +55,6 @@ const TradingPlatform: React.FC = () => {
       console.error("Supabase insert error:", error);
       alert("حدث خطأ أثناء تنفيذ الصفقة: " + error.message);
     } else {
-      console.log("Trade inserted successfully:", data);
       alert("تم تنفيذ الصفقة بنجاح!");
     }
   };
