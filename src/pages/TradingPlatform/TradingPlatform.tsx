@@ -9,17 +9,23 @@ interface TradingPlatformProps {
 }
 
 const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
-  const [symbol, setSymbol] = useState('BINANCE:BTCUSDT');
+  const [symbol, setSymbol] = useState('BTCUSDT');
   const [volume, setVolume] = useState(0.1);
-  const [balance, setBalance] = useState({ balance: 0, equity: 0, margin: 0, freeMargin: 0 });
+  const [balance, setBalance] = useState({ balance: 31820, equity: 31820, margin: 0, freeMargin: 31820 });
   const [positions, setPositions] = useState<any[]>([]);
-  const [currentPrice, setCurrentPrice] = useState(0);
-  const [priceColor, setPriceColor] = useState('text-white');
+  const [prices, setPrices] = useState<Record<string, number>>({ BTCUSDT: 0, ETHUSDT: 0, SOLUSDT: 0 });
 
   useEffect(() => {
     if (!user) return;
     fetchWallet();
     fetchPositions();
+
+    // WebSocket Connection
+    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker/ethusdt@ticker/solusdt@ticker');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setPrices(prev => ({ ...prev, [data.s]: parseFloat(data.c) }));
+    };
 
     const channel = supabase
       .channel('realtime_trading')
@@ -27,27 +33,13 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trading_positions' }, fetchPositions)
       .subscribe();
 
-    const priceInterval = setInterval(async () => {
-      try {
-        const response = await fetch(`/api/price/${symbol.split(':')[1]}`);
-        const data = await response.json();
-        const newPrice = parseFloat(data.price);
-        
-        setPriceColor(newPrice > currentPrice ? 'text-emerald-400' : newPrice < currentPrice ? 'text-red-400' : 'text-white');
-        setCurrentPrice(newPrice);
-
-        setPositions(prev => prev.map(p => {
-          const profit = (newPrice - p.entry_price) * p.volume * (p.type === 'Buy' ? 1 : -1);
-          return { ...p, current_price: newPrice, profit };
-        }));
-      } catch (e) { console.error(e); }
-    }, 1000);
-
     return () => {
+      ws.close();
       supabase.removeChannel(channel);
-      clearInterval(priceInterval);
     };
-  }, [user, symbol, currentPrice]);
+  }, [user]);
+
+  const currentPrice = prices[symbol] || 0;
 
   const fetchWallet = async () => {
     let { data: walletData } = await supabase.from('wallets').select('*').eq('user_id', user.id).maybeSingle();
@@ -96,18 +88,22 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       <div className="w-64 bg-[#131722] border-r border-white/10 flex flex-col">
         <div className="p-4 border-b border-white/10 font-bold text-white flex items-center gap-2"><BarChart3 size={20} /> Market Watch</div>
         <div className="flex-1 overflow-y-auto">
-          {['BTCUSDT', 'EURUSD', 'XAUUSD'].map(s => (
-            <button key={s} onClick={() => setSymbol(`BINANCE:${s}`)} className={`w-full p-4 text-left border-b border-white/5 ${symbol === `BINANCE:${s}` ? 'bg-sky-900/30 text-sky-400' : 'hover:bg-white/5'}`}>{s}</button>
+          {['BTCUSDT', 'ETHUSDT', 'SOLUSDT'].map(s => (
+            <button key={s} onClick={() => setSymbol(s)} className={`w-full p-4 text-left border-b border-white/5 ${symbol === s ? 'bg-sky-900/30 text-sky-400' : 'hover:bg-white/5'}`}>
+              {s} <span className="float-right font-mono">{prices[s]?.toFixed(2)}</span>
+            </button>
           ))}
         </div>
       </div>
       <div className="flex-1 flex flex-col">
         <div className="h-12 bg-[#131722] border-b border-white/10 flex items-center px-4 gap-4">
           <LayoutDashboard size={20} className="text-sky-400" />
-          <div className="flex-1" />
+          <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
+            {Object.entries(prices).map(([s, p]) => <span key={s} className="mx-4">{s}: {p.toFixed(2)}</span>)}
+          </div>
         </div>
         <div className="flex-1 flex">
-          <div className="flex-1 p-2"><TradingViewChart symbol={symbol} /></div>
+          <div className="flex-1 p-2"><TradingViewChart symbol={`BINANCE:${symbol}`} /></div>
           <div className="w-48 bg-[#131722] border-l border-white/10 p-4 flex flex-col gap-4">
             <h3 className="text-white font-bold text-sm">Order: {symbol.split(':')[1]}</h3>
             <div className={`text-2xl font-bold ${priceColor}`}>{currentPrice.toFixed(2)}</div>
