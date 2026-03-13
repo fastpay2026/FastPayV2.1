@@ -25,10 +25,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trading_positions' }, fetchPositions)
       .subscribe();
 
-    // محاكاة تحديث السعر كل 3 ثوانٍ
     const priceInterval = setInterval(() => {
       setPositions(prev => prev.map(p => {
-        const priceChange = (Math.random() - 0.5) * 100; // تغير عشوائي
+        const priceChange = (Math.random() - 0.5) * 100;
         const newPrice = p.current_price + priceChange;
         const profit = (newPrice - p.entry_price) * p.volume * (p.type === 'Buy' ? 1 : -1);
         return { ...p, current_price: newPrice, profit };
@@ -42,37 +41,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   }, [user]);
 
   const fetchWallet = async () => {
-    console.log("Fetching wallet/balance for user ID:", user.id);
-    
-    // 1. محاولة جلب الرصيد من جدول wallets
-    let { data: walletData, error: walletError } = await supabase.from('wallets').select('*').eq('user_id', user.id).maybeSingle();
-    
+    let { data: walletData } = await supabase.from('wallets').select('*').eq('user_id', user.id).maybeSingle();
     if (walletData) {
-      console.log("Wallet data found:", walletData);
-      setBalance({ 
-        balance: walletData.balance || 0, 
-        equity: walletData.equity || 0, 
-        margin: walletData.margin || 0, 
-        freeMargin: walletData.free_margin || 0 
-      });
-      return;
-    }
-
-    // 2. إذا لم يوجد، محاولة جلب الرصيد من جدول users كبديل
-    console.log("No wallet found, checking users table for balance...");
-    let { data: userData, error: userError } = await supabase.from('users').select('balance').eq('id', user.id).single();
-    
-    if (userData) {
-      console.log("User balance found in users table:", userData.balance);
-      setBalance({ 
-        balance: userData.balance || 0, 
-        equity: userData.balance || 0, 
-        margin: 0, 
-        freeMargin: userData.balance || 0 
-      });
+      setBalance({ balance: walletData.balance || 0, equity: walletData.equity || 0, margin: walletData.margin || 0, freeMargin: walletData.free_margin || 0 });
     } else {
-      console.log("No balance found in users table either.");
-      setBalance({ balance: 0, equity: 0, margin: 0, freeMargin: 0 });
+      let { data: userData } = await supabase.from('users').select('balance').eq('id', user.id).single();
+      setBalance({ balance: userData?.balance || 0, equity: userData?.balance || 0, margin: 0, freeMargin: userData?.balance || 0 });
     }
   };
 
@@ -82,117 +56,73 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   };
 
   const handleTrade = async (type: 'Buy' | 'Sell') => {
-    if (isNaN(volume) || volume <= 0) {
-      alert("يرجى إدخال كمية صحيحة!");
-      return;
-    }
-    const price = 70500; // سعر تقريبي حالي
-    const marginRequired = (volume * price) / 100; // رافعة 1:100
+    if (isNaN(volume) || volume <= 0) { alert("يرجى إدخال كمية صحيحة!"); return; }
+    const price = 70500;
+    const marginRequired = (volume * price) / 100;
+    if (balance.freeMargin < marginRequired) { alert("الرصيد غير كافٍ!"); return; }
 
-    if (balance.freeMargin < marginRequired) {
-      alert("الرصيد غير كافٍ لفتح هذه الصفقة!");
-      return;
-    }
-
-    // 1. إضافة الصفقة
     const { data: pos, error: posError } = await supabase.from('trading_positions').insert({
-      user_id: user.id,
-      symbol: symbol.split(':')[1],
-      type,
-      volume,
-      entry_price: price,
-      current_price: price,
-      status: 'OPEN'
+      user_id: user.id, symbol: symbol.split(':')[1], type, volume, entry_price: price, current_price: price, status: 'OPEN'
     }).select().single();
 
-    if (posError) {
-      alert("خطأ في فتح الصفقة: " + posError.message);
-      return;
-    }
-
-    // 2. تحديث المحفظة (خصم الهامش)
-    const { error: walletError } = await supabase.from('wallets').update({
-      free_margin: balance.freeMargin - marginRequired,
-      margin: balance.margin + marginRequired
-    }).eq('user_id', user.id);
-
-    // 3. تحديث رصيد المستخدم في جدول users
-    const { error: userError } = await supabase.from('users').update({
-      balance: user.balance - marginRequired
-    }).eq('id', user.id);
-
-    if (walletError || userError) {
-      alert("خطأ في تحديث الرصيد: " + (walletError?.message || userError?.message));
-    } else {
-      alert("تم تنفيذ الصفقة بنجاح!");
+    if (!posError) {
+      await supabase.from('wallets').update({ free_margin: balance.freeMargin - marginRequired, margin: balance.margin + marginRequired }).eq('user_id', user.id);
+      await supabase.from('users').update({ balance: user.balance - marginRequired }).eq('id', user.id);
+      alert("تم تنفيذ الصفقة!");
     }
   };
 
   const closePosition = async (position: any) => {
-    const currentPrice = 71600; // سعر تقريبي حالي
+    const currentPrice = 71600;
     const profit = (currentPrice - position.entry_price) * position.volume * (position.type === 'Buy' ? 1 : -1);
     const marginToReturn = (position.volume * position.entry_price) / 100;
-
-    // 1. إغلاق الصفقة
-    const { error: posError } = await supabase.from('trading_positions').update({
-      status: 'CLOSED',
-      current_price: currentPrice,
-      profit
-    }).eq('id', position.id);
-
-    if (posError) {
-      alert("خطأ في إغلاق الصفقة: " + posError.message);
-      return;
-    }
-
-    // 2. تحديث المحفظة (إعادة الهامش + الربح/الخسارة)
-    await supabase.from('wallets').update({
-      free_margin: balance.freeMargin + marginToReturn + profit,
-      margin: balance.margin - marginToReturn
-    }).eq('user_id', user.id);
-
-    // 3. تحديث رصيد المستخدم
-    await supabase.from('users').update({
-      balance: user.balance + profit
-    }).eq('id', user.id);
-
-    alert("تم إغلاق الصفقة بنجاح!");
+    await supabase.from('trading_positions').update({ status: 'CLOSED', current_price: currentPrice, profit }).eq('id', position.id);
+    await supabase.from('wallets').update({ free_margin: balance.freeMargin + marginToReturn + profit, margin: balance.margin - marginToReturn }).eq('user_id', user.id);
+    await supabase.from('users').update({ balance: user.balance + profit }).eq('id', user.id);
+    alert("تم إغلاق الصفقة!");
   };
 
   return (
     <div className="flex h-screen bg-[#0b0e11] text-slate-300 font-sans overflow-hidden">
-      {/* ... (القائمة الجانبية والشارت كما هي) ... */}
-      {/* ... (منطقة الرصيد كما هي) ... */}
-
-        {/* جدول الصفقات (Terminal) */}
+      <div className="w-64 bg-[#131722] border-r border-white/10 flex flex-col">
+        <div className="p-4 border-b border-white/10 font-bold text-white flex items-center gap-2"><BarChart3 size={20} /> Market Watch</div>
+        <div className="flex-1 overflow-y-auto">
+          {['BTCUSDT', 'EURUSD', 'XAUUSD'].map(s => (
+            <button key={s} onClick={() => setSymbol(`BINANCE:${s}`)} className={`w-full p-4 text-left border-b border-white/5 ${symbol === `BINANCE:${s}` ? 'bg-sky-900/30 text-sky-400' : 'hover:bg-white/5'}`}>{s}</button>
+          ))}
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col">
+        <div className="h-12 bg-[#131722] border-b border-white/10 flex items-center px-4 gap-4">
+          <LayoutDashboard size={20} className="text-sky-400" />
+          <div className="flex-1" />
+        </div>
+        <div className="flex-1 flex">
+          <div className="flex-1 p-2"><TradingViewChart symbol={symbol} /></div>
+          <div className="w-48 bg-[#131722] border-l border-white/10 p-4 flex flex-col gap-4">
+            <h3 className="text-white font-bold text-sm">Order: {symbol.split(':')[1]}</h3>
+            <input type="number" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} className="bg-[#1e2329] text-white p-2 rounded text-sm w-full" />
+            <button onClick={() => handleTrade('Buy')} className="w-full bg-emerald-600 text-white py-1.5 rounded text-sm font-bold">BUY</button>
+            <button onClick={() => handleTrade('Sell')} className="w-full bg-red-600 text-white py-1.5 rounded text-sm font-bold">SELL</button>
+          </div>
+        </div>
+        <div className="h-10 bg-[#1e2329] border-t border-white/10 flex items-center px-4 gap-6 text-xs font-mono">
+          <span>Balance: ${balance.balance.toFixed(2)}</span>
+          <span>Free Margin: ${balance.freeMargin.toFixed(2)}</span>
+        </div>
         <div className="h-48 bg-[#131722] border-t border-white/10 overflow-y-auto">
           <table className="w-full text-xs text-left">
             <thead className="bg-[#1e2329] text-slate-400 sticky top-0">
-              <tr>
-                <th className="p-2">Symbol</th>
-                <th className="p-2">Type</th>
-                <th className="p-2">Volume</th>
-                <th className="p-2">Price</th>
-                <th className="p-2">Profit</th>
-                <th className="p-2">Action</th>
-              </tr>
+              <tr><th className="p-2">Symbol</th><th className="p-2">Type</th><th className="p-2">Volume</th><th className="p-2">Profit</th><th className="p-2">Action</th></tr>
             </thead>
             <tbody>
               {positions.map(p => (
-                <tr key={p.id} className="border-b border-white/5 hover:bg-white/5">
-                  <td className="p-2 text-white font-bold">{p.symbol}</td>
-                  <td className={`p-2 ${p.type === 'Buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p.type}</td>
+                <tr key={p.id} className="border-b border-white/5">
+                  <td className="p-2">{p.symbol}</td>
+                  <td className={p.type === 'Buy' ? 'text-emerald-400' : 'text-red-400'}>{p.type}</td>
                   <td className="p-2">{p.volume}</td>
-                  <td className="p-2">{p.entry_price}</td>
-                  <td className={`p-2 ${p.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{p.profit?.toFixed(2) || '0.00'}</td>
-                  <td className="p-2">
-                    <button 
-                      onClick={() => closePosition(p)}
-                      className="bg-red-900/50 hover:bg-red-700 text-red-200 px-2 py-1 rounded text-[10px]"
-                    >
-                      Close
-                    </button>
-                  </td>
+                  <td className={p.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}>{p.profit?.toFixed(2) || '0.00'}</td>
+                  <td className="p-2"><button onClick={() => closePosition(p)} className="bg-red-900/50 text-red-200 px-2 py-1 rounded">Close</button></td>
                 </tr>
               ))}
             </tbody>
@@ -202,5 +132,4 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     </div>
   );
 };
-
 export default TradingPlatform;
