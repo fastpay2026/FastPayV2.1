@@ -31,10 +31,9 @@ async function startServer() {
   });
 
   // API Route for Closing Order
-  app.post('/api/test-close', (req, res) => {
+  app.post('/api/close', express.json(), (req, res) => {
     const { orderId } = req.body;
     console.log('Closing order:', orderId);
-    // Here you would add logic to interact with Binance/Supabase if needed
     res.status(200).json({ message: 'Order closed successfully' });
   });
 
