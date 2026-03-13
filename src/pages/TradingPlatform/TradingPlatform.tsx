@@ -90,7 +90,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const response = await fetch('/api/close-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId: position.id, symbol: position.symbol, profit, marginToReturn })
+      body: JSON.stringify({ 
+        orderId: position.id, 
+        symbol: position.symbol, 
+        profit: profit, 
+        marginToReturn: marginToReturn 
+      })
     });
 
     if (response.ok) {

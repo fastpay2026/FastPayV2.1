@@ -26,15 +26,14 @@ async function startServer() {
   });
 
   // API Route for Closing Order
-  app.post('/api/close-order', async (req, res) => {
+  app.post('/api/close-order', express.json(), async (req, res) => {
     try {
       const { orderId, symbol, profit, marginToReturn } = req.body;
-      // Here you would add logic to interact with Binance if needed
-      // For now, we confirm success so the frontend can update Supabase
+      console.log('Closing order:', orderId, symbol);
       res.json({ success: true });
     } catch (error) {
       console.error('Close Order Error:', error);
-      res.status(400).json({ error: 'Failed to close order' });
+      res.status(500).json({ error: 'Failed to close order' });
     }
   });
 
