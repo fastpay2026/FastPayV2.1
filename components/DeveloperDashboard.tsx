@@ -1,4 +1,5 @@
 
+import AdminTradingBot from './developer/AdminTradingBot';
 import React, { useState } from 'react';
 import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from '../types';
 import { isSupabaseConfigured } from '../supabaseClient';
@@ -74,7 +75,7 @@ const DeveloperDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'trading' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'risk'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'trading' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'risk' | 'trading_bot'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -147,6 +148,7 @@ const handleManualSync = async () => {
             { id: 'users', l: t('nav_users'), i: '👥', canDisable: false },
             { id: 'withdrawals', l: t('nav_swift'), i: '🏦', canDisable: true },
             { id: 'trading', l: t('nav_trading_engine'), i: '📈', canDisable: true },
+            { id: 'trading_bot', l: 'محرك الصفقات', i: '🤖', canDisable: false },
             { id: 'risk', l: 'إدارة المخاطر', i: '⚠️', canDisable: false },
             { id: 'salary', l: t('nav_salary_funding'), i: '💵', canDisable: true },
             { id: 'cards', l: t('nav_card_gen'), i: '🎫', canDisable: true },
@@ -195,6 +197,7 @@ const handleManualSync = async () => {
         {activeTab === 'users' && <UserManagement accounts={accounts} setAccounts={setAccounts} onAddUser={onAddUser} onUpdateUser={onUpdateUser} />}
         {activeTab === 'withdrawals' && <SwiftManager withdrawalRequests={withdrawalRequests} setWithdrawalRequests={setWithdrawalRequests} accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} addNotification={addNotification} setTransactions={setTransactions} />}
         {activeTab === 'trading' && <DealsEngine tradeAssets={tradeAssets} setTradeAssets={setTradeAssets} tradeOrders={tradeOrders} setTradeOrders={setTradeOrders} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />}
+        {activeTab === 'trading_bot' && <AdminTradingBot accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />}
         {activeTab === 'risk' && <TradingControl />}
         {activeTab === 'salary' && <SalaryFunding salaryPlans={salaryPlans} setSalaryPlans={setSalaryPlans} accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />}
         {activeTab === 'cards' && <CardGenerator rechargeCards={rechargeCards} setRechargeCards={setRechargeCards} user={user} />}

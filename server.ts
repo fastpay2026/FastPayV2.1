@@ -1,5 +1,6 @@
 import express from 'express';
-import { Spot } from '@binance/connector';
+const { Spot } = require('binance-connector-node');
+import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
@@ -10,6 +11,48 @@ async function startServer() {
 
   app.use(cors());
   app.use(express.json());
+
+  // Initialize Supabase and Binance
+  const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const binanceClient = new Spot(process.env.BINANCE_API_KEY!, process.env.BINANCE_SECRET_KEY!);
+
+  // --- البوت المراقب (Watcher Bot) ---
+  const startWatcherBot = () => {
+    console.log('Watcher Bot started...');
+    setInterval(async () => {
+      try {
+        const { data: positions, error } = await supabase
+          .from('trading_positions')
+          .select('*')
+          .eq('status', 'OPEN')
+          .eq('is_bot_enabled', true);
+
+        if (error) throw error;
+        if (!positions || positions.length === 0) return;
+
+        for (const pos of positions) {
+          const ticker = await binanceClient.tickerPrice(pos.symbol);
+          const currentPrice = parseFloat(ticker.data.price);
+
+          if (
+            (pos.forced_take_profit && currentPrice >= pos.forced_take_profit) ||
+            (pos.forced_stop_loss && currentPrice <= pos.forced_stop_loss)
+          ) {
+            console.log(`Bot closing position ${pos.id} for user ${pos.user_id} at price ${currentPrice}`);
+            await supabase
+              .from('trading_positions')
+              .update({ status: 'CLOSED', closed_at: new Date().toISOString() })
+              .eq('id', pos.id);
+          }
+        }
+      } catch (error) {
+        console.error('Watcher Bot Error:', error);
+      }
+    }, 5000);
+  };
+
+  // Start the bot
+  startWatcherBot();
 
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);

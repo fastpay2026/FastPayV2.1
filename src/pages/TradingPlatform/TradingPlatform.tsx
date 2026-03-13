@@ -145,7 +145,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         <div className="h-12 bg-[#131722] border-b border-white/10 flex items-center px-4 gap-4">
           <LayoutDashboard size={20} className="text-sky-400" />
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
-            {Object.entries(prices).map(([s, p]) => <span key={s} className="mx-4">{s}: {p.toFixed(2)}</span>)}
+            {Object.entries(prices).map(([s, p]) => <span key={s} className="mx-4">{s}: {(p as number).toFixed(2)}</span>)}
           </div>
         </div>
         <div className="flex-1 flex">
