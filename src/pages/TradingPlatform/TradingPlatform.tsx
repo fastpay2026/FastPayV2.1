@@ -42,8 +42,23 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   }, [user]);
 
   const fetchWallet = async () => {
-    const { data } = await supabase.from('wallets').select('*').eq('user_id', user.id).single();
-    if (data) setBalance({ balance: data.balance, equity: data.equity, margin: data.margin, freeMargin: data.free_margin });
+    console.log("Fetching wallet for user:", user.id);
+    const { data, error } = await supabase.from('wallets').select('*').eq('user_id', user.id).single();
+    
+    if (error) {
+      console.error("Error fetching wallet:", error);
+      return;
+    }
+    
+    console.log("Wallet data fetched:", data);
+    if (data) {
+      setBalance({ 
+        balance: data.balance || 0, 
+        equity: data.equity || 0, 
+        margin: data.margin || 0, 
+        freeMargin: data.free_margin || 0 
+      });
+    }
   };
 
   const fetchPositions = async () => {
