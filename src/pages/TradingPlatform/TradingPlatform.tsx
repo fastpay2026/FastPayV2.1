@@ -43,7 +43,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
   const fetchWallet = async () => {
     console.log("Fetching wallet for user:", user.id);
-    const { data, error } = await supabase.from('wallets').select('*').eq('user_id', user.id).single();
+    const { data, error } = await supabase.from('wallets').select('*').eq('user_id', user.id).maybeSingle();
     
     if (error) {
       console.error("Error fetching wallet:", error);
@@ -58,6 +58,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         margin: data.margin || 0, 
         freeMargin: data.free_margin || 0 
       });
+    } else {
+      console.log("No wallet found for user, setting balance to 0");
+      setBalance({ balance: 0, equity: 0, margin: 0, freeMargin: 0 });
     }
   };
 
