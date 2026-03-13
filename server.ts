@@ -11,34 +11,21 @@ async function startServer() {
   app.use(cors());
   app.use(express.json());
 
+  // API Route for Closing Order (Moved to top)
+  app.all('/api/close', (req, res) => {
+    console.log('DEBUG: Received request on /api/close, method:', req.method, 'body:', req.body);
+    if (req.method === 'POST') {
+      const { orderId } = req.body;
+      console.log('Closing order:', orderId);
+      res.status(200).json({ message: 'Order closed successfully' });
+    } else {
+      res.status(405).json({ message: 'Method Not Allowed' });
+    }
+  });
+
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();
-  });
-
-  const client = new Spot(process.env.BINANCE_API_KEY || '', process.env.BINANCE_SECRET_KEY || '');
-
-  // API Route for Binance Price
-  app.get('/api/price/:symbol', async (req, res) => {
-    try {
-      const { symbol } = req.params;
-      const response = await client.tickerPrice(symbol);
-      res.json(response.data);
-    } catch (error) {
-      console.error('Binance API Error:', error);
-      res.status(500).json({ error: 'Failed to fetch price' });
-    }
-  });
-
-  // API Route for Closing Order
-  app.post('/api/close', cors(), express.json(), (req, res) => {
-    console.log('Received POST request on /api/close, body:', req.body);
-    const { orderId } = req.body;
-    if (!orderId) {
-      return res.status(400).json({ message: 'Missing orderId' });
-    }
-    console.log('Closing order:', orderId);
-    res.status(200).json({ message: 'Order closed successfully' });
   });
 
   // Vite middleware for development
