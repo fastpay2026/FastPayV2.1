@@ -26,15 +26,11 @@ async function startServer() {
   });
 
   // API Route for Closing Order
-  app.post('/api/close-order', express.json(), async (req, res) => {
-    try {
-      const { orderId, symbol, profit, marginToReturn } = req.body;
-      console.log('Closing order:', orderId, symbol);
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Close Order Error:', error);
-      res.status(500).json({ error: 'Failed to close order' });
-    }
+  app.post('/api/close-order', (req, res) => {
+    const { orderId } = req.body;
+    console.log('Closing order:', orderId);
+    // Here you would add logic to interact with Binance/Supabase if needed
+    res.status(200).json({ message: 'Order closed successfully' });
   });
 
   // Vite middleware for development
