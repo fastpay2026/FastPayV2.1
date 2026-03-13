@@ -83,24 +83,46 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
   const closePosition = async (position: any) => {
     try {
-      const response = await fetch('/api/close-position', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: position.id })
-      });
+      // 1. Update position status to CLOSED in Supabase
+      const { error: posError } = await supabase
+        .from('trading_positions')
+        .update({ status: 'CLOSED' })
+        .eq('id', position.id);
 
-      if (response.ok) {
-        // Update UI immediately
-        setPositions(prev => prev.filter(p => p.id !== position.id));
-        setBalance(prev => ({ 
-          ...prev, 
-          balance: prev.balance + (position.profit || 0),
-          freeMargin: prev.freeMargin + (position.volume * position.entry_price / 100) + (position.profit || 0)
-        }));
-        alert("تم إغلاق الصفقة بنجاح!");
-      } else {
-        alert("حدث خطأ أثناء إغلاق الصفقة!");
-      }
+      if (posError) throw posError;
+
+      // 2. Update user balance in Supabase
+      const marginToReturn = (position.volume * position.entry_price) / 100;
+      const profit = position.profit || 0;
+      
+      const { error: userError } = await supabase
+        .from('users')
+        .update({ balance: balance.balance + profit })
+        .eq('id', user.id);
+        
+      if (userError) throw userError;
+
+      // 3. Update wallet in Supabase
+      const { error: walletError } = await supabase
+        .from('wallets')
+        .update({ 
+          free_margin: balance.freeMargin + marginToReturn + profit, 
+          margin: balance.margin - marginToReturn 
+        })
+        .eq('user_id', user.id);
+        
+      if (walletError) throw walletError;
+
+      // 4. Update UI immediately
+      setPositions(prev => prev.filter(p => p.id !== position.id));
+      setBalance(prev => ({ 
+        ...prev, 
+        balance: prev.balance + profit,
+        freeMargin: prev.freeMargin + marginToReturn + profit,
+        margin: prev.margin - marginToReturn
+      }));
+      
+      alert("تم إغلاق الصفقة بنجاح!");
     } catch (error) {
       console.error('Error closing order:', error);
       alert("حدث خطأ أثناء إغلاق الصفقة!");
