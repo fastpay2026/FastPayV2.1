@@ -42,36 +42,37 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   }, [user]);
 
   const fetchWallet = async () => {
-    console.log("Fetching wallet for user:", user.id);
-    const { data, error } = await supabase.from('wallets').select('*').eq('user_id', user.id).maybeSingle();
+    console.log("Fetching wallet/balance for user ID:", user.id);
     
-    if (error) {
-      console.error("Error fetching wallet:", error);
+    // 1. محاولة جلب الرصيد من جدول wallets
+    let { data: walletData, error: walletError } = await supabase.from('wallets').select('*').eq('user_id', user.id).maybeSingle();
+    
+    if (walletData) {
+      console.log("Wallet data found:", walletData);
+      setBalance({ 
+        balance: walletData.balance || 0, 
+        equity: walletData.equity || 0, 
+        margin: walletData.margin || 0, 
+        freeMargin: walletData.free_margin || 0 
+      });
       return;
     }
+
+    // 2. إذا لم يوجد، محاولة جلب الرصيد من جدول users كبديل
+    console.log("No wallet found, checking users table for balance...");
+    let { data: userData, error: userError } = await supabase.from('users').select('balance').eq('id', user.id).single();
     
-    if (data) {
-      console.log("Wallet data fetched:", data);
+    if (userData) {
+      console.log("User balance found in users table:", userData.balance);
       setBalance({ 
-        balance: data.balance || 0, 
-        equity: data.equity || 0, 
-        margin: data.margin || 0, 
-        freeMargin: data.free_margin || 0 
+        balance: userData.balance || 0, 
+        equity: userData.balance || 0, 
+        margin: 0, 
+        freeMargin: userData.balance || 0 
       });
     } else {
-      console.log("No wallet found, creating default wallet for user");
-      // إنشاء محفظة افتراضية برصيد 10,000
-      const { data: newData, error: createError } = await supabase.from('wallets').insert({
-        user_id: user.id,
-        balance: 10000,
-        equity: 10000,
-        margin: 0,
-        free_margin: 10000
-      }).select().single();
-
-      if (newData) {
-        setBalance({ balance: 10000, equity: 10000, margin: 0, freeMargin: 10000 });
-      }
+      console.log("No balance found in users table either.");
+      setBalance({ balance: 0, equity: 0, margin: 0, freeMargin: 0 });
     }
   };
 
