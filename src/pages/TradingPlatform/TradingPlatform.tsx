@@ -60,7 +60,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   };
 
   const fetchPositions = async () => {
-    const { data } = await supabase.from('trading_positions').select('*').eq('user_id', user.id).eq('status', 'OPEN');
+    const { data } = await supabase.from('trade_orders').select('*').eq('user_id', user.id).eq('status', 'open');
     if (data) setPositions(data);
   };
 
@@ -70,14 +70,17 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const marginRequired = (volume * price) / 100;
     if (balance.freeMargin < marginRequired) { alert("الرصيد غير كافٍ!"); return; }
 
-    const { data: pos, error: posError } = await supabase.from('trading_positions').insert({
-      user_id: user.id, symbol: symbol.split(':')[1], type, volume, entry_price: price, current_price: price, status: 'OPEN'
+    const { data: pos, error: posError } = await supabase.from('trade_orders').insert({
+      user_id: user.id, username: user.username, asset_symbol: symbol.split(':')[1], type: type.toLowerCase(), amount: volume, entry_price: price, status: 'open'
     }).select().single();
 
     if (!posError) {
       await supabase.from('wallets').update({ free_margin: balance.freeMargin - marginRequired, margin: balance.margin + marginRequired }).eq('user_id', user.id);
       await supabase.from('users').update({ balance: user.balance - marginRequired }).eq('id', user.id);
       alert("تم تنفيذ الصفقة!");
+    } else {
+      console.error(posError);
+      alert("حدث خطأ أثناء تنفيذ الصفقة!");
     }
   };
 
@@ -85,8 +88,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     try {
       // 1. Update position status to CLOSED in Supabase
       const { error: posError } = await supabase
-        .from('trading_positions')
-        .update({ status: 'CLOSED' })
+        .from('trade_orders')
+        .update({ status: 'closed_profit' })
         .eq('id', position.id);
 
       if (posError) throw posError;
@@ -170,10 +173,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             <tbody>
               {positions.map(p => (
                 <tr key={p.id} className="border-b border-white/5">
-                  <td className="p-2">{p.symbol}</td>
-                  <td className={p.type === 'Buy' ? 'text-emerald-400' : 'text-red-400'}>{p.type}</td>
-                  <td className="p-2">{p.volume}</td>
-                  <td className={p.profit >= 0 ? 'text-emerald-400' : 'text-red-400'}>{p.profit?.toFixed(2) || '0.00'}</td>
+                  <td className="p-2">{p.asset_symbol}</td>
+                  <td className={p.type === 'buy' ? 'text-emerald-400' : 'text-red-400'}>{p.type}</td>
+                  <td className="p-2">{p.amount}</td>
+                  <td className="text-slate-400">0.00</td>
                   <td className="p-2"><button onClick={() => closePosition(p)} className="bg-red-900/50 text-red-200 px-2 py-1 rounded">Close</button></td>
                 </tr>
               ))}
