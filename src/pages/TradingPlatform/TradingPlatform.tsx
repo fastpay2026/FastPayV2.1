@@ -50,8 +50,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       return;
     }
     
-    console.log("Wallet data fetched:", data);
     if (data) {
+      console.log("Wallet data fetched:", data);
       setBalance({ 
         balance: data.balance || 0, 
         equity: data.equity || 0, 
@@ -59,8 +59,19 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         freeMargin: data.free_margin || 0 
       });
     } else {
-      console.log("No wallet found for user, setting balance to 0");
-      setBalance({ balance: 0, equity: 0, margin: 0, freeMargin: 0 });
+      console.log("No wallet found, creating default wallet for user");
+      // إنشاء محفظة افتراضية برصيد 10,000
+      const { data: newData, error: createError } = await supabase.from('wallets').insert({
+        user_id: user.id,
+        balance: 10000,
+        equity: 10000,
+        margin: 0,
+        free_margin: 10000
+      }).select().single();
+
+      if (newData) {
+        setBalance({ balance: 10000, equity: 10000, margin: 0, freeMargin: 10000 });
+      }
     }
   };
 
