@@ -14,6 +14,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [balance, setBalance] = useState({ balance: 31820, equity: 31820, margin: 0, freeMargin: 31820 });
   const [positions, setPositions] = useState<any[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({ BTCUSDT: 0, ETHUSDT: 0, SOLUSDT: 0 });
+  const [priceColor, setPriceColor] = useState('text-white');
+  const [prevPrice, setPrevPrice] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -24,7 +26,13 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker/ethusdt@ticker/solusdt@ticker');
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setPrices(prev => ({ ...prev, [data.s]: parseFloat(data.c) }));
+      const newPrice = parseFloat(data.c);
+      setPrices(prev => {
+        const oldPrice = prev[data.s] || 0;
+        setPrevPrice(oldPrice);
+        setPriceColor(newPrice > oldPrice ? 'text-emerald-400' : newPrice < oldPrice ? 'text-red-400' : 'text-white');
+        return { ...prev, [data.s]: newPrice };
+      });
     };
 
     const channel = supabase
