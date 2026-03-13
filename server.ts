@@ -11,6 +11,11 @@ async function startServer() {
   app.use(cors());
   app.use(express.json());
 
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+  });
+
   const client = new Spot(process.env.BINANCE_API_KEY || '', process.env.BINANCE_SECRET_KEY || '');
 
   // API Route for Binance Price
@@ -26,7 +31,7 @@ async function startServer() {
   });
 
   // API Route for Closing Order
-  app.post('/api/close-order', (req, res) => {
+  app.post('/api/test-close', (req, res) => {
     const { orderId } = req.body;
     console.log('Closing order:', orderId);
     // Here you would add logic to interact with Binance/Supabase if needed
