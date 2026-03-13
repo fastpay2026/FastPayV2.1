@@ -52,6 +52,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   };
 
   const handleTrade = async (type: 'Buy' | 'Sell') => {
+    if (isNaN(volume) || volume <= 0) {
+      alert("يرجى إدخال كمية صحيحة!");
+      return;
+    }
     const price = 70500; // سعر تقريبي حالي
     const marginRequired = (volume * price) / 100; // رافعة 1:100
 
@@ -82,8 +86,13 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       margin: balance.margin + marginRequired
     }).eq('user_id', user.id);
 
-    if (walletError) {
-      alert("خطأ في تحديث الرصيد: " + walletError.message);
+    // 3. تحديث رصيد المستخدم في جدول users
+    const { error: userError } = await supabase.from('users').update({
+      balance: user.balance - marginRequired
+    }).eq('id', user.id);
+
+    if (walletError || userError) {
+      alert("خطأ في تحديث الرصيد: " + (walletError?.message || userError?.message));
     } else {
       alert("تم تنفيذ الصفقة بنجاح!");
     }
@@ -132,7 +141,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             <input 
               type="number" 
               value={volume} 
-              onChange={(e) => setVolume(parseFloat(e.target.value))}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                setVolume(isNaN(val) ? 0 : val);
+              }}
               className="bg-[#1e2329] text-white p-2 rounded text-sm w-full"
             />
             <button onClick={() => handleTrade('Buy')} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-1.5 rounded text-sm font-bold">BUY</button>
