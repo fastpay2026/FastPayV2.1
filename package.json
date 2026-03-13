@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
@@ -12,8 +12,11 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",
     "axios": "^1.13.5",
+    "binance-connector-node": "^0.0.1-security",
     "clsx": "^2.1.1",
+    "cors": "^2.8.6",
     "crypto-js": "^4.2.0",
+    "express": "^5.2.1",
     "lucide-react": "^0.575.0",
     "motion": "^12.34.3",
     "react": "^19.2.4",
@@ -29,6 +32,7 @@
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^5.0.0",
     "tailwindcss": "^4.2.1",
+    "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

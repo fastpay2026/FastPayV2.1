@@ -13,6 +13,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [volume, setVolume] = useState(0.1);
   const [balance, setBalance] = useState({ balance: 0, equity: 0, margin: 0, freeMargin: 0 });
   const [positions, setPositions] = useState<any[]>([]);
+  const [currentPrice, setCurrentPrice] = useState(0);
+  const [priceColor, setPriceColor] = useState('text-white');
 
   useEffect(() => {
     if (!user) return;
@@ -25,20 +27,27 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trading_positions' }, fetchPositions)
       .subscribe();
 
-    const priceInterval = setInterval(() => {
-      setPositions(prev => prev.map(p => {
-        const priceChange = (Math.random() - 0.5) * 100;
-        const newPrice = p.current_price + priceChange;
-        const profit = (newPrice - p.entry_price) * p.volume * (p.type === 'Buy' ? 1 : -1);
-        return { ...p, current_price: newPrice, profit };
-      }));
-    }, 3000);
+    const priceInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/price/${symbol.split(':')[1]}`);
+        const data = await response.json();
+        const newPrice = parseFloat(data.price);
+        
+        setPriceColor(newPrice > currentPrice ? 'text-emerald-400' : newPrice < currentPrice ? 'text-red-400' : 'text-white');
+        setCurrentPrice(newPrice);
+
+        setPositions(prev => prev.map(p => {
+          const profit = (newPrice - p.entry_price) * p.volume * (p.type === 'Buy' ? 1 : -1);
+          return { ...p, current_price: newPrice, profit };
+        }));
+      } catch (e) { console.error(e); }
+    }, 1000);
 
     return () => {
       supabase.removeChannel(channel);
       clearInterval(priceInterval);
     };
-  }, [user]);
+  }, [user, symbol, currentPrice]);
 
   const fetchWallet = async () => {
     let { data: walletData } = await supabase.from('wallets').select('*').eq('user_id', user.id).maybeSingle();
@@ -57,7 +66,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
   const handleTrade = async (type: 'Buy' | 'Sell') => {
     if (isNaN(volume) || volume <= 0) { alert("يرجى إدخال كمية صحيحة!"); return; }
-    const price = 70500;
+    const price = currentPrice;
     const marginRequired = (volume * price) / 100;
     if (balance.freeMargin < marginRequired) { alert("الرصيد غير كافٍ!"); return; }
 
@@ -73,10 +82,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   };
 
   const closePosition = async (position: any) => {
-    const currentPrice = 71600;
-    const profit = (currentPrice - position.entry_price) * position.volume * (position.type === 'Buy' ? 1 : -1);
+    const currentPriceAtClose = currentPrice;
+    const profit = (currentPriceAtClose - position.entry_price) * position.volume * (position.type === 'Buy' ? 1 : -1);
     const marginToReturn = (position.volume * position.entry_price) / 100;
-    await supabase.from('trading_positions').update({ status: 'CLOSED', current_price: currentPrice, profit }).eq('id', position.id);
+    await supabase.from('trading_positions').update({ status: 'CLOSED', current_price: currentPriceAtClose, profit }).eq('id', position.id);
     await supabase.from('wallets').update({ free_margin: balance.freeMargin + marginToReturn + profit, margin: balance.margin - marginToReturn }).eq('user_id', user.id);
     await supabase.from('users').update({ balance: user.balance + profit }).eq('id', user.id);
     alert("تم إغلاق الصفقة!");
@@ -101,6 +110,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           <div className="flex-1 p-2"><TradingViewChart symbol={symbol} /></div>
           <div className="w-48 bg-[#131722] border-l border-white/10 p-4 flex flex-col gap-4">
             <h3 className="text-white font-bold text-sm">Order: {symbol.split(':')[1]}</h3>
+            <div className={`text-2xl font-bold ${priceColor}`}>{currentPrice.toFixed(2)}</div>
             <input type="number" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} className="bg-[#1e2329] text-white p-2 rounded text-sm w-full" />
             <button onClick={() => handleTrade('Buy')} className="w-full bg-emerald-600 text-white py-1.5 rounded text-sm font-bold">BUY</button>
             <button onClick={() => handleTrade('Sell')} className="w-full bg-red-600 text-white py-1.5 rounded text-sm font-bold">SELL</button>
