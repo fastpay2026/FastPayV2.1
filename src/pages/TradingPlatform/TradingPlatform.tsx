@@ -10,6 +10,7 @@ interface TradingPlatformProps {
 
 const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [symbol, setSymbol] = useState('BINANCE:BTCUSDT');
+  const [volume, setVolume] = useState(0.1);
   const [balance, setBalance] = useState({ balance: 0, equity: 0, margin: 0, freeMargin: 0 });
   const [positions, setPositions] = useState<any[]>([]);
 
@@ -24,8 +25,19 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trading_positions' }, fetchPositions)
       .subscribe();
 
+    // محاكاة تحديث السعر كل 3 ثوانٍ
+    const priceInterval = setInterval(() => {
+      setPositions(prev => prev.map(p => {
+        const priceChange = (Math.random() - 0.5) * 100; // تغير عشوائي
+        const newPrice = p.current_price + priceChange;
+        const profit = (newPrice - p.entry_price) * p.volume * (p.type === 'Buy' ? 1 : -1);
+        return { ...p, current_price: newPrice, profit };
+      }));
+    }, 3000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(priceInterval);
     };
   }, [user]);
 
@@ -40,21 +52,38 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   };
 
   const handleTrade = async (type: 'Buy' | 'Sell') => {
-    console.log(`Attempting to ${type} trade for user:`, user.id);
-    
-    const { data, error } = await supabase.from('trading_positions').insert({
+    const price = 70500; // سعر تقريبي حالي
+    const marginRequired = (volume * price) / 100; // رافعة 1:100
+
+    if (balance.freeMargin < marginRequired) {
+      alert("الرصيد غير كافٍ لفتح هذه الصفقة!");
+      return;
+    }
+
+    // 1. إضافة الصفقة
+    const { data: pos, error: posError } = await supabase.from('trading_positions').insert({
       user_id: user.id,
       symbol: symbol.split(':')[1],
       type,
-      volume: 0.1,
-      entry_price: 70500,
-      current_price: 70500,
+      volume,
+      entry_price: price,
+      current_price: price,
       status: 'OPEN'
-    });
+    }).select().single();
 
-    if (error) {
-      console.error("Supabase insert error:", error);
-      alert("حدث خطأ أثناء تنفيذ الصفقة: " + error.message);
+    if (posError) {
+      alert("خطأ في فتح الصفقة: " + posError.message);
+      return;
+    }
+
+    // 2. تحديث المحفظة (خصم الهامش)
+    const { error: walletError } = await supabase.from('wallets').update({
+      free_margin: balance.freeMargin - marginRequired,
+      margin: balance.margin + marginRequired
+    }).eq('user_id', user.id);
+
+    if (walletError) {
+      alert("خطأ في تحديث الرصيد: " + walletError.message);
     } else {
       alert("تم تنفيذ الصفقة بنجاح!");
     }
@@ -100,6 +129,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           {/* لوحة تنفيذ الصفقات الجانبية */}
           <div className="w-48 bg-[#131722] border-l border-white/10 p-4 flex flex-col gap-4">
             <h3 className="text-white font-bold text-sm">Order: {symbol.split(':')[1]}</h3>
+            <input 
+              type="number" 
+              value={volume} 
+              onChange={(e) => setVolume(parseFloat(e.target.value))}
+              className="bg-[#1e2329] text-white p-2 rounded text-sm w-full"
+            />
             <button onClick={() => handleTrade('Buy')} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-1.5 rounded text-sm font-bold">BUY</button>
             <button onClick={() => handleTrade('Sell')} className="w-full bg-red-600 hover:bg-red-500 text-white py-1.5 rounded text-sm font-bold">SELL</button>
           </div>
