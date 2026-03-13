@@ -85,10 +85,22 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const currentPriceAtClose = currentPrice;
     const profit = (currentPriceAtClose - position.entry_price) * position.volume * (position.type === 'Buy' ? 1 : -1);
     const marginToReturn = (position.volume * position.entry_price) / 100;
-    await supabase.from('trading_positions').update({ status: 'CLOSED', current_price: currentPriceAtClose, profit }).eq('id', position.id);
-    await supabase.from('wallets').update({ free_margin: balance.freeMargin + marginToReturn + profit, margin: balance.margin - marginToReturn }).eq('user_id', user.id);
-    await supabase.from('users').update({ balance: user.balance + profit }).eq('id', user.id);
-    alert("تم إغلاق الصفقة!");
+
+    // Send close request to server
+    const response = await fetch('/api/close-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: position.id, symbol: position.symbol, profit, marginToReturn })
+    });
+
+    if (response.ok) {
+      await supabase.from('trading_positions').update({ status: 'CLOSED', current_price: currentPriceAtClose, profit }).eq('id', position.id);
+      await supabase.from('wallets').update({ free_margin: balance.freeMargin + marginToReturn + profit, margin: balance.margin - marginToReturn }).eq('user_id', user.id);
+      await supabase.from('users').update({ balance: balance.balance + profit }).eq('id', user.id);
+      alert("تم إغلاق الصفقة بنجاح وتحديث الرصيد!");
+    } else {
+      alert("حدث خطأ أثناء إغلاق الصفقة!");
+    }
   };
 
   return (
