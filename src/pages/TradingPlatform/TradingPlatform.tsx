@@ -48,6 +48,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       type,
       volume: 0.1,
       entry_price: 70500,
+      current_price: 70500,
       status: 'OPEN'
     });
 
