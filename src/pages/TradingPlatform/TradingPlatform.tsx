@@ -71,7 +71,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             <button 
               key={s} 
               onClick={() => setSymbol(`BINANCE:${s}`)}
-              className="w-full p-4 hover:bg-white/5 text-left border-b border-white/5"
+              className={`w-full p-4 text-left border-b border-white/5 transition-colors ${symbol === `BINANCE:${s}` ? 'bg-sky-900/30 text-sky-400 border-l-4 border-l-sky-500' : 'hover:bg-white/5'}`}
             >
               {s}
             </button>
@@ -98,7 +98,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           
           {/* لوحة تنفيذ الصفقات الجانبية */}
           <div className="w-48 bg-[#131722] border-l border-white/10 p-4 flex flex-col gap-4">
-            <h3 className="text-white font-bold text-sm">Order</h3>
+            <h3 className="text-white font-bold text-sm">Order: {symbol.split(':')[1]}</h3>
             <button onClick={() => handleTrade('Buy')} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-1.5 rounded text-sm font-bold">BUY</button>
             <button onClick={() => handleTrade('Sell')} className="w-full bg-red-600 hover:bg-red-500 text-white py-1.5 rounded text-sm font-bold">SELL</button>
           </div>
