@@ -31,15 +31,14 @@ async function startServer() {
   });
 
   // API Route for Closing Order
-  app.all('/api/close', (req, res) => {
-    console.log('Received request on /api/close, method:', req.method);
-    if (req.method === 'POST') {
-      const { orderId } = req.body;
-      console.log('Closing order:', orderId);
-      res.status(200).json({ message: 'Order closed successfully' });
-    } else {
-      res.status(405).json({ message: 'Method Not Allowed' });
+  app.post('/api/close', cors(), express.json(), (req, res) => {
+    console.log('Received POST request on /api/close, body:', req.body);
+    const { orderId } = req.body;
+    if (!orderId) {
+      return res.status(400).json({ message: 'Missing orderId' });
     }
+    console.log('Closing order:', orderId);
+    res.status(200).json({ message: 'Order closed successfully' });
   });
 
   // Vite middleware for development
