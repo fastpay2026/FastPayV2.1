@@ -83,7 +83,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
   const closePosition = async (position: any) => {
     try {
-      const response = await fetch('/api/close', {
+      const response = await fetch('/api/close-position', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: position.id })

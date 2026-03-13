@@ -12,15 +12,14 @@ async function startServer() {
   app.use(express.json());
 
   // API Route for Closing Order (Moved to top)
-  app.all('/api/close', (req, res) => {
-    console.log('DEBUG: Received request on /api/close, method:', req.method, 'body:', req.body);
-    if (req.method === 'POST') {
-      const { orderId } = req.body;
-      console.log('Closing order:', orderId);
-      res.status(200).json({ message: 'Order closed successfully' });
-    } else {
-      res.status(405).json({ message: 'Method Not Allowed' });
+  app.post('/api/close-position', express.json(), (req, res) => {
+    console.log('DEBUG: Received POST request on /api/close-position, body:', req.body);
+    const { orderId } = req.body;
+    if (!orderId) {
+      return res.status(400).json({ message: 'Missing orderId' });
     }
+    console.log('Closing order:', orderId);
+    res.status(200).json({ message: 'Order closed successfully' });
   });
 
   app.use((req, res, next) => {
