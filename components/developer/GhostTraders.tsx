@@ -24,12 +24,14 @@ const GhostTraders: React.FC = () => {
   const toggleBot = async () => {
     const newState = !isEnabled;
     setIsEnabled(newState);
+    // إرسال الحقل الصحيح is_active
     await supabase.from('bot_config').upsert({ key: 'ghost_traders', is_active: newState, trades_per_hour: tradesPerHour });
     alert(`تم ${newState ? 'تفعيل' : 'إيقاف'} البوتات الوهمية`);
   };
 
   const updateFrequency = async (freq: number) => {
     setTradesPerHour(freq);
+    // إرسال الحقل الصحيح is_active
     await supabase.from('bot_config').upsert({ key: 'ghost_traders', is_active: isEnabled, trades_per_hour: freq });
   };
 
