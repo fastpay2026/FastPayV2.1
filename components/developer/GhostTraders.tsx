@@ -6,7 +6,7 @@ import { supabaseService } from '../../supabaseService';
 const GhostTraders: React.FC = () => {
   const [isEnabled, setIsEnabled] = useState(false);
   const [tradesPerHour, setTradesPerHour] = useState(5);
-  const [botUsers, setBotUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -16,7 +16,7 @@ const GhostTraders: React.FC = () => {
         setTradesPerHour(data.trades_per_hour);
       }
       const users = await supabaseService.getUsers();
-      setBotUsers(users.filter(u => u.isBot));
+      setAllUsers(users.filter(u => u.role === 'USER'));
     };
     loadConfig();
   }, []);
@@ -33,9 +33,10 @@ const GhostTraders: React.FC = () => {
     await supabase.from('bot_config').upsert({ key: 'ghost_traders', is_enabled: isEnabled, trades_per_hour: freq });
   };
 
-  const disableBot = async (user: User) => {
-    await supabaseService.updateUser({ ...user, isBot: false });
-    setBotUsers(prev => prev.filter(u => u.id !== user.id));
+  const toggleBotStatus = async (user: User) => {
+    const updatedUser = { ...user, isBot: !user.isBot };
+    await supabaseService.updateUser(updatedUser);
+    setAllUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
   };
 
   return (
@@ -59,16 +60,16 @@ const GhostTraders: React.FC = () => {
         </div>
       </div>
       <div>
-        <h3 className="text-lg font-bold text-white mb-2">البوتات المفعلة:</h3>
+        <h3 className="text-lg font-bold text-white mb-2">إدارة البوتات:</h3>
         <div className="space-y-2">
-          {botUsers.map(user => (
+          {allUsers.map(user => (
             <div key={user.id} className="flex justify-between items-center p-3 bg-white/5 rounded-xl">
               <span className="text-white">{user.username}</span>
               <button 
-                onClick={() => disableBot(user)}
-                className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs"
+                onClick={() => toggleBotStatus(user)}
+                className={`${user.isBot ? 'bg-emerald-600' : 'bg-slate-600'} text-white px-3 py-1 rounded-lg text-xs`}
               >
-                إلغاء التفعيل
+                {user.isBot ? 'مفعل' : 'غير مفعل'}
               </button>
             </div>
           ))}
