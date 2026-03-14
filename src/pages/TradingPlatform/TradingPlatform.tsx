@@ -8,7 +8,12 @@ import { User } from '../../../types';
 import { io } from 'socket.io-client';
 import { useNotification } from '../../../components/NotificationContext';
 
-const socket = io();
+const socket = io({
+  path: '/socket.io',
+  transports: ['polling', 'websocket'],
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+});
 
 interface TradingPlatformProps {
   user: User;
@@ -45,6 +50,21 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     };
 
     // Socket.io for trade events
+    const fetchInitialTrades = async () => {
+      try {
+        const response = await fetch('/api/trades');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('TradingPlatform: Fetched initial trades via REST:', data.length);
+          setTrades(data.slice(0, 15));
+        }
+      } catch (err) {
+        console.error('TradingPlatform: Failed to fetch trades via REST:', err);
+      }
+    };
+
+    fetchInitialTrades();
+
     socket.on('connect', () => {
       console.log('TradingPlatform: Socket connected:', socket.id);
     });

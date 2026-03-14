@@ -29,10 +29,14 @@ async function startServer() {
   const app = express();
   const httpServer = createServer(app);
   const io = new Server(httpServer, {
+    path: '/socket.io',
     cors: {
       origin: "*",
-      methods: ["GET", "POST"]
-    }
+      methods: ["GET", "POST"],
+      credentials: true
+    },
+    transports: ['polling', 'websocket'],
+    allowEIO3: true // Support older clients if any
   });
   const PORT = 3000;
 
@@ -41,6 +45,25 @@ async function startServer() {
 
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  app.get('/api/trades', async (req, res) => {
+    if (!isSupabaseConfigured) {
+      return res.status(503).json({ error: 'Supabase not configured' });
+    }
+    try {
+      const { data, error } = await supabase
+        .from('trade_orders')
+        .select('*')
+        .eq('status', 'open')
+        .order('timestamp', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      res.json(data || []);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   console.log('Server: Starting initialization...');
@@ -73,13 +96,8 @@ async function startServer() {
     console.error('Server: Failed to initialize Binance client:', e);
   }
 
-  io.use((socket, next) => {
-    console.log(`Socket Middleware: Connection attempt from ${socket.id} (Origin: ${socket.handshake.headers.origin})`);
-    next();
-  });
-
   io.on('connection', (socket) => {
-    console.log('Server: User connected:', socket.id);
+    console.log('Server: New connection attempt:', socket.id);
     
     // Use a separate async function to avoid blocking the connection event
     const sendInitialData = async () => {
@@ -98,16 +116,20 @@ async function startServer() {
 
         if (error) {
           console.error('Server: Supabase fetch error for initial_trades:', error);
+          socket.emit('initial_trades', []); // Send empty array on error
         } else {
           console.log(`Server: Sending ${openTrades?.length || 0} initial trades to ${socket.id}`);
           socket.emit('initial_trades', openTrades || []);
         }
       } catch (err) {
         console.error('Server: Unexpected error during initial data fetch:', err);
+        socket.emit('initial_trades', []);
       }
     };
 
-    sendInitialData();
+    sendInitialData().catch(err => {
+      console.error('Server: sendInitialData failed:', err);
+    });
 
     socket.on('error', (error) => {
       console.error('Server: Socket error for', socket.id, ':', error);
