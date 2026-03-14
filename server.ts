@@ -31,6 +31,10 @@ async function startServer() {
   const PORT = 3000;
 
   // 1. Basic Middleware
+  app.use((req, res, next) => {
+    console.log(`[REQUEST] ${req.method} ${req.url}`);
+    next();
+  });
   app.use(cors({
     origin: "*",
     methods: ["GET", "POST"],
@@ -43,6 +47,11 @@ async function startServer() {
   // 2. Check environment variables
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.warn('WARNING: SUPABASE_SERVICE_ROLE_KEY is missing. Bot trades might fail due to RLS.');
+  }
+  
   const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder.supabase.co'));
 
   console.log('Server: Supabase URL Present:', !!supabaseUrl);
@@ -443,21 +452,24 @@ async function startServer() {
           
         if (targetBots && targetBots.length > 0) {
           for (const bot of targetBots) {
-            for (let i = 0; i < 3; i++) {
-              const trade = {
-                user_id: bot.id,
-                asset_symbol: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'][Math.floor(Math.random() * 3)],
-                type: Math.random() > 0.5 ? 'buy' : 'sell',
-                amount: Math.floor(Math.random() * 50) + 10,
-                entry_price: 70000 + (Math.random() * 500),
-                status: 'open',
-                timestamp: new Date().toISOString()
-              };
-              await supabase.from('trade_orders').insert(trade);
+            console.log(`[BOT] Attempting to open forced trade for user: ${bot.username}`);
+            const trade = {
+              user_id: bot.id,
+              asset_symbol: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'][Math.floor(Math.random() * 3)],
+              type: Math.random() > 0.5 ? 'buy' : 'sell',
+              amount: Math.floor(Math.random() * 50) + 10,
+              entry_price: 70000 + (Math.random() * 500),
+              status: 'open',
+              timestamp: new Date().toISOString()
+            };
+            const { error: insertError } = await supabase.from('trade_orders').insert(trade);
+            if (insertError) {
+              console.error(`[BOT] Failed to open trade for ${bot.username}:`, insertError.message);
+            } else {
+              console.log(`[BOT] Opened trade for user: ${bot.username}`);
               io.emit('new_trade', { ...trade, username: bot.username });
             }
           }
-          console.log('Ghost Traders: Forced trades for test22 and mjodyiq emitted.');
         } else {
           console.log('Ghost Traders: Target bots not found. Falling back to any bots.');
           const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(5);
@@ -476,6 +488,7 @@ async function startServer() {
               };
               await supabase.from('trade_orders').insert(trade);
               io.emit('new_trade', trade);
+              console.log(`[BOT] Opened trade for user: ${bot.username} (Fallback)`);
             }
           }
         }
@@ -483,7 +496,7 @@ async function startServer() {
         console.error('Ghost Traders: Immediate test trades failed:', err);
       }
     }
-  }, 1000);
+  }, 2000);
 
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
@@ -492,6 +505,7 @@ async function startServer() {
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
+    console.log('Server: Starting Vite in middleware mode...');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
