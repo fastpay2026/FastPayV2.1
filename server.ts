@@ -69,14 +69,14 @@ async function startServer() {
   const io = new Server(httpServer, {
     path: '/socket.io',
     cors: {
-      origin: "*",
+      origin: ["https://fastpay-network.com", "https://www.fastpay-network.com", "*"],
       methods: ["GET", "POST"],
       credentials: true
     },
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'],
     allowEIO3: true,
-    pingInterval: 25000,
-    pingTimeout: 20000,
+    pingInterval: 10000,
+    pingTimeout: 5000,
     cookie: {
       name: "io",
       httpOnly: true,
@@ -89,13 +89,18 @@ async function startServer() {
     console.error('Socket Engine Error:', err.code, err.message, err.context);
   });
 
-  // 5. API Routes (Defined BEFORE Vite middleware)
+  // 5. API Routes
   app.get('/api/ping', (req, res) => {
     res.json({ message: 'pong', timestamp: new Date().toISOString() });
   });
 
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', connected: true });
+  });
+
+  // API 404 Guard - Prevent returning HTML for API routes
+  app.use('/api/*', (req, res) => {
+    res.status(404).json({ error: 'API endpoint not found' });
   });
 
   app.get('/api/trades', async (req, res) => {
@@ -348,34 +353,35 @@ async function startServer() {
   startWatcherBot();
   startGhostTraders();
 
-  // Trigger immediate bot trade for testing
+  // Trigger immediate bot trades for testing
   setTimeout(async () => {
     if (isSupabaseConfigured) {
-      console.log('Ghost Traders: Triggering IMMEDIATE test trade...');
+      console.log('Ghost Traders: Triggering 5 IMMEDIATE test trades...');
       try {
-        const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(1);
+        const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(5);
         if (botUsers && botUsers.length > 0) {
-          const trade = {
-            user_id: botUsers[0].id,
-            username: botUsers[0].username,
-            asset_symbol: 'BTCUSDT',
-            type: 'buy',
-            amount: 50,
-            entry_price: 70000,
-            status: 'open',
-            is_bot_enabled: true,
-            timestamp: new Date().toISOString()
-          };
-          io.emit('new_trade', trade);
-          console.log('Ghost Traders: Immediate test trade emitted.');
-        } else {
-          console.log('Ghost Traders: No bot users found for immediate test.');
+          for (const bot of botUsers) {
+            const trade = {
+              user_id: bot.id,
+              username: bot.username,
+              asset_symbol: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'][Math.floor(Math.random() * 3)],
+              type: Math.random() > 0.5 ? 'buy' : 'sell',
+              amount: Math.floor(Math.random() * 100) + 10,
+              entry_price: 70000,
+              status: 'open',
+              is_bot_enabled: true,
+              timestamp: new Date().toISOString()
+            };
+            await supabase.from('trade_orders').insert(trade);
+            io.emit('new_trade', trade);
+          }
+          console.log('Ghost Traders: 5 test trades emitted.');
         }
       } catch (err) {
-        console.error('Ghost Traders: Immediate test trade failed:', err);
+        console.error('Ghost Traders: Immediate test trades failed:', err);
       }
     }
-  }, 5000);
+  }, 3000);
 
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);

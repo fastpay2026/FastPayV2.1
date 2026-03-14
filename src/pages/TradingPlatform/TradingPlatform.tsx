@@ -10,11 +10,12 @@ import { useNotification } from '../../../components/NotificationContext';
 
 const socket = io({
   path: '/socket.io',
-  transports: ['websocket', 'polling'], // Prioritize websocket
-  reconnectionAttempts: 20,
-  reconnectionDelay: 2000,
+  transports: ['polling', 'websocket'], // Start with polling for better compatibility
+  reconnectionAttempts: 30,
+  reconnectionDelay: 1000,
   withCredentials: true,
-  forceNew: true
+  forceNew: true,
+  timeout: 20000
 });
 
 interface TradingPlatformProps {
