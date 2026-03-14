@@ -128,45 +128,57 @@ async function startServer() {
           
           if (botUsers && botUsers.length > 0) {
             const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
+            console.log(`Ghost Traders: Selected bot ${botUser.username} (Balance: ${botUser.balance})`);
             
             // Check balance
             if (botUser.balance < 10) {
-                console.log(`Bot ${botUser.username} has insufficient balance.`);
-                setTimeout(scheduleNextTrade, 60000);
+                console.log(`Ghost Traders: Bot ${botUser.username} has insufficient balance ($${botUser.balance}).`);
+                setTimeout(scheduleNextTrade, 30000);
                 return;
             }
 
             const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
             const symbol = symbols[Math.floor(Math.random() * symbols.length)];
             
-            const ticker = await binanceClient.tickerPrice(symbol);
-            const currentPrice = parseFloat(ticker.data.price);
-            
-            // Random Amount (10 to 100)
-            const amount = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
-            
-            // Deduct balance
-            await supabase.from('users').update({ balance: botUser.balance - amount }).eq('id', botUser.id);
-            
-            const trade = {
-                user_id: botUser.id,
-                username: botUser.username,
-                asset_symbol: symbol,
-                type: Math.random() > 0.5 ? 'buy' : 'sell',
-                amount: amount,
-                entry_price: currentPrice,
-                status: 'open',
-                is_bot_enabled: true,
-                timestamp: new Date().toISOString()
-            };
+            try {
+              const ticker = await binanceClient.tickerPrice(symbol);
+              const currentPrice = parseFloat(ticker.data.price);
+              
+              if (isNaN(currentPrice)) {
+                throw new Error(`Invalid price received for ${symbol}: ${ticker.data.price}`);
+              }
 
-            const { error: insertError } = await supabase.from('trade_orders').insert(trade);
-            if (insertError) {
-              console.error('Ghost Traders: Error inserting trade:', insertError);
-            } else {
-              io.emit('new_trade', trade);
-              console.log(`Bot ${botUser.username} opened immediate trade on ${symbol}. Balance deducted.`);
+              // Random Amount (10 to 100)
+              const amount = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
+              
+              // Deduct balance
+              const { error: balanceError } = await supabase.from('users').update({ balance: botUser.balance - amount }).eq('id', botUser.id);
+              if (balanceError) console.error('Ghost Traders: Balance update error:', balanceError);
+              
+              const trade = {
+                  user_id: botUser.id,
+                  username: botUser.username,
+                  asset_symbol: symbol,
+                  type: Math.random() > 0.5 ? 'buy' : 'sell',
+                  amount: amount,
+                  entry_price: currentPrice,
+                  status: 'open',
+                  is_bot_enabled: true,
+                  timestamp: new Date().toISOString()
+              };
+
+              const { error: insertError } = await supabase.from('trade_orders').insert(trade);
+              if (insertError) {
+                console.error('Ghost Traders: Error inserting trade:', insertError);
+              } else {
+                io.emit('new_trade', trade);
+                console.log(`Ghost Traders: Bot ${botUser.username} opened trade on ${symbol} at ${currentPrice}.`);
+              }
+            } catch (tickerError) {
+              console.error(`Ghost Traders: Error fetching price for ${symbol}:`, tickerError);
             }
+          } else {
+            console.log('Ghost Traders: No bot users found in database.');
           }
           nextDelay = Math.floor(Math.random() * (60000 / (config.trades_per_hour || 5) * 2 - 10000 + 1)) + 10000;
         }

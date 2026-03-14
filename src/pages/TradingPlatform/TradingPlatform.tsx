@@ -45,13 +45,22 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     };
 
     // Socket.io for trade events
-    socket.on('initial_trades', (trades) => {
-        setPositions(trades);
+    socket.on('connect', () => {
+      console.log('TradingPlatform: Socket connected:', socket.id);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('TradingPlatform: Socket connection error:', error);
+    });
+
+    socket.on('initial_trades', (initialTrades) => {
+      console.log('TradingPlatform: Received initial trades:', initialTrades.length);
+      setTrades(initialTrades.slice(0, 15));
     });
 
     socket.on('new_trade', (trade) => {
+      console.log('TradingPlatform: Received new trade:', trade);
       setTrades(prev => {
-        const isUserTrade = trade.user_id === user.id;
         const newTrades = [trade, ...prev];
         // Sort: user trades first, then others, keep last 15
         return newTrades.sort((a, b) => (b.user_id === user.id ? 1 : -1) - (a.user_id === user.id ? 1 : -1)).slice(0, 15);
