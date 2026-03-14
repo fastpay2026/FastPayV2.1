@@ -387,8 +387,8 @@ const App: React.FC = () => {
     adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
   };
 
-  if (currentUser) {
-    switch (currentUser.role) {
+  const renderDashboard = () => {
+    switch (currentUser?.role) {
       case 'DEVELOPER': 
       case 'ADMIN': return <DeveloperDashboard {...commonProps} />;
       case 'DISTRIBUTOR': return <MerchantDashboard {...commonProps} />;
@@ -396,7 +396,7 @@ const App: React.FC = () => {
       case 'USER': return <UserDashboard {...commonProps} />;
       default: return null;
     }
-  }
+  };
 
   return (
     <NotificationProvider>
@@ -423,10 +423,15 @@ const App: React.FC = () => {
           ))}
         </div>
 
-        <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
-        {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} accounts={accounts} onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} />}
-        {isRegisterModalOpen && <RegisterModal onClose={() => setIsRegisterModalOpen(false)} accounts={accounts} onRegister={(u) => { handleAddUser(u); setCurrentUserId(u.id); setIsRegisterModalOpen(false); }} onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); }} />}
-
+        {currentUser ? (
+          renderDashboard()
+        ) : (
+          <>
+            <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
+            {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} accounts={accounts} onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} />}
+            {isRegisterModalOpen && <RegisterModal onClose={() => setIsRegisterModalOpen(false)} accounts={accounts} onRegister={(u) => { handleAddUser(u); setCurrentUserId(u.id); setIsRegisterModalOpen(false); }} onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); }} />}
+          </>
+        )}
       </div>
     </NotificationProvider>
   );
