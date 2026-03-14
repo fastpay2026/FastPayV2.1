@@ -45,6 +45,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     };
 
     // Socket.io for trade events
+    socket.on('initial_trades', (trades) => {
+        setPositions(trades);
+    });
+
     socket.on('new_trade', (trade) => {
       setTrades(prev => {
         const isUserTrade = trade.user_id === user.id;
@@ -79,6 +83,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     return () => {
       ws.close();
       supabase.removeChannel(channel);
+      socket.off('initial_trades');
       socket.off('new_trade');
       socket.off('profit_notification');
       socket.off('order_book_update');

@@ -25,6 +25,15 @@ async function startServer() {
   const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
   const binanceClient = new Spot(process.env.BINANCE_API_KEY!, process.env.BINANCE_SECRET_KEY!);
 
+  io.on('connection', async (socket) => {
+    console.log('a user connected');
+    // إرسال الصفقات المفتوحة فور اتصال المستخدم
+    const { data: openTrades } = await supabase.from('trade_orders').select('*').eq('status', 'open');
+    if (openTrades) {
+        socket.emit('initial_trades', openTrades);
+    }
+  });
+
   // --- الاستماع لتغييرات قاعدة البيانات ---
   supabase
     .channel('trade_orders_channel')
