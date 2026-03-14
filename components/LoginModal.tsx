@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Role, User } from '../types';
 import { useI18n } from '../i18n/i18n';
-import { supabase } from '../supabaseClient';
+import { supabase, isSupabaseConfigured } from '../supabaseClient';
 
 interface Props {
   onClose: () => void;
@@ -17,6 +17,7 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   // Authentication animation states
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -77,23 +78,52 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
+
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+
+    console.log('Login Attempt:', { 
+      username: trimmedUsername, 
+      role: selectedRole,
+      accountsCount: accounts.length 
+    });
 
     const user = accounts.find(
-      (acc) => acc.username.toLowerCase() === username.toLowerCase() && acc.password === password && (selectedRole === 'DEVELOPER' ? (acc.role === 'DEVELOPER' || acc.role === 'ADMIN') : acc.role === selectedRole)
+      (acc) => acc.username.toLowerCase() === trimmedUsername.toLowerCase() && 
+               acc.password === trimmedPassword && 
+               (selectedRole === 'DEVELOPER' ? (acc.role === 'DEVELOPER' || acc.role === 'ADMIN') : acc.role === selectedRole)
     );
 
+    if (!user) {
+      console.log('User not found in accounts array. Checking for username match only...');
+      const usernameMatch = accounts.find(acc => acc.username.toLowerCase() === trimmedUsername.toLowerCase());
+      if (usernameMatch) {
+        console.log('Username match found, but password or role mismatch:', {
+          expectedRole: selectedRole,
+          actualRole: usernameMatch.role,
+          passwordMatch: usernameMatch.password === trimmedPassword
+        });
+      } else {
+        console.log('No user found with username:', trimmedUsername);
+      }
+    }
+
     if (user) {
+      console.log('User found, proceeding with login:', user.username);
       if (user.status === 'suspended' || user.status === 'disabled') {
         setError('هذا الحساب معطل حالياً، يرجى مراجعة الإدارة');
       } else {
         // Attempt to sign in with Supabase Auth to establish a real session
         try {
-          const { error: authError } = await supabase.auth.signInWithPassword({
-            email: user.email,
-            password: password,
-          });
-          if (authError) {
-            console.warn("Supabase Auth Warning:", authError.message);
+          if (isSupabaseConfigured) {
+            const { error: authError } = await supabase.auth.signInWithPassword({
+              email: user.email,
+              password: trimmedPassword,
+            });
+            if (authError) {
+              console.warn("Supabase Auth Warning:", authError.message);
+            }
           }
         } catch (authErr) {
           console.error("Supabase Auth Error:", authErr);
@@ -105,6 +135,7 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
     } else {
       setError('اسم المستخدم أو كلمة المرور غير صحيحة');
     }
+    setIsLoading(false);
   };
 
   return (
@@ -238,9 +269,10 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
 
               <button 
                 type="submit" 
-                className="w-full py-6 md:py-8 bg-sky-600 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-[0_20px_40px_-10px_rgba(14,165,233,0.5)] hover:bg-sky-500 transition-all active:scale-95 transform"
+                disabled={isLoading}
+                className={`w-full py-6 md:py-8 bg-sky-600 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-[0_20px_40px_-10px_rgba(14,165,233,0.5)] hover:bg-sky-500 transition-all active:scale-95 transform ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {t('auth_and_login')}
+                {isLoading ? t('authenticating') : t('auth_and_login')}
               </button>
               
               <p className="text-center text-slate-500 font-bold text-[10px] md:text-sm">{t('aes_encryption_active')}</p>

@@ -69,13 +69,14 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
       fullName: formData.fullName,
       email: formData.email,
       phoneNumber: formData.phoneNumber,
-      password: formData.password,
+      password: formData.password.trim(),
       role: 'USER',
       balance: 0,
       status: 'active',
       createdAt: new Date().toISOString().split('T')[0]
     };
 
+    console.log('Registering new user:', newUser);
     onRegister(newUser);
   };
 

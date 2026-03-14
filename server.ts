@@ -121,6 +121,9 @@ async function startServer() {
             console.error('Ghost Traders: Error fetching bot users:', usersError);
           } else {
             console.log('Ghost Traders: Found bot users:', botUsers?.length || 0);
+            if (botUsers && botUsers.length > 0) {
+              console.log('Ghost Traders: First bot user:', botUsers[0].username, 'Balance:', botUsers[0].balance);
+            }
           }
           
           if (botUsers && botUsers.length > 0) {
@@ -153,13 +156,17 @@ async function startServer() {
                 amount: amount,
                 entry_price: currentPrice,
                 status: 'open',
+                is_bot_enabled: true,
                 timestamp: new Date().toISOString()
             };
 
-            await supabase.from('trade_orders').insert(trade);
-            io.emit('new_trade', trade);
-            
-            console.log(`Bot ${botUser.username} opened immediate trade. Balance deducted.`);
+            const { error: insertError } = await supabase.from('trade_orders').insert(trade);
+            if (insertError) {
+              console.error('Ghost Traders: Error inserting trade:', insertError);
+            } else {
+              io.emit('new_trade', trade);
+              console.log(`Bot ${botUser.username} opened immediate trade on ${symbol}. Balance deducted.`);
+            }
           }
           nextDelay = Math.floor(Math.random() * (60000 / (config.trades_per_hour || 5) * 2 - 10000 + 1)) + 10000;
         }

@@ -15,20 +15,31 @@ supabase.auth.getSession().then(({ data: { session } }) => {
 export const supabaseService = {
   // Users
   async getUsers(): Promise<User[]> {
+    console.log('supabaseService: Fetching users...');
     const { data, error } = await supabase.from('users').select('*');
-    if (error) throw error;
-    return (data || []).map(u => ({
-      ...u,
-      fullName: u.full_name,
-      phoneNumber: u.phone_number,
-      verificationStatus: u.verification_status,
-      verificationReason: u.verification_reason,
-      createdAt: u.created_at,
-      linkedCards: u.linked_cards,
-      assets: u.assets,
-      apiKeys: u.api_keys,
-      isBot: u.is_bot
-    }));
+    if (error) {
+      console.error('supabaseService: Error fetching users:', error);
+      throw error;
+    }
+    console.log(`supabaseService: Fetched ${data?.length || 0} users`);
+    
+    return (data || []).map(u => {
+      if (!u.password) {
+        console.warn(`supabaseService: User ${u.username} has no password in DB!`);
+      }
+      return {
+        ...u,
+        fullName: u.full_name,
+        phoneNumber: u.phone_number,
+        verificationStatus: u.verification_status,
+        verificationReason: u.verification_reason,
+        createdAt: u.created_at,
+        linkedCards: u.linked_cards,
+        assets: u.assets,
+        apiKeys: u.api_keys,
+        isBot: u.is_bot
+      };
+    });
   },
 
   async updateUser(user: User) {

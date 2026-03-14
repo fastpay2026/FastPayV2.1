@@ -326,10 +326,13 @@ const App: React.FC = () => {
 
   const syncUser = useCallback(async (user: User) => {
     if (isSupabaseConfigured) {
+      console.log('App: Syncing user to Supabase:', user.username);
       try {
-        await supabaseService.updateUser(user);
+        const result = await supabaseService.updateUser(user);
+        console.log('App: Sync user result:', result);
+        return result;
       } catch (e: any) {
-        console.error("Failed to sync user to Supabase", e);
+        console.error("App: Failed to sync user to Supabase", e);
         // alert(t('supabaseSyncError', { message: e.message || t('unknownError') }));
         throw e; // Re-throw to allow caller to catch
       }
@@ -342,6 +345,7 @@ const App: React.FC = () => {
   };
 
   const handleAddUser = async (newUser: User) => {
+    console.log('App: Adding new user to state:', newUser.username);
     setAccounts(prev => [...prev, newUser]);
     return await syncUser(newUser);
   };

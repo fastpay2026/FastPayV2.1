@@ -36,7 +36,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
       username: userForm.username.trim(),
       fullName: userForm.fullName,
       phoneNumber: userForm.phoneNumber,
-      password: userForm.password || 'FastPay123', // Default temporary password if empty
+      password: (userForm.password || 'FastPay123').trim(), // Default temporary password if empty
       role: userForm.role,
       balance: userForm.balance,
       status: 'active',
