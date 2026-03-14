@@ -93,14 +93,18 @@ async function startServer() {
     const scheduleNextTrade = async () => {
       try {
         const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').single();
+        console.log('Ghost Traders: Checking config...', config);
         
         let nextDelay = 60000; 
         
         if (config && config.is_enabled) {
+          console.log('Ghost Traders: Bot system is ENABLED.');
           const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
+          console.log('Ghost Traders: Bot users fetched:', botUsers?.length);
           
           if (botUsers && botUsers.length > 0) {
             const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
+            console.log(`Ghost Traders: Selected bot ${botUser.username} (Balance: ${botUser.balance})`);
             
             // Check balance
             if (botUser.balance < 10) {
