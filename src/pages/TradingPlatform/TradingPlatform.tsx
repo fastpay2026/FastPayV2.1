@@ -10,7 +10,7 @@ import { useNotification } from '../../../components/NotificationContext';
 
 const socket = io(window.location.origin, {
   path: '/socket.io',
-  transports: ['polling', 'websocket'], // Start with polling for better compatibility
+  transports: ['polling'], // Force polling for maximum compatibility in this environment
   reconnectionAttempts: 30,
   reconnectionDelay: 1000,
   withCredentials: true,
@@ -97,11 +97,19 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     });
 
     socket.on('new_trade', (trade) => {
-      console.log('TradingPlatform: Received new trade:', trade);
+      console.log('TradingPlatform: [SOCKET] Received new trade:', trade);
+      if (!trade.username) {
+        console.warn('TradingPlatform: Received trade without username:', trade);
+      }
       setTrades(prev => {
         const newTrades = [trade, ...prev];
+        console.log('TradingPlatform: Updating trades list. New count:', newTrades.length);
         // Sort: user trades first, then others, keep last 15
-        return newTrades.sort((a, b) => (b.user_id === user.id ? 1 : -1) - (a.user_id === user.id ? 1 : -1)).slice(0, 15);
+        return newTrades.sort((a, b) => {
+          const aIsUser = (a.user_id === user.id || a.userId === user.id);
+          const bIsUser = (b.user_id === user.id || b.userId === user.id);
+          return (bIsUser ? 1 : -1) - (aIsUser ? 1 : -1);
+        }).slice(0, 15);
       });
     });
 

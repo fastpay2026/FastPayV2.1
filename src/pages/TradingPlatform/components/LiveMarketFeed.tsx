@@ -13,6 +13,7 @@ interface LiveMarketFeedProps {
 }
 
 const LiveMarketFeed: React.FC<LiveMarketFeedProps> = ({ trades }) => {
+  console.log('LiveMarketFeed: Rendering with trades:', trades.length);
   return (
     <div className="h-64 bg-[#131722] border-t border-white/10 overflow-y-auto">
       <table className="w-full text-xs text-left">
