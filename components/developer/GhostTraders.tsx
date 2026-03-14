@@ -25,16 +25,26 @@ const GhostTraders: React.FC = () => {
     const newState = !isEnabled;
     setIsEnabled(newState);
     
+    console.log('Toggling bot to:', newState);
+    
     // البحث عن الإعداد الحالي
     const { data: existing } = await supabase.from('bot_config').select('id').eq('key', 'ghost_traders').maybeSingle();
     
+    let error;
     if (existing) {
-      await supabase.from('bot_config').update({ is_active: newState, trades_per_hour: tradesPerHour }).eq('id', existing.id);
+      const { error: updateError } = await supabase.from('bot_config').update({ is_active: newState, trades_per_hour: tradesPerHour }).eq('id', existing.id);
+      error = updateError;
     } else {
-      await supabase.from('bot_config').insert({ key: 'ghost_traders', is_active: newState, trades_per_hour: tradesPerHour });
+      const { error: insertError } = await supabase.from('bot_config').insert({ key: 'ghost_traders', is_active: newState, trades_per_hour: tradesPerHour });
+      error = insertError;
     }
     
-    alert(`تم ${newState ? 'تفعيل' : 'إيقاف'} البوتات الوهمية`);
+    if (error) {
+        console.error('Error updating bot config:', error);
+        alert('حدث خطأ أثناء تحديث حالة البوت');
+    } else {
+        alert(`تم ${newState ? 'تفعيل' : 'إيقاف'} البوتات الوهمية بنجاح`);
+    }
   };
 
   const updateFrequency = async (freq: number) => {
