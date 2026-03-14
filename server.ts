@@ -1,5 +1,6 @@
 import express from 'express';
-import { Spot } from '@binance/connector';
+import pkg from '@binance/connector';
+const Spot = pkg ? (pkg as any).Spot : null;
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import path from 'path';
@@ -7,47 +8,101 @@ import { createServer as createViteServer } from 'vite';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
+console.log('Server: Process starting...');
+if (!pkg) {
+  console.error('CRITICAL: @binance/connector package failed to load!');
+}
+if (!Spot) {
+  console.error('CRITICAL: Spot class not found in @binance/connector!');
+}
+
+// Global error handlers
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED REJECTION at:', promise, 'reason:', reason);
+});
+
 async function startServer() {
   const app = express();
   const httpServer = createServer(app);
   const io = new Server(httpServer, {
     cors: {
       origin: "*",
-      methods: ["GET", "POST"]
+      methods: ["GET", "POST"],
+      credentials: true
     },
-    transports: ['websocket', 'polling']
+    path: '/socket.io',
+    allowEIO3: true,
+    transports: ['polling', 'websocket'],
+    pingTimeout: 60000,
+    pingInterval: 25000
   });
   const PORT = 3000;
 
   app.use(cors());
   app.use(express.json());
 
+  console.log('Server: Starting initialization...');
+
   // Check environment variables
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
     console.error('CRITICAL: Supabase environment variables are missing!');
   }
 
   // Initialize Supabase and Binance
-  const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-  const binanceClient = new Spot(process.env.BINANCE_API_KEY || '', process.env.BINANCE_SECRET_KEY || '');
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('CRITICAL: Supabase URL or Key is missing. Supabase client will fail.');
+  }
+
+  const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder');
+  
+  let binanceClient: any;
+  try {
+    if (Spot) {
+      binanceClient = new Spot(process.env.BINANCE_API_KEY || '', process.env.BINANCE_SECRET_KEY || '');
+      console.log('Server: Binance client initialized');
+    } else {
+      console.error('Server: Spot class is null, cannot initialize Binance client');
+    }
+  } catch (e) {
+    console.error('Server: Failed to initialize Binance client:', e);
+  }
 
   io.on('connection', async (socket) => {
-    console.log('a user connected:', socket.id);
+    console.log('Server: User connected:', socket.id);
     
     try {
       // إرسال الصفقات المفتوحة فور اتصال المستخدم
-      const { data: openTrades, error } = await supabase.from('trade_orders').select('*').eq('status', 'open');
+      console.log('Server: Fetching initial trades for', socket.id);
+      const { data: openTrades, error } = await supabase
+        .from('trade_orders')
+        .select('*')
+        .eq('status', 'open')
+        .order('timestamp', { ascending: false })
+        .limit(50);
+
       if (error) {
-        console.error('Socket connection: Supabase fetch error:', error);
-      } else if (openTrades) {
-        socket.emit('initial_trades', openTrades);
+        console.error('Server: Supabase fetch error for initial_trades:', error);
+      } else {
+        console.log(`Server: Sending ${openTrades?.length || 0} initial trades to ${socket.id}`);
+        socket.emit('initial_trades', openTrades || []);
       }
     } catch (err) {
-      console.error('Socket connection: Unexpected error during handshake:', err);
+      console.error('Server: Unexpected error during connection handshake:', err);
     }
 
-    socket.on('disconnect', () => {
-      console.log('user disconnected:', socket.id);
+    socket.on('error', (error) => {
+      console.error('Server: Socket error for', socket.id, ':', error);
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('Server: User disconnected:', socket.id, 'Reason:', reason);
     });
   });
 
@@ -114,33 +169,29 @@ async function startServer() {
 
   // --- نظام المتداولين الوهميين (Ghost Traders) ---
   const startGhostTraders = async () => {
-    console.log('Ghost Traders Bot started...');
+    console.log('Ghost Traders: System initializing...');
     
     const scheduleNextTrade = async () => {
       try {
+        console.log('Ghost Traders: Running trade cycle...');
         const { data: config, error: configError } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
         
         if (configError) {
-          console.error('Ghost Traders: Error fetching config:', configError);
+          console.error('Ghost Traders: Error fetching config from Supabase:', configError);
         } else if (!config) {
-          console.log('Ghost Traders: No config found, skipping trade.');
-        } else {
-          console.log('Ghost Traders: Checking config...', config);
+          console.log('Ghost Traders: No config found in bot_config table. Please create a record with key "ghost_traders".');
         }
         
         let nextDelay = 60000; 
         
         if (config && config.is_active) {
-          console.log('Ghost Traders: Bot system is ENABLED.');
+          console.log('Ghost Traders: Bot system is ACTIVE. Fetching bot users...');
           const { data: botUsers, error: usersError } = await supabase.from('users').select('*').eq('is_bot', true);
           
           if (usersError) {
             console.error('Ghost Traders: Error fetching bot users:', usersError);
           } else {
-            console.log('Ghost Traders: Found bot users:', botUsers?.length || 0);
-            if (botUsers && botUsers.length > 0) {
-              console.log('Ghost Traders: First bot user:', botUsers[0].username, 'Balance:', botUsers[0].balance);
-            }
+            console.log(`Ghost Traders: Found ${botUsers?.length || 0} bot users.`);
           }
           
           if (botUsers && botUsers.length > 0) {
@@ -149,7 +200,7 @@ async function startServer() {
             
             // Check balance
             if (botUser.balance < 10) {
-                console.log(`Ghost Traders: Bot ${botUser.username} has insufficient balance ($${botUser.balance}).`);
+                console.log(`Ghost Traders: Bot ${botUser.username} has insufficient balance ($${botUser.balance}). Skipping cycle.`);
                 setTimeout(scheduleNextTrade, 30000);
                 return;
             }
@@ -158,6 +209,7 @@ async function startServer() {
             const symbol = symbols[Math.floor(Math.random() * symbols.length)];
             
             try {
+              console.log(`Ghost Traders: Fetching price for ${symbol}...`);
               const ticker = await binanceClient.tickerPrice(symbol);
               const currentPrice = parseFloat(ticker.data.price);
               
@@ -165,10 +217,12 @@ async function startServer() {
                 throw new Error(`Invalid price received for ${symbol}: ${ticker.data.price}`);
               }
 
+              console.log(`Ghost Traders: Current price for ${symbol} is ${currentPrice}`);
+
               // Random Amount (10 to 100)
               const amount = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
               
-              // Deduct balance
+              console.log(`Ghost Traders: Deducting ${amount} from ${botUser.username}'s balance...`);
               const { error: balanceError } = await supabase.from('users').update({ balance: botUser.balance - amount }).eq('id', botUser.id);
               if (balanceError) console.error('Ghost Traders: Balance update error:', balanceError);
               
@@ -184,25 +238,30 @@ async function startServer() {
                   timestamp: new Date().toISOString()
               };
 
+              console.log(`Ghost Traders: Inserting trade for ${botUser.username}...`);
               const { error: insertError } = await supabase.from('trade_orders').insert(trade);
               if (insertError) {
                 console.error('Ghost Traders: Error inserting trade:', insertError);
               } else {
+                console.log(`Ghost Traders: Trade inserted successfully. Emitting to socket...`);
                 io.emit('new_trade', trade);
                 console.log(`Ghost Traders: Bot ${botUser.username} opened trade on ${symbol} at ${currentPrice}.`);
               }
             } catch (tickerError) {
-              console.error(`Ghost Traders: Error fetching price for ${symbol}:`, tickerError);
+              console.error(`Ghost Traders: Error during trade execution for ${symbol}:`, tickerError);
             }
           } else {
-            console.log('Ghost Traders: No bot users found in database.');
+            console.log('Ghost Traders: No bot users found. Please mark some users as bots in the dashboard.');
           }
           nextDelay = Math.floor(Math.random() * (60000 / (config.trades_per_hour || 5) * 2 - 10000 + 1)) + 10000;
+        } else {
+          console.log('Ghost Traders: Bot system is INACTIVE (config.is_active is false).');
         }
         
+        console.log(`Ghost Traders: Next cycle in ${nextDelay / 1000}s`);
         setTimeout(scheduleNextTrade, nextDelay);
       } catch (error) {
-        console.error('Ghost Traders Error:', error);
+        console.error('Ghost Traders: Critical cycle error:', error);
         setTimeout(scheduleNextTrade, 60000);
       }
     };
