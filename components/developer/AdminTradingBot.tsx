@@ -6,29 +6,18 @@ interface Props {
   accounts: User[];
   setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
   onUpdateUser: (user: User) => void;
+  tradeOrders: TradeOrder[];
 }
 
-const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser }) => {
-  const [positions, setPositions] = useState<any[]>([]);
+const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser, tradeOrders }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [newBalance, setNewBalance] = useState<number>(0);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    const { data } = await supabase
-      .from('trade_orders')
-      .select('*')
-      .eq('status', 'open');
-    if (data) setPositions(data);
-  };
+  const positions = tradeOrders.filter(o => o.status === 'open');
 
   const updatePosition = async (id: string, updates: any) => {
     await supabase.from('trade_orders').update(updates).eq('id', id);
-    fetchData();
   };
 
   const handleBalanceUpdate = async () => {
@@ -84,10 +73,21 @@ const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser 
             </tr>
           </thead>
           <tbody>
-            {positions.map(pos => (
-              <tr key={pos.id} className="border-b border-white/5">
-                <td className="p-2">{pos.user_id}</td>
-                <td className="p-2">{pos.asset_symbol}</td>
+            {positions.map(pos => {
+              const userDetail = (pos as any).users;
+              const isBot = userDetail?.is_bot || accounts.find(u => u.id === pos.userId)?.isBot;
+              const username = userDetail?.username || accounts.find(u => u.id === pos.userId)?.username || pos.userId;
+
+              return (
+                <tr key={pos.id} className="border-b border-white/5">
+                  <td className="p-2">
+                    <div className="flex flex-col">
+                      <span className="font-bold">{username}</span>
+                      {isBot && <span className="text-sky-400 text-[10px] font-black uppercase tracking-tighter">🤖 BOT</span>}
+                      {!userDetail && <span className="text-[8px] text-slate-500">{pos.userId}</span>}
+                    </div>
+                  </td>
+                  <td className="p-2">{pos.assetSymbol}</td>
                 <td className="p-2">
                   <input type="number" defaultValue={pos.forced_take_profit} onBlur={(e) => updatePosition(pos.id, { forced_take_profit: Number(e.target.value) })} className="bg-slate-900 w-20 p-1 rounded" />
                 </td>
@@ -101,8 +101,9 @@ const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser 
                   <button onClick={() => updatePosition(pos.id, { status: 'closed_profit' })} className="bg-red-600 px-2 py-1 rounded">إغلاق</button>
                 </td>
               </tr>
-            ))}
-          </tbody>
+            );
+          })}
+        </tbody>
         </table>
       </div>
     </div>

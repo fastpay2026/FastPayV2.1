@@ -12,7 +12,7 @@ import UserDashboard from './components/UserDashboard';
 import { NotificationProvider } from './components/NotificationContext';
 import { Role, User, SiteConfig, LandingService, Transaction, Notification, CustomPage, SalaryFinancing, TradeAsset, WithdrawalRequest, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from './types';
 import { supabaseService } from './supabaseService';
-import { isSupabaseConfigured } from './supabaseClient';
+import { isSupabaseConfigured, supabase } from './supabaseClient';
 
 
 const TradingPlatform = React.lazy(() => import('./src/pages/TradingPlatform/TradingPlatform'));
@@ -222,6 +222,74 @@ const App: React.FC = () => {
     };
     loadData();
   }, [currentUserId]); // Re-fetch on login
+
+  // Real-time Subscriptions
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    const tradeOrdersChannel = supabase
+      .channel('trade_orders_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('Real-time trade_orders update:', payload);
+        if (payload.eventType === 'INSERT') {
+          const newOrder = payload.new as any;
+          setTradeOrders(prev => {
+            if (prev.find(o => o.id === newOrder.id)) return prev;
+            return [{
+              ...newOrder,
+              userId: newOrder.user_id,
+              assetSymbol: newOrder.asset_symbol,
+              entryPrice: newOrder.entry_price
+            }, ...prev];
+          });
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedOrder = payload.new as any;
+          setTradeOrders(prev => prev.map(o => o.id === updatedOrder.id ? {
+            ...updatedOrder,
+            userId: updatedOrder.user_id,
+            assetSymbol: updatedOrder.asset_symbol,
+            entryPrice: updatedOrder.entry_price
+          } : o));
+        } else if (payload.eventType === 'DELETE') {
+          setTradeOrders(prev => prev.filter(o => o.id === payload.old.id));
+        }
+      })
+      .subscribe();
+
+    const usersChannel = supabase
+      .channel('users_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, (payload) => {
+        console.log('Real-time users update:', payload);
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          const u = payload.new as any;
+          const mappedUser: User = {
+            ...u,
+            fullName: u.full_name,
+            phoneNumber: u.phone_number,
+            verificationStatus: u.verification_status,
+            verificationReason: u.verification_reason,
+            createdAt: u.created_at,
+            linkedCards: u.linked_cards,
+            assets: u.assets,
+            apiKeys: u.api_keys,
+            isBot: u.is_bot
+          };
+          setAccounts(prev => {
+            const exists = prev.find(acc => acc.id === mappedUser.id);
+            if (exists) {
+              return prev.map(acc => acc.id === mappedUser.id ? mappedUser : acc);
+            }
+            return [...prev, mappedUser];
+          });
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(tradeOrdersChannel);
+      supabase.removeChannel(usersChannel);
+    };
+  }, [isSupabaseConfigured]);
 
   // Sync to Supabase on changes
   useEffect(() => { 
