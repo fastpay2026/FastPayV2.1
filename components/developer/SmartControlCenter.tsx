@@ -1,0 +1,53 @@
+import React from 'react';
+import AdminTradingBot from './AdminTradingBot';
+import DealsEngine from './DealsEngine';
+import TradingControl from './TradingControl';
+import GhostTraders from './GhostTraders';
+import { User, TradeAsset, TradeOrder } from '../../types';
+
+interface Props {
+  accounts: User[];
+  setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
+  onUpdateUser: (user: User) => void;
+  tradeAssets: TradeAsset[];
+  setTradeAssets: React.Dispatch<React.SetStateAction<TradeAsset[]>>;
+  tradeOrders: TradeOrder[];
+  setTradeOrders: React.Dispatch<React.SetStateAction<TradeOrder[]>>;
+}
+
+const SmartControlCenter: React.FC<Props> = ({ 
+  accounts, setAccounts, onUpdateUser, 
+  tradeAssets, setTradeAssets, tradeOrders, setTradeOrders 
+}) => {
+  return (
+    <div className="space-y-8">
+      <h1 className="text-3xl font-bold text-white mb-8">مركز التحكم الذكي</h1>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-slate-800 p-6 rounded-2xl border border-white/5">
+          <AdminTradingBot accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />
+        </div>
+        <div className="bg-slate-800 p-6 rounded-2xl border border-white/5">
+          <DealsEngine 
+            tradeAssets={tradeAssets} 
+            setTradeAssets={setTradeAssets} 
+            tradeOrders={tradeOrders} 
+            setTradeOrders={setTradeOrders} 
+            setAccounts={setAccounts} 
+            onUpdateUser={onUpdateUser} 
+          />
+        </div>
+      </div>
+      
+      <div className="bg-slate-800 p-6 rounded-2xl border border-white/5">
+        <TradingControl />
+      </div>
+
+      <div className="bg-slate-800 p-6 rounded-2xl border border-white/5">
+        <GhostTraders />
+      </div>
+    </div>
+  );
+};
+
+export default SmartControlCenter;

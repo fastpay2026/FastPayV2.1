@@ -20,14 +20,14 @@ const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser 
 
   const fetchData = async () => {
     const { data } = await supabase
-      .from('trading_positions')
+      .from('trade_orders')
       .select('*')
-      .eq('status', 'OPEN');
+      .eq('status', 'open');
     if (data) setPositions(data);
   };
 
   const updatePosition = async (id: string, updates: any) => {
-    await supabase.from('trading_positions').update(updates).eq('id', id);
+    await supabase.from('trade_orders').update(updates).eq('id', id);
     fetchData();
   };
 
@@ -87,7 +87,7 @@ const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser 
             {positions.map(pos => (
               <tr key={pos.id} className="border-b border-white/5">
                 <td className="p-2">{pos.user_id}</td>
-                <td className="p-2">{pos.symbol}</td>
+                <td className="p-2">{pos.asset_symbol}</td>
                 <td className="p-2">
                   <input type="number" defaultValue={pos.forced_take_profit} onBlur={(e) => updatePosition(pos.id, { forced_take_profit: Number(e.target.value) })} className="bg-slate-900 w-20 p-1 rounded" />
                 </td>
@@ -98,7 +98,7 @@ const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser 
                   <input type="checkbox" defaultChecked={pos.is_bot_enabled} onChange={(e) => updatePosition(pos.id, { is_bot_enabled: e.target.checked })} />
                 </td>
                 <td className="p-2">
-                  <button onClick={() => updatePosition(pos.id, { status: 'CLOSED' })} className="bg-red-600 px-2 py-1 rounded">إغلاق</button>
+                  <button onClick={() => updatePosition(pos.id, { status: 'closed_profit' })} className="bg-red-600 px-2 py-1 rounded">إغلاق</button>
                 </td>
               </tr>
             ))}

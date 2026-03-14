@@ -22,9 +22,9 @@ async function startServer() {
     setInterval(async () => {
       try {
         const { data: positions, error } = await supabase
-          .from('trading_positions')
+          .from('trade_orders')
           .select('*')
-          .eq('status', 'OPEN')
+          .eq('status', 'open')
           .eq('is_bot_enabled', true);
 
         if (error) throw error;
@@ -40,8 +40,8 @@ async function startServer() {
           ) {
             console.log(`Bot closing position ${pos.id} for user ${pos.user_id} at price ${currentPrice}`);
             await supabase
-              .from('trading_positions')
-              .update({ status: 'CLOSED', closed_at: new Date().toISOString() })
+              .from('trade_orders')
+              .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
               .eq('id', pos.id);
           }
         }
@@ -51,8 +51,43 @@ async function startServer() {
     }, 5000);
   };
 
-  // Start the bot
+  // --- نظام المتداولين الوهميين (Ghost Traders) ---
+  const startGhostTraders = () => {
+    console.log('Ghost Traders Bot started...');
+    setInterval(async () => {
+      try {
+        const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').single();
+        if (!config || !config.is_enabled) return;
+
+        const tradesPerHour = config.trades_per_hour || 5;
+        
+        // Open a random trade
+        if (Math.random() < (tradesPerHour / 60)) {
+            console.log('Ghost Trader opening a trade...');
+            const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+            const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+            const type = Math.random() > 0.5 ? 'buy' : 'sell';
+            const amount = (Math.random() * 0.1 + 0.01).toFixed(4);
+            
+            await supabase.from('trade_orders').insert({
+                user_id: 'ghost_trader',
+                username: 'GhostTrader',
+                asset_symbol: symbol,
+                type: type,
+                amount: parseFloat(amount),
+                entry_price: 0, // Should be fetched from binance
+                status: 'open'
+            });
+        }
+      } catch (error) {
+        console.error('Ghost Traders Error:', error);
+      }
+    }, 60000); // Check every minute
+  };
+
+  // Start the bots
   startWatcherBot();
+  startGhostTraders();
 
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
