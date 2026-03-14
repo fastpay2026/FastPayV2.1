@@ -70,6 +70,13 @@ async function startServer() {
             
             // Emit profit notification
             const profit = (currentPrice - pos.entry_price) * pos.amount;
+            
+            // تحديث رصيد المستخدم (البوت)
+            const { data: user } = await supabase.from('users').select('balance').eq('id', pos.user_id).single();
+            if (user) {
+                await supabase.from('users').update({ balance: user.balance + profit + pos.amount }).eq('id', pos.user_id);
+            }
+
             io.emit('profit_notification', { username: pos.username, profit });
           }
         }
@@ -87,65 +94,56 @@ async function startServer() {
       try {
         const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').single();
         
-        // Default delay if disabled or error
         let nextDelay = 60000; 
         
         if (config && config.is_enabled) {
-          // Fetch bot users
           const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
           
           if (botUsers && botUsers.length > 0) {
             const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
+            
+            // Check balance
+            if (botUser.balance < 10) {
+                console.log(`Bot ${botUser.username} has insufficient balance.`);
+                setTimeout(scheduleNextTrade, 60000);
+                return;
+            }
+
             const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
             const symbol = symbols[Math.floor(Math.random() * symbols.length)];
             
-            // 1. Price Matching
             const ticker = await binanceClient.tickerPrice(symbol);
             const currentPrice = parseFloat(ticker.data.price);
             
-            // 2. Random Amounts (10 to 5000)
-            const amount = Math.floor(Math.random() * (5000 - 10 + 1)) + 10;
+            // Random Amount (10 to 100)
+            const amount = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
             
-            // 4. Trade Types (Long/Short)
-            const type = Math.random() > 0.5 ? 'buy' : 'sell';
+            // Deduct balance
+            await supabase.from('users').update({ balance: botUser.balance - amount }).eq('id', botUser.id);
             
             const trade = {
                 user_id: botUser.id,
                 username: botUser.username,
                 asset_symbol: symbol,
-                type: type,
+                type: Math.random() > 0.5 ? 'buy' : 'sell',
                 amount: amount,
                 entry_price: currentPrice,
-                status: 'open'
+                status: 'open',
+                timestamp: new Date().toISOString()
             };
 
             await supabase.from('trade_orders').insert(trade);
-            
-            // Emit new trade event
             io.emit('new_trade', trade);
             
-            console.log(`Ghost Trader ${botUser.username} opened ${type} ${symbol} at ${currentPrice} with amount ${amount}`);
+            console.log(`Bot ${botUser.username} opened trade. Balance deducted.`);
           }
-          
-          // 3. Variable Timing (10s to 120s)
-          nextDelay = Math.floor(Math.random() * (120000 - 10000 + 1)) + 10000;
+          nextDelay = Math.floor(Math.random() * (60000 - 10000 + 1)) + 10000;
         }
-        
-        // Order Book Simulation
-        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
-        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
-        const ticker = await binanceClient.tickerPrice(symbol);
-        const price = parseFloat(ticker.data.price);
-        io.emit('order_book_update', {
-            symbol,
-            bids: Array.from({length: 5}, () => [price - Math.random() * 10, Math.random() * 2]),
-            asks: Array.from({length: 5}, () => [price + Math.random() * 10, Math.random() * 2])
-        });
         
         setTimeout(scheduleNextTrade, nextDelay);
       } catch (error) {
         console.error('Ghost Traders Error:', error);
-        setTimeout(scheduleNextTrade, 60000); // Retry in 1 minute on error
+        setTimeout(scheduleNextTrade, 60000);
       }
     };
     
