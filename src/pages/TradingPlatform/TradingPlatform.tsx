@@ -58,7 +58,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         const contentType = response.headers.get("content-type");
         if (response.ok && contentType && contentType.includes("application/json")) {
           const data = await response.json();
-          console.log('TradingPlatform: Fetched initial trades via REST:', data.length);
+          console.log('Data Received from DB:', data);
           setTrades(data.slice(0, 20));
           // Set connected to true if we successfully fetched data
           setIsConnected(true);
@@ -72,6 +72,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     };
 
     fetchInitialTrades();
+
+    // 3-second Polling Fallback
+    const pollingInterval = setInterval(() => {
+      console.log('TradingPlatform: Polling for new trades...');
+      fetchInitialTrades();
+    }, 3000);
 
     socket.on('connect', () => {
       setIsConnected(true);
@@ -171,6 +177,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
     return () => {
       ws.close();
+      clearInterval(pollingInterval);
       supabase.removeChannel(channel);
       socket.off('initial_trades');
       socket.off('new_trade');

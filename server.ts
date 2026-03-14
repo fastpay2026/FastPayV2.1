@@ -434,26 +434,50 @@ async function startServer() {
   // Trigger immediate bot trades for testing
   setTimeout(async () => {
     if (isSupabaseConfigured) {
-      console.log('Ghost Traders: Triggering 5 IMMEDIATE test trades...');
+      console.log('Ghost Traders: Triggering FORCED trades for test22 and mjodyiq...');
       try {
-        const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(5);
-        if (botUsers && botUsers.length > 0) {
-          for (const bot of botUsers) {
-            const trade = {
-              user_id: bot.id,
-              username: bot.username,
-              asset_symbol: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'][Math.floor(Math.random() * 3)],
-              type: Math.random() > 0.5 ? 'buy' : 'sell',
-              amount: Math.floor(Math.random() * 100) + 10,
-              entry_price: 70000,
-              status: 'open',
-              is_bot_enabled: true,
-              timestamp: new Date().toISOString()
-            };
-            await supabase.from('trade_orders').insert(trade);
-            io.emit('new_trade', trade);
+        const { data: targetBots } = await supabase
+          .from('users')
+          .select('*')
+          .in('username', ['test22', 'mjodyiq']);
+          
+        if (targetBots && targetBots.length > 0) {
+          for (const bot of targetBots) {
+            for (let i = 0; i < 3; i++) {
+              const trade = {
+                user_id: bot.id,
+                asset_symbol: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'][Math.floor(Math.random() * 3)],
+                type: Math.random() > 0.5 ? 'buy' : 'sell',
+                amount: Math.floor(Math.random() * 50) + 10,
+                entry_price: 70000 + (Math.random() * 500),
+                status: 'open',
+                timestamp: new Date().toISOString()
+              };
+              await supabase.from('trade_orders').insert(trade);
+              io.emit('new_trade', { ...trade, username: bot.username });
+            }
           }
-          console.log('Ghost Traders: 5 test trades emitted.');
+          console.log('Ghost Traders: Forced trades for test22 and mjodyiq emitted.');
+        } else {
+          console.log('Ghost Traders: Target bots not found. Falling back to any bots.');
+          const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(5);
+          if (botUsers && botUsers.length > 0) {
+            for (const bot of botUsers) {
+              const trade = {
+                user_id: bot.id,
+                username: bot.username,
+                asset_symbol: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'][Math.floor(Math.random() * 3)],
+                type: Math.random() > 0.5 ? 'buy' : 'sell',
+                amount: Math.floor(Math.random() * 100) + 10,
+                entry_price: 70000,
+                status: 'open',
+                is_bot_enabled: true,
+                timestamp: new Date().toISOString()
+              };
+              await supabase.from('trade_orders').insert(trade);
+              io.emit('new_trade', trade);
+            }
+          }
         }
       } catch (err) {
         console.error('Ghost Traders: Immediate test trades failed:', err);
