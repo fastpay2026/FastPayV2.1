@@ -31,19 +31,17 @@ async function startServer() {
   const io = new Server(httpServer, {
     cors: {
       origin: "*",
-      methods: ["GET", "POST"],
-      credentials: true
-    },
-    path: '/socket.io',
-    allowEIO3: true,
-    transports: ['polling', 'websocket'],
-    pingTimeout: 60000,
-    pingInterval: 25000
+      methods: ["GET", "POST"]
+    }
   });
   const PORT = 3000;
 
   app.use(cors());
   app.use(express.json());
+
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
 
   console.log('Server: Starting initialization...');
 
@@ -56,10 +54,6 @@ async function startServer() {
   }
 
   // Initialize Supabase and Binance
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('CRITICAL: Supabase URL or Key is missing. Supabase client will fail.');
-  }
-
   const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder');
   
   let binanceClient: any;
@@ -74,28 +68,37 @@ async function startServer() {
     console.error('Server: Failed to initialize Binance client:', e);
   }
 
-  io.on('connection', async (socket) => {
+  io.use((socket, next) => {
+    console.log(`Socket Middleware: Connection attempt from ${socket.id} (Origin: ${socket.handshake.headers.origin})`);
+    next();
+  });
+
+  io.on('connection', (socket) => {
     console.log('Server: User connected:', socket.id);
     
-    try {
-      // إرسال الصفقات المفتوحة فور اتصال المستخدم
-      console.log('Server: Fetching initial trades for', socket.id);
-      const { data: openTrades, error } = await supabase
-        .from('trade_orders')
-        .select('*')
-        .eq('status', 'open')
-        .order('timestamp', { ascending: false })
-        .limit(50);
+    // Use a separate async function to avoid blocking the connection event
+    const sendInitialData = async () => {
+      try {
+        console.log('Server: Fetching initial trades for', socket.id);
+        const { data: openTrades, error } = await supabase
+          .from('trade_orders')
+          .select('*')
+          .eq('status', 'open')
+          .order('timestamp', { ascending: false })
+          .limit(50);
 
-      if (error) {
-        console.error('Server: Supabase fetch error for initial_trades:', error);
-      } else {
-        console.log(`Server: Sending ${openTrades?.length || 0} initial trades to ${socket.id}`);
-        socket.emit('initial_trades', openTrades || []);
+        if (error) {
+          console.error('Server: Supabase fetch error for initial_trades:', error);
+        } else {
+          console.log(`Server: Sending ${openTrades?.length || 0} initial trades to ${socket.id}`);
+          socket.emit('initial_trades', openTrades || []);
+        }
+      } catch (err) {
+        console.error('Server: Unexpected error during initial data fetch:', err);
       }
-    } catch (err) {
-      console.error('Server: Unexpected error during connection handshake:', err);
-    }
+    };
+
+    sendInitialData();
 
     socket.on('error', (error) => {
       console.error('Server: Socket error for', socket.id, ':', error);
@@ -174,12 +177,15 @@ async function startServer() {
     const scheduleNextTrade = async () => {
       try {
         console.log('Ghost Traders: Running trade cycle...');
-        const { data: config, error: configError } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
+        const { data: configData, error: configError } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
         
+        let config = configData;
+
         if (configError) {
           console.error('Ghost Traders: Error fetching config from Supabase:', configError);
         } else if (!config) {
-          console.log('Ghost Traders: No config found in bot_config table. Please create a record with key "ghost_traders".');
+          console.log('Ghost Traders: No config found in bot_config table. Using default (Active=true, Trades/Hour=5)');
+          config = { is_active: true, trades_per_hour: 5 };
         }
         
         let nextDelay = 60000; 
@@ -192,6 +198,10 @@ async function startServer() {
             console.error('Ghost Traders: Error fetching bot users:', usersError);
           } else {
             console.log(`Ghost Traders: Found ${botUsers?.length || 0} bot users.`);
+            if (!botUsers || botUsers.length === 0) {
+              const { data: anyUsers } = await supabase.from('users').select('username').limit(5);
+              console.log('Ghost Traders: Sample users in DB:', anyUsers?.map(u => u.username).join(', ') || 'NONE');
+            }
           }
           
           if (botUsers && botUsers.length > 0) {

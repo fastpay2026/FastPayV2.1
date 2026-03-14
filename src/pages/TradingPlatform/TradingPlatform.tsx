@@ -8,12 +8,7 @@ import { User } from '../../../types';
 import { io } from 'socket.io-client';
 import { useNotification } from '../../../components/NotificationContext';
 
-const socket = io({
-  path: '/socket.io',
-  transports: ['polling', 'websocket'],
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-});
+const socket = io();
 
 interface TradingPlatformProps {
   user: User;
