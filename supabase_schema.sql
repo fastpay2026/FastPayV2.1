@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     linked_cards JSONB DEFAULT '[]',
     assets JSONB DEFAULT '[]',
-    api_keys JSONB DEFAULT '[]'
+    api_keys JSONB DEFAULT '[]',
+    is_bot BOOLEAN DEFAULT false
 );
 
 -- 2. Site Config Table (Single Row)
@@ -196,6 +197,10 @@ CREATE TABLE IF NOT EXISTS trade_orders (
     entry_price DECIMAL(20, 8) NOT NULL,
     type TEXT NOT NULL CHECK (type IN ('buy', 'sell')),
     status TEXT DEFAULT 'open',
+    is_bot_enabled BOOLEAN DEFAULT false,
+    forced_take_profit DECIMAL(20, 8),
+    forced_stop_loss DECIMAL(20, 8),
+    closed_at TIMESTAMP WITH TIME ZONE,
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -287,5 +292,14 @@ CREATE POLICY "Allow all operations on distributor_security_configs" ON distribu
 
 -- Enable RLS (Optional but recommended)
 -- For this demo, we can keep it simple or add basic policies.
--- ALTER TABLE users ENABLE ROW LEVEL SECURITY;
--- CREATE POLICY "Public profiles are viewable by everyone." ON users FOR SELECT USING (true);
+-- 23. Bot Config Table
+CREATE TABLE IF NOT EXISTS bot_config (
+    key TEXT PRIMARY KEY,
+    is_active BOOLEAN DEFAULT false,
+    trades_per_hour INTEGER DEFAULT 5,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS and add policies for bot_config
+ALTER TABLE bot_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations on bot_config" ON bot_config FOR ALL USING (true) WITH CHECK (true);

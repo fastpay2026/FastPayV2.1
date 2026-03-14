@@ -46,15 +46,20 @@ async function startServer() {
   console.log('Server: Starting initialization...');
 
   // Check environment variables
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('CRITICAL: Supabase environment variables are missing!');
+  const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder.supabase.co'));
+
+  if (!isSupabaseConfigured) {
+    console.error('CRITICAL: Supabase environment variables are missing or invalid! Bots and persistence will not work.');
   }
 
   // Initialize Supabase and Binance
-  const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder');
+  const supabase = createClient(
+    supabaseUrl || 'https://placeholder.supabase.co', 
+    supabaseKey || 'placeholder'
+  );
   
   let binanceClient: any;
   try {
@@ -78,6 +83,10 @@ async function startServer() {
     
     // Use a separate async function to avoid blocking the connection event
     const sendInitialData = async () => {
+      if (!isSupabaseConfigured) {
+        console.log('Server: Supabase not configured, skipping initial data fetch.');
+        return;
+      }
       try {
         console.log('Server: Fetching initial trades for', socket.id);
         const { data: openTrades, error } = await supabase
@@ -110,22 +119,30 @@ async function startServer() {
   });
 
   // --- الاستماع لتغييرات قاعدة البيانات ---
-  supabase
-    .channel('trade_orders_channel')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
-      console.log('New trade detected:', payload.new);
-      io.emit('new_trade', payload.new);
-    })
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_orders' }, async (payload) => {
-      console.log('Trade updated:', payload.new);
-      if (payload.new.status === 'closed_profit') {
-        const { data: user } = await supabase.from('users').select('username').eq('id', payload.new.user_id).single();
-        const profit = (payload.new.exit_price - payload.new.entry_price) * payload.new.amount;
-        io.emit('profit_notification', { username: user?.username || 'Trader', profit });
-      }
-    })
-    .subscribe();
+  if (isSupabaseConfigured) {
+    supabase
+      .channel('trade_orders_channel')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('New trade detected:', payload.new);
+        io.emit('new_trade', payload.new);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_orders' }, async (payload) => {
+        console.log('Trade updated:', payload.new);
+        if (payload.new.status === 'closed_profit') {
+          const { data: user } = await supabase.from('users').select('username').eq('id', payload.new.user_id).single();
+          const profit = (payload.new.exit_price - payload.new.entry_price) * payload.new.amount;
+          io.emit('profit_notification', { username: user?.username || 'Trader', profit });
+        }
+      })
+      .subscribe();
+  } else {
+    console.log('Server: Supabase not configured, skipping database listener.');
+  }
   const startWatcherBot = () => {
+    if (!isSupabaseConfigured) {
+      console.log('Watcher Bot: Supabase not configured, skipping bot start.');
+      return;
+    }
     console.log('Watcher Bot started...');
     setInterval(async () => {
       try {
@@ -138,40 +155,55 @@ async function startServer() {
         if (error) throw error;
         if (!positions || positions.length === 0) return;
 
+        if (!binanceClient) {
+          console.error('Watcher Bot: Binance client not initialized, skipping cycle.');
+          return;
+        }
+
         for (const pos of positions) {
-          const ticker = await binanceClient.tickerPrice(pos.symbol);
-          const currentPrice = parseFloat(ticker.data.price);
+          try {
+            const ticker = await binanceClient.tickerPrice(pos.asset_symbol);
+            const currentPrice = parseFloat(ticker.data.price);
 
-          if (
-            (pos.forced_take_profit && currentPrice >= pos.forced_take_profit) ||
-            (pos.forced_stop_loss && currentPrice <= pos.forced_stop_loss)
-          ) {
-            console.log(`Bot closing position ${pos.id} for user ${pos.user_id} at price ${currentPrice}`);
-            await supabase
-              .from('trade_orders')
-              .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
-              .eq('id', pos.id);
-            
-            // Emit profit notification
-            const profit = (currentPrice - pos.entry_price) * pos.amount;
-            
-            // تحديث رصيد المستخدم (البوت)
-            const { data: user } = await supabase.from('users').select('balance').eq('id', pos.user_id).single();
-            if (user) {
-                await supabase.from('users').update({ balance: user.balance + profit + pos.amount }).eq('id', pos.user_id);
+            if (
+              (pos.forced_take_profit && currentPrice >= pos.forced_take_profit) ||
+              (pos.forced_stop_loss && currentPrice <= pos.forced_stop_loss)
+            ) {
+              console.log(`Bot closing position ${pos.id} for user ${pos.user_id} at price ${currentPrice}`);
+              await supabase
+                .from('trade_orders')
+                .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
+                .eq('id', pos.id);
+              
+              // Emit profit notification
+              const profit = (currentPrice - pos.entry_price) * pos.amount;
+              
+              // تحديث رصيد المستخدم (البوت)
+              const { data: user } = await supabase.from('users').select('balance').eq('id', pos.user_id).single();
+              if (user) {
+                  await supabase.from('users').update({ balance: user.balance + profit + pos.amount }).eq('id', pos.user_id);
+              }
+
+              io.emit('profit_notification', { username: pos.username, profit });
             }
-
-            io.emit('profit_notification', { username: pos.username, profit });
+          } catch (posError: any) {
+            console.error(`Watcher Bot: Error processing position ${pos.id}:`, posError.message || posError);
           }
         }
-      } catch (error) {
-        console.error('Watcher Bot Error:', error);
+      } catch (error: any) {
+        console.error('Watcher Bot Error:', error.message || error);
+        if (error.details) console.error('Watcher Bot Error Details:', error.details);
+        if (error.hint) console.error('Watcher Bot Error Hint:', error.hint);
       }
     }, 5000);
   };
 
   // --- نظام المتداولين الوهميين (Ghost Traders) ---
   const startGhostTraders = async () => {
+    if (!isSupabaseConfigured) {
+      console.log('Ghost Traders: Supabase not configured, skipping bot start.');
+      return;
+    }
     console.log('Ghost Traders: System initializing...');
     
     const scheduleNextTrade = async () => {
@@ -251,7 +283,9 @@ async function startServer() {
               console.log(`Ghost Traders: Inserting trade for ${botUser.username}...`);
               const { error: insertError } = await supabase.from('trade_orders').insert(trade);
               if (insertError) {
-                console.error('Ghost Traders: Error inserting trade:', insertError);
+                console.error('Ghost Traders: Error inserting trade:', insertError.message || insertError);
+                if (insertError.details) console.error('Ghost Traders: Error Details:', insertError.details);
+                if (insertError.hint) console.error('Ghost Traders: Error Hint:', insertError.hint);
               } else {
                 console.log(`Ghost Traders: Trade inserted successfully. Emitting to socket...`);
                 io.emit('new_trade', trade);
