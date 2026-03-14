@@ -71,7 +71,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     if (balance.freeMargin < marginRequired) { alert("الرصيد غير كافٍ!"); return; }
 
     const { data: pos, error: posError } = await supabase.from('trade_orders').insert({
-      user_id: user.id, username: user.username, asset_symbol: symbol.split(':')[1], type: type.toLowerCase(), amount: volume, entry_price: price, status: 'open'
+      user_id: user.id, username: user.username, asset_symbol: symbol, type: type.toLowerCase(), amount: volume, entry_price: price, status: 'open'
     }).select().single();
 
     if (!posError) {
