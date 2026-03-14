@@ -8,11 +8,12 @@ import { User } from '../../../types';
 import { io } from 'socket.io-client';
 import { useNotification } from '../../../components/NotificationContext';
 
-const socket = io({
+const socket = io(window.location.origin, {
   path: '/socket.io',
   transports: ['polling', 'websocket'],
-  reconnectionAttempts: 5,
+  reconnectionAttempts: 10,
   reconnectionDelay: 1000,
+  withCredentials: true
 });
 
 interface TradingPlatformProps {
@@ -71,6 +72,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
     socket.on('connect', () => {
       console.log('TradingPlatform: Socket connected:', socket.id);
+    });
+
+    socket.on('connection_status', (data) => {
+      console.log('TradingPlatform: Server status:', data.status);
     });
 
     socket.on('connect_error', (error) => {

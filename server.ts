@@ -30,8 +30,42 @@ async function startServer() {
   const httpServer = createServer(app);
   const PORT = 3000;
 
-  app.use(cors());
+  app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true
+  }));
   app.use(express.json());
+
+  // API Routes FIRST
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', connected: true });
+  });
+
+  app.get('/api/trades', async (req, res) => {
+    console.log('API: Request for /api/trades');
+    try {
+      const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+      const isConfigured = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder.supabase.co'));
+      
+      if (!isConfigured) return res.status(503).json({ error: 'Supabase not configured' });
+
+      const tempSupabase = createClient(supabaseUrl!, supabaseKey!);
+      const { data, error } = await supabase
+        .from('trade_orders')
+        .select('*')
+        .eq('status', 'open')
+        .order('timestamp', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      res.json(data || []);
+    } catch (err: any) {
+      console.error('API Error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
 
   console.log('Server: Starting initialization...');
 
@@ -74,38 +108,9 @@ async function startServer() {
     allowEIO3: true // Support older clients if any
   });
 
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
-
-  app.get('/api/trades', async (req, res) => {
-    console.log('API: Received request for /api/trades');
-    if (!isSupabaseConfigured) {
-      console.warn('API: Supabase not configured, returning 503');
-      return res.status(503).json({ error: 'Supabase not configured' });
-    }
-    try {
-      const { data, error } = await supabase
-        .from('trade_orders')
-        .select('*')
-        .eq('status', 'open')
-        .order('timestamp', { ascending: false })
-        .limit(50);
-      
-      if (error) {
-        console.error('API: Supabase error fetching trades:', error);
-        throw error;
-      }
-      console.log(`API: Returning ${data?.length || 0} trades`);
-      res.json(data || []);
-    } catch (err: any) {
-      console.error('API: Unexpected error in /api/trades:', err);
-      res.status(500).json({ error: err.message });
-    }
-  });
-
   io.on('connection', (socket) => {
     console.log('Server: New connection attempt:', socket.id);
+    socket.emit('connection_status', { status: 'Connected' });
     
     // Use a separate async function to avoid blocking the connection event
     const sendInitialData = async () => {
@@ -346,6 +351,35 @@ async function startServer() {
   // Start the bots
   startWatcherBot();
   startGhostTraders();
+
+  // Trigger immediate bot trade for testing
+  setTimeout(async () => {
+    if (isSupabaseConfigured) {
+      console.log('Ghost Traders: Triggering IMMEDIATE test trade...');
+      try {
+        const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(1);
+        if (botUsers && botUsers.length > 0) {
+          const trade = {
+            user_id: botUsers[0].id,
+            username: botUsers[0].username,
+            asset_symbol: 'BTCUSDT',
+            type: 'buy',
+            amount: 50,
+            entry_price: 70000,
+            status: 'open',
+            is_bot_enabled: true,
+            timestamp: new Date().toISOString()
+          };
+          io.emit('new_trade', trade);
+          console.log('Ghost Traders: Immediate test trade emitted.');
+        } else {
+          console.log('Ghost Traders: No bot users found for immediate test.');
+        }
+      } catch (err) {
+        console.error('Ghost Traders: Immediate test trade failed:', err);
+      }
+    }
+  }, 5000);
 
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
