@@ -10,6 +10,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@binance/connector": "^3.6.1",
     "@supabase/supabase-js": "^2.97.0",
     "axios": "^1.13.5",
     "binance-connector-node": "^0.0.1-security",

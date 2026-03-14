@@ -1,5 +1,5 @@
 import express from 'express';
-const { Spot } = require('binance-connector-node');
+import { Spot } from '@binance/connector';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import path from 'path';
@@ -14,24 +14,41 @@ async function startServer() {
     cors: {
       origin: "*",
       methods: ["GET", "POST"]
-    }
+    },
+    transports: ['websocket', 'polling']
   });
   const PORT = 3000;
 
   app.use(cors());
   app.use(express.json());
 
+  // Check environment variables
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('CRITICAL: Supabase environment variables are missing!');
+  }
+
   // Initialize Supabase and Binance
   const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-  const binanceClient = new Spot(process.env.BINANCE_API_KEY!, process.env.BINANCE_SECRET_KEY!);
+  const binanceClient = new Spot(process.env.BINANCE_API_KEY || '', process.env.BINANCE_SECRET_KEY || '');
 
   io.on('connection', async (socket) => {
-    console.log('a user connected');
-    // إرسال الصفقات المفتوحة فور اتصال المستخدم
-    const { data: openTrades } = await supabase.from('trade_orders').select('*').eq('status', 'open');
-    if (openTrades) {
+    console.log('a user connected:', socket.id);
+    
+    try {
+      // إرسال الصفقات المفتوحة فور اتصال المستخدم
+      const { data: openTrades, error } = await supabase.from('trade_orders').select('*').eq('status', 'open');
+      if (error) {
+        console.error('Socket connection: Supabase fetch error:', error);
+      } else if (openTrades) {
         socket.emit('initial_trades', openTrades);
+      }
+    } catch (err) {
+      console.error('Socket connection: Unexpected error during handshake:', err);
     }
+
+    socket.on('disconnect', () => {
+      console.log('user disconnected:', socket.id);
+    });
   });
 
   // --- الاستماع لتغييرات قاعدة البيانات ---
