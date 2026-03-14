@@ -95,13 +95,14 @@ async function startServer() {
   });
 
   // 5. API Routes - MUST be before any catch-all or static middleware
-  app.get('/fetch-live-data', async (req, res) => {
-    console.log('[DEBUG] Direct JSON endpoint hit: /fetch-live-data');
+  app.get(['/api/trades', '/api/trades/'], async (req, res) => {
+    console.log(`[DEBUG] API Request for ${req.url} - System-Check`);
     res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     
     try {
       if (!isSupabaseConfigured) {
-        return res.json([{ id: 1, username: 'System_Offline', asset_symbol: 'BTCUSDT', type: 'buy', amount: 1, entry_price: 70000, status: 'open', timestamp: new Date().toISOString() }]);
+        return res.json([{ id: 1, username: 'System-Check_Offline', asset_symbol: 'BTCUSDT', type: 'buy', amount: 1, entry_price: 70000, status: 'open', timestamp: new Date().toISOString() }]);
       }
 
       const { data, error } = await supabase
@@ -120,10 +121,9 @@ async function startServer() {
       }));
 
       if (flattenedData.length === 0) {
-        // Fallback to at least one mock trade so the UI isn't empty
         return res.json([{
           id: Date.now(),
-          username: 'System_Bot',
+          username: 'System-Check_Bot',
           asset_symbol: 'BTCUSDT',
           type: 'buy',
           amount: 1.0,
@@ -133,10 +133,11 @@ async function startServer() {
         }]);
       }
 
+      console.log(`[DEBUG] Sending ${flattenedData.length} trades to client (System-Check)`);
       return res.json(flattenedData);
     } catch (err: any) {
-      console.error('Fetch Live Data Error:', err.message);
-      return res.json([{ id: 0, error: err.message, username: 'Error_Bot', asset_symbol: 'ERROR', type: 'none', amount: 0, entry_price: 0, status: 'error', timestamp: new Date().toISOString() }]);
+      console.error('API Error:', err.message);
+      return res.status(500).json({ error: err.message, status: 'System-Check-Error' });
     }
   });
 
@@ -562,6 +563,12 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
+    
+    // Guard to ensure API requests never reach the catch-all
+    app.use('/api', (req, res) => {
+      res.status(404).json({ error: `API endpoint ${req.url} not found` });
+    });
+
     app.get('*', (req, res) => {
       console.log(`[DEBUG] Catch-all route hit for: ${req.url}`);
       res.sendFile(path.join(distPath, 'index.html'));

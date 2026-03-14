@@ -54,12 +54,13 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     // Socket.io for trade events
     const fetchInitialTrades = async () => {
       try {
-        console.log('TradingPlatform: Fetching from /fetch-live-data...');
-        const response = await fetch('/fetch-live-data');
+        const version = Date.now();
+        console.log(`TradingPlatform: Fetching from /api/trades?v=${version}...`);
+        const response = await fetch(`/api/trades?v=${version}`);
         const contentType = response.headers.get("content-type");
         if (response.ok && contentType && contentType.includes("application/json")) {
           const data = await response.json();
-          console.log('Data Received from /fetch-live-data:', data);
+          console.log('Data Received from /api/trades:', data);
           setTrades(data.slice(0, 20));
           // Set connected to true if we successfully fetched data
           setIsConnected(true);
