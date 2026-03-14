@@ -12,7 +12,7 @@ const GhostTraders: React.FC = () => {
     const loadConfig = async () => {
       const { data } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').single();
       if (data) {
-        setIsEnabled(data.is_enabled);
+        setIsEnabled(data.is_active);
         setTradesPerHour(data.trades_per_hour);
       }
       const users = await supabaseService.getUsers();
@@ -24,13 +24,13 @@ const GhostTraders: React.FC = () => {
   const toggleBot = async () => {
     const newState = !isEnabled;
     setIsEnabled(newState);
-    await supabase.from('bot_config').upsert({ key: 'ghost_traders', is_enabled: newState, trades_per_hour: tradesPerHour });
+    await supabase.from('bot_config').upsert({ key: 'ghost_traders', is_active: newState, trades_per_hour: tradesPerHour });
     alert(`تم ${newState ? 'تفعيل' : 'إيقاف'} البوتات الوهمية`);
   };
 
   const updateFrequency = async (freq: number) => {
     setTradesPerHour(freq);
-    await supabase.from('bot_config').upsert({ key: 'ghost_traders', is_enabled: isEnabled, trades_per_hour: freq });
+    await supabase.from('bot_config').upsert({ key: 'ghost_traders', is_active: isEnabled, trades_per_hour: freq });
   };
 
   const toggleBotStatus = async (user: User) => {

@@ -106,14 +106,12 @@ async function startServer() {
         
         let nextDelay = 60000; 
         
-        if (config && config.is_enabled) {
+        if (config && config.is_active) {
           console.log('Ghost Traders: Bot system is ENABLED.');
           const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
-          console.log('Ghost Traders: Bot users fetched:', botUsers?.length);
           
           if (botUsers && botUsers.length > 0) {
             const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
-            console.log(`Ghost Traders: Selected bot ${botUser.username} (Balance: ${botUser.balance})`);
             
             // Check balance
             if (botUser.balance < 10) {
@@ -148,9 +146,9 @@ async function startServer() {
             await supabase.from('trade_orders').insert(trade);
             io.emit('new_trade', trade);
             
-            console.log(`Bot ${botUser.username} opened trade. Balance deducted.`);
+            console.log(`Bot ${botUser.username} opened immediate trade. Balance deducted.`);
           }
-          nextDelay = Math.floor(Math.random() * (60000 - 10000 + 1)) + 10000;
+          nextDelay = Math.floor(Math.random() * (60000 / (config.trades_per_hour || 5) * 2 - 10000 + 1)) + 10000;
         }
         
         setTimeout(scheduleNextTrade, nextDelay);
