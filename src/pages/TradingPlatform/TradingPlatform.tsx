@@ -59,7 +59,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         if (response.ok && contentType && contentType.includes("application/json")) {
           const data = await response.json();
           console.log('TradingPlatform: Fetched initial trades via REST:', data.length);
-          setTrades(data.slice(0, 15));
+          setTrades(data.slice(0, 20));
+          // Set connected to true if we successfully fetched data
+          setIsConnected(true);
         } else {
           const text = await response.text();
           console.error('TradingPlatform: API returned non-JSON or error:', response.status, text.substring(0, 100));
@@ -132,7 +134,40 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .channel('realtime_trading')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, fetchWallet)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, fetchPositions)
-      .subscribe();
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, async (payload) => {
+        console.log('TradingPlatform: [SUPABASE REALTIME] New trade detected:', payload.new);
+        
+        // Fetch the username for the new trade since the payload only has user_id
+        const { data: userData } = await supabase
+          .from('users')
+          .select('username, is_bot')
+          .eq('id', payload.new.user_id)
+          .single();
+          
+        const tradeWithUser = {
+          ...payload.new,
+          username: userData?.username || 'Unknown',
+          is_bot: userData?.is_bot || false
+        };
+        
+        setTrades(prev => {
+          // Check if already exists (to avoid duplicates with socket)
+          if (prev.some(t => t.id === tradeWithUser.id)) return prev;
+          
+          const newTrades = [tradeWithUser, ...prev];
+          return newTrades.sort((a, b) => {
+            const aIsUser = (a.user_id === user.id);
+            const bIsUser = (b.user_id === user.id);
+            return (bIsUser ? 1 : -1) - (aIsUser ? 1 : -1);
+          }).slice(0, 20);
+        });
+      })
+      .subscribe((status) => {
+        console.log('TradingPlatform: Supabase Realtime Status:', status);
+        if (status === 'SUBSCRIBED') {
+          setIsConnected(true);
+        }
+      });
 
     return () => {
       ws.close();

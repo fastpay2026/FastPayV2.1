@@ -125,18 +125,42 @@ async function startServer() {
 
   app.get('/api/test-trade', async (req, res) => {
     console.log('API: Manual test trade trigger');
-    const mockTrade = {
-      id: `manual-${Date.now()}`,
-      username: `Manual_Test_${Math.floor(Math.random() * 1000)}`,
-      asset_symbol: 'BTCUSDT',
-      type: 'buy',
-      amount: 1.5,
-      entry_price: 70000,
-      status: 'open',
-      timestamp: new Date().toISOString()
-    };
-    io.emit('new_trade', mockTrade);
-    res.json({ success: true, trade: mockTrade });
+    if (!isSupabaseConfigured) return res.status(503).json({ error: 'Supabase not configured' });
+    
+    try {
+      // Get a random user to act as the trader
+      const { data: users } = await supabase.from('users').select('id, username').limit(1);
+      const user = users?.[0] || { id: '00000000-0000-0000-0000-000000000000', username: 'System_Test' };
+
+      const mockTrade = {
+        user_id: user.id,
+        asset_symbol: 'BTCUSDT',
+        type: 'buy',
+        amount: 1.5,
+        entry_price: 70000,
+        status: 'open',
+        timestamp: new Date().toISOString()
+      };
+
+      const { data: inserted, error } = await supabase
+        .from('trade_orders')
+        .insert(mockTrade)
+        .select('*, users(username)')
+        .single();
+
+      if (error) throw error;
+
+      const flattened = {
+        ...inserted,
+        username: inserted.users?.username || user.username
+      };
+
+      io.emit('new_trade', flattened);
+      res.json({ success: true, trade: flattened });
+    } catch (err: any) {
+      console.error('API: Test trade failed:', err.message);
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // API 404 Guard - MUST be after all valid API routes
@@ -354,9 +378,7 @@ async function startServer() {
             const type = Math.random() > 0.5 ? 'buy' : 'sell';
 
             const tradeData = {
-              id: `bot-${Date.now()}`,
               user_id: botUser.id,
-              username: botUser.username,
               asset_symbol: symbol,
               type: type,
               amount: amount,
@@ -365,8 +387,26 @@ async function startServer() {
               timestamp: new Date().toISOString()
             };
 
-            io.emit('new_trade', tradeData);
-            console.log('Ghost Traders: [SUCCESS] Trade emitted:', botUser.username);
+            // Insert into DB
+            const { data: insertedTrade, error: insertError } = await supabase
+              .from('trade_orders')
+              .insert(tradeData)
+              .select('*, users(username, is_bot)')
+              .single();
+
+            if (insertError) {
+              console.error('Ghost Traders: DB Insert Error:', insertError.message);
+              // Fallback to emit if DB fails
+              io.emit('new_trade', { ...tradeData, username: botUser.username });
+            } else if (insertedTrade) {
+              const flattened = {
+                ...insertedTrade,
+                username: insertedTrade.users?.username || botUser.username,
+                is_bot: insertedTrade.users?.is_bot || true
+              };
+              io.emit('new_trade', flattened);
+              console.log('Ghost Traders: [SUCCESS] Trade inserted and emitted:', flattened.username);
+            }
           } catch (err) {
             console.error('Ghost Traders: Trade execution failed:', err);
           }
