@@ -38,7 +38,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const channel = supabase
       .channel('realtime_trading')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, fetchWallet)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'trading_positions' }, fetchPositions)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, fetchPositions)
       .subscribe();
 
     return () => {
@@ -77,6 +77,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     if (!posError) {
       await supabase.from('wallets').update({ free_margin: balance.freeMargin - marginRequired, margin: balance.margin + marginRequired }).eq('user_id', user.id);
       await supabase.from('users').update({ balance: user.balance - marginRequired }).eq('id', user.id);
+      fetchPositions();
       alert("تم تنفيذ الصفقة!");
     } else {
       console.error(posError);
