@@ -8,14 +8,12 @@ import { User } from '../../../types';
 import { io } from 'socket.io-client';
 import { useNotification } from '../../../components/NotificationContext';
 
-const socket = io(window.location.origin, {
+const socket = io({
   path: '/socket.io',
-  transports: ['polling'], // Force polling for maximum compatibility in this environment
-  reconnectionAttempts: 30,
+  transports: ['polling'],
+  reconnectionAttempts: 50,
   reconnectionDelay: 1000,
-  withCredentials: true,
-  forceNew: true,
-  timeout: 20000
+  timeout: 60000
 });
 
 interface TradingPlatformProps {
@@ -104,6 +102,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       setTrades(prev => {
         const newTrades = [trade, ...prev];
         console.log('TradingPlatform: Updating trades list. New count:', newTrades.length);
+        console.table(newTrades.slice(0, 5));
         // Sort: user trades first, then others, keep last 15
         return newTrades.sort((a, b) => {
           const aIsUser = (a.user_id === user.id || a.userId === user.id);
@@ -249,22 +248,35 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           <button 
             onClick={async () => {
               try {
-                const res = await fetch('/api/ping');
+                const res = await fetch('/api/test-trade');
                 const data = await res.json();
-                console.log('Connection Test:', data);
-                alert('API Connection Successful: ' + JSON.stringify(data));
+                console.log('Manual Trade Test:', data);
+                if (data.success) {
+                  showNotification('Manual test trade emitted successfully!');
+                }
               } catch (err) {
-                console.error('Connection Test Failed:', err);
-                alert('API Connection Failed. Check Console.');
+                console.error('Manual Trade Test Failed:', err);
+                alert('Manual Trade Test Failed. Check Console.');
               }
             }}
-            className="px-2 py-0.5 text-[10px] bg-zinc-800 hover:bg-zinc-700 rounded border border-zinc-700 text-zinc-400"
+            className="px-2 py-0.5 text-[10px] bg-emerald-600 hover:bg-emerald-500 rounded border border-emerald-500 text-white font-bold"
           >
-            Test API
+            Trigger Test Trade
           </button>
           <div className={`flex items-center gap-2 px-2 py-1 rounded text-[10px] font-bold ${isConnected ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}`}>
             <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
             {isConnected ? 'Connected' : 'Disconnected'}
+            {!isConnected && (
+              <button 
+                onClick={() => {
+                  console.log('Manual Reconnect Triggered');
+                  socket.connect();
+                }}
+                className="ml-2 px-1 bg-white/10 hover:bg-white/20 rounded text-[8px]"
+              >
+                Reconnect
+              </button>
+            )}
           </div>
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
             {Object.entries(prices).map(([s, p]) => <span key={s} className="mx-4">{s}: {(p as number).toFixed(2)}</span>)}

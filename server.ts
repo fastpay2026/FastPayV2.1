@@ -73,7 +73,7 @@ async function startServer() {
   const io = new Server(httpServer, {
     path: '/socket.io',
     cors: {
-      origin: "*", // Radical allow for debugging
+      origin: true, // Reflect request origin to allow credentials
       methods: ["GET", "POST"],
       credentials: true
     },
@@ -123,6 +123,22 @@ async function startServer() {
       console.error('API Error:', err.message);
       res.status(500).json({ error: err.message });
     }
+  });
+
+  app.get('/api/test-trade', async (req, res) => {
+    console.log('API: Manual test trade trigger');
+    const mockTrade = {
+      id: `manual-${Date.now()}`,
+      username: `Manual_Test_${Math.floor(Math.random() * 1000)}`,
+      asset_symbol: 'BTCUSDT',
+      type: 'buy',
+      amount: 1.5,
+      entry_price: 70000,
+      status: 'open',
+      timestamp: new Date().toISOString()
+    };
+    io.emit('new_trade', mockTrade);
+    res.json({ success: true, trade: mockTrade });
   });
 
   // API 404 Guard - MUST be after all valid API routes
@@ -301,6 +317,8 @@ async function startServer() {
         
         if (config && config.is_active) {
           console.log('Ghost Traders: Bot system is ACTIVE. Fetching bot users...');
+          // Aggressive testing: always try to trade every 10 seconds if active
+          nextDelay = 10000;
           const { data: botUsers, error: usersError } = await supabase.from('users').select('*').eq('is_bot', true);
           
           if (usersError) {
