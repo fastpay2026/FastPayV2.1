@@ -46,11 +46,22 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
     // Socket.io for trade events
     socket.on('new_trade', (trade) => {
-      setTrades(prev => [trade, ...prev].slice(0, 15));
+      setTrades(prev => {
+        const isUserTrade = trade.user_id === user.id;
+        const newTrades = [trade, ...prev];
+        // Sort: user trades first, then others, keep last 15
+        return newTrades.sort((a, b) => (b.user_id === user.id ? 1 : -1) - (a.user_id === user.id ? 1 : -1)).slice(0, 15);
+      });
     });
 
     socket.on('profit_notification', (data) => {
-      showNotification(`Trader ${data.username} just achieved a profit of $${data.profit.toFixed(2)}`);
+      // Notification language handling
+      const isUser = data.username === user.username;
+      const lang = localStorage.getItem('language') || 'en';
+      const message = lang === 'ar' 
+        ? `المتداول ${data.username} حقق للتو ربحاً بقيمة $${data.profit.toFixed(2)}`
+        : `Trader ${data.username} just made a profit of $${data.profit.toFixed(2)}`;
+      showNotification(message);
     });
 
     socket.on('order_book_update', (data) => {

@@ -25,11 +25,22 @@ async function startServer() {
   const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
   const binanceClient = new Spot(process.env.BINANCE_API_KEY!, process.env.BINANCE_SECRET_KEY!);
 
-  io.on('connection', (socket) => {
-    console.log('a user connected');
-  });
-
-  // --- البوت المراقب (Watcher Bot) ---
+  // --- الاستماع لتغييرات قاعدة البيانات ---
+  supabase
+    .channel('trade_orders_channel')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
+      console.log('New trade detected:', payload.new);
+      io.emit('new_trade', payload.new);
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_orders' }, async (payload) => {
+      console.log('Trade updated:', payload.new);
+      if (payload.new.status === 'closed_profit') {
+        const { data: user } = await supabase.from('users').select('username').eq('id', payload.new.user_id).single();
+        const profit = (payload.new.exit_price - payload.new.entry_price) * payload.new.amount;
+        io.emit('profit_notification', { username: user?.username || 'Trader', profit });
+      }
+    })
+    .subscribe();
   const startWatcherBot = () => {
     console.log('Watcher Bot started...');
     setInterval(async () => {
