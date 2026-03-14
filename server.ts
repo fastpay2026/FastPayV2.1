@@ -30,6 +30,7 @@ async function startServer() {
   const httpServer = createServer(app);
   const PORT = 3000;
 
+  // 1. Basic Middleware
   app.use(cors({
     origin: "*",
     methods: ["GET", "POST"],
@@ -37,21 +38,56 @@ async function startServer() {
   }));
   app.use(express.json());
 
-  // API Routes FIRST
+  console.log('Server: Initializing services...');
+
+  // 2. Check environment variables
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder.supabase.co'));
+
+  if (!isSupabaseConfigured) {
+    console.error('CRITICAL: Supabase environment variables are missing or invalid!');
+  }
+
+  // 3. Initialize Supabase and Binance
+  const supabase = createClient(
+    supabaseUrl || 'https://placeholder.supabase.co', 
+    supabaseKey || 'placeholder'
+  );
+  
+  let binanceClient: any;
+  try {
+    if (Spot) {
+      binanceClient = new Spot(process.env.BINANCE_API_KEY || '', process.env.BINANCE_SECRET_KEY || '');
+      console.log('Server: Binance client initialized');
+    }
+  } catch (e) {
+    console.error('Server: Failed to initialize Binance client:', e);
+  }
+
+  // 4. Socket.io Setup
+  const io = new Server(httpServer, {
+    path: '/socket.io',
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"],
+      credentials: true
+    },
+    transports: ['polling', 'websocket'],
+    allowEIO3: true
+  });
+
+  // 5. API Routes (Defined BEFORE Vite middleware)
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', connected: true });
   });
 
   app.get('/api/trades', async (req, res) => {
     console.log('API: Request for /api/trades');
+    if (!isSupabaseConfigured) {
+      return res.status(503).json({ error: 'Supabase not configured' });
+    }
     try {
-      const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-      const isConfigured = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder.supabase.co'));
-      
-      if (!isConfigured) return res.status(503).json({ error: 'Supabase not configured' });
-
-      const tempSupabase = createClient(supabaseUrl!, supabaseKey!);
       const { data, error } = await supabase
         .from('trade_orders')
         .select('*')
@@ -67,59 +103,14 @@ async function startServer() {
     }
   });
 
-  console.log('Server: Starting initialization...');
-
-  // Check environment variables
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-
-  const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder.supabase.co'));
-
-  if (!isSupabaseConfigured) {
-    console.error('CRITICAL: Supabase environment variables are missing or invalid! Bots and persistence will not work.');
-  }
-
-  // Initialize Supabase and Binance
-  const supabase = createClient(
-    supabaseUrl || 'https://placeholder.supabase.co', 
-    supabaseKey || 'placeholder'
-  );
-  
-  let binanceClient: any;
-  try {
-    if (Spot) {
-      binanceClient = new Spot(process.env.BINANCE_API_KEY || '', process.env.BINANCE_SECRET_KEY || '');
-      console.log('Server: Binance client initialized');
-    } else {
-      console.error('Server: Spot class is null, cannot initialize Binance client');
-    }
-  } catch (e) {
-    console.error('Server: Failed to initialize Binance client:', e);
-  }
-
-  const io = new Server(httpServer, {
-    path: '/socket.io',
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"],
-      credentials: true
-    },
-    transports: ['polling', 'websocket'],
-    allowEIO3: true // Support older clients if any
-  });
-
+  // 6. Socket Events
   io.on('connection', (socket) => {
-    console.log('Server: New connection attempt:', socket.id);
+    console.log('Server: New connection:', socket.id);
     socket.emit('connection_status', { status: 'Connected' });
     
-    // Use a separate async function to avoid blocking the connection event
     const sendInitialData = async () => {
-      if (!isSupabaseConfigured) {
-        console.log('Server: Supabase not configured, skipping initial data fetch.');
-        return;
-      }
+      if (!isSupabaseConfigured) return;
       try {
-        console.log('Server: Fetching initial trades for', socket.id);
         const { data: openTrades, error } = await supabase
           .from('trade_orders')
           .select('*')
@@ -127,29 +118,18 @@ async function startServer() {
           .order('timestamp', { ascending: false })
           .limit(50);
 
-        if (error) {
-          console.error('Server: Supabase fetch error for initial_trades:', error);
-          socket.emit('initial_trades', []); // Send empty array on error
-        } else {
-          console.log(`Server: Sending ${openTrades?.length || 0} initial trades to ${socket.id}`);
+        if (!error) {
           socket.emit('initial_trades', openTrades || []);
         }
       } catch (err) {
-        console.error('Server: Unexpected error during initial data fetch:', err);
-        socket.emit('initial_trades', []);
+        console.error('Server: Initial data fetch error:', err);
       }
     };
 
-    sendInitialData().catch(err => {
-      console.error('Server: sendInitialData failed:', err);
-    });
-
-    socket.on('error', (error) => {
-      console.error('Server: Socket error for', socket.id, ':', error);
-    });
+    sendInitialData();
 
     socket.on('disconnect', (reason) => {
-      console.log('Server: User disconnected:', socket.id, 'Reason:', reason);
+      console.log('Server: Disconnected:', socket.id, 'Reason:', reason);
     });
   });
 

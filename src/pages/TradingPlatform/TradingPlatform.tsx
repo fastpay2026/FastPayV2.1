@@ -8,7 +8,7 @@ import { User } from '../../../types';
 import { io } from 'socket.io-client';
 import { useNotification } from '../../../components/NotificationContext';
 
-const socket = io(window.location.origin, {
+const socket = io({
   path: '/socket.io',
   transports: ['polling', 'websocket'],
   reconnectionAttempts: 10,
@@ -71,6 +71,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     fetchInitialTrades();
 
     socket.on('connect', () => {
+      console.log('[SUCCESS] Real-time Trading Connected');
       console.log('TradingPlatform: Socket connected:', socket.id);
     });
 
