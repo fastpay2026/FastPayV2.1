@@ -28,43 +28,10 @@ process.on('unhandledRejection', (reason, promise) => {
 async function startServer() {
   const app = express();
   const httpServer = createServer(app);
-  const io = new Server(httpServer, {
-    path: '/socket.io',
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"],
-      credentials: true
-    },
-    transports: ['polling', 'websocket'],
-    allowEIO3: true // Support older clients if any
-  });
   const PORT = 3000;
 
   app.use(cors());
   app.use(express.json());
-
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
-
-  app.get('/api/trades', async (req, res) => {
-    if (!isSupabaseConfigured) {
-      return res.status(503).json({ error: 'Supabase not configured' });
-    }
-    try {
-      const { data, error } = await supabase
-        .from('trade_orders')
-        .select('*')
-        .eq('status', 'open')
-        .order('timestamp', { ascending: false })
-        .limit(50);
-      
-      if (error) throw error;
-      res.json(data || []);
-    } catch (err: any) {
-      res.status(500).json({ error: err.message });
-    }
-  });
 
   console.log('Server: Starting initialization...');
 
@@ -95,6 +62,47 @@ async function startServer() {
   } catch (e) {
     console.error('Server: Failed to initialize Binance client:', e);
   }
+
+  const io = new Server(httpServer, {
+    path: '/socket.io',
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"],
+      credentials: true
+    },
+    transports: ['polling', 'websocket'],
+    allowEIO3: true // Support older clients if any
+  });
+
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  app.get('/api/trades', async (req, res) => {
+    console.log('API: Received request for /api/trades');
+    if (!isSupabaseConfigured) {
+      console.warn('API: Supabase not configured, returning 503');
+      return res.status(503).json({ error: 'Supabase not configured' });
+    }
+    try {
+      const { data, error } = await supabase
+        .from('trade_orders')
+        .select('*')
+        .eq('status', 'open')
+        .order('timestamp', { ascending: false })
+        .limit(50);
+      
+      if (error) {
+        console.error('API: Supabase error fetching trades:', error);
+        throw error;
+      }
+      console.log(`API: Returning ${data?.length || 0} trades`);
+      res.json(data || []);
+    } catch (err: any) {
+      console.error('API: Unexpected error in /api/trades:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
 
   io.on('connection', (socket) => {
     console.log('Server: New connection attempt:', socket.id);

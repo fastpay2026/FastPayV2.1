@@ -53,10 +53,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const fetchInitialTrades = async () => {
       try {
         const response = await fetch('/api/trades');
-        if (response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (response.ok && contentType && contentType.includes("application/json")) {
           const data = await response.json();
           console.log('TradingPlatform: Fetched initial trades via REST:', data.length);
           setTrades(data.slice(0, 15));
+        } else {
+          const text = await response.text();
+          console.error('TradingPlatform: API returned non-JSON or error:', response.status, text.substring(0, 100));
         }
       } catch (err) {
         console.error('TradingPlatform: Failed to fetch trades via REST:', err);
