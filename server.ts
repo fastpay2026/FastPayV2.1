@@ -101,14 +101,27 @@ async function startServer() {
     
     const scheduleNextTrade = async () => {
       try {
-        const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').single();
-        console.log('Ghost Traders: Checking config...', config);
+        const { data: config, error: configError } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
+        
+        if (configError) {
+          console.error('Ghost Traders: Error fetching config:', configError);
+        } else if (!config) {
+          console.log('Ghost Traders: No config found, skipping trade.');
+        } else {
+          console.log('Ghost Traders: Checking config...', config);
+        }
         
         let nextDelay = 60000; 
         
         if (config && config.is_active) {
           console.log('Ghost Traders: Bot system is ENABLED.');
-          const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
+          const { data: botUsers, error: usersError } = await supabase.from('users').select('*').eq('is_bot', true);
+          
+          if (usersError) {
+            console.error('Ghost Traders: Error fetching bot users:', usersError);
+          } else {
+            console.log('Ghost Traders: Found bot users:', botUsers?.length || 0);
+          }
           
           if (botUsers && botUsers.length > 0) {
             const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
