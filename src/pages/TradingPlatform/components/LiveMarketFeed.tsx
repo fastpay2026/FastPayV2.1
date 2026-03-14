@@ -1,0 +1,46 @@
+import React from 'react';
+
+interface Trade {
+  username: string;
+  asset_symbol: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  entry_price: number;
+}
+
+interface LiveMarketFeedProps {
+  trades: Trade[];
+}
+
+const LiveMarketFeed: React.FC<LiveMarketFeedProps> = ({ trades }) => {
+  return (
+    <div className="h-64 bg-[#131722] border-t border-white/10 overflow-y-auto">
+      <table className="w-full text-xs text-left">
+        <thead className="bg-[#1e2329] text-slate-400 sticky top-0">
+          <tr>
+            <th className="p-2">Trader</th>
+            <th className="p-2">Symbol</th>
+            <th className="p-2">Type</th>
+            <th className="p-2">Amount</th>
+            <th className="p-2">Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {trades.map((trade, index) => (
+            <tr key={index} className="border-b border-white/5">
+              <td className="p-2 text-white font-bold">{trade.username}</td>
+              <td className="p-2">{trade.asset_symbol}</td>
+              <td className={`p-2 font-bold ${trade.type === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>
+                {trade.type.toUpperCase()}
+              </td>
+              <td className="p-2">${trade.amount.toFixed(2)}</td>
+              <td className="p-2">${trade.entry_price.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default LiveMarketFeed;

@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import TradingViewChart from './components/TradingViewChart';
-import { LayoutDashboard, BarChart3, ListChecks, Settings, Bell } from 'lucide-react';
+import LiveMarketFeed from './components/LiveMarketFeed';
+import OrderBook from './components/OrderBook';
+import { LayoutDashboard, BarChart3 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { User } from '../../../types';
+import { io } from 'socket.io-client';
+import { useNotification } from '../../../components/NotificationContext';
+
+const socket = io();
 
 interface TradingPlatformProps {
   user: User;
@@ -16,6 +22,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [prices, setPrices] = useState<Record<string, number>>({ BTCUSDT: 0, ETHUSDT: 0, SOLUSDT: 0 });
   const [priceColor, setPriceColor] = useState('text-white');
   const [prevPrice, setPrevPrice] = useState(0);
+  const [trades, setTrades] = useState<any[]>([]);
+  const [orderBook, setOrderBook] = useState<{ bids: [number, number][], asks: [number, number][] }>({ bids: [], asks: [] });
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     if (!user) return;
@@ -35,6 +44,21 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       });
     };
 
+    // Socket.io for trade events
+    socket.on('new_trade', (trade) => {
+      setTrades(prev => [trade, ...prev].slice(0, 15));
+    });
+
+    socket.on('profit_notification', (data) => {
+      showNotification(`Trader ${data.username} just achieved a profit of $${data.profit.toFixed(2)}`);
+    });
+
+    socket.on('order_book_update', (data) => {
+        if (data.symbol === symbol) {
+            setOrderBook({ bids: data.bids, asks: data.asks });
+        }
+    });
+
     const channel = supabase
       .channel('realtime_trading')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, fetchWallet)
@@ -44,8 +68,11 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     return () => {
       ws.close();
       supabase.removeChannel(channel);
+      socket.off('new_trade');
+      socket.off('profit_notification');
+      socket.off('order_book_update');
     };
-  }, [user]);
+  }, [user, symbol]);
 
   const currentPrice = prices[symbol] || 0;
 
@@ -153,13 +180,17 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           </div>
         </div>
         <div className="flex-1 flex">
-          <div className="flex-1 p-2"><TradingViewChart symbol={`BINANCE:${symbol}`} /></div>
+          <div className="flex-1 p-2 flex flex-col">
+            <div className="flex-1"><TradingViewChart symbol={`BINANCE:${symbol}`} /></div>
+            <LiveMarketFeed trades={trades} />
+          </div>
           <div className="w-48 bg-[#131722] border-l border-white/10 p-4 flex flex-col gap-4">
             <h3 className="text-white font-bold text-sm">Order: {symbol.split(':')[1]}</h3>
             <div className={`text-2xl font-bold ${priceColor}`}>{currentPrice.toFixed(2)}</div>
             <input type="number" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} className="bg-[#1e2329] text-white p-2 rounded text-sm w-full" />
             <button onClick={() => handleTrade('Buy')} className="w-full bg-emerald-600 text-white py-1.5 rounded text-sm font-bold">BUY</button>
             <button onClick={() => handleTrade('Sell')} className="w-full bg-red-600 text-white py-1.5 rounded text-sm font-bold">SELL</button>
+            <OrderBook symbol={symbol} bids={orderBook.bids} asks={orderBook.asks} />
           </div>
         </div>
         <div className="h-10 bg-[#1e2329] border-t border-white/10 flex items-center px-4 gap-6 text-xs font-mono">

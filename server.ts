@@ -4,9 +4,18 @@ import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 async function startServer() {
   const app = express();
+  const httpServer = createServer(app);
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
   const PORT = 3000;
 
   app.use(cors());
@@ -15,6 +24,10 @@ async function startServer() {
   // Initialize Supabase and Binance
   const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
   const binanceClient = new Spot(process.env.BINANCE_API_KEY!, process.env.BINANCE_SECRET_KEY!);
+
+  io.on('connection', (socket) => {
+    console.log('a user connected');
+  });
 
   // --- البوت المراقب (Watcher Bot) ---
   const startWatcherBot = () => {
@@ -43,6 +56,10 @@ async function startServer() {
               .from('trade_orders')
               .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
               .eq('id', pos.id);
+            
+            // Emit profit notification
+            const profit = (currentPrice - pos.entry_price) * pos.amount;
+            io.emit('profit_notification', { username: pos.username, profit });
           }
         }
       } catch (error) {
@@ -81,7 +98,7 @@ async function startServer() {
             // 4. Trade Types (Long/Short)
             const type = Math.random() > 0.5 ? 'buy' : 'sell';
             
-            await supabase.from('trade_orders').insert({
+            const trade = {
                 user_id: botUser.id,
                 username: botUser.username,
                 asset_symbol: symbol,
@@ -89,13 +106,30 @@ async function startServer() {
                 amount: amount,
                 entry_price: currentPrice,
                 status: 'open'
-            });
+            };
+
+            await supabase.from('trade_orders').insert(trade);
+            
+            // Emit new trade event
+            io.emit('new_trade', trade);
+            
             console.log(`Ghost Trader ${botUser.username} opened ${type} ${symbol} at ${currentPrice} with amount ${amount}`);
           }
           
           // 3. Variable Timing (10s to 120s)
           nextDelay = Math.floor(Math.random() * (120000 - 10000 + 1)) + 10000;
         }
+        
+        // Order Book Simulation
+        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+        const ticker = await binanceClient.tickerPrice(symbol);
+        const price = parseFloat(ticker.data.price);
+        io.emit('order_book_update', {
+            symbol,
+            bids: Array.from({length: 5}, () => [price - Math.random() * 10, Math.random() * 2]),
+            asks: Array.from({length: 5}, () => [price + Math.random() * 10, Math.random() * 2])
+        });
         
         setTimeout(scheduleNextTrade, nextDelay);
       } catch (error) {
@@ -131,7 +165,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
