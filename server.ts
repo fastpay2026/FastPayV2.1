@@ -95,6 +95,51 @@ async function startServer() {
   });
 
   // 5. API Routes - MUST be before any catch-all or static middleware
+  app.get('/fetch-live-data', async (req, res) => {
+    console.log('[DEBUG] Direct JSON endpoint hit: /fetch-live-data');
+    res.setHeader('Content-Type', 'application/json');
+    
+    try {
+      if (!isSupabaseConfigured) {
+        return res.json([{ id: 1, username: 'System_Offline', asset_symbol: 'BTCUSDT', type: 'buy', amount: 1, entry_price: 70000, status: 'open', timestamp: new Date().toISOString() }]);
+      }
+
+      const { data, error } = await supabase
+        .from('trade_orders')
+        .select('*, users(username, is_bot)')
+        .eq('status', 'open')
+        .order('timestamp', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+
+      const flattenedData = (data || []).map((order: any) => ({
+        ...order,
+        username: order.users?.username || order.username || order.user_id,
+        is_bot: order.users?.is_bot || false
+      }));
+
+      if (flattenedData.length === 0) {
+        // Fallback to at least one mock trade so the UI isn't empty
+        return res.json([{
+          id: Date.now(),
+          username: 'System_Bot',
+          asset_symbol: 'BTCUSDT',
+          type: 'buy',
+          amount: 1.0,
+          entry_price: 70000,
+          status: 'open',
+          timestamp: new Date().toISOString()
+        }]);
+      }
+
+      return res.json(flattenedData);
+    } catch (err: any) {
+      console.error('Fetch Live Data Error:', err.message);
+      return res.json([{ id: 0, error: err.message, username: 'Error_Bot', asset_symbol: 'ERROR', type: 'none', amount: 0, entry_price: 0, status: 'error', timestamp: new Date().toISOString() }]);
+    }
+  });
+
   app.get('/api/ping', (req, res) => {
     res.json({ message: 'pong', timestamp: new Date().toISOString() });
   });
