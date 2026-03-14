@@ -24,15 +24,30 @@ const GhostTraders: React.FC = () => {
   const toggleBot = async () => {
     const newState = !isEnabled;
     setIsEnabled(newState);
-    // إرسال الحقل الصحيح مع تحديد عمود التعارض
-    await supabase.from('bot_config').upsert({ key: 'ghost_traders', is_active: newState, trades_per_hour: tradesPerHour }, { onConflict: 'key' });
+    
+    // البحث عن الإعداد الحالي
+    const { data: existing } = await supabase.from('bot_config').select('id').eq('key', 'ghost_traders').maybeSingle();
+    
+    if (existing) {
+      await supabase.from('bot_config').update({ is_active: newState, trades_per_hour: tradesPerHour }).eq('id', existing.id);
+    } else {
+      await supabase.from('bot_config').insert({ key: 'ghost_traders', is_active: newState, trades_per_hour: tradesPerHour });
+    }
+    
     alert(`تم ${newState ? 'تفعيل' : 'إيقاف'} البوتات الوهمية`);
   };
 
   const updateFrequency = async (freq: number) => {
     setTradesPerHour(freq);
-    // إرسال الحقل الصحيح مع تحديد عمود التعارض
-    await supabase.from('bot_config').upsert({ key: 'ghost_traders', is_active: isEnabled, trades_per_hour: freq }, { onConflict: 'key' });
+    
+    // البحث عن الإعداد الحالي
+    const { data: existing } = await supabase.from('bot_config').select('id').eq('key', 'ghost_traders').maybeSingle();
+    
+    if (existing) {
+      await supabase.from('bot_config').update({ is_active: isEnabled, trades_per_hour: freq }).eq('id', existing.id);
+    } else {
+      await supabase.from('bot_config').insert({ key: 'ghost_traders', is_active: isEnabled, trades_per_hour: freq });
+    }
   };
 
   const toggleBotStatus = async (user: User) => {
