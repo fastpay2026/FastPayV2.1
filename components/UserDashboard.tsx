@@ -4,6 +4,7 @@ import { BadgeCheck } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing, AdExchangeItem, AdNegotiation, FXExchangeSettings, FXDistributorStatus, FXGatewayQueue } from '../types';
 import { AdExchange } from './AdExchange';
+import RecentTrades from './RecentTrades';
 import { useI18n } from '../i18n/i18n';
 import UnderDevelopment from './UnderDevelopment';
 import { supabaseService } from '../supabaseService';

@@ -44,6 +44,7 @@ export interface User {
   linkedCards?: BankCard[];
   assets?: UserAsset[];
   apiKeys?: APIKey[];
+  isBot?: boolean;
 }
 
 export interface TradeAsset {

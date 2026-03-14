@@ -63,15 +63,21 @@ async function startServer() {
         
         // Open a random trade
         if (Math.random() < (tradesPerHour / 60)) {
-            console.log('Ghost Trader opening a trade...');
+            // Fetch bot users
+            const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
+            if (!botUsers || botUsers.length === 0) return;
+
+            const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
+
+            console.log(`Ghost Trader ${botUser.username} opening a trade...`);
             const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
             const symbol = symbols[Math.floor(Math.random() * symbols.length)];
             const type = Math.random() > 0.5 ? 'buy' : 'sell';
             const amount = (Math.random() * 0.1 + 0.01).toFixed(4);
             
             await supabase.from('trade_orders').insert({
-                user_id: 'ghost_trader',
-                username: 'GhostTrader',
+                user_id: botUser.id,
+                username: botUser.username,
                 asset_symbol: symbol,
                 type: type,
                 amount: parseFloat(amount),
