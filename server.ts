@@ -45,6 +45,10 @@ async function startServer() {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
   const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder.supabase.co'));
 
+  console.log('Server: Supabase URL Present:', !!supabaseUrl);
+  console.log('Server: Supabase Key Present:', !!supabaseKey);
+  console.log('Server: Supabase Configured:', isSupabaseConfigured);
+
   if (!isSupabaseConfigured) {
     console.error('CRITICAL: Supabase environment variables are missing or invalid!');
   }
@@ -69,20 +73,14 @@ async function startServer() {
   const io = new Server(httpServer, {
     path: '/socket.io',
     cors: {
-      origin: ["https://fastpay-network.com", "https://www.fastpay-network.com", "*"],
+      origin: "*", // Radical allow for debugging
       methods: ["GET", "POST"],
       credentials: true
     },
     transports: ['polling', 'websocket'],
     allowEIO3: true,
     pingInterval: 10000,
-    pingTimeout: 5000,
-    cookie: {
-      name: "io",
-      httpOnly: true,
-      sameSite: "none",
-      secure: true
-    }
+    pingTimeout: 5000
   });
 
   io.engine.on("connection_error", (err) => {
@@ -96,11 +94,6 @@ async function startServer() {
 
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', connected: true });
-  });
-
-  // API 404 Guard - Prevent returning HTML for API routes
-  app.use('/api/*', (req, res) => {
-    res.status(404).json({ error: 'API endpoint not found' });
   });
 
   app.get('/api/trades', async (req, res) => {
@@ -122,6 +115,11 @@ async function startServer() {
       console.error('API Error:', err.message);
       res.status(500).json({ error: err.message });
     }
+  });
+
+  // API 404 Guard - MUST be after all valid API routes
+  app.all('/api/*', (req, res) => {
+    res.status(404).json({ error: `API route ${req.originalUrl} not found` });
   });
 
   // 6. Socket Events
@@ -381,7 +379,7 @@ async function startServer() {
         console.error('Ghost Traders: Immediate test trades failed:', err);
       }
     }
-  }, 3000);
+  }, 1000);
 
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);

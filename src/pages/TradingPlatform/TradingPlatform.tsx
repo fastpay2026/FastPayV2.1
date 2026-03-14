@@ -31,6 +31,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [priceColor, setPriceColor] = useState('text-white');
   const [prevPrice, setPrevPrice] = useState(0);
   const [trades, setTrades] = useState<any[]>([]);
+  const [isConnected, setIsConnected] = useState(socket.connected);
   const [orderBook, setOrderBook] = useState<{ bids: [number, number][], asks: [number, number][] }>({ bids: [], asks: [] });
   const { showNotification } = useNotification();
 
@@ -73,8 +74,13 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     fetchInitialTrades();
 
     socket.on('connect', () => {
+      setIsConnected(true);
       console.log('[SUCCESS] Real-time Trading Connected');
       console.log('TradingPlatform: Socket connected:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
     });
 
     socket.on('connection_status', (data) => {
@@ -248,6 +254,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           >
             Test API
           </button>
+          <div className={`flex items-center gap-2 px-2 py-1 rounded text-[10px] font-bold ${isConnected ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+            {isConnected ? 'Connected' : 'Disconnected'}
+          </div>
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
             {Object.entries(prices).map(([s, p]) => <span key={s} className="mx-4">{s}: {(p as number).toFixed(2)}</span>)}
           </div>
