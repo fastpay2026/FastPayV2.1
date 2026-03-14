@@ -64,7 +64,7 @@ const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser,
         <table className="w-full text-white">
           <thead>
             <tr className="text-left border-b border-white/10">
-              <th className="p-2">المستخدم</th>
+              <th className="p-2">اسم البوت</th>
               <th className="p-2">الرمز</th>
               <th className="p-2">Take Profit</th>
               <th className="p-2">Stop Loss</th>
@@ -74,17 +74,15 @@ const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser,
           </thead>
           <tbody>
             {positions.map(pos => {
-              const userDetail = (pos as any).users;
-              const isBot = userDetail?.is_bot || accounts.find(u => u.id === pos.userId)?.isBot;
-              const username = userDetail?.username || accounts.find(u => u.id === pos.userId)?.username || pos.userId;
+              const isBot = pos.is_bot || accounts.find(u => u.id === pos.userId)?.isBot;
+              const username = pos.username || accounts.find(u => u.id === pos.userId)?.username || pos.userId;
 
               return (
                 <tr key={pos.id} className="border-b border-white/5">
                   <td className="p-2">
                     <div className="flex flex-col">
                       <span className="font-bold">{username}</span>
-                      {isBot && <span className="text-sky-400 text-[10px] font-black uppercase tracking-tighter">🤖 BOT</span>}
-                      {!userDetail && <span className="text-[8px] text-slate-500">{pos.userId}</span>}
+                      {isBot && <span className="text-emerald-400 text-[10px] font-black uppercase tracking-tighter">🤖 BOT</span>}
                     </div>
                   </td>
                   <td className="p-2">{pos.assetSymbol}</td>

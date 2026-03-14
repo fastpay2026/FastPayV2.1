@@ -472,11 +472,17 @@ export const supabaseService = {
 
   // Trade Orders
   async getTradeOrders(): Promise<TradeOrder[]> {
-    const { data, error } = await supabase.from('trade_orders').select('*');
+    const { data, error } = await supabase
+      .from('trade_orders')
+      .select('*, users(username)')
+      .order('timestamp', { ascending: false });
+    
     if (error) throw error;
-    return (data || []).map(o => ({
+    
+    return (data || []).map((o: any) => ({
       ...o,
       userId: o.user_id,
+      username: o.users?.username || o.username || o.user_id,
       assetSymbol: o.asset_symbol,
       entryPrice: o.entry_price
     }));

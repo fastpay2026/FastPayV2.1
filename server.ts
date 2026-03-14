@@ -104,13 +104,21 @@ async function startServer() {
     try {
       const { data, error } = await supabase
         .from('trade_orders')
-        .select('*')
+        .select('*, users(username, is_bot)')
         .eq('status', 'open')
         .order('timestamp', { ascending: false })
         .limit(50);
       
       if (error) throw error;
-      res.json(data || []);
+
+      // Flatten the data to include username at top level
+      const flattenedData = (data || []).map((order: any) => ({
+        ...order,
+        username: order.users?.username || order.username || order.user_id,
+        is_bot: order.users?.is_bot || false
+      }));
+
+      res.json(flattenedData);
     } catch (err: any) {
       console.error('API Error:', err.message);
       res.status(500).json({ error: err.message });
@@ -152,13 +160,18 @@ async function startServer() {
       try {
         const { data: openTrades, error } = await supabase
           .from('trade_orders')
-          .select('*')
+          .select('*, users(username, is_bot)')
           .eq('status', 'open')
           .order('timestamp', { ascending: false })
           .limit(50);
 
-        if (!error) {
-          socket.emit('initial_trades', openTrades || []);
+        if (!error && openTrades) {
+          const flattenedTrades = openTrades.map((order: any) => ({
+            ...order,
+            username: order.users?.username || order.username || order.user_id,
+            is_bot: order.users?.is_bot || false
+          }));
+          socket.emit('initial_trades', flattenedTrades);
         }
       } catch (err) {
         console.error('Server: Initial data fetch error:', err);
@@ -176,9 +189,19 @@ async function startServer() {
   if (isSupabaseConfigured) {
     supabase
       .channel('trade_orders_channel')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, async (payload) => {
         console.log('New trade detected:', payload.new);
-        io.emit('new_trade', payload.new);
+        try {
+          const { data: user } = await supabase.from('users').select('username').eq('id', payload.new.user_id).single();
+          const tradeWithUsername = { 
+            ...payload.new, 
+            username: user?.username || payload.new.username || payload.new.user_id 
+          };
+          io.emit('new_trade', tradeWithUsername);
+        } catch (err) {
+          console.error('Server: Error fetching username for new trade:', err);
+          io.emit('new_trade', payload.new);
+        }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_orders' }, async (payload) => {
         console.log('Trade updated:', payload.new);

@@ -238,6 +238,7 @@ const App: React.FC = () => {
             return [{
               ...newOrder,
               userId: newOrder.user_id,
+              username: newOrder.username || accounts.find(u => u.id === newOrder.user_id)?.username || newOrder.user_id,
               assetSymbol: newOrder.asset_symbol,
               entryPrice: newOrder.entry_price
             }, ...prev];
@@ -247,6 +248,7 @@ const App: React.FC = () => {
           setTradeOrders(prev => prev.map(o => o.id === updatedOrder.id ? {
             ...updatedOrder,
             userId: updatedOrder.user_id,
+            username: updatedOrder.username || accounts.find(u => u.id === updatedOrder.user_id)?.username || updatedOrder.user_id,
             assetSymbol: updatedOrder.asset_symbol,
             entryPrice: updatedOrder.entry_price
           } : o));
