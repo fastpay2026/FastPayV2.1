@@ -8,7 +8,7 @@ import { User } from '../../../types';
 import { io } from 'socket.io-client';
 import { useNotification } from '../../../components/NotificationContext';
 
-const socket = io({
+const socket = io(window.location.origin, {
   path: '/socket.io',
   transports: ['polling', 'websocket'], // Start with polling for better compatibility
   reconnectionAttempts: 30,

@@ -127,6 +127,26 @@ async function startServer() {
     console.log('Server: New connection:', socket.id);
     socket.emit('connection_status', { status: 'Connected' });
     
+    // Force immediate 5 trades for the new connection to ensure table is not empty
+    const sendImmediateTrades = async () => {
+      console.log('Server: Sending immediate trades to', socket.id);
+      const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+      const types = ['buy', 'sell'];
+      const mockTrades = Array.from({ length: 5 }).map((_, i) => ({
+        id: `mock-${Date.now()}-${i}`,
+        username: `Trader_${Math.floor(Math.random() * 9000) + 1000}`,
+        asset_symbol: symbols[Math.floor(Math.random() * symbols.length)],
+        type: types[Math.floor(Math.random() * types.length)],
+        amount: (Math.random() * 2 + 0.1).toFixed(2),
+        entry_price: 70000 + (Math.random() * 1000 - 500),
+        status: 'open',
+        timestamp: new Date(Date.now() - i * 10000).toISOString()
+      }));
+      socket.emit('initial_trades', mockTrades);
+    };
+
+    sendImmediateTrades();
+    
     const sendInitialData = async () => {
       if (!isSupabaseConfigured) return;
       try {
