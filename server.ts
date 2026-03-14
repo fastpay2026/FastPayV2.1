@@ -94,7 +94,7 @@ async function startServer() {
     console.error('Socket Engine Error:', err.code, err.message, err.context);
   });
 
-  // 5. API Routes
+  // 5. API Routes - MUST be before any catch-all or static middleware
   app.get('/api/ping', (req, res) => {
     res.json({ message: 'pong', timestamp: new Date().toISOString() });
   });
@@ -103,8 +103,10 @@ async function startServer() {
     res.json({ status: 'ok', connected: true });
   });
 
-  app.get('/api/trades', async (req, res) => {
-    console.log('API: Request for /api/trades');
+  app.get(['/api/trades', '/api/trades/'], async (req, res) => {
+    console.log(`[DEBUG] API Request for ${req.url}`);
+    res.setHeader('Content-Type', 'application/json');
+    
     if (!isSupabaseConfigured) {
       return res.status(503).json({ error: 'Supabase not configured' });
     }
@@ -125,10 +127,11 @@ async function startServer() {
         is_bot: order.users?.is_bot || false
       }));
 
-      res.json(flattenedData);
+      console.log(`[DEBUG] Sending ${flattenedData.length} trades to client`);
+      return res.json(flattenedData);
     } catch (err: any) {
       console.error('API Error:', err.message);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
@@ -165,14 +168,14 @@ async function startServer() {
       };
 
       io.emit('new_trade', flattened);
-      res.json({ success: true, trade: flattened });
+      return res.json({ success: true, trade: flattened });
     } catch (err: any) {
       console.error('API: Test trade failed:', err.message);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
-  // API 404 Guard - MUST be after all valid API routes
+  // API 404 Guard - MUST be after all valid API routes but before catch-all
   app.all('/api/*', (req, res) => {
     res.status(404).json({ error: `API route ${req.originalUrl} not found` });
   });
@@ -515,6 +518,7 @@ async function startServer() {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
+      console.log(`[DEBUG] Catch-all route hit for: ${req.url}`);
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
