@@ -73,11 +73,27 @@ async function startServer() {
       methods: ["GET", "POST"],
       credentials: true
     },
-    transports: ['polling', 'websocket'],
-    allowEIO3: true
+    transports: ['websocket', 'polling'],
+    allowEIO3: true,
+    pingInterval: 25000,
+    pingTimeout: 20000,
+    cookie: {
+      name: "io",
+      httpOnly: true,
+      sameSite: "none",
+      secure: true
+    }
+  });
+
+  io.engine.on("connection_error", (err) => {
+    console.error('Socket Engine Error:', err.code, err.message, err.context);
   });
 
   // 5. API Routes (Defined BEFORE Vite middleware)
+  app.get('/api/ping', (req, res) => {
+    res.json({ message: 'pong', timestamp: new Date().toISOString() });
+  });
+
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', connected: true });
   });

@@ -10,10 +10,11 @@ import { useNotification } from '../../../components/NotificationContext';
 
 const socket = io({
   path: '/socket.io',
-  transports: ['polling', 'websocket'],
-  reconnectionAttempts: 10,
-  reconnectionDelay: 1000,
-  withCredentials: true
+  transports: ['websocket', 'polling'], // Prioritize websocket
+  reconnectionAttempts: 20,
+  reconnectionDelay: 2000,
+  withCredentials: true,
+  forceNew: true
 });
 
 interface TradingPlatformProps {
@@ -230,6 +231,22 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       <div className="flex-1 flex flex-col">
         <div className="h-12 bg-[#131722] border-b border-white/10 flex items-center px-4 gap-4">
           <LayoutDashboard size={20} className="text-sky-400" />
+          <button 
+            onClick={async () => {
+              try {
+                const res = await fetch('/api/ping');
+                const data = await res.json();
+                console.log('Connection Test:', data);
+                alert('API Connection Successful: ' + JSON.stringify(data));
+              } catch (err) {
+                console.error('Connection Test Failed:', err);
+                alert('API Connection Failed. Check Console.');
+              }
+            }}
+            className="px-2 py-0.5 text-[10px] bg-zinc-800 hover:bg-zinc-700 rounded border border-zinc-700 text-zinc-400"
+          >
+            Test API
+          </button>
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
             {Object.entries(prices).map(([s, p]) => <span key={s} className="mx-4">{s}: {(p as number).toFixed(2)}</span>)}
           </div>
