@@ -9,6 +9,7 @@ import DeveloperDashboard from './components/DeveloperDashboard';
 import MerchantDashboard from './components/MerchantDashboard';
 import MerchantDealCreator from './components/MerchantDealCreator';
 import UserDashboard from './components/UserDashboard';
+import { NotificationProvider } from './components/NotificationContext';
 import { Role, User, SiteConfig, LandingService, Transaction, Notification, CustomPage, SalaryFinancing, TradeAsset, WithdrawalRequest, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from './types';
 import { supabaseService } from './supabaseService';
 import { isSupabaseConfigured } from './supabaseClient';
@@ -398,34 +399,36 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen relative">
-      {!isSupabaseConfigured && (
-        <div className="fixed bottom-6 right-6 z-[2000] bg-red-600/90 backdrop-blur-xl text-white p-6 rounded-2xl shadow-2xl border border-white/10 max-w-sm animate-in slide-in-from-right duration-500">
-          <h4 className="font-black text-sm mb-2">{t('supabaseDisconnectedTitle')}</h4>
-          <p className="text-[10px] font-bold opacity-80 leading-relaxed">
-            {t('supabaseDisconnectedMessage')}
-          </p>
-        </div>
-      )}
-      {/* Notification Toasts */}
-      <div className="fixed top-6 left-6 z-[1000] flex flex-col gap-4 pointer-events-none">
-        {notifications.filter(n => n.userId === currentUserId && !n.isRead).slice(0, 5).map((n) => (
-          <div key={n.id} className="pointer-events-auto bg-[#0f172a]/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl animate-in slide-in-from-left duration-500 max-w-sm">
-            <div className="flex justify-between items-start mb-2">
-              <h4 className="font-black text-sky-400 text-sm">{n.title}</h4>
-              <button onClick={() => setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isRead: true } : notif))} className="text-white/40 hover:text-white transition-colors">{t('closeButton')}</button>
-            </div>
-            <p className="text-xs text-white/80 font-bold leading-relaxed">{n.message}</p>
-            <p className="text-[8px] text-white/40 mt-3 font-mono">{new Date(n.timestamp).toLocaleString(currentUser?.language || 'en-US')}</p>
+    <NotificationProvider>
+      <div className="min-h-screen relative">
+        {!isSupabaseConfigured && (
+          <div className="fixed bottom-6 right-6 z-[2000] bg-red-600/90 backdrop-blur-xl text-white p-6 rounded-2xl shadow-2xl border border-white/10 max-w-sm animate-in slide-in-from-right duration-500">
+            <h4 className="font-black text-sm mb-2">{t('supabaseDisconnectedTitle')}</h4>
+            <p className="text-[10px] font-bold opacity-80 leading-relaxed">
+              {t('supabaseDisconnectedMessage')}
+            </p>
           </div>
-        ))}
+        )}
+        {/* Notification Toasts */}
+        <div className="fixed top-6 left-6 z-[1000] flex flex-col gap-4 pointer-events-none">
+          {notifications.filter(n => n.userId === currentUserId && !n.isRead).slice(0, 5).map((n) => (
+            <div key={n.id} className="pointer-events-auto bg-[#0f172a]/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl animate-in slide-in-from-left duration-500 max-w-sm">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="font-black text-sky-400 text-sm">{n.title}</h4>
+                <button onClick={() => setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isRead: true } : notif))} className="text-white/40 hover:text-white transition-colors">{t('closeButton')}</button>
+              </div>
+              <p className="text-xs text-white/80 font-bold leading-relaxed">{n.message}</p>
+              <p className="text-[8px] text-white/40 mt-3 font-mono">{new Date(n.timestamp).toLocaleString(currentUser?.language || 'en-US')}</p>
+            </div>
+          ))}
+        </div>
+
+        <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
+        {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} accounts={accounts} onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} />}
+        {isRegisterModalOpen && <RegisterModal onClose={() => setIsRegisterModalOpen(false)} accounts={accounts} onRegister={(u) => { handleAddUser(u); setCurrentUserId(u.id); setIsRegisterModalOpen(false); }} onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); }} />}
+
       </div>
-
-      <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
-      {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} accounts={accounts} onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} />}
-      {isRegisterModalOpen && <RegisterModal onClose={() => setIsRegisterModalOpen(false)} accounts={accounts} onRegister={(u) => { handleAddUser(u); setCurrentUserId(u.id); setIsRegisterModalOpen(false); }} onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); }} />}
-
-    </div>
+    </NotificationProvider>
   );
 };
 

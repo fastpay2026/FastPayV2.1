@@ -52,43 +52,59 @@ async function startServer() {
   };
 
   // --- نظام المتداولين الوهميين (Ghost Traders) ---
-  const startGhostTraders = () => {
+  const startGhostTraders = async () => {
     console.log('Ghost Traders Bot started...');
-    setInterval(async () => {
+    
+    const scheduleNextTrade = async () => {
       try {
         const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').single();
-        if (!config || !config.is_enabled) return;
-
-        const tradesPerHour = config.trades_per_hour || 5;
         
-        // Open a random trade
-        if (Math.random() < (tradesPerHour / 60)) {
-            // Fetch bot users
-            const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
-            if (!botUsers || botUsers.length === 0) return;
-
+        // Default delay if disabled or error
+        let nextDelay = 60000; 
+        
+        if (config && config.is_enabled) {
+          // Fetch bot users
+          const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
+          
+          if (botUsers && botUsers.length > 0) {
             const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
-
-            console.log(`Ghost Trader ${botUser.username} opening a trade...`);
             const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
             const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+            
+            // 1. Price Matching
+            const ticker = await binanceClient.tickerPrice(symbol);
+            const currentPrice = parseFloat(ticker.data.price);
+            
+            // 2. Random Amounts (10 to 5000)
+            const amount = Math.floor(Math.random() * (5000 - 10 + 1)) + 10;
+            
+            // 4. Trade Types (Long/Short)
             const type = Math.random() > 0.5 ? 'buy' : 'sell';
-            const amount = (Math.random() * 0.1 + 0.01).toFixed(4);
             
             await supabase.from('trade_orders').insert({
                 user_id: botUser.id,
                 username: botUser.username,
                 asset_symbol: symbol,
                 type: type,
-                amount: parseFloat(amount),
-                entry_price: 0, // Should be fetched from binance
+                amount: amount,
+                entry_price: currentPrice,
                 status: 'open'
             });
+            console.log(`Ghost Trader ${botUser.username} opened ${type} ${symbol} at ${currentPrice} with amount ${amount}`);
+          }
+          
+          // 3. Variable Timing (10s to 120s)
+          nextDelay = Math.floor(Math.random() * (120000 - 10000 + 1)) + 10000;
         }
+        
+        setTimeout(scheduleNextTrade, nextDelay);
       } catch (error) {
         console.error('Ghost Traders Error:', error);
+        setTimeout(scheduleNextTrade, 60000); // Retry in 1 minute on error
       }
-    }, 60000); // Check every minute
+    };
+    
+    scheduleNextTrade();
   };
 
   // Start the bots

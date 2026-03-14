@@ -6,6 +6,14 @@ const TradingControl: React.FC = () => {
   const [positions, setPositions] = useState<TradeOrder[]>([]);
   const [spread, setSpread] = useState(0.0001);
   const [loading, setLoading] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    const saved = localStorage.getItem('notificationsEnabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('notificationsEnabled', JSON.stringify(notificationsEnabled));
+  }, [notificationsEnabled]);
 
   useEffect(() => {
     fetchPositions();
@@ -44,15 +52,26 @@ const TradingControl: React.FC = () => {
     <div className="p-6 bg-[#0b0e11] text-white min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Admin Risk Management</h1>
       
-      <div className="mb-8 p-4 bg-[#131722] rounded border border-white/10">
-        <label className="block text-sm font-bold mb-2">Global Spread Adjustment: </label>
-        <input 
-          type="number" 
-          step="0.0001"
-          value={spread} 
-          onChange={(e) => setSpread(parseFloat(e.target.value))}
-          className="bg-black p-2 rounded border border-white/20"
-        />
+      <div className="mb-8 p-4 bg-[#131722] rounded border border-white/10 flex items-center justify-between">
+        <div>
+          <label className="block text-sm font-bold mb-2">Global Spread Adjustment: </label>
+          <input 
+            type="number" 
+            step="0.0001"
+            value={spread} 
+            onChange={(e) => setSpread(parseFloat(e.target.value))}
+            className="bg-black p-2 rounded border border-white/20"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold mb-2">Live Notifications: </label>
+          <button 
+            onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+            className={`px-4 py-2 rounded font-bold ${notificationsEnabled ? 'bg-emerald-600' : 'bg-slate-600'}`}
+          >
+            {notificationsEnabled ? 'Enabled' : 'Disabled'}
+          </button>
+        </div>
       </div>
 
       <div className="bg-[#131722] rounded border border-white/10 overflow-hidden">
