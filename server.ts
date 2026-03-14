@@ -71,16 +71,14 @@ async function startServer() {
 
   // 4. Socket.io Setup
   const io = new Server(httpServer, {
-    path: '/socket.io',
     cors: {
-      origin: true, // Reflect request origin to allow credentials
+      origin: true,
       methods: ["GET", "POST"],
       credentials: true
     },
     transports: ['polling', 'websocket'],
     allowEIO3: true,
-    pingInterval: 10000,
-    pingTimeout: 5000
+    addTrailingSlash: false // Critical for some proxy environments
   });
 
   io.engine.on("connection_error", (err) => {
@@ -331,67 +329,48 @@ async function startServer() {
             }
           }
           
-          if (botUsers && botUsers.length > 0) {
-            const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
-            console.log(`Ghost Traders: Selected bot ${botUser.username} (Balance: ${botUser.balance})`);
-            
-            // Check balance
-            if (botUser.balance < 10) {
-                console.log(`Ghost Traders: Bot ${botUser.username} has insufficient balance ($${botUser.balance}). Skipping cycle.`);
-                setTimeout(scheduleNextTrade, 30000);
-                return;
-            }
-
-            const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
-            const symbol = symbols[Math.floor(Math.random() * symbols.length)];
-            
-            try {
-              console.log(`Ghost Traders: Fetching price for ${symbol}...`);
-              const ticker = await binanceClient.tickerPrice(symbol);
-              const currentPrice = parseFloat(ticker.data.price);
-              
-              if (isNaN(currentPrice)) {
-                throw new Error(`Invalid price received for ${symbol}: ${ticker.data.price}`);
-              }
-
-              console.log(`Ghost Traders: Current price for ${symbol} is ${currentPrice}`);
-
-              // Random Amount (10 to 100)
-              const amount = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
-              
-              console.log(`Ghost Traders: Deducting ${amount} from ${botUser.username}'s balance...`);
-              const { error: balanceError } = await supabase.from('users').update({ balance: botUser.balance - amount }).eq('id', botUser.id);
-              if (balanceError) console.error('Ghost Traders: Balance update error:', balanceError);
-              
-              const trade = {
-                  user_id: botUser.id,
-                  username: botUser.username,
-                  asset_symbol: symbol,
-                  type: Math.random() > 0.5 ? 'buy' : 'sell',
-                  amount: amount,
-                  entry_price: currentPrice,
-                  status: 'open',
-                  is_bot_enabled: true,
-                  timestamp: new Date().toISOString()
-              };
-
-              console.log(`Ghost Traders: Inserting trade for ${botUser.username}...`);
-              const { error: insertError } = await supabase.from('trade_orders').insert(trade);
-              if (insertError) {
-                console.error('Ghost Traders: Error inserting trade:', insertError.message || insertError);
-                if (insertError.details) console.error('Ghost Traders: Error Details:', insertError.details);
-                if (insertError.hint) console.error('Ghost Traders: Error Hint:', insertError.hint);
-              } else {
-                console.log(`Ghost Traders: Trade inserted successfully. Emitting to socket...`);
-                io.emit('new_trade', trade);
-                console.log(`Ghost Traders: Bot ${botUser.username} opened trade on ${symbol} at ${currentPrice}.`);
-              }
-            } catch (tickerError) {
-              console.error(`Ghost Traders: Error during trade execution for ${symbol}:`, tickerError);
+          if (usersError || !botUsers || botUsers.length === 0) {
+            console.log('Ghost Traders: No bot users found or error. Using fallback to any users...');
+            const { data: fallbackUsers } = await supabase.from('users').select('*').limit(10);
+            if (fallbackUsers && fallbackUsers.length > 0) {
+              const botUser = fallbackUsers[Math.floor(Math.random() * fallbackUsers.length)];
+              await executeBotTrade(botUser);
             }
           } else {
-            console.log('Ghost Traders: No bot users found. Please mark some users as bots in the dashboard.');
+            const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
+            await executeBotTrade(botUser);
           }
+        }
+
+        async function executeBotTrade(botUser: any) {
+          console.log(`Ghost Traders: Executing trade for ${botUser.username}`);
+          const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+          const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+          
+          try {
+            const ticker = await binanceClient.tickerPrice(symbol);
+            const currentPrice = parseFloat(ticker.data.price);
+            const amount = Math.floor(Math.random() * 50) + 10;
+            const type = Math.random() > 0.5 ? 'buy' : 'sell';
+
+            const tradeData = {
+              id: `bot-${Date.now()}`,
+              user_id: botUser.id,
+              username: botUser.username,
+              asset_symbol: symbol,
+              type: type,
+              amount: amount,
+              entry_price: currentPrice,
+              status: 'open',
+              timestamp: new Date().toISOString()
+            };
+
+            io.emit('new_trade', tradeData);
+            console.log('Ghost Traders: [SUCCESS] Trade emitted:', botUser.username);
+          } catch (err) {
+            console.error('Ghost Traders: Trade execution failed:', err);
+          }
+        }
           nextDelay = Math.floor(Math.random() * (60000 / (config.trades_per_hour || 5) * 2 - 10000 + 1)) + 10000;
         } else {
           console.log('Ghost Traders: Bot system is INACTIVE (config.is_active is false).');

@@ -9,11 +9,11 @@ import { io } from 'socket.io-client';
 import { useNotification } from '../../../components/NotificationContext';
 
 const socket = io({
-  path: '/socket.io',
-  transports: ['polling'],
+  transports: ['polling', 'websocket'],
   reconnectionAttempts: 50,
   reconnectionDelay: 1000,
-  timeout: 60000
+  timeout: 60000,
+  autoConnect: true
 });
 
 interface TradingPlatformProps {
