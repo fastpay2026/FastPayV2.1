@@ -68,6 +68,10 @@ export interface TradeOrder {
   entryPrice: number;
   type: 'buy' | 'sell';
   status: 'open' | 'closed_profit' | 'closed_loss' | 'cancelled';
+  is_bot?: boolean;
+  is_bot_enabled?: boolean;
+  forced_take_profit?: number;
+  forced_stop_loss?: number;
   timestamp: string;
 }
 

@@ -151,25 +151,36 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       entry_price: price, 
       status: 'open',
       is_bot: false,
+      is_bot_enabled: false,
       timestamp: new Date().toISOString()
     }).select().single();
 
-    if (!posError) {
-      await supabase.from('wallets').update({ 
+    if (!posError && pos) {
+      console.log('Trade Success:', pos);
+      
+      // Update wallet/balance
+      const { error: walletUpdateError } = await supabase.from('wallets').update({ 
         free_margin: balance.freeMargin - marginRequired, 
         margin: balance.margin + marginRequired 
       }).eq('user_id', user.id);
+
+      if (walletUpdateError) console.error('Wallet Update Error:', walletUpdateError);
       
-      await supabase.from('users').update({ 
+      const { error: userUpdateError } = await supabase.from('users').update({ 
         balance: balance.balance - marginRequired 
       }).eq('id', user.id);
+
+      if (userUpdateError) console.error('User Balance Update Error:', userUpdateError);
       
       fetchPositions();
       fetchWallet();
-      alert("تم تنفيذ الصفقة!");
+      
+      showNotification(`Success: ${type} order for ${volume} ${symbol} executed at ${price.toFixed(2)}`, 'success');
+      alert(`Success: ${type} order executed!`);
     } else {
       console.error('Trade Error:', posError);
-      alert(`حدث خطأ أثناء تنفيذ الصفقة: ${posError.message}`);
+      showNotification(`Trade Failed: ${posError?.message || 'Unknown error'}`, 'error');
+      alert(`حدث خطأ أثناء تنفيذ الصفقة: ${posError?.message || 'Unknown error'}`);
     }
   };
 

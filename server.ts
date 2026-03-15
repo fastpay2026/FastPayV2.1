@@ -139,11 +139,12 @@ async function startServer() {
     console.log('Watcher Bot started...');
     setInterval(async () => {
       try {
+        // Fetch positions that are either bot trades OR have bot management enabled by admin
         const { data: positions, error } = await supabase
           .from('trade_orders')
           .select('*')
           .eq('status', 'open')
-          .eq('is_bot', true);
+          .or('is_bot.eq.true,is_bot_enabled.eq.true');
 
         if (error) throw error;
         if (!positions || positions.length === 0) return;
@@ -158,23 +159,28 @@ async function startServer() {
             const ticker = await binanceClient.tickerPrice(pos.asset_symbol);
             const currentPrice = parseFloat(ticker.data.price);
 
-            if (
-              (pos.forced_take_profit && currentPrice >= pos.forced_take_profit) ||
-              (pos.forced_stop_loss && currentPrice <= pos.forced_stop_loss)
-            ) {
-              console.log(`Bot closing position ${pos.id} for user ${pos.user_id} at price ${currentPrice}`);
+            const isBuy = pos.type === 'buy';
+            const shouldClose = isBuy 
+              ? (pos.forced_take_profit && currentPrice >= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice <= pos.forced_stop_loss)
+              : (pos.forced_take_profit && currentPrice <= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice >= pos.forced_stop_loss);
+
+            if (shouldClose) {
+              console.log(`Bot closing ${pos.type} position ${pos.id} for user ${pos.user_id} at price ${currentPrice}`);
               await supabase
                 .from('trade_orders')
                 .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
                 .eq('id', pos.id);
               
-              // Emit profit notification
-              const profit = (currentPrice - pos.entry_price) * (pos.amount || pos.volume || 0);
+              // Calculate profit correctly based on type
+              const amount = (pos.amount || pos.volume || 0);
+              const profit = isBuy 
+                ? (currentPrice - pos.entry_price) * amount
+                : (pos.entry_price - currentPrice) * amount;
               
-              // تحديث رصيد المستخدم (البوت)
+              // Update user balance
               const { data: user } = await supabase.from('users').select('balance').eq('id', pos.user_id).single();
               if (user) {
-                  await supabase.from('users').update({ balance: user.balance + profit + (pos.amount || pos.volume || 0) }).eq('id', pos.user_id);
+                  await supabase.from('users').update({ balance: user.balance + profit + amount }).eq('id', pos.user_id);
               }
             }
           } catch (posError: any) {
