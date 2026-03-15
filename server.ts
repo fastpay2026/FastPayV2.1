@@ -260,6 +260,7 @@ async function startServer() {
               amount: amount,
               entry_price: currentPrice,
               status: 'open',
+              is_bot: true,
               timestamp: new Date().toISOString()
             };
 
@@ -348,6 +349,7 @@ async function startServer() {
               amount: Math.floor(Math.random() * 50) + 10,
               entry_price: 70000 + (Math.random() * 500),
               status: 'open',
+              is_bot: true,
               timestamp: new Date().toISOString()
             };
             const { error: insertError } = await supabase.from('trade_orders').insert(trade);

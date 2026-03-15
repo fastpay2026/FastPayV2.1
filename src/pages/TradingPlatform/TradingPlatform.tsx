@@ -93,11 +93,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         
         setTrades(prev => {
           const newTrades = [tradeWithUser, ...prev];
-          return newTrades.sort((a, b) => {
-            const aIsUser = (a.user_id === user.id);
-            const bIsUser = (b.user_id === user.id);
-            return (bIsUser ? 1 : -1) - (aIsUser ? 1 : -1);
-          }).slice(0, 20);
+          // Sort by timestamp descending to mix bots and real users naturally
+          return newTrades.sort((a, b) => 
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          ).slice(0, 20);
         });
       })
       .subscribe((status) => {
@@ -137,7 +136,15 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     if (balance.freeMargin < marginRequired) { alert("الرصيد غير كافٍ!"); return; }
 
     const { data: pos, error: posError } = await supabase.from('trade_orders').insert({
-      user_id: user.id, username: user.username, asset_symbol: symbol, type: type.toLowerCase(), amount: volume, entry_price: price, status: 'open'
+      user_id: user.id, 
+      username: user.username, 
+      asset_symbol: symbol, 
+      type: type.toLowerCase(), 
+      amount: volume, 
+      entry_price: price, 
+      status: 'open',
+      is_bot: false,
+      timestamp: new Date().toISOString()
     }).select().single();
 
     if (!posError) {
