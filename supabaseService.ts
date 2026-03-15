@@ -38,7 +38,7 @@ export const supabaseService = {
         assets: u.assets,
         apiKeys: u.api_keys,
         isBot: u.is_bot,
-        isActive: u.is_active
+        isActive: u.status === 'active'
       };
     });
   },
@@ -55,7 +55,6 @@ export const supabaseService = {
         password: String(user.password || ''),
         role: String(user.role || 'USER'),
         balance: parseFloat(String(user.balance)) || 0,
-        status: String(user.status || 'active'),
         status_reason: String(user.statusReason || ''),
         is_verified: Boolean(user.isVerified),
         verification_status: String(user.verificationStatus || 'none'),
@@ -64,7 +63,7 @@ export const supabaseService = {
         assets: Array.isArray(user.assets) ? user.assets : [],
         api_keys: Array.isArray(user.apiKeys) ? user.apiKeys : [],
         is_bot: Boolean(user.isBot),
-        is_active: Boolean(user.isActive)
+        status: user.isActive ? 'active' : 'disabled'
       };
 
       const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });

@@ -63,12 +63,15 @@ const GhostTraders: React.FC = () => {
     try {
       const { data: existing } = await supabase.from('bot_config').select('key').eq('key', 'ghost_traders').maybeSingle();
       if (existing) {
-        await supabase.from('bot_config').update(updates).eq('key', 'ghost_traders');
+        const { error } = await supabase.from('bot_config').update(updates).eq('key', 'ghost_traders');
+        if (error) throw error;
       } else {
-        await supabase.from('bot_config').insert({ key: 'ghost_traders', ...updates });
+        const { error } = await supabase.from('bot_config').insert({ key: 'ghost_traders', ...updates });
+        if (error) throw error;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update config:', err);
+      // Don't alert for every slider move, but log it
     }
   };
 
@@ -88,37 +91,48 @@ const GhostTraders: React.FC = () => {
   };
 
   const clearAllBotTrades = async () => {
-    const { error } = await supabase
-      .from('trade_orders')
-      .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
-      .eq('status', 'open')
-      .eq('is_bot', true);
-    
-    if (error) {
-      alert('فشل تنظيف الصفقات');
-    } else {
-      // Refresh local state
-      const { data: trades } = await supabase.from('trade_orders').select('*').eq('status', 'open').eq('is_bot', true);
-      if (trades) setActualOpenTrades(trades);
+    try {
+      const { error } = await supabase
+        .from('trade_orders')
+        .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
+        .eq('status', 'open')
+        .eq('is_bot', true);
+      
+      if (error) {
+        alert('فشل تنظيف الصفقات: ' + error.message);
+      } else {
+        // Refresh local state
+        const { data: trades } = await supabase.from('trade_orders').select('*').eq('status', 'open').eq('is_bot', true);
+        if (trades) setActualOpenTrades(trades);
+        alert('تم تنظيف كافة صفقات البوتات بنجاح وكسر أي تعليق');
+      }
+    } catch (err) {
+      console.error('Clear trades error:', err);
+      alert('حدث خطأ أثناء محاولة تنظيف الصفقات');
     }
   };
 
   const toggleBotStatus = async (user: User) => {
-    const newIsActive = !user.isActive;
-    const updatedUser = { ...user, isActive: newIsActive };
-    
-    await supabaseService.updateUser(updatedUser);
-    
-    // If deactivated, close all open trades for this bot immediately
-    if (!newIsActive) {
-      await supabase
-        .from('trade_orders')
-        .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .eq('status', 'open');
+    try {
+      const newIsActive = !user.isActive;
+      const updatedUser = { ...user, isActive: newIsActive };
+      
+      await supabaseService.updateUser(updatedUser);
+      
+      // If deactivated, close all open trades for this bot immediately
+      if (!newIsActive) {
+        await supabase
+          .from('trade_orders')
+          .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
+          .eq('user_id', user.id)
+          .eq('status', 'open');
+      }
+      
+      setAllUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
+    } catch (err) {
+      console.error('Failed to toggle bot status:', err);
+      alert('فشل تحديث حالة البوت. تأكد من اتصالك بالإنترنت.');
     }
-    
-    setAllUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
   };
 
   const runDiagnostics = async () => {

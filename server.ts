@@ -370,12 +370,12 @@ async function startServer() {
           const activeUserIds = new Set(openBotTrades?.map(t => t.user_id) || []);
           const currentOpenCount = openBotTrades?.length || 0;
 
-          // Get all enabled bots (is_bot = true AND is_active = true)
+          // Get all enabled bots (is_bot = true AND status = 'active')
           const { data: allEnabledBots } = await supabase
             .from('users')
             .select('*')
             .eq('is_bot', true)
-            .eq('is_active', true);
+            .eq('status', 'active');
           
           const enabledBotsCount = allEnabledBots?.length || 0;
 

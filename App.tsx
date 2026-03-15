@@ -278,7 +278,7 @@ const App: React.FC = () => {
             assets: u.assets,
             apiKeys: u.api_keys,
             isBot: u.is_bot,
-            isActive: u.is_active
+            isActive: u.status === 'active'
           };
           setAccounts(prev => {
             const exists = prev.find(acc => acc.id === mappedUser.id);
