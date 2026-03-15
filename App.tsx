@@ -233,6 +233,9 @@ const App: React.FC = () => {
         console.log('Real-time trade_orders update:', payload);
         if (payload.eventType === 'INSERT') {
           const newOrder = payload.new as any;
+          if (newOrder.is_bot) {
+            console.log(`[Bot Engine] Opening trade for user: ${newOrder.username || newOrder.user_id}`);
+          }
           setTradeOrders(prev => {
             if (prev.find(o => o.id === newOrder.id)) return prev;
             return [{

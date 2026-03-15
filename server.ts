@@ -287,24 +287,23 @@ async function startServer() {
     await ensureBotUsers();
     
     const executeBotTrade = async (botUser: any) => {
-      if (!binanceClient) {
-        console.error('Ghost Traders: Binance client not initialized, cannot execute trade.');
-        return;
-      }
-      
       const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT'];
       const symbol = symbols[Math.floor(Math.random() * symbols.length)];
       
       try {
-        console.log(`Ghost Traders: [EXECUTE] Attempting trade for ${botUser.username} on ${symbol}`);
+        console.log(`[Bot Engine] Opening trade for user: ${botUser.username} on ${symbol}`);
         
         let currentPrice = 0;
-        try {
-          const ticker = await binanceClient.tickerPrice(symbol);
-          currentPrice = parseFloat(ticker.data.price);
-        } catch (tickerErr) {
-          console.warn(`Ghost Traders: Failed to fetch price for ${symbol}, using fallback.`, tickerErr);
-          // Fallback prices if Binance API is down
+        if (binanceClient) {
+          try {
+            const ticker = await binanceClient.tickerPrice(symbol);
+            currentPrice = parseFloat(ticker.data.price);
+          } catch (tickerErr) {
+            console.warn(`Ghost Traders: Failed to fetch price for ${symbol}, using fallback.`);
+            const fallbacks: any = { 'BTCUSDT': 95000, 'ETHUSDT': 2700, 'SOLUSDT': 180, 'XRPUSDT': 2.5, 'BNBUSDT': 600, 'ADAUSDT': 0.8 };
+            currentPrice = fallbacks[symbol] || 100;
+          }
+        } else {
           const fallbacks: any = { 'BTCUSDT': 95000, 'ETHUSDT': 2700, 'SOLUSDT': 180, 'XRPUSDT': 2.5, 'BNBUSDT': 600, 'ADAUSDT': 0.8 };
           currentPrice = fallbacks[symbol] || 100;
         }
@@ -381,61 +380,40 @@ async function startServer() {
           const activeUserIds = new Set(openBotTrades?.map(t => t.user_id) || []);
           const currentOpenCount = openBotTrades?.length || 0;
 
-          console.log(`[GHOST] Cycle: Active=${isActive}, OpenTrades=${currentOpenCount}, ActiveBots=${activeUserIds.size}, Target=${activeBotsLimit}`);
+          // Get all enabled bots
+          const { data: allEnabledBots } = await supabase.from('users').select('*').eq('is_bot', true);
+          const enabledBotsCount = allEnabledBots?.length || 0;
 
-          // 2. Determine if we need to "Force Start" trades to reach the active bots limit
-          if (activeUserIds.size < activeBotsLimit) {
-            const gap = activeBotsLimit - activeUserIds.size;
-            console.log(`[GHOST] Anti-Lag: Gap detected. Need ${gap} more unique bots.`);
-            
-            // Get all potential bots
-            const { data: allBots } = await supabase.from('users').select('*').eq('is_bot', true);
-            
-            if (allBots && allBots.length > 0) {
-              const idleBots = allBots.filter(b => !activeUserIds.has(b.id));
-              const botsToUse = idleBots.length > 0 ? idleBots : allBots;
+          console.log(`[Bot Engine] Cycle: Active=${isActive}, OpenTrades=${currentOpenCount}, EnabledBots=${enabledBotsCount}, ActiveBots=${activeUserIds.size}`);
 
-              console.log(`[GHOST] Bots in DB: ${allBots.length}, Idle: ${idleBots.length}`);
-
-              for (let i = 0; i < gap; i++) {
-                const botUser = botsToUse[i % botsToUse.length];
-                console.log(`[GHOST] Anti-Lag: Forcing trade for ${botUser.username} (${botUser.id})`);
+          if (isActive && allEnabledBots && allEnabledBots.length > 0) {
+            // Ensure EVERY enabled bot has at least one trade
+            for (const botUser of allEnabledBots) {
+              if (!activeUserIds.has(botUser.id)) {
+                console.log(`[Bot Engine] Opening trade for user: ${botUser.username} (Force Start)`);
                 await executeBotTrade(botUser);
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // Small delay to prevent rate limiting
+                await new Promise(resolve => setTimeout(resolve, 500));
               }
-            } else {
-              console.warn('[GHOST] No bot users found in database! (is_bot=true)');
             }
-          }
 
-          // 3. Regular Density Scheduling
-          const tradesThisMinute = Math.ceil((maxTrades15m / 15) * aggressiveness);
-          if (tradesThisMinute > 0) {
-            const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
+            // 3. Regular Density Scheduling (Extra trades for activity)
+            const maxTrades15m = config.max_trades_per_15m || 10;
+            const aggressiveness = config.aggressiveness || 1.0;
+            const tradesThisMinute = Math.ceil((maxTrades15m / 15) * aggressiveness);
             
-            if (botUsers && botUsers.length > 0) {
+            if (tradesThisMinute > 0) {
               for (let i = 0; i < tradesThisMinute; i++) {
-                const offset = Math.random() * 25000; // Spread trades across 25s
+                const offset = Math.random() * 25000; 
                 setTimeout(() => {
-                  const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
+                  const botUser = allEnabledBots[Math.floor(Math.random() * allEnabledBots.length)];
                   executeBotTrade(botUser);
                 }, offset);
               }
             }
           }
         } else {
-          // SYSTEM IS OFF - Immediate Cleanup
-          if (lastActiveState === true) {
-            console.log('[GHOST] System turned OFF. Cleaning up all bot trades...');
-            const { error: cleanupError } = await supabase
-              .from('trade_orders')
-              .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
-              .eq('status', 'open')
-              .eq('is_bot', true);
-            
-            if (cleanupError) console.error('[GHOST] Cleanup failed:', cleanupError);
-            else console.log('[GHOST] Cleanup successful. All bot trades closed.');
-          }
+          console.log(`[Bot Engine] System is PAUSED. No new trades will be opened.`);
         }
         lastActiveState = isActive;
       } catch (error) {

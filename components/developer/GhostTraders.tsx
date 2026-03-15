@@ -41,9 +41,23 @@ const GhostTraders: React.FC = () => {
     };
     loadConfig();
 
-    // Refresh stats every 3 seconds for real-time feel
+    // Real-time subscription for immediate updates
+    const channel = supabase
+      .channel('ghost_traders_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, () => {
+        loadConfig();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+        loadConfig();
+      })
+      .subscribe();
+
+    // Refresh stats every 3 seconds as a fallback
     const interval = setInterval(loadConfig, 3000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const updateConfig = async (updates: any) => {
@@ -211,7 +225,7 @@ const GhostTraders: React.FC = () => {
           إدارة البوتات الفردية
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-          {allUsers.filter(user => user.isBot).map(user => (
+          {allUsers.filter(user => user.isBot || user.fullName === 'Ghost Trader').map(user => (
             <div key={user.id} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-all">
               <span className="text-xs text-white font-medium">{user.username}</span>
               <button 
