@@ -56,9 +56,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const fetchInitialTrades = async () => {
       try {
         const version = Date.now();
-        console.log(`TradingPlatform: Fetching from /get-my-data-now?v=${version} using Axios...`);
+        const fullUrl = `https://trade.fastpay-network.com/get-my-data-now?v=${version}`;
+        console.log(`TradingPlatform: Fetching from ${fullUrl} using Axios...`);
         
-        const response = await axios.get(`/get-my-data-now?v=${version}`, {
+        const response = await axios.get(fullUrl, {
           headers: {
             'Accept': 'application/json',
             'Cache-Control': 'no-cache',
@@ -67,17 +68,21 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           }
         });
 
-        if (response.data && Array.isArray(response.data)) {
+        if (response.data && response.data.status === "API_WORKING") {
+          console.log('API Verification Success:', response.data);
+          setTrades(response.data.data || []);
+          setIsConnected(true);
+        } else if (response.data && Array.isArray(response.data)) {
           console.log('Data Received from /get-my-data-now:', response.data);
           setTrades(response.data.slice(0, 20));
           setIsConnected(true);
         } else {
-          console.error('TradingPlatform: API returned non-array or invalid data:', response.status, response.data);
+          console.error('TradingPlatform: API returned invalid data structure:', response.status, response.data);
         }
       } catch (err: any) {
         console.error('TradingPlatform: Failed to fetch trades via Axios:', err.message);
         if (err.response && typeof err.response.data === 'string' && err.response.data.includes('<!DOCTYPE html>')) {
-          console.error('CRITICAL: Received HTML instead of JSON. Route might be intercepted.');
+          console.error('CRITICAL: Received HTML instead of JSON. Route might be intercepted by host.');
         }
       }
     };
