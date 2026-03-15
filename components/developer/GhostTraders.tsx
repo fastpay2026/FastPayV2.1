@@ -8,12 +8,15 @@ const GhostTraders: React.FC = () => {
   const [tradesPerHour, setTradesPerHour] = useState(5);
   const [allUsers, setAllUsers] = useState<User[]>([]);
 
+  const [aggressiveness, setAggressiveness] = useState(1.0);
+
   useEffect(() => {
     const loadConfig = async () => {
       const { data } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').single();
       if (data) {
         setIsEnabled(data.is_active);
         setTradesPerHour(data.trades_per_hour);
+        setAggressiveness(data.aggressiveness || 1.0);
       }
       const users = await supabaseService.getUsers();
       setAllUsers(users.filter(u => u.role === 'USER'));
@@ -25,25 +28,21 @@ const GhostTraders: React.FC = () => {
     const newState = !isEnabled;
     setIsEnabled(newState);
     
-    console.log('Toggling bot to:', newState);
-    
-    // البحث عن الإعداد الحالي
     const { data: existing } = await supabase.from('bot_config').select('id').eq('key', 'ghost_traders').maybeSingle();
     
-    let error;
     if (existing) {
-      const { error: updateError } = await supabase.from('bot_config').update({ is_active: newState, trades_per_hour: tradesPerHour }).eq('id', existing.id);
-      error = updateError;
+      await supabase.from('bot_config').update({ is_active: newState, trades_per_hour: tradesPerHour, aggressiveness }).eq('id', existing.id);
     } else {
-      const { error: insertError } = await supabase.from('bot_config').insert({ key: 'ghost_traders', is_active: newState, trades_per_hour: tradesPerHour });
-      error = insertError;
+      await supabase.from('bot_config').insert({ key: 'ghost_traders', is_active: newState, trades_per_hour: tradesPerHour, aggressiveness });
     }
-    
-    if (error) {
-        console.error('Error updating bot config:', error);
-        alert('حدث خطأ أثناء تحديث حالة البوت');
-    } else {
-        alert(`تم ${newState ? 'تفعيل' : 'إيقاف'} البوتات الوهمية بنجاح`);
+    alert(`تم ${newState ? 'تفعيل' : 'إيقاف'} البوتات الوهمية بنجاح`);
+  };
+
+  const updateAggressiveness = async (val: number) => {
+    setAggressiveness(val);
+    const { data: existing } = await supabase.from('bot_config').select('id').eq('key', 'ghost_traders').maybeSingle();
+    if (existing) {
+      await supabase.from('bot_config').update({ aggressiveness: val }).eq('id', existing.id);
     }
   };
 
@@ -84,6 +83,19 @@ const GhostTraders: React.FC = () => {
             onChange={(e) => updateFrequency(Number(e.target.value))}
             className="bg-black text-white p-2 rounded w-20"
           />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-slate-400">العدوانية (Aggressiveness):</label>
+          <input 
+            type="range" 
+            min="0.1" 
+            max="5.0" 
+            step="0.1"
+            value={aggressiveness} 
+            onChange={(e) => updateAggressiveness(Number(e.target.value))}
+            className="w-32"
+          />
+          <span className="text-white font-mono text-xs">{aggressiveness}x</span>
         </div>
       </div>
       <div>

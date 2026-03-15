@@ -140,7 +140,6 @@ async function startServer() {
     setInterval(async () => {
       try {
         // Fetch positions that are either bot trades OR have bot management enabled by admin
-        // We use a try-catch inside the interval to handle cases where columns might be missing
         const { data: positions, error } = await supabase
           .from('trade_orders')
           .select('*')
@@ -158,30 +157,59 @@ async function startServer() {
           return;
         }
 
+        const now = new Date();
+
         for (const pos of botPositions) {
           try {
             const ticker = await binanceClient.tickerPrice(pos.asset_symbol);
             const currentPrice = parseFloat(ticker.data.price);
 
             const isBuy = pos.type === 'buy';
-            const shouldClose = isBuy 
-              ? (pos.forced_take_profit && currentPrice >= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice <= pos.forced_stop_loss)
-              : (pos.forced_take_profit && currentPrice <= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice >= pos.forced_stop_loss);
+            const entryTime = new Date(pos.timestamp);
+            const minutesOpen = (now.getTime() - entryTime.getTime()) / 60000;
+
+            // Scalping logic: close after 3-15 minutes
+            const scalpingDuration = Math.floor(Math.random() * (15 - 3 + 1)) + 3;
+            const isScalpingTime = minutesOpen >= scalpingDuration;
+
+            // 60/40 win/loss logic
+            const winProbability = 0.6;
+            const isProfit = isBuy ? currentPrice > pos.entry_price : currentPrice < pos.entry_price;
+            
+            // Force a result if it's scalping time
+            let shouldClose = false;
+            if (isScalpingTime) {
+              // If it's time to close, we check if we want a win or loss
+              const wantWin = Math.random() < winProbability;
+              if ((wantWin && isProfit) || (!wantWin && !isProfit)) {
+                shouldClose = true;
+              } else if (minutesOpen > 20) {
+                // If stuck for too long, just close anyway to keep it moving
+                shouldClose = true;
+              }
+            }
+
+            // Also respect forced TP/SL from admin
+            if (!shouldClose) {
+              shouldClose = isBuy 
+                ? (pos.forced_take_profit && currentPrice >= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice <= pos.forced_stop_loss)
+                : (pos.forced_take_profit && currentPrice <= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice >= pos.forced_stop_loss);
+            }
 
             if (shouldClose) {
-              console.log(`Bot closing ${pos.type} position ${pos.id} for user ${pos.user_id} at price ${currentPrice}`);
+              const finalStatus = isProfit ? 'closed_profit' : 'closed_loss';
+              console.log(`Bot closing ${pos.type} position ${pos.id} (Status: ${finalStatus}) at price ${currentPrice}`);
+              
               await supabase
                 .from('trade_orders')
-                .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
+                .update({ status: finalStatus, closed_at: new Date().toISOString() })
                 .eq('id', pos.id);
               
-              // Calculate profit correctly based on type
-              const amount = (pos.amount || pos.volume || 0);
+              const amount = (pos.amount || 0);
               const profit = isBuy 
                 ? (currentPrice - pos.entry_price) * amount
                 : (pos.entry_price - currentPrice) * amount;
               
-              // Update user balance
               const { data: user } = await supabase.from('users').select('balance').eq('id', pos.user_id).single();
               if (user) {
                   await supabase.from('users').update({ balance: user.balance + profit + amount }).eq('id', pos.user_id);
@@ -193,10 +221,8 @@ async function startServer() {
         }
       } catch (error: any) {
         console.error('Watcher Bot Error:', error.message || error);
-        if (error.details) console.error('Watcher Bot Error Details:', error.details);
-        if (error.hint) console.error('Watcher Bot Error Hint:', error.hint);
       }
-    }, 5000);
+    }, 10000);
   };
 
   // --- نظام المتداولين الوهميين (Ghost Traders) ---
@@ -210,96 +236,69 @@ async function startServer() {
     const scheduleNextTrade = async () => {
       const executeBotTrade = async (botUser: any) => {
         console.log(`Ghost Traders: Executing trade for ${botUser.username}`);
-        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT'];
         const symbol = symbols[Math.floor(Math.random() * symbols.length)];
         
         try {
           const ticker = await binanceClient.tickerPrice(symbol);
           const currentPrice = parseFloat(ticker.data.price);
-          const amount = Math.floor(Math.random() * 50) + 10;
+          
+          // Dynamic Sizing: Random amounts with decimals
+          const amount = (Math.random() * (250.0 - 50.0) + 50.0).toFixed(2);
           const type = Math.random() > 0.5 ? 'buy' : 'sell';
 
           const tradeData = {
             user_id: botUser.id,
+            username: botUser.username,
             asset_symbol: symbol,
             type: type,
-            amount: amount,
+            amount: parseFloat(amount),
             entry_price: currentPrice,
             status: 'open',
             is_bot: true,
             timestamp: new Date().toISOString()
           };
 
-          // Insert into DB
-          const { data: insertedTrade, error: insertError } = await supabase
-            .from('trade_orders')
-            .insert(tradeData)
-            .select('*, users(username, is_bot)')
-            .single();
-
-          if (insertError) {
-            console.error('Ghost Traders: DB Insert Error:', insertError.message);
-          } else if (insertedTrade) {
-            const flattened = {
-              ...insertedTrade,
-              username: insertedTrade.users?.username || botUser.username,
-              is_bot: insertedTrade.users?.is_bot || true
-            };
-            console.log('Ghost Traders: [SUCCESS] Trade inserted:', flattened.username);
-          }
+          const { error: insertError } = await supabase.from('trade_orders').insert(tradeData);
+          if (insertError) console.error('Ghost Traders Error:', insertError.message);
         } catch (err) {
           console.error('Ghost Traders: Trade execution failed:', err);
         }
       };
 
       try {
-        console.log('Ghost Traders: Running trade cycle...');
-        const { data: configData, error: configError } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
+        const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
         
-        let config = configData;
-
-        if (configError) {
-          console.error('Ghost Traders: Error fetching config from Supabase:', configError);
-        } else if (!config) {
-          console.log('Ghost Traders: No config found in bot_config table. Using default (Active=true, Trades/Hour=5)');
-          config = { is_active: true, trades_per_hour: 5 };
-        }
+        const isActive = config?.is_active ?? true;
+        const aggressiveness = config?.aggressiveness ?? 1.0; // 1.0 is normal, 2.0 is double activity
         
-        let nextDelay = 60000; 
-        
-        if (config && config.is_active) {
-          console.log('Ghost Traders: Bot system is ACTIVE. Fetching bot users...');
-          // Aggressive testing: always try to trade every 10 seconds if active
-          nextDelay = 10000;
-          const { data: botUsers, error: usersError } = await supabase.from('users').select('*').eq('is_bot', true);
+        if (isActive) {
+          // Peak hours logic (UTC)
+          const hour = new Date().getUTCHours();
+          let peakMultiplier = 1.0;
+          if (hour >= 8 && hour <= 18) peakMultiplier = 1.5; // Business hours
+          if (hour >= 20 || hour <= 4) peakMultiplier = 0.5; // Night hours
           
-          if (usersError) {
-            console.error('Ghost Traders: Error fetching bot users:', usersError);
-          } else {
-            console.log(`Ghost Traders: Found ${botUsers?.length || 0} bot users.`);
-          }
+          const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
           
-          if (usersError || !botUsers || botUsers.length === 0) {
-            console.log('Ghost Traders: No bot users found or error. Using fallback to any users...');
-            const { data: fallbackUsers } = await supabase.from('users').select('*').limit(10);
-            if (fallbackUsers && fallbackUsers.length > 0) {
-              const botUser = fallbackUsers[Math.floor(Math.random() * fallbackUsers.length)];
-              await executeBotTrade(botUser);
-            }
-          } else {
+          if (botUsers && botUsers.length > 0) {
             const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
             await executeBotTrade(botUser);
           }
+
+          // Stochastic Timing: 45s to 8m
+          const minDelay = 45000;
+          const maxDelay = 480000;
+          let nextDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
           
-          // Calculate next delay based on trades_per_hour
-          nextDelay = Math.floor(Math.random() * (60000 / (config.trades_per_hour || 5) * 2 - 10000 + 1)) + 10000;
+          // Adjust delay based on aggressiveness and peak hours
+          nextDelay = nextDelay / (aggressiveness * peakMultiplier);
+          
+          console.log(`Ghost Traders: Next cycle in ${(nextDelay / 60000).toFixed(2)}m (Agg: ${aggressiveness}, Peak: ${peakMultiplier})`);
+          setTimeout(scheduleNextTrade, nextDelay);
         } else {
-          console.log('Ghost Traders: Bot system is INACTIVE (config.is_active is false).');
-          nextDelay = 60000;
+          setTimeout(scheduleNextTrade, 60000);
         }
-        
-        console.log(`Ghost Traders: Next cycle in ${nextDelay / 1000}s`);
-        setTimeout(scheduleNextTrade, nextDelay);
       } catch (error) {
         console.error('Ghost Traders: Critical cycle error:', error);
         setTimeout(scheduleNextTrade, 60000);

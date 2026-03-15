@@ -304,8 +304,12 @@ CREATE TABLE IF NOT EXISTS bot_config (
     key TEXT PRIMARY KEY,
     is_active BOOLEAN DEFAULT false,
     trades_per_hour INTEGER DEFAULT 5,
+    aggressiveness DECIMAL(3, 2) DEFAULT 1.0,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Ensure column exists
+ALTER TABLE bot_config ADD COLUMN IF NOT EXISTS aggressiveness DECIMAL(3, 2) DEFAULT 1.0;
 
 -- Enable RLS and add policies for bot_config
 ALTER TABLE bot_config ENABLE ROW LEVEL SECURITY;
