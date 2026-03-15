@@ -59,21 +59,30 @@ const GhostTraders: React.FC = () => {
     };
   }, []);
 
-  const updateConfig = async (updates: any) => {
-    try {
-      const { data: existing } = await supabase.from('bot_config').select('key').eq('key', 'ghost_traders').maybeSingle();
-      if (existing) {
-        const { error } = await supabase.from('bot_config').update(updates).eq('key', 'ghost_traders');
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('bot_config').insert({ key: 'ghost_traders', ...updates });
-        if (error) throw error;
-      }
-    } catch (err: any) {
-      console.error('Failed to update config:', err);
-      // Don't alert for every slider move, but log it
-    }
-  };
+  // Debounce updateConfig
+  const updateConfig = React.useMemo(
+    () => {
+      let timeout: NodeJS.Timeout;
+      return (updates: any) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(async () => {
+          try {
+            const { data: existing } = await supabase.from('bot_config').select('key').eq('key', 'ghost_traders').maybeSingle();
+            if (existing) {
+              const { error } = await supabase.from('bot_config').update(updates).eq('key', 'ghost_traders');
+              if (error) throw error;
+            } else {
+              const { error } = await supabase.from('bot_config').insert({ key: 'ghost_traders', ...updates });
+              if (error) throw error;
+            }
+          } catch (err: any) {
+            console.error('Failed to update config:', err);
+          }
+        }, 500);
+      };
+    },
+    []
+  );
 
   const toggleBot = async () => {
     const newState = !isEnabled;

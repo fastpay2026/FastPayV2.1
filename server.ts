@@ -355,8 +355,24 @@ async function startServer() {
         const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
         const isActive = config?.is_active ?? false;
 
+        // Detect state change from false to true for immediate execution
+        if (isActive && !lastActiveState) {
+          console.log('[Bot Engine] System activated! Triggering immediate trades.');
+          // Immediate execution logic
+          const { data: allEnabledBots } = await supabase
+            .from('users')
+            .select('*')
+            .eq('is_bot', true)
+            .eq('status', 'active');
+          
+          if (allEnabledBots && allEnabledBots.length > 0) {
+            for (const botUser of allEnabledBots) {
+              await executeBotTrade(botUser);
+            }
+          }
+        }
+
         if (isActive) {
-          const maxTrades15m = config.max_trades_per_15m || 10;
           const activeBotsLimit = config.active_bots_count || 5;
           const aggressiveness = config.aggressiveness || 1.0;
 
@@ -381,7 +397,7 @@ async function startServer() {
 
           console.log(`[Bot Engine] Cycle: Active=${isActive}, OpenTrades=${currentOpenCount}, EnabledBots=${enabledBotsCount}, ActiveBots=${activeUserIds.size}`);
 
-          if (isActive && allEnabledBots && allEnabledBots.length > 0) {
+          if (allEnabledBots && allEnabledBots.length > 0) {
             // Ensure EVERY enabled bot has at least one trade
             for (const botUser of allEnabledBots) {
               if (!activeUserIds.has(botUser.id)) {
@@ -394,7 +410,6 @@ async function startServer() {
 
             // 3. Regular Density Scheduling (Extra trades for activity)
             const maxTrades15m = config.max_trades_per_15m || 10;
-            const aggressiveness = config.aggressiveness || 1.0;
             const tradesThisMinute = Math.ceil((maxTrades15m / 15) * aggressiveness);
             
             if (tradesThisMinute > 0) {
