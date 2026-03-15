@@ -387,11 +387,17 @@ async function startServer() {
           const currentOpenCount = openBotTrades?.length || 0;
 
           // Get all enabled bots (is_bot = true AND status = 'active')
-          const { data: allEnabledBots } = await supabase
+          const { data: allEnabledBots, error: botsError } = await supabase
             .from('users')
             .select('*')
             .eq('is_bot', true)
             .eq('status', 'active');
+          
+          if (botsError) {
+            console.error('[Bot Engine] Error fetching enabled bots:', botsError);
+          } else {
+            console.log('[Bot Engine] Enabled bots found:', allEnabledBots?.length || 0);
+          }
           
           const enabledBotsCount = allEnabledBots?.length || 0;
 
