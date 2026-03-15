@@ -35,25 +35,53 @@ const GhostTraders: React.FC = () => {
     };
     loadConfig();
 
-    // Refresh stats every 30s
-    const interval = setInterval(loadConfig, 30000);
+    // Refresh stats every 5s
+    const interval = setInterval(loadConfig, 5000);
     return () => clearInterval(interval);
   }, []);
 
   const updateConfig = async (updates: any) => {
-    const { data: existing } = await supabase.from('bot_config').select('key').eq('key', 'ghost_traders').maybeSingle();
-    if (existing) {
-      await supabase.from('bot_config').update(updates).eq('key', 'ghost_traders');
-    } else {
-      await supabase.from('bot_config').insert({ key: 'ghost_traders', ...updates });
+    try {
+      const { data: existing } = await supabase.from('bot_config').select('key').eq('key', 'ghost_traders').maybeSingle();
+      if (existing) {
+        await supabase.from('bot_config').update(updates).eq('key', 'ghost_traders');
+      } else {
+        await supabase.from('bot_config').insert({ key: 'ghost_traders', ...updates });
+      }
+    } catch (err) {
+      console.error('Failed to update config:', err);
     }
   };
 
   const toggleBot = async () => {
     const newState = !isEnabled;
+    // Optimistic update
     setIsEnabled(newState);
+    
     await updateConfig({ is_active: newState });
+    
+    // If turning off, we can also trigger a manual cleanup for immediate feedback
+    if (!newState) {
+      await clearAllBotTrades();
+    }
+    
     alert(`تم ${newState ? 'تفعيل' : 'إيقاف'} البوتات الوهمية بنجاح`);
+  };
+
+  const clearAllBotTrades = async () => {
+    const { error } = await supabase
+      .from('trade_orders')
+      .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
+      .eq('status', 'open')
+      .eq('is_bot', true);
+    
+    if (error) {
+      alert('فشل تنظيف الصفقات');
+    } else {
+      // Refresh local state
+      const { data: trades } = await supabase.from('trade_orders').select('*').eq('status', 'open').eq('is_bot', true);
+      if (trades) setOpenTrades(trades);
+    }
   };
 
   const toggleBotStatus = async (user: User) => {
@@ -99,6 +127,12 @@ const GhostTraders: React.FC = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-white">نظام المتداولين الوهميين (Ghost Traders)</h2>
         <div className="flex items-center gap-4">
+          <button 
+            onClick={clearAllBotTrades}
+            className="text-[10px] bg-red-900/20 hover:bg-red-900/40 text-red-400 px-3 py-1 rounded border border-red-500/20 transition-all"
+          >
+            🧹 تنظيف الصفقات
+          </button>
           <button 
             onClick={runDiagnostics}
             className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-white/5 transition-all"

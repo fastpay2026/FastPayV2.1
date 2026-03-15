@@ -184,15 +184,8 @@ async function startServer() {
 
         for (const pos of botPositions) {
           try {
-            const ticker = await binanceClient.tickerPrice(pos.asset_symbol);
-            const currentPrice = parseFloat(ticker.data.price);
-
-            const isBuy = pos.type === 'buy';
-            const isProfit = isBuy ? currentPrice > pos.entry_price : currentPrice < pos.entry_price;
-            
-            let shouldClose = false;
-
             // 1. Smart Closing Logic: check target_close_time
+            let shouldClose = false;
             if (pos.target_close_time) {
               const targetTime = new Date(pos.target_close_time);
               if (now >= targetTime) {
@@ -205,8 +198,12 @@ async function startServer() {
               if (minutesOpen >= 15) shouldClose = true;
             }
 
-            // 2. Forced TP/SL
+            // 2. Forced TP/SL (only if not already closing)
             if (!shouldClose) {
+              const ticker = await binanceClient.tickerPrice(pos.asset_symbol);
+              const currentPrice = parseFloat(ticker.data.price);
+              const isBuy = pos.type === 'buy';
+              
               shouldClose = isBuy 
                 ? (pos.forced_take_profit && currentPrice >= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice <= pos.forced_stop_loss)
                 : (pos.forced_take_profit && currentPrice <= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice >= pos.forced_stop_loss);
@@ -217,22 +214,12 @@ async function startServer() {
               const winProbability = 0.6;
               const finalStatus = (Math.random() < winProbability) ? 'closed_profit' : 'closed_loss';
               
-              console.log(`Bot closing ${pos.type} position ${pos.id} (Category: ${pos.bot_category}, Status: ${finalStatus})`);
+              console.log(`[WATCHER] Closing bot trade ${pos.id} | Category: ${pos.bot_category} | Result: ${finalStatus}`);
               
               await supabase
                 .from('trade_orders')
                 .update({ status: finalStatus, closed_at: new Date().toISOString() })
                 .eq('id', pos.id);
-              
-              const amount = (pos.amount || 0);
-              const profit = isBuy 
-                ? (currentPrice - pos.entry_price) * amount
-                : (pos.entry_price - currentPrice) * amount;
-              
-              const { data: user } = await supabase.from('users').select('balance').eq('id', pos.user_id).single();
-              if (user) {
-                  await supabase.from('users').update({ balance: user.balance + profit + amount }).eq('id', pos.user_id);
-              }
             }
           } catch (posError: any) {
             console.error(`Watcher Bot: Error processing position ${pos.id}:`, posError.message || posError);
@@ -241,7 +228,7 @@ async function startServer() {
       } catch (error: any) {
         console.error('Watcher Bot Error:', error.message || error);
       }
-    }, 10000);
+    }, 5000); // Check every 5 seconds for faster closing
   };
 
   // --- نظام المتداولين الوهميين (Ghost Traders) ---
@@ -424,7 +411,7 @@ async function startServer() {
             
             if (botUsers && botUsers.length > 0) {
               for (let i = 0; i < tradesThisMinute; i++) {
-                const offset = Math.random() * 50000;
+                const offset = Math.random() * 25000; // Spread trades across 25s
                 setTimeout(() => {
                   const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
                   executeBotTrade(botUser);
@@ -432,14 +419,27 @@ async function startServer() {
               }
             }
           }
+        } else {
+          // SYSTEM IS OFF - Immediate Cleanup
+          if (lastActiveState === true) {
+            console.log('[GHOST] System turned OFF. Cleaning up all bot trades...');
+            const { error: cleanupError } = await supabase
+              .from('trade_orders')
+              .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
+              .eq('status', 'open')
+              .eq('is_bot', true);
+            
+            if (cleanupError) console.error('[GHOST] Cleanup failed:', cleanupError);
+            else console.log('[GHOST] Cleanup successful. All bot trades closed.');
+          }
         }
         lastActiveState = isActive;
       } catch (error) {
         console.error('Ghost Traders Density Cycle Error:', error);
       }
       
-      // Check every 20 seconds for maximum responsiveness
-      setTimeout(runDensityCycle, 20000);
+      // Check every 10 seconds for maximum responsiveness
+      setTimeout(runDensityCycle, 10000);
     };
     
     runDensityCycle();
