@@ -58,12 +58,15 @@ const GhostTraders: React.FC = () => {
       <div className="space-y-4">
         {bots.map(bot => (
           <div key={bot.id} className="p-4 bg-white/5 rounded-xl border border-white/5 flex flex-wrap gap-4 items-center">
-            <input 
-              value={bot.name} 
-              onChange={(e) => updateBot(bot.id, { name: e.target.value })}
-              className="bg-black p-2 rounded text-white w-32"
-              placeholder="اسم البوت"
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] text-slate-500">اسم البوت</label>
+              <input 
+                value={bot.name} 
+                onChange={(e) => updateBot(bot.id, { name: e.target.value })}
+                className="bg-black p-2 rounded text-white w-40 border border-white/10"
+                placeholder="أدخل الاسم هنا"
+              />
+            </div>
             <select value={bot.strategy} onChange={(e) => updateBot(bot.id, { strategy: e.target.value })} className="bg-black p-2 rounded text-white">
               <option value="scalper">Scalper</option>
               <option value="day">Day</option>
