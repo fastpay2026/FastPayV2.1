@@ -8,6 +8,10 @@ const GhostTraders: React.FC = () => {
   const [tradesPerHour, setTradesPerHour] = useState(5);
   const [activeBotsCount, setActiveBotsCount] = useState(5);
   const [maxTrades15m, setMaxTrades15m] = useState(10);
+  const [diagnosticData, setDiagnosticData] = useState<any>(null);
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
+
+  const activeBotIds = new Set(openTrades.map(t => t.userId));
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [aggressiveness, setAggressiveness] = useState(1.0);
   const [openTrades, setOpenTrades] = useState<TradeOrder[]>([]);
@@ -58,15 +62,50 @@ const GhostTraders: React.FC = () => {
     setAllUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
   };
 
+  const runDiagnostics = async () => {
+    try {
+      const resp = await fetch('/api/debug/ghost-traders');
+      const data = await resp.json();
+      setDiagnosticData(data);
+      setIsDiagnosticOpen(true);
+    } catch (err) {
+      alert('Failed to run diagnostics');
+    }
+  };
+
   const scalperCount = openTrades.filter(t => t.bot_category === 'scalper').length;
   const dayCount = openTrades.filter(t => t.bot_category === 'day').length;
   const swingCount = openTrades.filter(t => t.bot_category === 'swing').length;
 
   return (
-    <div className="p-6 bg-[#131722] rounded-2xl border border-white/10 space-y-6">
+    <div className="p-6 bg-[#131722] rounded-2xl border border-white/10 space-y-6 relative">
+      {isDiagnosticOpen && (
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-white/10 p-8 rounded-3xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-black text-white">تشخيص نظام البوتات</h3>
+              <button onClick={() => setIsDiagnosticOpen(false)} className="text-white/40 hover:text-white">✕</button>
+            </div>
+            <pre className="text-[10px] font-mono text-emerald-400 bg-black/50 p-4 rounded-xl overflow-x-auto">
+              {JSON.stringify(diagnosticData, null, 2)}
+            </pre>
+            <div className="mt-6 flex justify-end">
+              <button onClick={() => setIsDiagnosticOpen(false)} className="bg-slate-800 text-white px-6 py-2 rounded-xl font-bold">إغلاق</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-white">نظام المتداولين الوهميين (Ghost Traders)</h2>
-        <div className="flex gap-4 text-[10px] font-mono">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={runDiagnostics}
+            className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-white/5 transition-all"
+          >
+            🔍 تشخيص
+          </button>
+          <div className="flex gap-4 text-[10px] font-mono">
           <div className="bg-emerald-900/20 text-emerald-400 px-2 py-1 rounded border border-emerald-500/20">
             Scalpers: {scalperCount}
           </div>
@@ -110,7 +149,10 @@ const GhostTraders: React.FC = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-            <label className="text-[10px] text-slate-500 block mb-1">عدد البوتات النشطة</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-[10px] text-slate-500 block">عدد البوتات النشطة</label>
+              <span className="text-[9px] text-emerald-500 font-bold">الفعلي: {activeBotIds.size}</span>
+            </div>
             <input 
               type="number" 
               value={activeBotsCount} 

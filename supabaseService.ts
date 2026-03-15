@@ -65,7 +65,7 @@ export const supabaseService = {
         is_bot: Boolean(user.isBot)
       };
 
-      const { error } = await supabase.from('users').upsert(userData, { onConflict: 'username' });
+      const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
       if (error) {
         console.error("Supabase Error Details:", error);
         throw new Error(error.message);

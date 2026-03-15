@@ -87,6 +87,31 @@ async function startServer() {
     res.json({ status: 'ok', connected: true });
   });
 
+  app.get('/api/debug/ghost-traders', async (req, res) => {
+    try {
+      const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
+      const { data: openBotTrades } = await supabase
+        .from('trade_orders')
+        .select('id, user_id, username, bot_category')
+        .eq('status', 'open')
+        .eq('is_bot', true);
+      
+      const { data: allBots } = await supabase.from('users').select('id, username, is_bot').eq('is_bot', true);
+      
+      res.json({
+        config,
+        openTradesCount: openBotTrades?.length || 0,
+        uniqueActiveBots: new Set(openBotTrades?.map(t => t.user_id) || []).size,
+        allBotsInDbCount: allBots?.length || 0,
+        allBotsInDb: allBots,
+        openTrades: openBotTrades,
+        timestamp: new Date().toISOString()
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   app.get('/api/test-trade', async (req, res) => {
     console.log('API: Manual test trade trigger');
     if (!isSupabaseConfigured) return res.status(503).json({ error: 'Supabase not configured' });
@@ -275,38 +300,44 @@ async function startServer() {
         console.error('Ghost Traders: Binance client not initialized, cannot execute trade.');
         return;
       }
+      
       const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT'];
       const symbol = symbols[Math.floor(Math.random() * symbols.length)];
       
       try {
-        const ticker = await binanceClient.tickerPrice(symbol);
-        const currentPrice = parseFloat(ticker.data.price);
+        console.log(`Ghost Traders: [EXECUTE] Attempting trade for ${botUser.username} on ${symbol}`);
+        
+        let currentPrice = 0;
+        try {
+          const ticker = await binanceClient.tickerPrice(symbol);
+          currentPrice = parseFloat(ticker.data.price);
+        } catch (tickerErr) {
+          console.warn(`Ghost Traders: Failed to fetch price for ${symbol}, using fallback.`, tickerErr);
+          // Fallback prices if Binance API is down
+          const fallbacks: any = { 'BTCUSDT': 95000, 'ETHUSDT': 2700, 'SOLUSDT': 180, 'XRPUSDT': 2.5, 'BNBUSDT': 600, 'ADAUSDT': 0.8 };
+          currentPrice = fallbacks[symbol] || 100;
+        }
         
         const amount = (Math.random() * (250.0 - 50.0) + 50.0).toFixed(2);
         const type = Math.random() > 0.5 ? 'buy' : 'sell';
 
-        // 4. Spread Logic: $10 spread to show immediate loss
-        // If Buy: Entry = Market + 10 (Higher price)
-        // If Sell: Entry = Market - 10 (Lower price)
+        // Spread Logic: $10 spread
         const spread = 10.0;
         const entryPrice = type === 'buy' ? currentPrice + spread : currentPrice - spread;
 
-        // 2. Bot Personas logic
+        // Bot Personas logic
         const rand = Math.random();
         let category: 'scalper' | 'day' | 'swing' = 'scalper';
         let closeDelayMs = 0;
 
         if (rand < 0.6) {
           category = 'scalper';
-          // 30s to 5m
           closeDelayMs = (Math.random() * (300 - 30) + 30) * 1000;
         } else if (rand < 0.9) {
           category = 'day';
-          // 15m to 3h
           closeDelayMs = (Math.random() * (180 - 15) + 15) * 60 * 1000;
         } else {
           category = 'swing';
-          // 1 day to 3 days
           closeDelayMs = (Math.random() * (72 - 24) + 24) * 60 * 60 * 1000;
         }
 
@@ -318,7 +349,7 @@ async function startServer() {
           asset_symbol: symbol,
           type: type,
           amount: parseFloat(amount),
-          entry_price: entryPrice, // Price with spread
+          entry_price: entryPrice,
           status: 'open',
           is_bot: true,
           bot_category: category,
@@ -326,10 +357,14 @@ async function startServer() {
           timestamp: new Date().toISOString()
         };
 
-        await supabase.from('trade_orders').insert(tradeData);
-        console.log(`Ghost Traders: [${category.toUpperCase()}] Trade opened for ${botUser.username} at ${entryPrice} (Market: ${currentPrice})`);
+        const { error: insertError } = await supabase.from('trade_orders').insert(tradeData);
+        if (insertError) {
+          console.error(`Ghost Traders: Failed to insert trade for ${botUser.username}:`, insertError.message);
+        } else {
+          console.log(`Ghost Traders: [SUCCESS] ${category.toUpperCase()} trade opened for ${botUser.username} at ${entryPrice}`);
+        }
       } catch (err) {
-        console.error('Ghost Traders: Trade execution failed:', err);
+        console.error('Ghost Traders: Critical trade execution failure:', err);
       }
     };
 
@@ -352,42 +387,44 @@ async function startServer() {
             .eq('status', 'open')
             .eq('is_bot', true);
           
-          const currentOpenCount = openBotTrades?.length || 0;
           const activeUserIds = new Set(openBotTrades?.map(t => t.user_id) || []);
+          const currentOpenCount = openBotTrades?.length || 0;
 
-          console.log(`Ghost Traders: Cycle running. Active: ${isActive}, Open Trades: ${currentOpenCount}/${activeBotsLimit}`);
+          console.log(`[GHOST] Cycle: Active=${isActive}, OpenTrades=${currentOpenCount}, ActiveBots=${activeUserIds.size}, Target=${activeBotsLimit}`);
 
           // 2. Determine if we need to "Force Start" trades to reach the active bots limit
           if (activeUserIds.size < activeBotsLimit) {
             const gap = activeBotsLimit - activeUserIds.size;
-            console.log(`Ghost Traders: Anti-Lag triggered. Gap: ${gap} bots. Filling...`);
+            console.log(`[GHOST] Anti-Lag: Gap detected. Need ${gap} more unique bots.`);
             
-            // Get bots that are NOT currently active
+            // Get all potential bots
             const { data: allBots } = await supabase.from('users').select('*').eq('is_bot', true);
+            
             if (allBots && allBots.length > 0) {
               const idleBots = allBots.filter(b => !activeUserIds.has(b.id));
               const botsToUse = idleBots.length > 0 ? idleBots : allBots;
 
+              console.log(`[GHOST] Bots in DB: ${allBots.length}, Idle: ${idleBots.length}`);
+
               for (let i = 0; i < gap; i++) {
                 const botUser = botsToUse[i % botsToUse.length];
-                console.log(`Ghost Traders: Anti-Lag opening trade for ${botUser.username}`);
+                console.log(`[GHOST] Anti-Lag: Forcing trade for ${botUser.username} (${botUser.id})`);
                 await executeBotTrade(botUser);
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 1500));
               }
             } else {
-              console.warn('Ghost Traders: No bot users found in database!');
+              console.warn('[GHOST] No bot users found in database! (is_bot=true)');
             }
           }
 
-          // 3. Regular Density Scheduling (Minute-based)
+          // 3. Regular Density Scheduling
           const tradesThisMinute = Math.ceil((maxTrades15m / 15) * aggressiveness);
           if (tradesThisMinute > 0) {
-            const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(20);
+            const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
             
             if (botUsers && botUsers.length > 0) {
-              console.log(`Ghost Traders: Scheduling ${tradesThisMinute} random trades for this minute.`);
               for (let i = 0; i < tradesThisMinute; i++) {
-                const offset = Math.random() * 55000; // Spread over 55s
+                const offset = Math.random() * 50000;
                 setTimeout(() => {
                   const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
                   executeBotTrade(botUser);
@@ -395,18 +432,14 @@ async function startServer() {
               }
             }
           }
-        } else {
-          if (lastActiveState) {
-            console.log('Ghost Traders: System disabled by user.');
-          }
         }
         lastActiveState = isActive;
       } catch (error) {
         console.error('Ghost Traders Density Cycle Error:', error);
       }
       
-      // Check every 30 seconds for better responsiveness
-      setTimeout(runDensityCycle, 30000);
+      // Check every 20 seconds for maximum responsiveness
+      setTimeout(runDensityCycle, 20000);
     };
     
     runDensityCycle();
@@ -415,63 +448,6 @@ async function startServer() {
   // Start the bots
   startWatcherBot();
   startGhostTraders();
-
-  // Trigger immediate bot trades for testing
-  setTimeout(async () => {
-    if (isSupabaseConfigured) {
-      console.log('Ghost Traders: Triggering FORCED trades for test22 and mjodyiq...');
-      try {
-        const { data: targetBots } = await supabase
-          .from('users')
-          .select('*')
-          .in('username', ['test22', 'mjodyiq']);
-          
-        if (targetBots && targetBots.length > 0) {
-          for (const bot of targetBots) {
-            console.log(`[BOT] Attempting to open forced trade for user: ${bot.username}`);
-            const trade = {
-              user_id: bot.id,
-              asset_symbol: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'][Math.floor(Math.random() * 3)],
-              type: Math.random() > 0.5 ? 'buy' : 'sell',
-              amount: Math.floor(Math.random() * 50) + 10,
-              entry_price: 70000 + (Math.random() * 500),
-              status: 'open',
-              is_bot: true,
-              timestamp: new Date().toISOString()
-            };
-            const { error: insertError } = await supabase.from('trade_orders').insert(trade);
-            if (insertError) {
-              console.error(`[BOT] Failed to open trade for ${bot.username}:`, insertError.message);
-            } else {
-              console.log(`[BOT] Opened trade for user: ${bot.username}`);
-            }
-          }
-        } else {
-          console.log('Ghost Traders: Target bots not found. Falling back to any bots.');
-          const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(5);
-          if (botUsers && botUsers.length > 0) {
-            for (const bot of botUsers) {
-              const trade = {
-                user_id: bot.id,
-                username: bot.username,
-                asset_symbol: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'][Math.floor(Math.random() * 3)],
-                type: Math.random() > 0.5 ? 'buy' : 'sell',
-                amount: Math.floor(Math.random() * 100) + 10,
-                entry_price: 70000,
-                status: 'open',
-                is_bot: true,
-                timestamp: new Date().toISOString()
-              };
-              await supabase.from('trade_orders').insert(trade);
-              console.log(`[BOT] Opened trade for user: ${bot.username} (Fallback)`);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Ghost Traders: Immediate test trades failed:', err);
-      }
-    }
-  }, 2000);
 
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
