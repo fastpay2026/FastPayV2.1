@@ -5,6 +5,7 @@ const GhostTraders: React.FC = () => {
   const [bots, setBots] = useState<any[]>([]);
   const [trades, setTrades] = useState<any[]>([]);
   const [categorySettings, setCategorySettings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchBots();
@@ -39,6 +40,7 @@ const GhostTraders: React.FC = () => {
 
   const updateBot = async (id: string, updates: any) => {
     await supabase.from('bot_instances').update(updates).eq('id', id);
+    fetchBots();
   };
 
   const updateCategorySetting = async (category: string, updates: any) => {
@@ -46,39 +48,84 @@ const GhostTraders: React.FC = () => {
   };
 
   const addBot = async () => {
-    await supabase.from('bot_instances').insert({ name: 'New Bot', strategy: 'scalper', mode: 'manual', fixed_amount: 10, is_active: true });
-    fetchBots();
+    setLoading(true);
+    await supabase.from('bot_instances').insert({ 
+      name: 'New Bot', 
+      strategy: 'scalper', 
+      mode: 'manual', 
+      fixed_amount: 10, 
+      is_active: true 
+    });
+    await fetchBots();
+    setLoading(false);
+  };
+
+  const deleteBot = async (id: string) => {
+    setLoading(true);
+    // إغلاق صفقات هذا البوت أولاً
+    await supabase.from('bot_trades_simulation').delete().eq('bot_id', id);
+    // حذف البوت
+    await supabase.from('bot_instances').delete().eq('id', id);
+    await fetchBots();
+    await fetchTrades();
+    setLoading(false);
   };
 
   const purgeAll = async () => {
-    if (window.confirm('⚠️ تحذير: سيتم حذف جميع البوتات وجميع صفقاتها من المنصة فوراً. هل أنت متأكد؟')) {
-      await supabase.from('bot_trades_simulation').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      fetchBots();
-      fetchTrades();
+    if (window.confirm('⚠️ تحذير نهائي: سيتم مسح كل شيء الآن. هل أنت متأكد؟')) {
+      setLoading(true);
+      // حذف جميع الصفقات
+      await supabase.from('bot_trades_simulation').delete().filter('status', 'in', '("open","closed_profit","closed_loss")');
+      // حذف جميع البوتات
+      await supabase.from('bot_instances').delete().neq('name', 'FORCE_DELETE_ALL_BY_FILTER');
+      
+      await fetchBots();
+      await fetchTrades();
+      setLoading(false);
+      alert('تم التطهير الشامل وإغلاق كافة الصفقات');
     }
   };
 
   const triggerManualTrade = async (bot: any) => {
     await supabase.from('bot_trades_simulation').insert({
-      bot_id: bot.id, symbol: 'BTCUSDT', type: 'buy', amount: bot.fixed_amount, price: 95000, status: 'open', target_duration: 5
+      bot_id: bot.id, 
+      symbol: 'BTCUSDT', 
+      type: 'buy', 
+      amount: bot.fixed_amount, 
+      price: 95000, 
+      status: 'open', 
+      target_duration: 5
     });
+    fetchTrades();
   };
 
   return (
-    <div className="p-6 bg-[#131722] rounded-2xl border border-white/10 space-y-8">
+    <div className="p-6 bg-[#131722] rounded-2xl border border-white/10 space-y-8 shadow-2xl">
       {/* Header & Global Actions */}
-      <div className="flex justify-between items-center border-b border-white/5 pb-4">
-        <div>
-          <h2 className="text-2xl font-black text-white">مركز التحكم الذكي (Ghost Engine v2)</h2>
-          <p className="text-xs text-slate-500">تحكم كامل في سلوك البوتات ومحاكاة التداول البشري</p>
+      <div className="flex justify-between items-center border-b border-white/5 pb-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/20">
+            <span className="text-2xl">🤖</span>
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-white tracking-tight">مركز التحكم الذكي (Ghost Engine v2)</h2>
+            <p className="text-xs text-slate-500 font-medium">نظام محاكاة التداول البشري المتطور</p>
+          </div>
         </div>
         <div className="flex gap-3">
-          <button onClick={purgeAll} className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-2 rounded-xl font-bold border border-red-500/20 transition-all text-sm">
+          <button 
+            disabled={loading}
+            onClick={purgeAll} 
+            className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-5 py-2.5 rounded-xl font-bold border border-red-500/20 transition-all text-sm flex items-center gap-2"
+          >
             🗑️ تطهير شامل
           </button>
-          <button onClick={addBot} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/20">
-            + إضافة بوت جديد
+          <button 
+            disabled={loading}
+            onClick={addBot} 
+            className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/40 flex items-center gap-2"
+          >
+            <span className="text-lg">+</span> إضافة بوت جديد
           </button>
         </div>
       </div>
@@ -86,16 +133,19 @@ const GhostTraders: React.FC = () => {
       {/* Category Programming Panel */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {categorySettings.map(set => (
-          <div key={set.category} className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-            <h3 className="text-sm font-bold text-sky-400 uppercase">{set.category} Settings</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] text-slate-500 block">Min Duration (m)</label>
-                <input type="number" value={set.min_duration_minutes} onChange={e => updateCategorySetting(set.category, { min_duration_minutes: parseInt(e.target.value) })} className="bg-black text-white p-1 rounded w-full text-xs" />
+          <div key={set.category} className="bg-white/5 p-5 rounded-2xl border border-white/5 space-y-4 hover:border-sky-500/30 transition-all">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xs font-black text-sky-400 uppercase tracking-widest">{set.category}</h3>
+              <span className="w-2 h-2 bg-sky-500 rounded-full animate-pulse"></span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[10px] text-slate-500 font-bold uppercase">Min (m)</label>
+                <input type="number" value={set.min_duration_minutes} onChange={e => updateCategorySetting(set.category, { min_duration_minutes: parseInt(e.target.value) })} className="bg-black/50 text-white p-2 rounded-lg w-full text-xs border border-white/5 focus:border-sky-500/50 outline-none" />
               </div>
-              <div>
-                <label className="text-[10px] text-slate-500 block">Max Duration (m)</label>
-                <input type="number" value={set.max_duration_minutes} onChange={e => updateCategorySetting(set.category, { max_duration_minutes: parseInt(e.target.value) })} className="bg-black text-white p-1 rounded w-full text-xs" />
+              <div className="space-y-1">
+                <label className="text-[10px] text-slate-500 font-bold uppercase">Max (m)</label>
+                <input type="number" value={set.max_duration_minutes} onChange={e => updateCategorySetting(set.category, { max_duration_minutes: parseInt(e.target.value) })} className="bg-black/50 text-white p-2 rounded-lg w-full text-xs border border-white/5 focus:border-sky-500/50 outline-none" />
               </div>
             </div>
           </div>
@@ -105,42 +155,74 @@ const GhostTraders: React.FC = () => {
       {/* Bots Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {bots.map(bot => (
-          <div key={bot.id} className="p-4 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between gap-4">
-            <div className="flex flex-col gap-1 flex-1">
-              <label className="text-[9px] text-slate-500 uppercase">Bot Identity</label>
-              <input defaultValue={bot.name} onBlur={e => updateBot(bot.id, { name: e.target.value })} className="bg-black p-2 rounded text-white font-bold border border-white/10" />
+          <div key={bot.id} className="p-5 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between gap-6 hover:bg-white/[0.07] transition-all group">
+            <div className="flex flex-col gap-1.5 flex-1">
+              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Bot Identity</label>
+              <input 
+                defaultValue={bot.name} 
+                onBlur={e => updateBot(bot.id, { name: e.target.value })} 
+                className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all" 
+              />
             </div>
             
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] text-slate-500 uppercase">Strategy</label>
-              <select value={bot.strategy} onChange={e => updateBot(bot.id, { strategy: e.target.value })} className="bg-black p-2 rounded text-white text-xs">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Strategy</label>
+              <select 
+                value={bot.strategy} 
+                onChange={e => updateBot(bot.id, { strategy: e.target.value })} 
+                className="bg-black/40 p-2.5 rounded-xl text-white text-xs font-bold border border-white/10 outline-none"
+              >
                 <option value="scalper">Scalper</option>
                 <option value="day">Day</option>
                 <option value="swing">Swing</option>
               </select>
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] text-slate-500 uppercase">Mode</label>
-              <div className="flex bg-black rounded-lg p-1">
-                <button onClick={() => updateBot(bot.id, { mode: 'manual' })} className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${bot.mode === 'manual' ? 'bg-amber-600 text-white' : 'text-slate-500'}`}>Manual</button>
-                <button onClick={() => updateBot(bot.id, { mode: 'auto' })} className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${bot.mode === 'auto' ? 'bg-emerald-600 text-white' : 'text-slate-500'}`}>Auto</button>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Control Mode</label>
+              <div className="flex bg-black/60 rounded-xl p-1 border border-white/5">
+                <button 
+                  onClick={() => updateBot(bot.id, { mode: 'manual' })} 
+                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${bot.mode === 'manual' ? 'bg-amber-500 text-white shadow-lg shadow-amber-900/20' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                  MANUAL
+                </button>
+                <button 
+                  onClick={() => updateBot(bot.id, { mode: 'auto' })} 
+                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${bot.mode === 'auto' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                  AUTO
+                </button>
               </div>
             </div>
 
-            <div className="flex gap-2 pt-4">
+            <div className="flex items-center gap-3 pt-4">
               {bot.mode === 'manual' && (
-                <button onClick={() => triggerManualTrade(bot)} className="bg-sky-600 hover:bg-sky-500 text-white p-2 rounded-lg text-xs font-bold">Open Trade</button>
+                <button 
+                  onClick={() => triggerManualTrade(bot)} 
+                  className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-sky-900/20"
+                >
+                  OPEN TRADE
+                </button>
               )}
-              <button onClick={() => { if(window.confirm('حذف البوت؟')) { supabase.from('bot_instances').delete().eq('id', bot.id).then(fetchBots); } }} className="text-red-500 p-2">🗑️</button>
+              <button 
+                onClick={() => deleteBot(bot.id)} 
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/10"
+              >
+                🗑️
+              </button>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-emerald-900/10 border border-emerald-500/20 p-4 rounded-xl flex justify-between items-center">
-        <span className="text-emerald-500 font-bold">إجمالي الصفقات النشطة في المنصة:</span>
-        <span className="text-2xl font-black text-white">{trades.length}</span>
+      {/* Footer Stats */}
+      <div className="bg-emerald-500/5 border border-emerald-500/20 p-5 rounded-2xl flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 bg-emerald-500 rounded-full animate-ping"></div>
+          <span className="text-emerald-500 font-black text-sm uppercase tracking-widest">إجمالي الصفقات النشطة في المنصة حالياً:</span>
+        </div>
+        <span className="text-4xl font-black text-white tabular-nums">{trades.length}</span>
       </div>
     </div>
   );
