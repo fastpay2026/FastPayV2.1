@@ -12,13 +12,15 @@ const GhostTraders: React.FC = () => {
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
 
   const [actualOpenTrades, setActualOpenTrades] = useState<TradeOrder[]>([]);
-
-  const scalperCount = actualOpenTrades.filter((t: any) => t.bot_category === 'scalper').length;
-  const dayCount = actualOpenTrades.filter((t: any) => t.bot_category === 'day').length;
-  const swingCount = actualOpenTrades.filter((t: any) => t.bot_category === 'swing').length;
-
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [aggressiveness, setAggressiveness] = useState(1.0);
+
+  const activeBotUserIds = new Set(allUsers.filter(u => u.isBot).map(u => u.id));
+  const activeOpenTrades = actualOpenTrades.filter((t: any) => activeBotUserIds.has(t.user_id || t.userId));
+
+  const scalperCount = activeOpenTrades.filter((t: any) => t.bot_category === 'scalper').length;
+  const dayCount = activeOpenTrades.filter((t: any) => t.bot_category === 'day').length;
+  const swingCount = activeOpenTrades.filter((t: any) => t.bot_category === 'swing').length;
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -105,8 +107,20 @@ const GhostTraders: React.FC = () => {
   };
 
   const toggleBotStatus = async (user: User) => {
-    const updatedUser = { ...user, isBot: !user.isBot };
+    const newIsBot = !user.isBot;
+    const updatedUser = { ...user, isBot: newIsBot };
+    
     await supabaseService.updateUser(updatedUser);
+    
+    // If deactivated, close all open trades for this bot immediately
+    if (!newIsBot) {
+      await supabase
+        .from('trade_orders')
+        .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
+        .eq('user_id', user.id)
+        .eq('status', 'open');
+    }
+    
     setAllUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
   };
 
@@ -121,7 +135,7 @@ const GhostTraders: React.FC = () => {
     }
   };
 
-  const activeBotIdsCount = new Set(actualOpenTrades.map((t: any) => t.user_id || t.userId)).size;
+  const activeBotIdsCount = new Set(activeOpenTrades.map((t: any) => t.user_id || t.userId)).size;
 
   return (
     <div className="p-6 bg-[#131722] rounded-2xl border border-white/10 space-y-6 relative">
@@ -225,7 +239,7 @@ const GhostTraders: React.FC = () => {
           إدارة البوتات الفردية
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-          {allUsers.filter(user => user.isBot || user.fullName === 'Ghost Trader').map(user => (
+          {allUsers.filter(user => user.isBot).map(user => (
             <div key={user.id} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-all">
               <span className="text-xs text-white font-medium">{user.username}</span>
               <button 
@@ -247,7 +261,7 @@ const GhostTraders: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col justify-center items-center">
             <span className="text-xs text-slate-500 uppercase block mb-1">إجمالي الصفقات المفتوحة</span>
-            <span className="text-3xl font-black text-white">{actualOpenTrades.length}</span>
+            <span className="text-3xl font-black text-white">{activeOpenTrades.length}</span>
           </div>
           <div className="bg-emerald-900/20 p-4 rounded-xl border border-emerald-500/20 flex flex-col justify-center items-center">
             <span className="text-xs text-emerald-500 uppercase block mb-1">Scalpers</span>

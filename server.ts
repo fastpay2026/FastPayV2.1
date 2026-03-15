@@ -255,32 +255,14 @@ async function startServer() {
     };
 
     const ensureBotUsers = async () => {
-      // 1. Cleanup fake names mentioned by user
-      const fakeNames = ['test11', 'test', 'test22'];
+      // Cleanup any legacy/fake bots
+      const fakeNames = ['test11', 'test', 'test22', 'test66', 'test2222'];
       await supabase.from('users').delete().in('username', fakeNames).eq('is_bot', true);
+      await supabase.from('users').delete().like('username', 'GhostTrader_%').eq('is_bot', true);
 
       const { data: existingBots } = await supabase.from('users').select('id').eq('is_bot', true);
       const count = existingBots?.length || 0;
-      console.log(`Ghost Traders: Found ${count} existing bot users.`);
-      
-      if (count < 5) {
-        console.log(`Ghost Traders: Creating ${5 - count} additional bot users...`);
-        const newBots = [];
-        for (let i = count; i < 5; i++) {
-          newBots.push({
-            id: `00000000-0000-0000-0000-00000000000${i}`,
-            username: `GhostTrader_${i}`,
-            email: `bot_${i}@fastpay.internal`,
-            password: 'bot_password_secure_123',
-            full_name: `Ghost Trader ${i}`,
-            balance: 1000000,
-            is_bot: true,
-            is_verified: true,
-            role: 'USER'
-          });
-        }
-        await supabase.from('users').upsert(newBots);
-      }
+      console.log(`[Bot Engine] Found ${count} real bot users in database.`);
     };
 
     await ensureBotConfig();
