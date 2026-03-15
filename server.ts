@@ -227,12 +227,28 @@ async function startServer() {
     }
     console.log('Ghost Traders: System initializing with Personas...');
 
+    const ensureBotConfig = async () => {
+      const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
+      if (!config) {
+        console.log('Ghost Traders: Creating default bot configuration...');
+        await supabase.from('bot_config').insert({
+          key: 'ghost_traders',
+          is_active: false,
+          trades_per_hour: 5,
+          aggressiveness: 1.0,
+          active_bots_count: 5,
+          max_trades_per_15m: 10
+        });
+      }
+    };
+
     const ensureBotUsers = async () => {
       const { data: existingBots } = await supabase.from('users').select('id').eq('is_bot', true);
       const count = existingBots?.length || 0;
+      console.log(`Ghost Traders: Found ${count} existing bot users.`);
       
       if (count < 10) {
-        console.log(`Ghost Traders: Creating ${10 - count} bot users...`);
+        console.log(`Ghost Traders: Creating ${10 - count} additional bot users...`);
         const newBots = [];
         for (let i = count; i < 10; i++) {
           newBots.push({
@@ -243,16 +259,22 @@ async function startServer() {
             full_name: `Ghost Trader ${i}`,
             balance: 1000000,
             is_bot: true,
-            is_verified: true
+            is_verified: true,
+            role: 'USER'
           });
         }
         await supabase.from('users').upsert(newBots);
       }
     };
 
+    await ensureBotConfig();
     await ensureBotUsers();
     
     const executeBotTrade = async (botUser: any) => {
+      if (!binanceClient) {
+        console.error('Ghost Traders: Binance client not initialized, cannot execute trade.');
+        return;
+      }
       const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT'];
       const symbol = symbols[Math.floor(Math.random() * symbols.length)];
       
@@ -326,41 +348,56 @@ async function startServer() {
           // 1. Anti-Lag: Check current open bot trades
           const { data: openBotTrades } = await supabase
             .from('trade_orders')
-            .select('id')
+            .select('id, user_id')
             .eq('status', 'open')
             .eq('is_bot', true);
           
           const currentOpenCount = openBotTrades?.length || 0;
+          const activeUserIds = new Set(openBotTrades?.map(t => t.user_id) || []);
+
+          console.log(`Ghost Traders: Cycle running. Active: ${isActive}, Open Trades: ${currentOpenCount}/${activeBotsLimit}`);
 
           // 2. Determine if we need to "Force Start" trades to reach the active bots limit
-          // If we have fewer open trades than the active bots limit, we should open more.
-          if (currentOpenCount < activeBotsLimit) {
-            const gap = activeBotsLimit - currentOpenCount;
-            console.log(`Ghost Traders: Anti-Lag triggered. Gap: ${gap}. Filling...`);
+          if (activeUserIds.size < activeBotsLimit) {
+            const gap = activeBotsLimit - activeUserIds.size;
+            console.log(`Ghost Traders: Anti-Lag triggered. Gap: ${gap} bots. Filling...`);
             
-            const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(activeBotsLimit);
-            if (botUsers && botUsers.length > 0) {
+            // Get bots that are NOT currently active
+            const { data: allBots } = await supabase.from('users').select('*').eq('is_bot', true);
+            if (allBots && allBots.length > 0) {
+              const idleBots = allBots.filter(b => !activeUserIds.has(b.id));
+              const botsToUse = idleBots.length > 0 ? idleBots : allBots;
+
               for (let i = 0; i < gap; i++) {
-                const botUser = botUsers[i % botUsers.length];
+                const botUser = botsToUse[i % botsToUse.length];
+                console.log(`Ghost Traders: Anti-Lag opening trade for ${botUser.username}`);
                 await executeBotTrade(botUser);
-                // Small delay to avoid identical timestamps
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 1000));
               }
+            } else {
+              console.warn('Ghost Traders: No bot users found in database!');
             }
           }
 
           // 3. Regular Density Scheduling (Minute-based)
           const tradesThisMinute = Math.ceil((maxTrades15m / 15) * aggressiveness);
-          const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(activeBotsLimit);
-          
-          if (botUsers && botUsers.length > 0) {
-            for (let i = 0; i < tradesThisMinute; i++) {
-              const offset = Math.random() * 60000;
-              setTimeout(() => {
-                const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
-                executeBotTrade(botUser);
-              }, offset);
+          if (tradesThisMinute > 0) {
+            const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(20);
+            
+            if (botUsers && botUsers.length > 0) {
+              console.log(`Ghost Traders: Scheduling ${tradesThisMinute} random trades for this minute.`);
+              for (let i = 0; i < tradesThisMinute; i++) {
+                const offset = Math.random() * 55000; // Spread over 55s
+                setTimeout(() => {
+                  const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
+                  executeBotTrade(botUser);
+                }, offset);
+              }
             }
+          }
+        } else {
+          if (lastActiveState) {
+            console.log('Ghost Traders: System disabled by user.');
           }
         }
         lastActiveState = isActive;
@@ -368,8 +405,8 @@ async function startServer() {
         console.error('Ghost Traders Density Cycle Error:', error);
       }
       
-      // Check every minute
-      setTimeout(runDensityCycle, 60000);
+      // Check every 30 seconds for better responsiveness
+      setTimeout(runDensityCycle, 30000);
     };
     
     runDensityCycle();

@@ -37,9 +37,9 @@ const GhostTraders: React.FC = () => {
   }, []);
 
   const updateConfig = async (updates: any) => {
-    const { data: existing } = await supabase.from('bot_config').select('id').eq('key', 'ghost_traders').maybeSingle();
+    const { data: existing } = await supabase.from('bot_config').select('key').eq('key', 'ghost_traders').maybeSingle();
     if (existing) {
-      await supabase.from('bot_config').update(updates).eq('id', existing.id);
+      await supabase.from('bot_config').update(updates).eq('key', 'ghost_traders');
     } else {
       await supabase.from('bot_config').insert({ key: 'ghost_traders', ...updates });
     }
