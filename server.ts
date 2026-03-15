@@ -226,6 +226,31 @@ async function startServer() {
       return;
     }
     console.log('Ghost Traders: System initializing with Personas...');
+
+    const ensureBotUsers = async () => {
+      const { data: existingBots } = await supabase.from('users').select('id').eq('is_bot', true);
+      const count = existingBots?.length || 0;
+      
+      if (count < 10) {
+        console.log(`Ghost Traders: Creating ${10 - count} bot users...`);
+        const newBots = [];
+        for (let i = count; i < 10; i++) {
+          newBots.push({
+            id: `00000000-0000-0000-0000-00000000000${i}`,
+            username: `GhostTrader_${i}`,
+            email: `bot_${i}@fastpay.internal`,
+            password: 'bot_password_secure_123',
+            full_name: `Ghost Trader ${i}`,
+            balance: 1000000,
+            is_bot: true,
+            is_verified: true
+          });
+        }
+        await supabase.from('users').upsert(newBots);
+      }
+    };
+
+    await ensureBotUsers();
     
     const executeBotTrade = async (botUser: any) => {
       const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT'];
@@ -237,6 +262,12 @@ async function startServer() {
         
         const amount = (Math.random() * (250.0 - 50.0) + 50.0).toFixed(2);
         const type = Math.random() > 0.5 ? 'buy' : 'sell';
+
+        // 4. Spread Logic: $10 spread to show immediate loss
+        // If Buy: Entry = Market + 10 (Higher price)
+        // If Sell: Entry = Market - 10 (Lower price)
+        const spread = 10.0;
+        const entryPrice = type === 'buy' ? currentPrice + spread : currentPrice - spread;
 
         // 2. Bot Personas logic
         const rand = Math.random();
@@ -265,7 +296,7 @@ async function startServer() {
           asset_symbol: symbol,
           type: type,
           amount: parseFloat(amount),
-          entry_price: currentPrice,
+          entry_price: entryPrice, // Price with spread
           status: 'open',
           is_bot: true,
           bot_category: category,
@@ -274,7 +305,7 @@ async function startServer() {
         };
 
         await supabase.from('trade_orders').insert(tradeData);
-        console.log(`Ghost Traders: [${category.toUpperCase()}] Trade opened for ${botUser.username}`);
+        console.log(`Ghost Traders: [${category.toUpperCase()}] Trade opened for ${botUser.username} at ${entryPrice} (Market: ${currentPrice})`);
       } catch (err) {
         console.error('Ghost Traders: Trade execution failed:', err);
       }
@@ -285,35 +316,45 @@ async function startServer() {
     const runDensityCycle = async () => {
       try {
         const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
-        
         const isActive = config?.is_active ?? false;
-
-        // If just turned ON, trigger an immediate trade for feedback
-        if (isActive && !lastActiveState) {
-          console.log('Ghost Traders: System turned ON. Triggering immediate warm-up trade...');
-          const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(1);
-          if (botUsers && botUsers.length > 0) {
-            executeBotTrade(botUsers[0]);
-          }
-        }
-        lastActiveState = isActive;
 
         if (isActive) {
           const maxTrades15m = config.max_trades_per_15m || 10;
           const activeBotsLimit = config.active_bots_count || 5;
           const aggressiveness = config.aggressiveness || 1.0;
+
+          // 1. Anti-Lag: Check current open bot trades
+          const { data: openBotTrades } = await supabase
+            .from('trade_orders')
+            .select('id')
+            .eq('status', 'open')
+            .eq('is_bot', true);
           
-          // Calculate how many trades to do in this 1-minute window
-          // (maxTrades / 15) * aggressiveness
+          const currentOpenCount = openBotTrades?.length || 0;
+
+          // 2. Determine if we need to "Force Start" trades to reach the active bots limit
+          // If we have fewer open trades than the active bots limit, we should open more.
+          if (currentOpenCount < activeBotsLimit) {
+            const gap = activeBotsLimit - currentOpenCount;
+            console.log(`Ghost Traders: Anti-Lag triggered. Gap: ${gap}. Filling...`);
+            
+            const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(activeBotsLimit);
+            if (botUsers && botUsers.length > 0) {
+              for (let i = 0; i < gap; i++) {
+                const botUser = botUsers[i % botUsers.length];
+                await executeBotTrade(botUser);
+                // Small delay to avoid identical timestamps
+                await new Promise(resolve => setTimeout(resolve, 500));
+              }
+            }
+          }
+
+          // 3. Regular Density Scheduling (Minute-based)
           const tradesThisMinute = Math.ceil((maxTrades15m / 15) * aggressiveness);
-          
           const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(activeBotsLimit);
           
           if (botUsers && botUsers.length > 0) {
-            console.log(`Ghost Traders: Minute cycle. Scheduling ${tradesThisMinute} trades...`);
-            
             for (let i = 0; i < tradesThisMinute; i++) {
-              // Distribute within 60 seconds
               const offset = Math.random() * 60000;
               setTimeout(() => {
                 const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
@@ -322,11 +363,12 @@ async function startServer() {
             }
           }
         }
+        lastActiveState = isActive;
       } catch (error) {
         console.error('Ghost Traders Density Cycle Error:', error);
       }
       
-      // Run every 1 minute for better responsiveness
+      // Check every minute
       setTimeout(runDensityCycle, 60000);
     };
     
