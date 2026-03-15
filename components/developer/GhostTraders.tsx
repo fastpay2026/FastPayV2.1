@@ -90,6 +90,24 @@ const GhostTraders: React.FC = () => {
     // Optimistic update
     setIsEnabled(newState);
     
+    // 1. Trigger test trade immediately if turning on
+    if (newState) {
+      console.log('[GhostTraders] Triggering test trade...');
+      try {
+        const response = await fetch('/api/test-trade', { method: 'POST' });
+        const data = await response.json();
+        if (!response.ok) {
+          console.error('[Error] Failed to open trade:', data.error);
+        } else {
+          console.log('[GhostTraders] Test trade success!');
+          // Force refresh UI
+          window.location.reload();
+        }
+      } catch (e) {
+        console.error('[Error] Failed to call test-trade API:', e);
+      }
+    }
+    
     await updateConfig({ is_active: newState });
     
     // If turning off, we can also trigger a manual cleanup for immediate feedback
@@ -99,6 +117,20 @@ const GhostTraders: React.FC = () => {
     
     alert(`تم ${newState ? 'تفعيل' : 'إيقاف'} البوتات الوهمية بنجاح`);
   };
+
+  // Poll logs
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/bot-logs');
+        const data = await res.json();
+        data.logs.forEach((log: string) => console.log(log));
+      } catch (e) {
+        // Silent fail for polling
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const clearAllBotTrades = async () => {
     try {

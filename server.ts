@@ -393,15 +393,39 @@ async function startServer() {
     next();
   });
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('Server: Starting Vite in middleware mode...');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
+  const botLogs: string[] = [];
+  const addLog = (msg: string) => {
+    const timestamp = new Date().toISOString();
+    const log = `[Bot Engine] ${timestamp}: ${msg}`;
+    botLogs.push(log);
+    if (botLogs.length > 50) botLogs.shift();
+    console.log(log);
+  };
+
+  // API to fetch logs
+  app.get('/api/bot-logs', (req, res) => {
+    res.json({ logs: botLogs });
+  });
+
+  // API to trigger test trade
+  app.post('/api/test-trade', async (req, res) => {
+    addLog('Manual test trade triggered.');
+    try {
+      const { data: users } = await supabase.from('users').select('*').eq('is_bot', true).limit(1);
+      if (!users || users.length === 0) {
+        throw new Error('No bots found to test.');
+      }
+      const botUser = users[0];
+      addLog(`Attempting test trade for: ${botUser.username}`);
+      await executeBotTrade(botUser);
+      addLog('Test trade executed successfully.');
+      res.json({ success: true });
+    } catch (error: any) {
+      const errorMsg = `[Error] Failed to open trade: ${error.message}`;
+      addLog(errorMsg);
+      res.status(500).json({ error: errorMsg });
+    }
+  });
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     
