@@ -86,6 +86,7 @@ const GhostTraders: React.FC = () => {
   );
 
   const toggleBot = async () => {
+    console.log('[GhostTraders] Toggle button clicked!');
     const newState = !isEnabled;
     // Optimistic update
     setIsEnabled(newState);
@@ -95,6 +96,7 @@ const GhostTraders: React.FC = () => {
       console.log('[GhostTraders] Triggering test trade...');
       try {
         const response = await fetch('/api/test-trade', { method: 'POST' });
+        console.log('[GhostTraders] Test trade API called.');
         const data = await response.json();
         if (!response.ok) {
           console.error('[Error] Failed to open trade:', data.error);
