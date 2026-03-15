@@ -36,10 +36,13 @@ const SmartControlCenter: React.FC<Props> = ({
         
       if (error) throw error;
       
-      alert('تم مسح صفقات البوتات بنجاح');
+      // Update local state to reflect deletion
+      setTradeOrders(prev => prev.filter(order => !order.is_bot));
+      
+      alert('تم تنظيف سجلات البوتات بنجاح');
     } catch (err: any) {
       console.error('Error clearing bot trades:', err.message);
-      alert('حدث خطأ أثناء مسح الصفقات');
+      alert('حدث خطأ أثناء مسح الصفقات: ' + err.message);
     }
   };
 
