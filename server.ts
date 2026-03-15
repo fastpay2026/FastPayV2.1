@@ -386,24 +386,21 @@ async function startServer() {
           const activeUserIds = new Set(openBotTrades?.map(t => t.user_id) || []);
           const currentOpenCount = openBotTrades?.length || 0;
 
-          // Get all enabled bots (is_bot = true AND status = 'active')
-          const { data: allEnabledBots, error: botsError } = await supabase
+          // Get all bots (is_bot = true) - removed status check to debug
+          const { data: allBots, error: botsError } = await supabase
             .from('users')
             .select('*')
-            .eq('is_bot', true)
-            .eq('status', 'active');
+            .eq('is_bot', true);
           
           if (botsError) {
-            console.error('[Bot Engine] Error fetching enabled bots:', botsError);
+            console.error('[Bot Engine] Error fetching bots:', botsError);
           } else {
-            console.log('[Bot Engine] Enabled bots found:', allEnabledBots?.length || 0);
-            if (allEnabledBots?.length === 0) {
-              const { data: allBots } = await supabase.from('users').select('*').eq('is_bot', true);
-              console.log('[Bot Engine] ALL bots found (regardless of status):', allBots);
-            }
+            console.log('[Bot Engine] ALL bots found:', allBots?.length || 0);
           }
           
-          const enabledBotsCount = allEnabledBots?.length || 0;
+          // Use all bots for now
+          const allEnabledBots = allBots || [];
+          const enabledBotsCount = allEnabledBots.length;
 
           console.log(`[Bot Engine] Cycle: Active=${isActive}, OpenTrades=${currentOpenCount}, EnabledBots=${enabledBotsCount}, ActiveBots=${activeUserIds.size}`);
 
