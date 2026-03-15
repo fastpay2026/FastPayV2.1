@@ -37,7 +37,7 @@ export const supabaseService = {
         linkedCards: u.linked_cards,
         assets: u.assets,
         apiKeys: u.api_keys,
-        isBot: u.is_bot,
+        isBot: u.role === 'BOT',
         isActive: u.status === 'active'
       };
     });
