@@ -5,17 +5,7 @@ import OrderBook from './components/OrderBook';
 import { LayoutDashboard, BarChart3 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { User } from '../../../types';
-import { io } from 'socket.io-client';
-import axios from 'axios';
 import { useNotification } from '../../../components/NotificationContext';
-
-const socket = io({
-  transports: ['polling', 'websocket'],
-  reconnectionAttempts: 50,
-  reconnectionDelay: 1000,
-  timeout: 60000,
-  autoConnect: true
-});
 
 interface TradingPlatformProps {
   user: User;
@@ -30,7 +20,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [priceColor, setPriceColor] = useState('text-white');
   const [prevPrice, setPrevPrice] = useState(0);
   const [trades, setTrades] = useState<any[]>([]);
-  const [isConnected, setIsConnected] = useState(socket.connected);
+  const [isConnected, setIsConnected] = useState(true);
   const [orderBook, setOrderBook] = useState<{ bids: [number, number][], asks: [number, number][] }>({ bids: [], asks: [] });
   const { showNotification } = useNotification();
 
@@ -52,105 +42,34 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       });
     };
 
-    // Socket.io for trade events
-    const fetchInitialTrades = async () => {
+    // Direct Supabase Connection for Trades
+    const fetchTradesDirect = async () => {
       try {
-        const version = Date.now();
-        const fullUrl = `https://trade.fastpay-network.com/get-my-data-now?v=${version}`;
-        console.log(`TradingPlatform: Fetching from ${fullUrl} using Axios...`);
-        
-        const response = await axios.get(fullUrl, {
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            'Expires': '0',
-          }
-        });
+        console.log('TradingPlatform: Fetching trades directly from Supabase...');
+        const { data, error } = await supabase
+          .from('trade_orders')
+          .select('*, users(username, is_bot)')
+          .eq('status', 'open')
+          .order('timestamp', { ascending: false })
+          .limit(20);
 
-        if (response.data && response.data.status === "API_WORKING") {
-          console.log('API Verification Success:', response.data);
-          setTrades(response.data.data || []);
-          setIsConnected(true);
-        } else if (response.data && Array.isArray(response.data)) {
-          console.log('Data Received from /get-my-data-now:', response.data);
-          setTrades(response.data.slice(0, 20));
-          setIsConnected(true);
-        } else {
-          console.error('TradingPlatform: API returned invalid data structure:', response.status, response.data);
-        }
+        if (error) throw error;
+
+        const flattenedData = (data || []).map((order: any) => ({
+          ...order,
+          username: order.users?.username || order.username || order.user_id,
+          is_bot: order.users?.is_bot || false
+        }));
+
+        console.log('Direct Data Received:', flattenedData);
+        setTrades(flattenedData);
+        setIsConnected(true);
       } catch (err: any) {
-        console.error('TradingPlatform: Failed to fetch trades via Axios:', err.message);
-        if (err.response && typeof err.response.data === 'string' && err.response.data.includes('<!DOCTYPE html>')) {
-          console.error('CRITICAL: Received HTML instead of JSON. Route might be intercepted by host.');
-        }
+        console.error('TradingPlatform: Direct fetch failed:', err.message);
       }
     };
 
-    fetchInitialTrades();
-
-    // 3-second Polling Fallback
-    const pollingInterval = setInterval(() => {
-      console.log('TradingPlatform: Polling for new trades...');
-      fetchInitialTrades();
-    }, 3000);
-
-    socket.on('connect', () => {
-      setIsConnected(true);
-      console.log('[SUCCESS] Real-time Trading Connected');
-      console.log('TradingPlatform: Socket connected:', socket.id);
-    });
-
-    socket.on('disconnect', () => {
-      setIsConnected(false);
-    });
-
-    socket.on('connection_status', (data) => {
-      console.log('TradingPlatform: Server status:', data.status);
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error('TradingPlatform: Socket connection error:', error);
-    });
-
-    socket.on('initial_trades', (initialTrades) => {
-      console.log('TradingPlatform: Received initial trades:', initialTrades.length);
-      setTrades(initialTrades.slice(0, 15));
-    });
-
-    socket.on('new_trade', (trade) => {
-      console.log('TradingPlatform: [SOCKET] Received new trade:', trade);
-      if (!trade.username) {
-        console.warn('TradingPlatform: Received trade without username:', trade);
-      }
-      setTrades(prev => {
-        const newTrades = [trade, ...prev];
-        console.log('TradingPlatform: Updating trades list. New count:', newTrades.length);
-        console.table(newTrades.slice(0, 5));
-        // Sort: user trades first, then others, keep last 15
-        return newTrades.sort((a, b) => {
-          const aIsUser = (a.user_id === user.id || a.userId === user.id);
-          const bIsUser = (b.user_id === user.id || b.userId === user.id);
-          return (bIsUser ? 1 : -1) - (aIsUser ? 1 : -1);
-        }).slice(0, 15);
-      });
-    });
-
-    socket.on('profit_notification', (data) => {
-      // Notification language handling
-      const isUser = data.username === user.username;
-      const lang = localStorage.getItem('language') || 'en';
-      const message = lang === 'ar' 
-        ? `المتداول ${data.username} حقق للتو ربحاً بقيمة $${data.profit.toFixed(2)}`
-        : `Trader ${data.username} just made a profit of $${data.profit.toFixed(2)}`;
-      showNotification(message);
-    });
-
-    socket.on('order_book_update', (data) => {
-        if (data.symbol === symbol) {
-            setOrderBook({ bids: data.bids, asks: data.asks });
-        }
-    });
+    fetchTradesDirect();
 
     const channel = supabase
       .channel('realtime_trading')
@@ -173,9 +92,6 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         };
         
         setTrades(prev => {
-          // Check if already exists (to avoid duplicates with socket)
-          if (prev.some(t => t.id === tradeWithUser.id)) return prev;
-          
           const newTrades = [tradeWithUser, ...prev];
           return newTrades.sort((a, b) => {
             const aIsUser = (a.user_id === user.id);
@@ -193,12 +109,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
     return () => {
       ws.close();
-      clearInterval(pollingInterval);
       supabase.removeChannel(channel);
-      socket.off('initial_trades');
-      socket.off('new_trade');
-      socket.off('profit_notification');
-      socket.off('order_book_update');
     };
   }, [user, symbol]);
 
@@ -324,17 +235,6 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           <div className={`flex items-center gap-2 px-2 py-1 rounded text-[10px] font-bold ${isConnected ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}`}>
             <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
             {isConnected ? 'Connected' : 'Disconnected'}
-            {!isConnected && (
-              <button 
-                onClick={() => {
-                  console.log('Manual Reconnect Triggered');
-                  socket.connect();
-                }}
-                className="ml-2 px-1 bg-white/10 hover:bg-white/20 rounded text-[8px]"
-              >
-                Reconnect
-              </button>
-            )}
           </div>
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
             {Object.entries(prices).map(([s, p]) => <span key={s} className="mx-4">{s}: {(p as number).toFixed(2)}</span>)}

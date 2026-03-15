@@ -6,7 +6,6 @@ import cors from 'cors';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
 
 console.log('Server: Process starting...');
 if (!pkg) {
@@ -32,23 +31,8 @@ async function startServer() {
 
   // 1. Basic Middleware
   app.use((req, res, next) => {
-    if (req.path === '/get-my-data-now') {
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    }
     console.log(`[DEBUG] Request Path: ${req.path} | Method: ${req.method} | Time: ${new Date().toISOString()}`);
     next();
-  });
-
-  // EMERGENCY JSON ENDPOINT - Highest Priority
-  app.get('/get-my-data-now', (req, res) => {
-    console.log('[DEBUG] VERIFICATION ENDPOINT HIT: /get-my-data-now');
-    return res.json({
-      status: "API_WORKING",
-      data: [],
-      timestamp: new Date().toISOString(),
-      check: "System-Check-Verification"
-    });
   });
 
   app.use(cors({
@@ -94,107 +78,13 @@ async function startServer() {
     console.error('Server: Failed to initialize Binance client:', e);
   }
 
-  // 4. Socket.io Setup
-  const io = new Server(httpServer, {
-    cors: {
-      origin: true,
-      methods: ["GET", "POST"],
-      credentials: true
-    },
-    transports: ['polling', 'websocket'],
-    allowEIO3: true,
-    addTrailingSlash: false // Critical for some proxy environments
-  });
-
-  io.engine.on("connection_error", (err) => {
-    console.error('Socket Engine Error:', err.code, err.message, err.context);
-  });
-
   // 5. API Routes - MUST be before any catch-all or static middleware
-  app.get(['/api/trades', '/api/trades/'], async (req, res) => {
-    console.log(`[DEBUG] API Request for ${req.url} - System-Check`);
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    
-    try {
-      if (!isSupabaseConfigured) {
-        return res.json([{ id: 1, username: 'System-Check_Offline', asset_symbol: 'BTCUSDT', type: 'buy', amount: 1, entry_price: 70000, status: 'open', timestamp: new Date().toISOString() }]);
-      }
-
-      const { data, error } = await supabase
-        .from('trade_orders')
-        .select('*, users(username, is_bot)')
-        .eq('status', 'open')
-        .order('timestamp', { ascending: false })
-        .limit(50);
-      
-      if (error) throw error;
-
-      const flattenedData = (data || []).map((order: any) => ({
-        ...order,
-        username: order.users?.username || order.username || order.user_id,
-        is_bot: order.users?.is_bot || false
-      }));
-
-      if (flattenedData.length === 0) {
-        return res.json([{
-          id: Date.now(),
-          username: 'System-Check_Bot',
-          asset_symbol: 'BTCUSDT',
-          type: 'buy',
-          amount: 1.0,
-          entry_price: 70000,
-          status: 'open',
-          timestamp: new Date().toISOString()
-        }]);
-      }
-
-      console.log(`[DEBUG] Sending ${flattenedData.length} trades to client (System-Check)`);
-      return res.json(flattenedData);
-    } catch (err: any) {
-      console.error('API Error:', err.message);
-      return res.status(500).json({ error: err.message, status: 'System-Check-Error' });
-    }
-  });
-
   app.get('/api/ping', (req, res) => {
     res.json({ message: 'pong', timestamp: new Date().toISOString() });
   });
 
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', connected: true });
-  });
-
-  app.get(['/api/trades', '/api/trades/'], async (req, res) => {
-    console.log(`[DEBUG] API Request for ${req.url}`);
-    res.setHeader('Content-Type', 'application/json');
-    
-    if (!isSupabaseConfigured) {
-      return res.status(503).json({ error: 'Supabase not configured' });
-    }
-    try {
-      const { data, error } = await supabase
-        .from('trade_orders')
-        .select('*, users(username, is_bot)')
-        .eq('status', 'open')
-        .order('timestamp', { ascending: false })
-        .limit(50);
-      
-      if (error) throw error;
-
-      // Flatten the data to include username at top level
-      const flattenedData = (data || []).map((order: any) => ({
-        ...order,
-        username: order.users?.username || order.username || order.user_id,
-        is_bot: order.users?.is_bot || false
-      }));
-
-      console.log(`[DEBUG] Sending ${flattenedData.length} trades to client`);
-      return res.json(flattenedData);
-    } catch (err: any) {
-      console.error('API Error:', err.message);
-      return res.status(500).json({ error: err.message });
-    }
   });
 
   app.get('/api/test-trade', async (req, res) => {
@@ -229,7 +119,6 @@ async function startServer() {
         username: inserted.users?.username || user.username
       };
 
-      io.emit('new_trade', flattened);
       return res.json({ success: true, trade: flattened });
     } catch (err: any) {
       console.error('API: Test trade failed:', err.message);
@@ -242,91 +131,6 @@ async function startServer() {
     res.status(404).json({ error: `API route ${req.originalUrl} not found` });
   });
 
-  // 6. Socket Events
-  io.on('connection', (socket) => {
-    console.log('Server: New connection:', socket.id);
-    socket.emit('connection_status', { status: 'Connected' });
-    
-    // Force immediate 5 trades for the new connection to ensure table is not empty
-    const sendImmediateTrades = async () => {
-      console.log('Server: Sending immediate trades to', socket.id);
-      const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
-      const types = ['buy', 'sell'];
-      const mockTrades = Array.from({ length: 5 }).map((_, i) => ({
-        id: `mock-${Date.now()}-${i}`,
-        username: `Trader_${Math.floor(Math.random() * 9000) + 1000}`,
-        asset_symbol: symbols[Math.floor(Math.random() * symbols.length)],
-        type: types[Math.floor(Math.random() * types.length)],
-        amount: (Math.random() * 2 + 0.1).toFixed(2),
-        entry_price: 70000 + (Math.random() * 1000 - 500),
-        status: 'open',
-        timestamp: new Date(Date.now() - i * 10000).toISOString()
-      }));
-      socket.emit('initial_trades', mockTrades);
-    };
-
-    sendImmediateTrades();
-    
-    const sendInitialData = async () => {
-      if (!isSupabaseConfigured) return;
-      try {
-        const { data: openTrades, error } = await supabase
-          .from('trade_orders')
-          .select('*, users(username, is_bot)')
-          .eq('status', 'open')
-          .order('timestamp', { ascending: false })
-          .limit(50);
-
-        if (!error && openTrades) {
-          const flattenedTrades = openTrades.map((order: any) => ({
-            ...order,
-            username: order.users?.username || order.username || order.user_id,
-            is_bot: order.users?.is_bot || false
-          }));
-          socket.emit('initial_trades', flattenedTrades);
-        }
-      } catch (err) {
-        console.error('Server: Initial data fetch error:', err);
-      }
-    };
-
-    sendInitialData();
-
-    socket.on('disconnect', (reason) => {
-      console.log('Server: Disconnected:', socket.id, 'Reason:', reason);
-    });
-  });
-
-  // --- الاستماع لتغييرات قاعدة البيانات ---
-  if (isSupabaseConfigured) {
-    supabase
-      .channel('trade_orders_channel')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, async (payload) => {
-        console.log('New trade detected:', payload.new);
-        try {
-          const { data: user } = await supabase.from('users').select('username').eq('id', payload.new.user_id).single();
-          const tradeWithUsername = { 
-            ...payload.new, 
-            username: user?.username || payload.new.username || payload.new.user_id 
-          };
-          io.emit('new_trade', tradeWithUsername);
-        } catch (err) {
-          console.error('Server: Error fetching username for new trade:', err);
-          io.emit('new_trade', payload.new);
-        }
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_orders' }, async (payload) => {
-        console.log('Trade updated:', payload.new);
-        if (payload.new.status === 'closed_profit') {
-          const { data: user } = await supabase.from('users').select('username').eq('id', payload.new.user_id).single();
-          const profit = (payload.new.exit_price - payload.new.entry_price) * payload.new.amount;
-          io.emit('profit_notification', { username: user?.username || 'Trader', profit });
-        }
-      })
-      .subscribe();
-  } else {
-    console.log('Server: Supabase not configured, skipping database listener.');
-  }
   const startWatcherBot = () => {
     if (!isSupabaseConfigured) {
       console.log('Watcher Bot: Supabase not configured, skipping bot start.');
@@ -372,8 +176,6 @@ async function startServer() {
               if (user) {
                   await supabase.from('users').update({ balance: user.balance + profit + pos.amount }).eq('id', pos.user_id);
               }
-
-              io.emit('profit_notification', { username: pos.username, profit });
             }
           } catch (posError: any) {
             console.error(`Watcher Bot: Error processing position ${pos.id}:`, posError.message || posError);
@@ -470,21 +272,42 @@ async function startServer() {
 
             if (insertError) {
               console.error('Ghost Traders: DB Insert Error:', insertError.message);
-              // Fallback to emit if DB fails
-              io.emit('new_trade', { ...tradeData, username: botUser.username });
             } else if (insertedTrade) {
               const flattened = {
                 ...insertedTrade,
                 username: insertedTrade.users?.username || botUser.username,
                 is_bot: insertedTrade.users?.is_bot || true
               };
-              io.emit('new_trade', flattened);
-              console.log('Ghost Traders: [SUCCESS] Trade inserted and emitted:', flattened.username);
+              console.log('Ghost Traders: [SUCCESS] Trade inserted:', flattened.username);
             }
           } catch (err) {
             console.error('Ghost Traders: Trade execution failed:', err);
           }
         }
+
+        if (config && config.is_active) {
+          console.log('Ghost Traders: Bot system is ACTIVE. Fetching bot users...');
+          // Aggressive testing: always try to trade every 10 seconds if active
+          nextDelay = 10000;
+          const { data: botUsers, error: usersError } = await supabase.from('users').select('*').eq('is_bot', true);
+          
+          if (usersError) {
+            console.error('Ghost Traders: Error fetching bot users:', usersError);
+          } else {
+            console.log(`Ghost Traders: Found ${botUsers?.length || 0} bot users.`);
+          }
+          
+          if (usersError || !botUsers || botUsers.length === 0) {
+            console.log('Ghost Traders: No bot users found or error. Using fallback to any users...');
+            const { data: fallbackUsers } = await supabase.from('users').select('*').limit(10);
+            if (fallbackUsers && fallbackUsers.length > 0) {
+              const botUser = fallbackUsers[Math.floor(Math.random() * fallbackUsers.length)];
+              await executeBotTrade(botUser);
+            }
+          } else {
+            const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
+            await executeBotTrade(botUser);
+          }
           nextDelay = Math.floor(Math.random() * (60000 / (config.trades_per_hour || 5) * 2 - 10000 + 1)) + 10000;
         } else {
           console.log('Ghost Traders: Bot system is INACTIVE (config.is_active is false).');
@@ -532,7 +355,6 @@ async function startServer() {
               console.error(`[BOT] Failed to open trade for ${bot.username}:`, insertError.message);
             } else {
               console.log(`[BOT] Opened trade for user: ${bot.username}`);
-              io.emit('new_trade', { ...trade, username: bot.username });
             }
           }
         } else {
@@ -552,7 +374,6 @@ async function startServer() {
                 timestamp: new Date().toISOString()
               };
               await supabase.from('trade_orders').insert(trade);
-              io.emit('new_trade', trade);
               console.log(`[BOT] Opened trade for user: ${bot.username} (Fallback)`);
             }
           }
