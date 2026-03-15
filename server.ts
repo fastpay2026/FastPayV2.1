@@ -264,6 +264,7 @@ async function startServer() {
     await ensureBotUsers();
     
     const executeBotTrade = async (botUser: any) => {
+      addLog(`[DEBUG] executeBotTrade called for ${botUser.username}`);
       // 1. Check if bot already has an open trade to prevent duplicates/lag
       const { data: existingOpen } = await supabase
         .from('trade_orders')
@@ -281,7 +282,7 @@ async function startServer() {
       const symbol = symbols[Math.floor(Math.random() * symbols.length)];
       
       try {
-        console.log(`[Bot Engine] Opening trade for user: ${botUser.username} on ${symbol}`);
+        addLog(`[DEBUG] Attempting to open trade for ${botUser.username} on ${symbol}`);
         
         let currentPrice = 0;
         if (binanceClient) {
@@ -338,6 +339,12 @@ async function startServer() {
         };
 
         const { error: insertError } = await supabase.from('trade_orders').insert(tradeData);
+        
+        if (insertError) {
+          addLog(`[Error] Failed to insert trade for ${botUser.username}: ${insertError.message}`);
+        } else {
+          addLog(`[DEBUG] Trade successfully inserted for ${botUser.username}`);
+        }
         if (insertError) {
           console.error(`Ghost Traders: Failed to insert trade for ${botUser.username}:`, insertError.message);
         } else {
