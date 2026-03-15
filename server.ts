@@ -280,22 +280,41 @@ async function startServer() {
       }
     };
 
+    let lastActiveState = false;
+
     const runDensityCycle = async () => {
       try {
         const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
         
-        if (config?.is_active) {
-          const maxTrades = config.max_trades_per_15m || 10;
+        const isActive = config?.is_active ?? false;
+
+        // If just turned ON, trigger an immediate trade for feedback
+        if (isActive && !lastActiveState) {
+          console.log('Ghost Traders: System turned ON. Triggering immediate warm-up trade...');
+          const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(1);
+          if (botUsers && botUsers.length > 0) {
+            executeBotTrade(botUsers[0]);
+          }
+        }
+        lastActiveState = isActive;
+
+        if (isActive) {
+          const maxTrades15m = config.max_trades_per_15m || 10;
           const activeBotsLimit = config.active_bots_count || 5;
+          const aggressiveness = config.aggressiveness || 1.0;
+          
+          // Calculate how many trades to do in this 1-minute window
+          // (maxTrades / 15) * aggressiveness
+          const tradesThisMinute = Math.ceil((maxTrades15m / 15) * aggressiveness);
           
           const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(activeBotsLimit);
           
           if (botUsers && botUsers.length > 0) {
-            console.log(`Ghost Traders: Starting 15m cycle. Scheduling ${maxTrades} trades...`);
+            console.log(`Ghost Traders: Minute cycle. Scheduling ${tradesThisMinute} trades...`);
             
-            for (let i = 0; i < maxTrades; i++) {
-              // Distribute randomly within 15 minutes (900,000 ms)
-              const offset = Math.random() * 900000;
+            for (let i = 0; i < tradesThisMinute; i++) {
+              // Distribute within 60 seconds
+              const offset = Math.random() * 60000;
               setTimeout(() => {
                 const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
                 executeBotTrade(botUser);
@@ -307,8 +326,8 @@ async function startServer() {
         console.error('Ghost Traders Density Cycle Error:', error);
       }
       
-      // Run every 15 minutes
-      setTimeout(runDensityCycle, 900000);
+      // Run every 1 minute for better responsiveness
+      setTimeout(runDensityCycle, 60000);
     };
     
     runDensityCycle();
