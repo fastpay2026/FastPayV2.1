@@ -51,9 +51,33 @@ const GhostTraders: React.FC = () => {
     });
   };
 
+  const addBot = async () => {
+    const { error } = await supabase.from('bot_instances').insert({
+      name: 'New Bot',
+      strategy: 'scalper',
+      mode: 'manual',
+      fixed_amount: 10,
+      is_active: true
+    });
+    if (error) alert('Error adding bot: ' + error.message);
+    else fetchBots();
+  };
+
+  const deleteBot = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this bot?')) {
+      await supabase.from('bot_instances').delete().eq('id', id);
+      fetchBots();
+    }
+  };
+
   return (
     <div className="p-6 bg-[#131722] rounded-2xl border border-white/10 space-y-6">
-      <h2 className="text-xl font-bold text-white">مركز التحكم الذكي (Ghost Engine)</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold text-white">مركز التحكم الذكي (Ghost Engine)</h2>
+        <button onClick={addBot} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold transition-all">
+          + إضافة بوت جديد
+        </button>
+      </div>
       
       <div className="space-y-4">
         {bots.map(bot => (
@@ -84,6 +108,10 @@ const GhostTraders: React.FC = () => {
             {bot.mode === 'manual' && (
               <button onClick={() => triggerManualTrade(bot)} className="bg-blue-600 p-2 rounded font-bold">فتح صفقة الآن</button>
             )}
+            
+            <button onClick={() => deleteBot(bot.id)} className="bg-red-900/40 text-red-500 p-2 rounded hover:bg-red-900/60 transition-all">
+              🗑️
+            </button>
           </div>
         ))}
       </div>

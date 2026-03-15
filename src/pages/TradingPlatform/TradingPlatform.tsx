@@ -46,23 +46,46 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const fetchTradesDirect = async () => {
       try {
         console.log('TradingPlatform: Fetching trades directly from Supabase...');
-        const { data, error } = await supabase
+        
+        // 1. Fetch real trades
+        const { data: realTrades, error: realError } = await supabase
           .from('trade_orders')
           .select('*, users(username, is_bot)')
           .eq('status', 'open')
           .order('timestamp', { ascending: false })
-          .limit(20);
+          .limit(10);
 
-        if (error) throw error;
+        // 2. Fetch bot simulated trades
+        const { data: botSimTrades, error: botError } = await supabase
+          .from('bot_trades_simulation')
+          .select('*, bot_instances(name)')
+          .eq('status', 'open')
+          .order('created_at', { ascending: false })
+          .limit(10);
 
-        const flattenedData = (data || []).map((order: any) => ({
+        if (realError) throw realError;
+
+        const flattenedReal = (realTrades || []).map((order: any) => ({
           ...order,
           username: order.users?.username || order.username || order.user_id,
           is_bot: order.users?.is_bot || false
         }));
 
-        console.log('Direct Data Received:', flattenedData);
-        setTrades(flattenedData);
+        const flattenedBots = (botSimTrades || []).map((order: any) => ({
+          ...order,
+          id: order.id,
+          username: order.bot_instances?.name || 'Bot',
+          asset_symbol: order.symbol,
+          entry_price: order.price,
+          timestamp: order.created_at,
+          is_bot: true
+        }));
+
+        const allTrades = [...flattenedReal, ...flattenedBots].sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        ).slice(0, 20);
+
+        setTrades(allTrades);
         setIsConnected(true);
       } catch (err: any) {
         console.error('TradingPlatform: Direct fetch failed:', err.message);
