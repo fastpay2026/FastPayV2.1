@@ -61,8 +61,8 @@ const GhostTraders: React.FC = () => {
             <div className="flex flex-col gap-1">
               <label className="text-[9px] text-slate-500">اسم البوت</label>
               <input 
-                value={bot.name} 
-                onChange={(e) => updateBot(bot.id, { name: e.target.value })}
+                defaultValue={bot.name} 
+                onBlur={(e) => updateBot(bot.id, { name: e.target.value })}
                 className="bg-black p-2 rounded text-white w-40 border border-white/10"
                 placeholder="أدخل الاسم هنا"
               />
@@ -75,7 +75,7 @@ const GhostTraders: React.FC = () => {
             <input type="number" value={bot.fixed_amount} onChange={(e) => updateBot(bot.id, { fixed_amount: e.target.value })} className="bg-black p-2 rounded text-white w-20" />
             
             <button 
-              onClick={() => updateBot(bot.id, { mode: bot.mode === 'auto' ? 'manual' : 'auto' })}
+              onClick={() => updateBot(bot.id, { mode: bot.mode === 'auto' ? 'manual' : 'auto', is_active: true })}
               className={`p-2 rounded font-bold ${bot.mode === 'auto' ? 'bg-green-600' : 'bg-yellow-600'}`}
             >
               {bot.mode === 'auto' ? 'Auto' : 'Manual'}
