@@ -256,7 +256,7 @@ const App: React.FC = () => {
             entryPrice: updatedOrder.entry_price
           } : o));
         } else if (payload.eventType === 'DELETE') {
-          setTradeOrders(prev => prev.filter(o => o.id === payload.old.id));
+          setTradeOrders(prev => prev.filter(o => o.id !== payload.old.id));
         }
       })
       .subscribe();
@@ -277,7 +277,8 @@ const App: React.FC = () => {
             linkedCards: u.linked_cards,
             assets: u.assets,
             apiKeys: u.api_keys,
-            isBot: u.is_bot
+            isBot: u.is_bot,
+            isActive: u.is_active
           };
           setAccounts(prev => {
             const exists = prev.find(acc => acc.id === mappedUser.id);

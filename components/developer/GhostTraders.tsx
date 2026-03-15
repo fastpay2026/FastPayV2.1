@@ -54,10 +54,7 @@ const GhostTraders: React.FC = () => {
       })
       .subscribe();
 
-    // Refresh stats every 3 seconds as a fallback
-    const interval = setInterval(loadConfig, 3000);
     return () => {
-      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, []);
@@ -107,13 +104,13 @@ const GhostTraders: React.FC = () => {
   };
 
   const toggleBotStatus = async (user: User) => {
-    const newIsBot = !user.isBot;
-    const updatedUser = { ...user, isBot: newIsBot };
+    const newIsActive = !user.isActive;
+    const updatedUser = { ...user, isActive: newIsActive };
     
     await supabaseService.updateUser(updatedUser);
     
     // If deactivated, close all open trades for this bot immediately
-    if (!newIsBot) {
+    if (!newIsActive) {
       await supabase
         .from('trade_orders')
         .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
@@ -244,9 +241,9 @@ const GhostTraders: React.FC = () => {
               <span className="text-xs text-white font-medium">{user.username}</span>
               <button 
                 onClick={() => toggleBotStatus(user)}
-                className={`${user.isBot ? 'bg-emerald-600 shadow-lg shadow-emerald-900/20' : 'bg-slate-700'} text-white px-3 py-1 rounded-lg text-[10px] font-bold transition-all`}
+                className={`${user.isActive ? 'bg-emerald-600 shadow-lg shadow-emerald-900/20' : 'bg-slate-700'} text-white px-3 py-1 rounded-lg text-[10px] font-bold transition-all`}
               >
-                {user.isBot ? 'مفعل' : 'غير مفعل'}
+                {user.isActive ? 'مفعل' : 'غير مفعل'}
               </button>
             </div>
           ))}

@@ -255,20 +255,28 @@ async function startServer() {
     };
 
     const ensureBotUsers = async () => {
-      // Cleanup any legacy/fake bots
-      const fakeNames = ['test11', 'test', 'test22', 'test66', 'test2222'];
-      await supabase.from('users').delete().in('username', fakeNames).eq('is_bot', true);
-      await supabase.from('users').delete().like('username', 'GhostTrader_%').eq('is_bot', true);
-
       const { data: existingBots } = await supabase.from('users').select('id').eq('is_bot', true);
       const count = existingBots?.length || 0;
-      console.log(`[Bot Engine] Found ${count} real bot users in database.`);
+      console.log(`[Bot Engine] Found ${count} bot users in database.`);
     };
 
     await ensureBotConfig();
     await ensureBotUsers();
     
     const executeBotTrade = async (botUser: any) => {
+      // 1. Check if bot already has an open trade to prevent duplicates/lag
+      const { data: existingOpen } = await supabase
+        .from('trade_orders')
+        .select('id')
+        .eq('user_id', botUser.id)
+        .eq('status', 'open')
+        .maybeSingle();
+      
+      if (existingOpen) {
+        // console.log(`[Bot Engine] Bot ${botUser.username} already has an open trade. Skipping.`);
+        return;
+      }
+
       const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT'];
       const symbol = symbols[Math.floor(Math.random() * symbols.length)];
       
@@ -362,8 +370,13 @@ async function startServer() {
           const activeUserIds = new Set(openBotTrades?.map(t => t.user_id) || []);
           const currentOpenCount = openBotTrades?.length || 0;
 
-          // Get all enabled bots
-          const { data: allEnabledBots } = await supabase.from('users').select('*').eq('is_bot', true);
+          // Get all enabled bots (is_bot = true AND is_active = true)
+          const { data: allEnabledBots } = await supabase
+            .from('users')
+            .select('*')
+            .eq('is_bot', true)
+            .eq('is_active', true);
+          
           const enabledBotsCount = allEnabledBots?.length || 0;
 
           console.log(`[Bot Engine] Cycle: Active=${isActive}, OpenTrades=${currentOpenCount}, EnabledBots=${enabledBotsCount}, ActiveBots=${activeUserIds.size}`);

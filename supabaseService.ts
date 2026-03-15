@@ -37,7 +37,8 @@ export const supabaseService = {
         linkedCards: u.linked_cards,
         assets: u.assets,
         apiKeys: u.api_keys,
-        isBot: u.is_bot
+        isBot: u.is_bot,
+        isActive: u.is_active
       };
     });
   },
@@ -62,7 +63,8 @@ export const supabaseService = {
         linked_cards: Array.isArray(user.linkedCards) ? user.linkedCards : [],
         assets: Array.isArray(user.assets) ? user.assets : [],
         api_keys: Array.isArray(user.apiKeys) ? user.apiKeys : [],
-        is_bot: Boolean(user.isBot)
+        is_bot: Boolean(user.isBot),
+        is_active: Boolean(user.isActive)
       };
 
       const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });

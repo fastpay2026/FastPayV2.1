@@ -45,6 +45,7 @@ export interface User {
   assets?: UserAsset[];
   apiKeys?: APIKey[];
   isBot?: boolean;
+  isActive?: boolean;
 }
 
 export interface TradeAsset {
