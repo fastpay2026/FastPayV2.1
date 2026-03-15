@@ -139,7 +139,6 @@ async function startServer() {
     console.log('Watcher Bot started...');
     setInterval(async () => {
       try {
-        // Fetch positions that are either bot trades OR have bot management enabled by admin
         const { data: positions, error } = await supabase
           .from('trade_orders')
           .select('*')
@@ -148,7 +147,6 @@ async function startServer() {
         if (error) throw error;
         if (!positions || positions.length === 0) return;
 
-        // Filter in memory to avoid PGRST204 if columns are missing
         const botPositions = positions.filter(p => p.is_bot === true || p.is_bot_enabled === true);
         if (botPositions.length === 0) return;
 
@@ -165,31 +163,24 @@ async function startServer() {
             const currentPrice = parseFloat(ticker.data.price);
 
             const isBuy = pos.type === 'buy';
-            const entryTime = new Date(pos.timestamp);
-            const minutesOpen = (now.getTime() - entryTime.getTime()) / 60000;
-
-            // Scalping logic: close after 3-15 minutes
-            const scalpingDuration = Math.floor(Math.random() * (15 - 3 + 1)) + 3;
-            const isScalpingTime = minutesOpen >= scalpingDuration;
-
-            // 60/40 win/loss logic
-            const winProbability = 0.6;
             const isProfit = isBuy ? currentPrice > pos.entry_price : currentPrice < pos.entry_price;
             
-            // Force a result if it's scalping time
             let shouldClose = false;
-            if (isScalpingTime) {
-              // If it's time to close, we check if we want a win or loss
-              const wantWin = Math.random() < winProbability;
-              if ((wantWin && isProfit) || (!wantWin && !isProfit)) {
-                shouldClose = true;
-              } else if (minutesOpen > 20) {
-                // If stuck for too long, just close anyway to keep it moving
+
+            // 1. Smart Closing Logic: check target_close_time
+            if (pos.target_close_time) {
+              const targetTime = new Date(pos.target_close_time);
+              if (now >= targetTime) {
                 shouldClose = true;
               }
+            } else {
+              // Fallback to old scalping logic if no target_close_time
+              const entryTime = new Date(pos.timestamp);
+              const minutesOpen = (now.getTime() - entryTime.getTime()) / 60000;
+              if (minutesOpen >= 15) shouldClose = true;
             }
 
-            // Also respect forced TP/SL from admin
+            // 2. Forced TP/SL
             if (!shouldClose) {
               shouldClose = isBuy 
                 ? (pos.forced_take_profit && currentPrice >= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice <= pos.forced_stop_loss)
@@ -197,8 +188,11 @@ async function startServer() {
             }
 
             if (shouldClose) {
-              const finalStatus = isProfit ? 'closed_profit' : 'closed_loss';
-              console.log(`Bot closing ${pos.type} position ${pos.id} (Status: ${finalStatus}) at price ${currentPrice}`);
+              // 60/40 win/loss logic for bots
+              const winProbability = 0.6;
+              const finalStatus = (Math.random() < winProbability) ? 'closed_profit' : 'closed_loss';
+              
+              console.log(`Bot closing ${pos.type} position ${pos.id} (Category: ${pos.bot_category}, Status: ${finalStatus})`);
               
               await supabase
                 .from('trade_orders')
@@ -231,81 +225,93 @@ async function startServer() {
       console.log('Ghost Traders: Supabase not configured, skipping bot start.');
       return;
     }
-    console.log('Ghost Traders: System initializing...');
+    console.log('Ghost Traders: System initializing with Personas...');
     
-    const scheduleNextTrade = async () => {
-      const executeBotTrade = async (botUser: any) => {
-        console.log(`Ghost Traders: Executing trade for ${botUser.username}`);
-        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT'];
-        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+    const executeBotTrade = async (botUser: any) => {
+      const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT'];
+      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+      
+      try {
+        const ticker = await binanceClient.tickerPrice(symbol);
+        const currentPrice = parseFloat(ticker.data.price);
         
-        try {
-          const ticker = await binanceClient.tickerPrice(symbol);
-          const currentPrice = parseFloat(ticker.data.price);
-          
-          // Dynamic Sizing: Random amounts with decimals
-          const amount = (Math.random() * (250.0 - 50.0) + 50.0).toFixed(2);
-          const type = Math.random() > 0.5 ? 'buy' : 'sell';
+        const amount = (Math.random() * (250.0 - 50.0) + 50.0).toFixed(2);
+        const type = Math.random() > 0.5 ? 'buy' : 'sell';
 
-          const tradeData = {
-            user_id: botUser.id,
-            username: botUser.username,
-            asset_symbol: symbol,
-            type: type,
-            amount: parseFloat(amount),
-            entry_price: currentPrice,
-            status: 'open',
-            is_bot: true,
-            timestamp: new Date().toISOString()
-          };
+        // 2. Bot Personas logic
+        const rand = Math.random();
+        let category: 'scalper' | 'day' | 'swing' = 'scalper';
+        let closeDelayMs = 0;
 
-          const { error: insertError } = await supabase.from('trade_orders').insert(tradeData);
-          if (insertError) console.error('Ghost Traders Error:', insertError.message);
-        } catch (err) {
-          console.error('Ghost Traders: Trade execution failed:', err);
+        if (rand < 0.6) {
+          category = 'scalper';
+          // 30s to 5m
+          closeDelayMs = (Math.random() * (300 - 30) + 30) * 1000;
+        } else if (rand < 0.9) {
+          category = 'day';
+          // 15m to 3h
+          closeDelayMs = (Math.random() * (180 - 15) + 15) * 60 * 1000;
+        } else {
+          category = 'swing';
+          // 1 day to 3 days
+          closeDelayMs = (Math.random() * (72 - 24) + 24) * 60 * 60 * 1000;
         }
-      };
 
+        const targetCloseTime = new Date(Date.now() + closeDelayMs).toISOString();
+
+        const tradeData = {
+          user_id: botUser.id,
+          username: botUser.username,
+          asset_symbol: symbol,
+          type: type,
+          amount: parseFloat(amount),
+          entry_price: currentPrice,
+          status: 'open',
+          is_bot: true,
+          bot_category: category,
+          target_close_time: targetCloseTime,
+          timestamp: new Date().toISOString()
+        };
+
+        await supabase.from('trade_orders').insert(tradeData);
+        console.log(`Ghost Traders: [${category.toUpperCase()}] Trade opened for ${botUser.username}`);
+      } catch (err) {
+        console.error('Ghost Traders: Trade execution failed:', err);
+      }
+    };
+
+    const runDensityCycle = async () => {
       try {
         const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
         
-        const isActive = config?.is_active ?? true;
-        const aggressiveness = config?.aggressiveness ?? 1.0; // 1.0 is normal, 2.0 is double activity
-        
-        if (isActive) {
-          // Peak hours logic (UTC)
-          const hour = new Date().getUTCHours();
-          let peakMultiplier = 1.0;
-          if (hour >= 8 && hour <= 18) peakMultiplier = 1.5; // Business hours
-          if (hour >= 20 || hour <= 4) peakMultiplier = 0.5; // Night hours
+        if (config?.is_active) {
+          const maxTrades = config.max_trades_per_15m || 10;
+          const activeBotsLimit = config.active_bots_count || 5;
           
-          const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true);
+          const { data: botUsers } = await supabase.from('users').select('*').eq('is_bot', true).limit(activeBotsLimit);
           
           if (botUsers && botUsers.length > 0) {
-            const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
-            await executeBotTrade(botUser);
+            console.log(`Ghost Traders: Starting 15m cycle. Scheduling ${maxTrades} trades...`);
+            
+            for (let i = 0; i < maxTrades; i++) {
+              // Distribute randomly within 15 minutes (900,000 ms)
+              const offset = Math.random() * 900000;
+              setTimeout(() => {
+                const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
+                executeBotTrade(botUser);
+              }, offset);
+            }
           }
-
-          // Stochastic Timing: 45s to 8m
-          const minDelay = 45000;
-          const maxDelay = 480000;
-          let nextDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-          
-          // Adjust delay based on aggressiveness and peak hours
-          nextDelay = nextDelay / (aggressiveness * peakMultiplier);
-          
-          console.log(`Ghost Traders: Next cycle in ${(nextDelay / 60000).toFixed(2)}m (Agg: ${aggressiveness}, Peak: ${peakMultiplier})`);
-          setTimeout(scheduleNextTrade, nextDelay);
-        } else {
-          setTimeout(scheduleNextTrade, 60000);
         }
       } catch (error) {
-        console.error('Ghost Traders: Critical cycle error:', error);
-        setTimeout(scheduleNextTrade, 60000);
+        console.error('Ghost Traders Density Cycle Error:', error);
       }
+      
+      // Run every 15 minutes
+      setTimeout(runDensityCycle, 900000);
     };
     
-    scheduleNextTrade();
+    runDensityCycle();
   };
 
   // Start the bots

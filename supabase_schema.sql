@@ -200,6 +200,8 @@ CREATE TABLE IF NOT EXISTS trade_orders (
     is_bot BOOLEAN DEFAULT false,
     is_bot_enabled BOOLEAN DEFAULT false,
     bot_config JSONB DEFAULT '{}',
+    bot_category TEXT, -- 'scalper', 'day', 'swing'
+    target_close_time TIMESTAMP WITH TIME ZONE,
     forced_take_profit DECIMAL(20, 8),
     forced_stop_loss DECIMAL(20, 8),
     closed_at TIMESTAMP WITH TIME ZONE,
@@ -210,6 +212,8 @@ CREATE TABLE IF NOT EXISTS trade_orders (
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS is_bot BOOLEAN DEFAULT false;
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS is_bot_enabled BOOLEAN DEFAULT false;
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS bot_config JSONB DEFAULT '{}';
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS bot_category TEXT;
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS target_close_time TIMESTAMP WITH TIME ZONE;
 
 -- 16. Landing Services
 CREATE TABLE IF NOT EXISTS landing_services (
@@ -305,11 +309,15 @@ CREATE TABLE IF NOT EXISTS bot_config (
     is_active BOOLEAN DEFAULT false,
     trades_per_hour INTEGER DEFAULT 5,
     aggressiveness DECIMAL(3, 2) DEFAULT 1.0,
+    active_bots_count INTEGER DEFAULT 5,
+    max_trades_per_15m INTEGER DEFAULT 10,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Ensure column exists
 ALTER TABLE bot_config ADD COLUMN IF NOT EXISTS aggressiveness DECIMAL(3, 2) DEFAULT 1.0;
+ALTER TABLE bot_config ADD COLUMN IF NOT EXISTS active_bots_count INTEGER DEFAULT 5;
+ALTER TABLE bot_config ADD COLUMN IF NOT EXISTS max_trades_per_15m INTEGER DEFAULT 10;
 
 -- Enable RLS and add policies for bot_config
 ALTER TABLE bot_config ENABLE ROW LEVEL SECURITY;
