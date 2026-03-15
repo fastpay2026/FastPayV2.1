@@ -16,7 +16,7 @@ export const supabaseService = {
   // Users
   async getUsers(): Promise<User[]> {
     console.log('supabaseService: Fetching users...');
-    const { data, error } = await supabase.from('users').select('*');
+    const { data, error } = await supabase.from('users').select('id, username, full_name, phone_number, password, role, balance, status, status_reason, is_verified, verification_status, verification_reason, linked_cards, assets, api_keys, is_bot, email, created_at');
     if (error) {
       console.error('supabaseService: Error fetching users:', error);
       throw error;
@@ -63,7 +63,8 @@ export const supabaseService = {
         assets: Array.isArray(user.assets) ? user.assets : [],
         api_keys: Array.isArray(user.apiKeys) ? user.apiKeys : [],
         is_bot: Boolean(user.isBot),
-        status: user.isActive ? 'active' : 'disabled'
+        status: user.isActive ? 'active' : 'disabled',
+        is_active: user.isActive
       };
 
       const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
