@@ -25,6 +25,9 @@ const SmartControlCenter: React.FC<Props> = ({
   // Identify bots that have active trades
   const activeBotIds = new Set(tradeOrders.filter(o => o.status === 'open').map(o => o.userId));
 
+  // ONLY show bots that are actually active in the top list
+  const activeBots = botUsers.filter(bot => activeBotIds.has(bot.id));
+
   const clearBotTrades = async () => {
     if (!window.confirm('هل أنت متأكد من رغبتك في مسح نشاط البوتات الحالي؟')) return;
     
@@ -60,29 +63,28 @@ const SmartControlCenter: React.FC<Props> = ({
       </div>
       
       <div className="bg-slate-800 p-6 rounded-2xl border border-white/5">
-        <h2 className="text-xl font-bold text-white mb-4">البوتات النشطة حالياً ({activeBotIds.size})</h2>
+        <h2 className="text-xl font-bold text-white mb-4">البوتات النشطة حالياً ({activeBots.length})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {botUsers.map(bot => {
-            const isActive = activeBotIds.has(bot.id);
-            return (
-              <div key={bot.id} className={`p-4 rounded-xl border transition-all ${isActive ? 'bg-emerald-900/20 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'bg-slate-900 border-white/5 opacity-50'}`}>
+          {activeBots.length > 0 ? (
+            activeBots.map(bot => (
+              <div key={bot.id} className="p-4 rounded-xl border bg-emerald-900/20 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all">
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
                     <span className="text-white font-bold">{bot.username}</span>
                     <span className="text-[10px] text-slate-500">{bot.id.substring(0, 8)}...</span>
                   </div>
-                  {isActive ? (
-                    <div className="flex flex-col items-end">
-                      <span className="text-emerald-400 text-[10px] font-black animate-pulse">● نشط الآن</span>
-                      <span className="text-[9px] text-emerald-500/70">يفتح صفقات</span>
-                    </div>
-                  ) : (
-                    <span className="text-slate-600 text-[10px]">خامل</span>
-                  )}
+                  <div className="flex flex-col items-end">
+                    <span className="text-emerald-400 text-[10px] font-black animate-pulse">● نشط الآن</span>
+                    <span className="text-[9px] text-emerald-500/70">يفتح صفقات</span>
+                  </div>
                 </div>
               </div>
-            );
-          })}
+            ))
+          ) : (
+            <div className="col-span-full py-8 text-center text-slate-500 bg-slate-900/50 rounded-xl border border-dashed border-white/5">
+              لا توجد بوتات نشطة حالياً. قم بتشغيل النظام وتفعيل البوتات من الأسفل.
+            </div>
+          )}
         </div>
       </div>
 

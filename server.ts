@@ -255,14 +255,18 @@ async function startServer() {
     };
 
     const ensureBotUsers = async () => {
+      // 1. Cleanup fake names mentioned by user
+      const fakeNames = ['test11', 'test', 'test22'];
+      await supabase.from('users').delete().in('username', fakeNames).eq('is_bot', true);
+
       const { data: existingBots } = await supabase.from('users').select('id').eq('is_bot', true);
       const count = existingBots?.length || 0;
       console.log(`Ghost Traders: Found ${count} existing bot users.`);
       
-      if (count < 10) {
-        console.log(`Ghost Traders: Creating ${10 - count} additional bot users...`);
+      if (count < 5) {
+        console.log(`Ghost Traders: Creating ${5 - count} additional bot users...`);
         const newBots = [];
-        for (let i = count; i < 10; i++) {
+        for (let i = count; i < 5; i++) {
           newBots.push({
             id: `00000000-0000-0000-0000-00000000000${i}`,
             username: `GhostTrader_${i}`,
@@ -438,8 +442,8 @@ async function startServer() {
         console.error('Ghost Traders Density Cycle Error:', error);
       }
       
-      // Check every 10 seconds for maximum responsiveness
-      setTimeout(runDensityCycle, 10000);
+      // Check every 5 seconds for maximum responsiveness
+      setTimeout(runDensityCycle, 5000);
     };
     
     runDensityCycle();

@@ -11,8 +11,12 @@ const GhostTraders: React.FC = () => {
   const [diagnosticData, setDiagnosticData] = useState<any>(null);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
 
-  const [openTrades, setOpenTrades] = useState<TradeOrder[]>([]);
-  const activeBotIds = new Set(openTrades.map(t => t.userId));
+  const [actualOpenTrades, setActualOpenTrades] = useState<TradeOrder[]>([]);
+
+  const scalperCount = actualOpenTrades.filter((t: any) => t.bot_category === 'scalper').length;
+  const dayCount = actualOpenTrades.filter((t: any) => t.bot_category === 'day').length;
+  const swingCount = actualOpenTrades.filter((t: any) => t.bot_category === 'swing').length;
+
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [aggressiveness, setAggressiveness] = useState(1.0);
 
@@ -27,16 +31,18 @@ const GhostTraders: React.FC = () => {
         setMaxTrades15m(data.max_trades_per_15m || 10);
       }
       const users = await supabaseService.getUsers();
-      setAllUsers(users.filter(u => u.role === 'USER'));
+      setAllUsers(users);
 
-      // Load open trades for stats
+      // Load actual open trades for accurate counts
       const { data: trades } = await supabase.from('trade_orders').select('*').eq('status', 'open').eq('is_bot', true);
-      if (trades) setOpenTrades(trades);
+      if (trades) {
+        setActualOpenTrades(trades);
+      }
     };
     loadConfig();
 
-    // Refresh stats every 5s
-    const interval = setInterval(loadConfig, 5000);
+    // Refresh stats every 3 seconds for real-time feel
+    const interval = setInterval(loadConfig, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -80,7 +86,7 @@ const GhostTraders: React.FC = () => {
     } else {
       // Refresh local state
       const { data: trades } = await supabase.from('trade_orders').select('*').eq('status', 'open').eq('is_bot', true);
-      if (trades) setOpenTrades(trades);
+      if (trades) setActualOpenTrades(trades);
     }
   };
 
@@ -101,9 +107,7 @@ const GhostTraders: React.FC = () => {
     }
   };
 
-  const scalperCount = openTrades.filter(t => t.bot_category === 'scalper').length;
-  const dayCount = openTrades.filter(t => t.bot_category === 'day').length;
-  const swingCount = openTrades.filter(t => t.bot_category === 'swing').length;
+  const activeBotIdsCount = new Set(actualOpenTrades.map((t: any) => t.user_id || t.userId)).size;
 
   return (
     <div className="p-6 bg-[#131722] rounded-2xl border border-white/10 space-y-6 relative">
@@ -139,31 +143,17 @@ const GhostTraders: React.FC = () => {
           >
             🔍 تشخيص
           </button>
-          <div className="flex gap-4 text-[10px] font-mono">
-          <div className="bg-emerald-900/20 text-emerald-400 px-2 py-1 rounded border border-emerald-500/20">
-            Scalpers: {scalperCount}
-          </div>
-          <div className="bg-sky-900/20 text-sky-400 px-2 py-1 rounded border border-sky-500/20">
-            Day: {dayCount}
-          </div>
-          <div className="bg-amber-900/20 text-amber-400 px-2 py-1 rounded border border-amber-500/20">
-            Swing: {swingCount}
-          </div>
+          <button 
+            onClick={toggleBot}
+            className={`px-6 py-2 rounded-xl font-bold text-white transition-all ${isEnabled ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'}`}
+          >
+            {isEnabled ? 'إيقاف البوتات' : 'تشغيل البوتات'}
+          </button>
         </div>
       </div>
-    </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={toggleBot} 
-              className={`px-6 py-2 rounded-xl font-bold ${isEnabled ? 'bg-emerald-600' : 'bg-red-600'} text-white transition-all`}
-            >
-              {isEnabled ? 'إيقاف البوتات' : 'تشغيل البوتات'}
-            </button>
-          </div>
-
           <div className="space-y-2">
             <label className="text-xs text-slate-400 block">العدوانية (Aggressiveness): {aggressiveness}x</label>
             <input 
@@ -185,8 +175,8 @@ const GhostTraders: React.FC = () => {
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/5 p-3 rounded-xl border border-white/5">
             <div className="flex justify-between items-center mb-1">
-              <label className="text-[10px] text-slate-500 block">عدد البوتات النشطة</label>
-              <span className="text-[9px] text-emerald-500 font-bold">الفعلي: {activeBotIds.size}</span>
+              <label className="text-[10px] text-slate-500 block">عدد البوتات النشطة (المستهدف)</label>
+              <span className="text-[9px] text-emerald-500 font-bold">الفعلي: {activeBotIdsCount}</span>
             </div>
             <input 
               type="number" 
@@ -221,7 +211,7 @@ const GhostTraders: React.FC = () => {
           إدارة البوتات الفردية
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-          {allUsers.map(user => (
+          {allUsers.filter(user => user.isBot).map(user => (
             <div key={user.id} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-all">
               <span className="text-xs text-white font-medium">{user.username}</span>
               <button 
@@ -232,6 +222,31 @@ const GhostTraders: React.FC = () => {
               </button>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-sm font-bold text-slate-400 mb-3 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+          ملخص الصفقات النشطة حالياً
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white/5 p-4 rounded-xl border border-white/5 flex flex-col justify-center items-center">
+            <span className="text-xs text-slate-500 uppercase block mb-1">إجمالي الصفقات المفتوحة</span>
+            <span className="text-3xl font-black text-white">{actualOpenTrades.length}</span>
+          </div>
+          <div className="bg-emerald-900/20 p-4 rounded-xl border border-emerald-500/20 flex flex-col justify-center items-center">
+            <span className="text-xs text-emerald-500 uppercase block mb-1">Scalpers</span>
+            <span className="text-3xl font-black text-white">{scalperCount}</span>
+          </div>
+          <div className="bg-sky-900/20 p-4 rounded-xl border border-sky-500/20 flex flex-col justify-center items-center">
+            <span className="text-xs text-sky-500 uppercase block mb-1">Day</span>
+            <span className="text-3xl font-black text-white">{dayCount}</span>
+          </div>
+          <div className="bg-amber-900/20 p-4 rounded-xl border border-amber-500/20 flex flex-col justify-center items-center">
+            <span className="text-xs text-amber-500 uppercase block mb-1">Swing</span>
+            <span className="text-3xl font-black text-white">{swingCount}</span>
+          </div>
         </div>
       </div>
     </div>
