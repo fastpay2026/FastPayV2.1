@@ -33,8 +33,7 @@ const GhostTraders: React.FC = () => {
         setMaxTrades15m(data.max_trades_per_15m || 10);
       }
       const users = await supabaseService.getUsers();
-      console.log('[GhostTraders] Loaded users:', users);
-      console.log('[GhostTraders] Bots found:', users.filter(u => u.isBot));
+      console.log('[GhostTraders] Loaded ALL users:', users);
       setAllUsers(users);
 
       // Load actual open trades for accurate counts

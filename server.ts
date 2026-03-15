@@ -397,6 +397,10 @@ async function startServer() {
             console.error('[Bot Engine] Error fetching enabled bots:', botsError);
           } else {
             console.log('[Bot Engine] Enabled bots found:', allEnabledBots?.length || 0);
+            if (allEnabledBots?.length === 0) {
+              const { data: allBots } = await supabase.from('users').select('*').eq('is_bot', true);
+              console.log('[Bot Engine] ALL bots found (regardless of status):', allBots);
+            }
           }
           
           const enabledBotsCount = allEnabledBots?.length || 0;
