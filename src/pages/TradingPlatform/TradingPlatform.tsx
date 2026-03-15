@@ -6,6 +6,7 @@ import { LayoutDashboard, BarChart3 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { User } from '../../../types';
 import { io } from 'socket.io-client';
+import axios from 'axios';
 import { useNotification } from '../../../components/NotificationContext';
 
 const socket = io({
@@ -55,21 +56,29 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const fetchInitialTrades = async () => {
       try {
         const version = Date.now();
-        console.log(`TradingPlatform: Fetching from /api/trades?v=${version}...`);
-        const response = await fetch(`/api/trades?v=${version}`);
-        const contentType = response.headers.get("content-type");
-        if (response.ok && contentType && contentType.includes("application/json")) {
-          const data = await response.json();
-          console.log('Data Received from /api/trades:', data);
-          setTrades(data.slice(0, 20));
-          // Set connected to true if we successfully fetched data
+        console.log(`TradingPlatform: Fetching from /get-my-data-now?v=${version} using Axios...`);
+        
+        const response = await axios.get(`/get-my-data-now?v=${version}`, {
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          }
+        });
+
+        if (response.data && Array.isArray(response.data)) {
+          console.log('Data Received from /get-my-data-now:', response.data);
+          setTrades(response.data.slice(0, 20));
           setIsConnected(true);
         } else {
-          const text = await response.text();
-          console.error('TradingPlatform: API returned non-JSON or error:', response.status, text.substring(0, 100));
+          console.error('TradingPlatform: API returned non-array or invalid data:', response.status, response.data);
         }
-      } catch (err) {
-        console.error('TradingPlatform: Failed to fetch trades via REST:', err);
+      } catch (err: any) {
+        console.error('TradingPlatform: Failed to fetch trades via Axios:', err.message);
+        if (err.response && typeof err.response.data === 'string' && err.response.data.includes('<!DOCTYPE html>')) {
+          console.error('CRITICAL: Received HTML instead of JSON. Route might be intercepted.');
+        }
       }
     };
 

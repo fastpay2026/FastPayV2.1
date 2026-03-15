@@ -32,9 +32,56 @@ async function startServer() {
 
   // 1. Basic Middleware
   app.use((req, res, next) => {
-    console.log(`[REQUEST] ${req.method} ${req.url}`);
+    console.log(`[DEBUG] Request Path: ${req.path} | Method: ${req.method} | Time: ${new Date().toISOString()}`);
     next();
   });
+
+  // EMERGENCY JSON ENDPOINT - Highest Priority
+  app.get('/get-my-data-now', async (req, res) => {
+    console.log('[DEBUG] EMERGENCY ENDPOINT HIT: /get-my-data-now');
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    
+    try {
+      if (!isSupabaseConfigured) {
+        return res.json([{ id: 1, username: 'System-Check_Offline', asset_symbol: 'BTCUSDT', type: 'buy', amount: 1, entry_price: 70000, status: 'open', timestamp: new Date().toISOString() }]);
+      }
+
+      const { data, error } = await supabase
+        .from('trade_orders')
+        .select('*, users(username, is_bot)')
+        .eq('status', 'open')
+        .order('timestamp', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+
+      const flattenedData = (data || []).map((order: any) => ({
+        ...order,
+        username: order.users?.username || order.username || order.user_id,
+        is_bot: order.users?.is_bot || false
+      }));
+
+      if (flattenedData.length === 0) {
+        return res.json([{
+          id: Date.now(),
+          username: 'System-Check_Empty_DB',
+          asset_symbol: 'BTCUSDT',
+          type: 'buy',
+          amount: 1.0,
+          entry_price: 70000,
+          status: 'open',
+          timestamp: new Date().toISOString()
+        }]);
+      }
+
+      return res.json(flattenedData);
+    } catch (err: any) {
+      console.error('EMERGENCY API Error:', err.message);
+      return res.json([{ id: 0, error: err.message, username: 'Error_Bot', asset_symbol: 'ERROR', type: 'none', amount: 0, entry_price: 0, status: 'error', timestamp: new Date().toISOString() }]);
+    }
+  });
+
   app.use(cors({
     origin: "*",
     methods: ["GET", "POST"],
