@@ -99,6 +99,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           ).slice(0, 20);
         });
       })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('TradingPlatform: [SUPABASE REALTIME] Trade deleted:', payload.old);
+        setTrades(prev => prev.filter(t => t.id !== payload.old.id));
+      })
       .subscribe((status) => {
         console.log('TradingPlatform: Supabase Realtime Status:', status);
         if (status === 'SUBSCRIBED') {
@@ -130,14 +134,17 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   };
 
   const handleTrade = async (type: 'Buy' | 'Sell') => {
-    if (isNaN(volume) || volume <= 0) { alert("يرجى إدخال كمية صحيحة!"); return; }
     const price = currentPrice;
+    if (isNaN(volume) || volume <= 0) { alert("يرجى إدخال كمية صحيحة!"); return; }
+    if (isNaN(price) || price <= 0) { alert("بانتظار تحديث السعر..."); return; }
+    
     const marginRequired = (volume * price) / 100;
+    if (isNaN(marginRequired)) { alert("خطأ في حساب الهامش!"); return; }
     if (balance.freeMargin < marginRequired) { alert("الرصيد غير كافٍ!"); return; }
 
     const { data: pos, error: posError } = await supabase.from('trade_orders').insert({
       user_id: user.id, 
-      username: user.username, 
+      username: user.username || 'User', 
       asset_symbol: symbol, 
       type: type.toLowerCase(), 
       amount: volume, 
@@ -148,13 +155,21 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     }).select().single();
 
     if (!posError) {
-      await supabase.from('wallets').update({ free_margin: balance.freeMargin - marginRequired, margin: balance.margin + marginRequired }).eq('user_id', user.id);
-      await supabase.from('users').update({ balance: user.balance - marginRequired }).eq('id', user.id);
+      await supabase.from('wallets').update({ 
+        free_margin: balance.freeMargin - marginRequired, 
+        margin: balance.margin + marginRequired 
+      }).eq('user_id', user.id);
+      
+      await supabase.from('users').update({ 
+        balance: balance.balance - marginRequired 
+      }).eq('id', user.id);
+      
       fetchPositions();
+      fetchWallet();
       alert("تم تنفيذ الصفقة!");
     } else {
-      console.error(posError);
-      alert("حدث خطأ أثناء تنفيذ الصفقة!");
+      console.error('Trade Error:', posError);
+      alert(`حدث خطأ أثناء تنفيذ الصفقة: ${posError.message}`);
     }
   };
 
@@ -169,7 +184,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       if (posError) throw posError;
 
       // 2. Update user balance in Supabase
-      const marginToReturn = (position.volume * position.entry_price) / 100;
+      // Use amount instead of volume as per handleTrade insert
+      const amount = position.amount || position.volume || 0;
+      const entryPrice = position.entry_price || 0;
+      const marginToReturn = (amount * entryPrice) / 100;
       const profit = position.profit || 0;
       
       const { error: userError } = await supabase
@@ -184,7 +202,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         .from('wallets')
         .update({ 
           free_margin: balance.freeMargin + marginToReturn + profit, 
-          margin: balance.margin - marginToReturn 
+          margin: Math.max(0, balance.margin - marginToReturn)
         })
         .eq('user_id', user.id);
         
@@ -192,17 +210,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
       // 4. Update UI immediately
       setPositions(prev => prev.filter(p => p.id !== position.id));
-      setBalance(prev => ({ 
-        ...prev, 
-        balance: prev.balance + profit,
-        freeMargin: prev.freeMargin + marginToReturn + profit,
-        margin: prev.margin - marginToReturn
-      }));
+      fetchWallet();
       
       alert("تم إغلاق الصفقة بنجاح!");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error closing order:', error);
-      alert("حدث خطأ أثناء إغلاق الصفقة!");
+      alert(`حدث خطأ أثناء إغلاق الصفقة: ${error.message}`);
     }
   };
 
@@ -254,7 +267,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           </div>
           <div className="w-48 bg-[#131722] border-l border-white/10 p-4 flex flex-col gap-4">
             <h3 className="text-white font-bold text-sm">Order: {symbol.split(':')[1]}</h3>
-            <div className={`text-2xl font-bold ${priceColor}`}>{currentPrice.toFixed(2)}</div>
+            <div className={`text-2xl font-bold ${priceColor}`}>{isNaN(currentPrice) ? '0.00' : currentPrice.toFixed(2)}</div>
             <input type="number" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} className="bg-[#1e2329] text-white p-2 rounded text-sm w-full" />
             <button onClick={() => handleTrade('Buy')} className="w-full bg-emerald-600 text-white py-1.5 rounded text-sm font-bold">BUY</button>
             <button onClick={() => handleTrade('Sell')} className="w-full bg-red-600 text-white py-1.5 rounded text-sm font-bold">SELL</button>
@@ -262,8 +275,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           </div>
         </div>
         <div className="h-10 bg-[#1e2329] border-t border-white/10 flex items-center px-4 gap-6 text-xs font-mono">
-          <span>Balance: ${balance.balance.toFixed(2)}</span>
-          <span>Free Margin: ${balance.freeMargin.toFixed(2)}</span>
+          <span>Balance: ${isNaN(balance.balance) ? '0.00' : balance.balance.toFixed(2)}</span>
+          <span>Free Margin: ${isNaN(balance.freeMargin) ? '0.00' : balance.freeMargin.toFixed(2)}</span>
         </div>
         <div className="h-48 bg-[#131722] border-t border-white/10 overflow-y-auto">
           <table className="w-full text-xs text-left">

@@ -143,7 +143,7 @@ async function startServer() {
           .from('trade_orders')
           .select('*')
           .eq('status', 'open')
-          .eq('is_bot_enabled', true);
+          .eq('is_bot', true);
 
         if (error) throw error;
         if (!positions || positions.length === 0) return;
@@ -169,12 +169,12 @@ async function startServer() {
                 .eq('id', pos.id);
               
               // Emit profit notification
-              const profit = (currentPrice - pos.entry_price) * pos.amount;
+              const profit = (currentPrice - pos.entry_price) * (pos.amount || pos.volume || 0);
               
               // تحديث رصيد المستخدم (البوت)
               const { data: user } = await supabase.from('users').select('balance').eq('id', pos.user_id).single();
               if (user) {
-                  await supabase.from('users').update({ balance: user.balance + profit + pos.amount }).eq('id', pos.user_id);
+                  await supabase.from('users').update({ balance: user.balance + profit + (pos.amount || pos.volume || 0) }).eq('id', pos.user_id);
               }
             }
           } catch (posError: any) {
@@ -198,6 +198,50 @@ async function startServer() {
     console.log('Ghost Traders: System initializing...');
     
     const scheduleNextTrade = async () => {
+      const executeBotTrade = async (botUser: any) => {
+        console.log(`Ghost Traders: Executing trade for ${botUser.username}`);
+        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+        
+        try {
+          const ticker = await binanceClient.tickerPrice(symbol);
+          const currentPrice = parseFloat(ticker.data.price);
+          const amount = Math.floor(Math.random() * 50) + 10;
+          const type = Math.random() > 0.5 ? 'buy' : 'sell';
+
+          const tradeData = {
+            user_id: botUser.id,
+            asset_symbol: symbol,
+            type: type,
+            amount: amount,
+            entry_price: currentPrice,
+            status: 'open',
+            is_bot: true,
+            timestamp: new Date().toISOString()
+          };
+
+          // Insert into DB
+          const { data: insertedTrade, error: insertError } = await supabase
+            .from('trade_orders')
+            .insert(tradeData)
+            .select('*, users(username, is_bot)')
+            .single();
+
+          if (insertError) {
+            console.error('Ghost Traders: DB Insert Error:', insertError.message);
+          } else if (insertedTrade) {
+            const flattened = {
+              ...insertedTrade,
+              username: insertedTrade.users?.username || botUser.username,
+              is_bot: insertedTrade.users?.is_bot || true
+            };
+            console.log('Ghost Traders: [SUCCESS] Trade inserted:', flattened.username);
+          }
+        } catch (err) {
+          console.error('Ghost Traders: Trade execution failed:', err);
+        }
+      };
+
       try {
         console.log('Ghost Traders: Running trade cycle...');
         const { data: configData, error: configError } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
@@ -223,10 +267,6 @@ async function startServer() {
             console.error('Ghost Traders: Error fetching bot users:', usersError);
           } else {
             console.log(`Ghost Traders: Found ${botUsers?.length || 0} bot users.`);
-            if (!botUsers || botUsers.length === 0) {
-              const { data: anyUsers } = await supabase.from('users').select('username').limit(5);
-              console.log('Ghost Traders: Sample users in DB:', anyUsers?.map(u => u.username).join(', ') || 'NONE');
-            }
           }
           
           if (usersError || !botUsers || botUsers.length === 0) {
@@ -240,78 +280,12 @@ async function startServer() {
             const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
             await executeBotTrade(botUser);
           }
-        }
-
-        async function executeBotTrade(botUser: any) {
-          console.log(`Ghost Traders: Executing trade for ${botUser.username}`);
-          const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
-          const symbol = symbols[Math.floor(Math.random() * symbols.length)];
           
-          try {
-            const ticker = await binanceClient.tickerPrice(symbol);
-            const currentPrice = parseFloat(ticker.data.price);
-            const amount = Math.floor(Math.random() * 50) + 10;
-            const type = Math.random() > 0.5 ? 'buy' : 'sell';
-
-            const tradeData = {
-              user_id: botUser.id,
-              asset_symbol: symbol,
-              type: type,
-              amount: amount,
-              entry_price: currentPrice,
-              status: 'open',
-              is_bot: true,
-              timestamp: new Date().toISOString()
-            };
-
-            // Insert into DB
-            const { data: insertedTrade, error: insertError } = await supabase
-              .from('trade_orders')
-              .insert(tradeData)
-              .select('*, users(username, is_bot)')
-              .single();
-
-            if (insertError) {
-              console.error('Ghost Traders: DB Insert Error:', insertError.message);
-            } else if (insertedTrade) {
-              const flattened = {
-                ...insertedTrade,
-                username: insertedTrade.users?.username || botUser.username,
-                is_bot: insertedTrade.users?.is_bot || true
-              };
-              console.log('Ghost Traders: [SUCCESS] Trade inserted:', flattened.username);
-            }
-          } catch (err) {
-            console.error('Ghost Traders: Trade execution failed:', err);
-          }
-        }
-
-        if (config && config.is_active) {
-          console.log('Ghost Traders: Bot system is ACTIVE. Fetching bot users...');
-          // Aggressive testing: always try to trade every 10 seconds if active
-          nextDelay = 10000;
-          const { data: botUsers, error: usersError } = await supabase.from('users').select('*').eq('is_bot', true);
-          
-          if (usersError) {
-            console.error('Ghost Traders: Error fetching bot users:', usersError);
-          } else {
-            console.log(`Ghost Traders: Found ${botUsers?.length || 0} bot users.`);
-          }
-          
-          if (usersError || !botUsers || botUsers.length === 0) {
-            console.log('Ghost Traders: No bot users found or error. Using fallback to any users...');
-            const { data: fallbackUsers } = await supabase.from('users').select('*').limit(10);
-            if (fallbackUsers && fallbackUsers.length > 0) {
-              const botUser = fallbackUsers[Math.floor(Math.random() * fallbackUsers.length)];
-              await executeBotTrade(botUser);
-            }
-          } else {
-            const botUser = botUsers[Math.floor(Math.random() * botUsers.length)];
-            await executeBotTrade(botUser);
-          }
+          // Calculate next delay based on trades_per_hour
           nextDelay = Math.floor(Math.random() * (60000 / (config.trades_per_hour || 5) * 2 - 10000 + 1)) + 10000;
         } else {
           console.log('Ghost Traders: Bot system is INACTIVE (config.is_active is false).');
+          nextDelay = 60000;
         }
         
         console.log(`Ghost Traders: Next cycle in ${nextDelay / 1000}s`);
@@ -372,7 +346,7 @@ async function startServer() {
                 amount: Math.floor(Math.random() * 100) + 10,
                 entry_price: 70000,
                 status: 'open',
-                is_bot_enabled: true,
+                is_bot: true,
                 timestamp: new Date().toISOString()
               };
               await supabase.from('trade_orders').insert(trade);

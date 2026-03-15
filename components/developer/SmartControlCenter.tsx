@@ -4,6 +4,7 @@ import DealsEngine from './DealsEngine';
 import TradingControl from './TradingControl';
 import GhostTraders from './GhostTraders';
 import { User, TradeAsset, TradeOrder } from '../../types';
+import { supabase } from '../../supabaseClient';
 
 interface Props {
   accounts: User[];
@@ -24,9 +25,36 @@ const SmartControlCenter: React.FC<Props> = ({
   // Identify bots that have active trades
   const activeBotIds = new Set(tradeOrders.filter(o => o.status === 'open').map(o => o.userId));
 
+  const clearBotTrades = async () => {
+    if (!window.confirm('هل أنت متأكد من رغبتك في مسح نشاط البوتات الحالي؟')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('trade_orders')
+        .delete()
+        .eq('is_bot', true);
+        
+      if (error) throw error;
+      
+      alert('تم مسح صفقات البوتات بنجاح');
+    } catch (err: any) {
+      console.error('Error clearing bot trades:', err.message);
+      alert('حدث خطأ أثناء مسح الصفقات');
+    }
+  };
+
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-white mb-8">مركز التحكم الذكي</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-white">مركز التحكم الذكي</h1>
+        <button 
+          onClick={clearBotTrades}
+          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-red-900/20 transition-all flex items-center gap-2"
+        >
+          <span className="text-lg">🗑️</span>
+          إغلاق وتصفية صفقات البوتات
+        </button>
+      </div>
       
       <div className="bg-slate-800 p-6 rounded-2xl border border-white/5">
         <h2 className="text-xl font-bold text-white mb-4">البوتات النشطة حالياً ({activeBotIds.size})</h2>
