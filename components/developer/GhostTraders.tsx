@@ -11,10 +11,10 @@ const GhostTraders: React.FC = () => {
   const [diagnosticData, setDiagnosticData] = useState<any>(null);
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
 
+  const [openTrades, setOpenTrades] = useState<TradeOrder[]>([]);
   const activeBotIds = new Set(openTrades.map(t => t.userId));
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [aggressiveness, setAggressiveness] = useState(1.0);
-  const [openTrades, setOpenTrades] = useState<TradeOrder[]>([]);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -117,8 +117,9 @@ const GhostTraders: React.FC = () => {
           </div>
         </div>
       </div>
+    </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <button 
