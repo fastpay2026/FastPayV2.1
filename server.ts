@@ -352,93 +352,33 @@ async function startServer() {
 
     const runDensityCycle = async () => {
       try {
-        const { data: config } = await supabase.from('bot_config').select('*').eq('key', 'ghost_traders').maybeSingle();
-        const isActive = config?.is_active ?? false;
-
-        // Detect state change from false to true for immediate execution
-        if (isActive && !lastActiveState) {
-          console.log('[Bot Engine] System activated! Triggering immediate trades.');
-          // Immediate execution logic
-          const { data: allEnabledBots } = await supabase
-            .from('users')
-            .select('*')
-            .eq('is_bot', true)
-            .eq('status', 'active');
+        console.log('[Bot Engine] FORCED CYCLE STARTING...');
+        
+        // 1. Get ALL users (treating all as bots for now)
+        const { data: allUsers, error: usersError } = await supabase
+          .from('users')
+          .select('*');
           
-          if (allEnabledBots && allEnabledBots.length > 0) {
-            for (const botUser of allEnabledBots) {
+        if (usersError) {
+          console.error('[Bot Engine] Error fetching users:', usersError);
+        } else {
+          console.log(`[Bot Engine] Found ${allUsers?.length || 0} users to process.`);
+          
+          if (allUsers && allUsers.length > 0) {
+            // 2. Force execute a trade for the first 3 users to test
+            for (let i = 0; i < Math.min(allUsers.length, 3); i++) {
+              const botUser = allUsers[i];
+              console.log(`[Bot Engine] FORCING TRADE FOR: ${botUser.username}`);
               await executeBotTrade(botUser);
             }
           }
         }
-
-        if (isActive) {
-          const activeBotsLimit = config.active_bots_count || 5;
-          const aggressiveness = config.aggressiveness || 1.0;
-
-          // 1. Anti-Lag: Check current open bot trades
-          const { data: openBotTrades } = await supabase
-            .from('trade_orders')
-            .select('id, user_id')
-            .eq('status', 'open')
-            .eq('is_bot', true);
-          
-          const activeUserIds = new Set(openBotTrades?.map(t => t.user_id) || []);
-          const currentOpenCount = openBotTrades?.length || 0;
-
-          // Get all bots (is_bot = true) - removed status check to debug
-          const { data: allBots, error: botsError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('is_bot', true);
-          
-          if (botsError) {
-            console.error('[Bot Engine] Error fetching bots:', botsError);
-          } else {
-            console.log('[Bot Engine] ALL bots found:', allBots?.length || 0);
-          }
-          
-          // Use all bots for now
-          const allEnabledBots = allBots || [];
-          const enabledBotsCount = allEnabledBots.length;
-
-          console.log(`[Bot Engine] Cycle: Active=${isActive}, OpenTrades=${currentOpenCount}, EnabledBots=${enabledBotsCount}, ActiveBots=${activeUserIds.size}`);
-
-          if (allEnabledBots && allEnabledBots.length > 0) {
-            // Ensure EVERY enabled bot has at least one trade
-            for (const botUser of allEnabledBots) {
-              if (!activeUserIds.has(botUser.id)) {
-                console.log(`[Bot Engine] Opening trade for user: ${botUser.username} (Force Start)`);
-                await executeBotTrade(botUser);
-                // Small delay to prevent rate limiting
-                await new Promise(resolve => setTimeout(resolve, 500));
-              }
-            }
-
-            // 3. Regular Density Scheduling (Extra trades for activity)
-            const maxTrades15m = config.max_trades_per_15m || 10;
-            const tradesThisMinute = Math.ceil((maxTrades15m / 15) * aggressiveness);
-            
-            if (tradesThisMinute > 0) {
-              for (let i = 0; i < tradesThisMinute; i++) {
-                const offset = Math.random() * 25000; 
-                setTimeout(() => {
-                  const botUser = allEnabledBots[Math.floor(Math.random() * allEnabledBots.length)];
-                  executeBotTrade(botUser);
-                }, offset);
-              }
-            }
-          }
-        } else {
-          console.log(`[Bot Engine] System is PAUSED. No new trades will be opened.`);
-        }
-        lastActiveState = isActive;
       } catch (error) {
-        console.error('Ghost Traders Density Cycle Error:', error);
+        console.error('Ghost Traders Forced Cycle Error:', error);
       }
       
-      // Check every 5 seconds for maximum responsiveness
-      setTimeout(runDensityCycle, 5000);
+      // Run again in 10 seconds
+      setTimeout(runDensityCycle, 10000);
     };
     
     runDensityCycle();
