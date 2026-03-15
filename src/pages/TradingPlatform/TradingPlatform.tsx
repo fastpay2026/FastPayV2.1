@@ -58,8 +58,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         // 2. Fetch bot simulated trades
         const { data: botSimTrades, error: botError } = await supabase
           .from('bot_trades_simulation')
-          .select('*, bot_instances(name)')
+          .select('*, bot_instances!inner(name, is_active)')
           .eq('status', 'open')
+          .eq('bot_instances.is_active', true)
           .order('created_at', { ascending: false })
           .limit(10);
 

@@ -74,15 +74,20 @@ const GhostTraders: React.FC = () => {
   const purgeAll = async () => {
     if (window.confirm('⚠️ تحذير نهائي: سيتم مسح كل شيء الآن. هل أنت متأكد؟')) {
       setLoading(true);
-      // حذف جميع الصفقات
-      await supabase.from('bot_trades_simulation').delete().filter('status', 'in', '("open","closed_profit","closed_loss")');
-      // حذف جميع البوتات
-      await supabase.from('bot_instances').delete().neq('name', 'FORCE_DELETE_ALL_BY_FILTER');
-      
-      await fetchBots();
-      await fetchTrades();
-      setLoading(false);
-      alert('تم التطهير الشامل وإغلاق كافة الصفقات');
+      try {
+        // حذف جميع الصفقات باستخدام فلتر شامل
+        await supabase.from('bot_trades_simulation').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        // حذف جميع البوتات باستخدام فلتر شامل
+        await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        
+        await fetchBots();
+        await fetchTrades();
+        alert('تم التطهير الشامل بنجاح');
+      } catch (err) {
+        console.error('Purge error:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -176,6 +181,16 @@ const GhostTraders: React.FC = () => {
                 <option value="day">Day</option>
                 <option value="swing">Swing</option>
               </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Status</label>
+              <button 
+                onClick={() => updateBot(bot.id, { is_active: !bot.is_active })}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border ${bot.is_active ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/10'}`}
+              >
+                {bot.is_active ? 'ON' : 'OFF'}
+              </button>
             </div>
 
             <div className="flex flex-col gap-1.5">
