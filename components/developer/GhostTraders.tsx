@@ -34,6 +34,8 @@ const GhostTraders: React.FC = () => {
       }
       const users = await supabaseService.getUsers();
       console.log('[GhostTraders] Loaded ALL users:', users);
+      const bots = users.filter(u => u.isBot);
+      console.log('[GhostTraders] Filtered bots (u.isBot):', bots);
       setAllUsers(users);
 
       // Load actual open trades for accurate counts
