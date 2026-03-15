@@ -206,6 +206,11 @@ CREATE TABLE IF NOT EXISTS trade_orders (
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Ensure columns exist if table was created before
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS is_bot BOOLEAN DEFAULT false;
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS is_bot_enabled BOOLEAN DEFAULT false;
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS bot_config JSONB DEFAULT '{}';
+
 -- 16. Landing Services
 CREATE TABLE IF NOT EXISTS landing_services (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

@@ -150,8 +150,6 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       amount: volume, 
       entry_price: price, 
       status: 'open',
-      is_bot: false,
-      is_bot_enabled: false,
       timestamp: new Date().toISOString()
     }).select().single();
 

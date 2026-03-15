@@ -140,21 +140,25 @@ async function startServer() {
     setInterval(async () => {
       try {
         // Fetch positions that are either bot trades OR have bot management enabled by admin
+        // We use a try-catch inside the interval to handle cases where columns might be missing
         const { data: positions, error } = await supabase
           .from('trade_orders')
           .select('*')
-          .eq('status', 'open')
-          .or('is_bot.eq.true,is_bot_enabled.eq.true');
+          .eq('status', 'open');
 
         if (error) throw error;
         if (!positions || positions.length === 0) return;
+
+        // Filter in memory to avoid PGRST204 if columns are missing
+        const botPositions = positions.filter(p => p.is_bot === true || p.is_bot_enabled === true);
+        if (botPositions.length === 0) return;
 
         if (!binanceClient) {
           console.error('Watcher Bot: Binance client not initialized, skipping cycle.');
           return;
         }
 
-        for (const pos of positions) {
+        for (const pos of botPositions) {
           try {
             const ticker = await binanceClient.tickerPrice(pos.asset_symbol);
             const currentPrice = parseFloat(ticker.data.price);

@@ -14,7 +14,7 @@ const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser,
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [newBalance, setNewBalance] = useState<number>(0);
 
-  const positions = tradeOrders.filter(o => o.status === 'open');
+  const positions = tradeOrders.filter(o => o.status === 'open' && (o.is_bot || accounts.find(u => u.id === o.userId)?.isBot));
 
   const updatePosition = async (id: string, updates: any) => {
     await supabase.from('trade_orders').update(updates).eq('id', id);
