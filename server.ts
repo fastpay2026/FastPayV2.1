@@ -511,7 +511,7 @@ async function startServer() {
     await seedAssets();
     await purgeBots();
     runPriceFeed();
-    runGhostEngine();
+    // runGhostEngine(); // Removed to stop random bot trades
     // runLiveFeedGenerator(); // Removed to stop random names
   }
 
