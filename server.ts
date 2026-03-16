@@ -207,7 +207,7 @@ async function startServer() {
           'XAGUSD': 'XAG/USD',
           'US30': 'DJI',
           'NAS100': 'IXIC',
-          'WTI': 'WTI/USD' // Or 'USOIL'
+          'WTI': 'WTI/USD'
         };
 
         for (const asset of twelveDataAssets) {
@@ -218,7 +218,9 @@ async function startServer() {
             
             const response = await fetch(url);
             const text = await response.text();
-            console.log(`[TwelveData] Raw Data for ${asset.symbol} (${tdSymbol}):`, text);
+            
+            // Log the full JSON response
+            console.log(`[TwelveData] Full Response for ${asset.symbol} (${tdSymbol}):`, text);
             
             if (!response.ok) {
               throw new Error(`TwelveData API returned ${response.status}`);
@@ -246,12 +248,11 @@ async function startServer() {
                 console.log(`[TwelveData] UPDATED: ${asset.symbol} -> ${currentPrice}`);
               }
             } else {
-              console.warn(`[TwelveData] No price in response for ${asset.symbol}:`, text);
-              await supabase.from('trade_assets').update({ price: 0 }).eq('id', asset.id);
+              console.warn(`[TwelveData] No price in response for ${asset.symbol}. Keeping old price.`);
             }
           } catch (err: any) {
-            console.error(`[TwelveData] Error for ${asset.symbol}:`, err);
-            await supabase.from('trade_assets').update({ price: 0 }).eq('id', asset.id);
+            console.error(`[TwelveData] Error for ${asset.symbol}:`, err.message);
+            // Fallback: Do nothing, keep old price
           }
         }
         lastPriceUpdate.status = 'idle';
