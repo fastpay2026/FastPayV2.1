@@ -25,91 +25,73 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const { showNotification } = useNotification();
 
   const currentAsset = assets.find(a => a.symbol === symbol);
-  const currentPrice = currentAsset?.price || 0;
+  const currentPrice = Number(currentAsset?.price || 0);
 
+  // Initial data fetch
   useEffect(() => {
-    if (!user) return;
-    fetchWallet();
-    fetchPositions();
-    fetchAssets();
-
-    // Direct Supabase Connection for Trades
-    const fetchTradesDirect = async () => {
-      try {
-        // 1. جلب الصفقات الحقيقية
-        const { data: realTrades } = await supabase
-          .from('trade_orders')
-          .select('*, users(username, is_bot)')
-          .eq('status', 'open')
-          .order('timestamp', { ascending: false })
-          .limit(10);
-
-        // 2. جلب صفقات البوتات مع أسماء البوتات الحقيقية
-        const { data: botSimTrades } = await supabase
-          .from('bot_trades_simulation')
-          .select('*, bot_instances(name)')
-          .eq('status', 'open')
-          .order('created_at', { ascending: false })
-          .limit(20);
-
-        const flattenedReal = (realTrades || []).map((order: any) => ({
-          ...order,
-          username: order.users?.username || order.username || order.user_id,
-          is_bot: order.users?.is_bot || false
-        }));
-
-        const flattenedBots = (botSimTrades || []).map((order: any) => ({
-          ...order,
-          id: order.id,
-          username: order.bot_instances?.name || 'Bot Trader',
-          asset_symbol: order.symbol,
-          entry_price: order.price,
-          timestamp: order.created_at,
-          is_bot: true
-        }));
-
-        const allTrades = [...flattenedReal, ...flattenedBots].sort((a, b) => 
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-        ).slice(0, 20);
-
-        setTrades(allTrades);
-        setIsConnected(true);
-      } catch (err: any) {
-        console.error('TradingPlatform Error:', err.message);
-      }
+    if (!user?.id) return;
+    
+    const init = async () => {
+      await Promise.all([
+        fetchWallet(),
+        fetchPositions(),
+        fetchAssets(),
+        fetchTradesDirect()
+      ]);
     };
+    
+    init();
+  }, [user?.id]);
 
-    fetchTradesDirect();
+  // Real-time subscriptions
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('[TradingPlatform] Setting up subscriptions for symbol:', symbol);
 
     const channel = supabase
-      .channel('realtime_trading_v3')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, fetchWallet)
+      .channel(`trading_realtime_${symbol}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, fetchWallet)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders', filter: `user_id=eq.${user.id}` }, fetchPositions)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, fetchTradesDirect)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_trades_simulation' }, fetchTradesDirect)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_instances' }, fetchTradesDirect)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_assets' }, (payload) => {
-        setAssets(current => 
-          current.map(a => a.id === payload.new.id ? { ...a, ...payload.new } : a)
-        );
-        if (payload.new.symbol === symbol) {
-          const oldPrice = assets.find(a => a.symbol === symbol)?.price || 0;
-          const newPrice = payload.new.price;
-          setPriceColor(newPrice > oldPrice ? 'text-emerald-400' : newPrice < oldPrice ? 'text-red-400' : 'text-white');
-        }
+        console.log('[TradingPlatform] Asset Update Received:', payload.new.symbol, payload.new.price);
+        
+        setAssets(current => {
+          const index = current.findIndex(a => a.id === payload.new.id);
+          if (index === -1) return [...current, payload.new as TradeAsset];
+          
+          const updated = [...current];
+          const oldPrice = updated[index].price;
+          updated[index] = { ...updated[index], ...payload.new };
+          
+          if (payload.new.symbol === symbol) {
+            const newPrice = payload.new.price;
+            setPriceColor(newPrice > oldPrice ? 'text-emerald-400' : newPrice < oldPrice ? 'text-red-400' : 'text-white');
+          }
+          
+          return updated;
+        });
       })
       .subscribe((status) => {
+        console.log('[TradingPlatform] Subscription Status:', status);
         if (status === 'SUBSCRIBED') {
           setIsConnected(true);
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          setIsConnected(false);
         }
       });
 
     return () => {
+      console.log('[TradingPlatform] Cleaning up subscriptions for:', symbol);
       supabase.removeChannel(channel);
     };
-  }, [user, symbol, assets.length]);
+  }, [user?.id, symbol]);
 
-  const fetchAssets = async () => {
-    console.log('[TradingPlatform] Fetching assets...');
+  const fetchTradesDirect = async () => {
+    try {
+      console.log('[TradingPlatform] Fetching trades...');
     const { data, error } = await supabase.from('trade_assets').select('*');
     if (error) {
       console.error('[TradingPlatform] Asset Fetch Error:', error.message);

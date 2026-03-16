@@ -110,12 +110,20 @@ async function startServer() {
     }
   };
 
+  let lastPriceUpdate = {
+    time: null as string | null,
+    status: 'idle',
+    error: null as string | null,
+    count: 0
+  };
+
   // --- Master Price Feed Sync (MT5 Standards) ---
   const runPriceFeed = async () => {
     console.log('[Price Feed] Master Sync started with Dual-Routing (Binance + Twelve Data).');
     
     const syncBinancePrices = async () => {
       try {
+        lastPriceUpdate.status = 'syncing_binance';
         const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
         if (assetsError) throw assetsError;
         if (!assets || assets.length === 0) return;
@@ -127,27 +135,41 @@ async function startServer() {
             const binanceSymbol = asset.symbol.toUpperCase().replace('USD', 'USDT');
             const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`);
             const data = await response.json();
+            
             if (data.lastPrice) {
               const currentPrice = parseFloat(data.lastPrice);
               const change24h = parseFloat(data.priceChangePercent);
-              await supabase.from('trade_assets').update({
+              const { error: updateError } = await supabase.from('trade_assets').update({
                 price: currentPrice,
                 change_24h: change24h,
                 is_frozen: false
               }).eq('id', asset.id);
-              console.log(`[Binance] UPDATED: ${asset.symbol} -> ${currentPrice}`);
+              
+              if (updateError) {
+                console.error(`[Binance] Update failed for ${asset.symbol}:`, updateError.message);
+                lastPriceUpdate.error = updateError.message;
+              } else {
+                console.log(`[Binance] UPDATED: ${asset.symbol} -> ${currentPrice}`);
+                lastPriceUpdate.time = new Date().toISOString();
+                lastPriceUpdate.count++;
+              }
             }
-          } catch (err) {
+          } catch (err: any) {
             console.error(`[Binance] Error for ${asset.symbol}:`, err);
+            lastPriceUpdate.error = err.message;
           }
         }
+        lastPriceUpdate.status = 'idle';
       } catch (e: any) {
         console.error('[Binance] Global Sync Error:', e.message);
+        lastPriceUpdate.error = e.message;
+        lastPriceUpdate.status = 'error';
       }
     };
 
     const simulateNonCryptoPrices = async () => {
       try {
+        lastPriceUpdate.status = 'simulating';
         const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
         if (assetsError) throw assetsError;
         if (!assets || assets.length === 0) return;
@@ -167,24 +189,35 @@ async function startServer() {
           // Keep change24h within reasonable bounds (-5% to +5%)
           const boundedChange24h = Math.max(-5, Math.min(5, change24h));
 
-          await supabase.from('trade_assets').update({
+          const { error: updateError } = await supabase.from('trade_assets').update({
             price: currentPrice,
             change_24h: boundedChange24h,
             is_frozen: false
           }).eq('id', asset.id);
+
+          if (updateError) {
+            console.error(`[Simulation] Update failed for ${asset.symbol}:`, updateError.message);
+            lastPriceUpdate.error = updateError.message;
+          } else {
+            lastPriceUpdate.time = new Date().toISOString();
+            lastPriceUpdate.count++;
+          }
         }
+        lastPriceUpdate.status = 'idle';
       } catch (e: any) {
         console.error('[Simulation] Global Sync Error:', e.message);
+        lastPriceUpdate.error = e.message;
+        lastPriceUpdate.status = 'error';
       }
     };
 
-    // Run Binance immediately then every 5s
+    // Run Binance immediately then every 2s
     syncBinancePrices();
-    setInterval(syncBinancePrices, 5000);
+    setInterval(syncBinancePrices, 2000);
 
-    // Run Simulation immediately then every 3s
+    // Run Simulation immediately then every 1s
     simulateNonCryptoPrices();
-    setInterval(simulateNonCryptoPrices, 3000);
+    setInterval(simulateNonCryptoPrices, 1000);
   };
 
   if (isSupabaseConfigured) {
@@ -196,6 +229,14 @@ async function startServer() {
   }
 
   // 5. API Routes - MUST be before any catch-all or static middleware
+  app.get('/api/debug/price-feed', (req, res) => {
+    res.json({
+      ...lastPriceUpdate,
+      supabaseConfigured: isSupabaseConfigured,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   app.get('/api/ping', (req, res) => {
     res.json({ message: 'pong', timestamp: new Date().toISOString() });
   });
