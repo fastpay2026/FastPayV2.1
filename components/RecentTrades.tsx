@@ -3,9 +3,9 @@ import { supabase } from '../supabaseClient';
 import { TradeOrder } from '../types';
 
 const maskUsername = (username: string) => {
-  if (username === 'ghost_trader') return 'G***r';
+  if (!username) return 'User***';
   if (username.length <= 2) return username + '***';
-  return username.substring(0, 1) + '***' + username.substring(username.length - 1);
+  return username.substring(0, 2) + '****';
 };
 
 const RecentTrades: React.FC = () => {
@@ -16,7 +16,7 @@ const RecentTrades: React.FC = () => {
       const { data, error } = await supabase
         .from('trade_orders')
         .select('*')
-        .eq('is_bot', false)
+        .eq('status', 'open')
         .order('timestamp', { ascending: false })
         .limit(10);
       if (data) setTrades(data);
@@ -26,10 +26,17 @@ const RecentTrades: React.FC = () => {
 
     const channel = supabase
       .channel('trade_orders_channel')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
-        const newTrade = payload.new as TradeOrder;
-        if (!newTrade.is_bot) {
-          setTrades(prev => [newTrade, ...prev].slice(0, 10));
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newTrade = payload.new as TradeOrder;
+          if (newTrade.status === 'open') {
+            setTrades(prev => [newTrade, ...prev].slice(0, 10));
+          }
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedTrade = payload.new as TradeOrder;
+          if (updatedTrade.status !== 'open') {
+            setTrades(prev => prev.filter(t => t.id !== updatedTrade.id));
+          }
         }
       })
       .subscribe();
