@@ -109,8 +109,7 @@ const GhostTraders: React.FC = () => {
         type: Math.random() > 0.5 ? 'buy' : 'sell', 
         amount: bot.fixed_amount || 100, 
         price: 95000 + (Math.random() * 100), 
-        status: 'open', 
-        target_duration: 5
+        status: 'open'
       });
       
       if (error) throw error;

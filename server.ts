@@ -199,8 +199,7 @@ async function startServer() {
                   type: Math.random() > 0.5 ? 'buy' : 'sell',
                   amount: bot.fixed_amount || 100,
                   price: 95000 + (Math.random() * 100),
-                  status: 'open',
-                  target_duration: Math.floor(Math.random() * 10) + 1
+                  status: 'open'
                 });
                 console.log(`[Ghost Engine] Auto-trade opened for ${bot.name}`);
               }
