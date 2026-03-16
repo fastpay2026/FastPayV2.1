@@ -72,8 +72,15 @@ const GhostTraders: React.FC = () => {
 
   const deleteBot = async (id: string) => {
     setLoading(true);
+    const botToDelete = bots.find(b => b.id === id);
+    
     // إغلاق صفقات هذا البوت أولاً
     await supabase.from('bot_trades_simulation').delete().eq('bot_id', id);
+    
+    if (botToDelete) {
+      await supabase.from('trade_orders').delete().eq('username', botToDelete.name).eq('is_bot', true);
+    }
+    
     // حذف البوت
     await supabase.from('bot_instances').delete().eq('id', id);
     await fetchBots();

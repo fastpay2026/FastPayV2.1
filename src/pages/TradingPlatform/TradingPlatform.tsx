@@ -256,7 +256,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     try {
       const { error: posError } = await supabase
         .from('trade_orders')
-        .update({ status: 'closed_profit' })
+        .delete()
         .eq('id', position.id);
 
       if (posError) throw posError;
