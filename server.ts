@@ -149,7 +149,7 @@ async function startServer() {
                 console.error(`[Binance] Update failed for ${asset.symbol}:`, updateError.message);
                 lastPriceUpdate.error = updateError.message;
               } else {
-                console.log(`[Binance] UPDATED: ${asset.symbol} -> ${currentPrice}`);
+                console.log(`[Binance] UPDATED: ${asset.symbol} -> ${currentPrice} | Time: ${new Date().toLocaleTimeString()}`);
                 lastPriceUpdate.time = new Date().toISOString();
                 lastPriceUpdate.count++;
               }
@@ -199,6 +199,7 @@ async function startServer() {
             console.error(`[Simulation] Update failed for ${asset.symbol}:`, updateError.message);
             lastPriceUpdate.error = updateError.message;
           } else {
+            console.log(`[Simulation] UPDATED: ${asset.symbol} -> ${currentPrice.toFixed(asset.digits || 2)}`);
             lastPriceUpdate.time = new Date().toISOString();
             lastPriceUpdate.count++;
           }

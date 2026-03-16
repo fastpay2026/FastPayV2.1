@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, useRef } from 'react';
 import { useI18n } from './i18n/i18n.tsx';
 import { v4 as uuidv4 } from 'uuid';
 import LandingPage from './components/LandingPage';
@@ -120,6 +120,11 @@ const App: React.FC = () => {
   const [accounts, setAccounts] = useState<User[]>([
     { id: 'a1b2c3d4-e5f6-7890-1234-56789abcdef0', username: 'admin', fullName: 'مدير العمليات التنفيذي', email: 'admin@fastpay.com', password: 'ubnt', role: 'ADMIN', balance: 0, status: 'active', createdAt: '2023-01-01', linkedCards: [], assets: [] },
   ]);
+  const accountsRef = useRef<User[]>(accounts);
+
+  useEffect(() => {
+    accountsRef.current = accounts;
+  }, [accounts]);
   const [services, setServices] = useState<LandingService[]>([]);
   const [pages, setPages] = useState<CustomPage[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -241,7 +246,7 @@ const App: React.FC = () => {
             return [{
               ...newOrder,
               userId: newOrder.user_id,
-              username: newOrder.username || accounts.find(u => u.id === newOrder.user_id)?.username || newOrder.user_id,
+              username: newOrder.username || accountsRef.current.find(u => u.id === newOrder.user_id)?.username || newOrder.user_id,
               assetSymbol: newOrder.asset_symbol,
               entryPrice: newOrder.entry_price
             }, ...prev];
@@ -251,7 +256,7 @@ const App: React.FC = () => {
           setTradeOrders(prev => prev.map(o => o.id === updatedOrder.id ? {
             ...updatedOrder,
             userId: updatedOrder.user_id,
-            username: updatedOrder.username || accounts.find(u => u.id === updatedOrder.user_id)?.username || updatedOrder.user_id,
+            username: updatedOrder.username || accountsRef.current.find(u => u.id === updatedOrder.user_id)?.username || updatedOrder.user_id,
             assetSymbol: updatedOrder.asset_symbol,
             entryPrice: updatedOrder.entry_price
           } : o));

@@ -104,7 +104,6 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
                 <th className="p-8">{t('balance')}</th>
                 <th className="p-8">{t('rank')}</th>
                 <th className="p-8">{t('status')}</th>
-                <th className="p-8">{t('is_bot')}</th>
                 <th className="p-8 text-center">{t('advanced_control')}</th>
               </tr>
             </thead>
@@ -132,14 +131,6 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
                     <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase ${u.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-400'}`}>
                       {u.status === 'active' ? t('active') : t('suspended')}
                     </span>
-                  </td>
-                  <td className="p-8">
-                    <input 
-                      type="checkbox" 
-                      checked={!!u.isBot} 
-                      onChange={() => onUpdateUser({ ...u, isBot: !u.isBot })}
-                      className="w-6 h-6 rounded border-white/10 bg-black/40 text-sky-600 focus:ring-sky-500"
-                    />
                   </td>
                   <td className="p-8">
                     <div className="flex justify-center gap-2 flex-wrap max-w-[400px]">

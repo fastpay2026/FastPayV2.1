@@ -45,6 +45,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     init();
   }, [user?.id]);
 
+  // Fallback polling for assets
+  useEffect(() => {
+    const interval = setInterval(fetchAssets, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Real-time subscriptions
   useEffect(() => {
     if (!user?.id) return;
@@ -57,27 +63,29 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders', filter: `user_id=eq.${user.id}` }, fetchPositions)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, fetchTradesDirect)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_trades_simulation' }, fetchTradesDirect)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_assets' }, (payload) => {
-        console.log('[TradingPlatform] Asset Update Received:', payload.new.symbol, payload.new.price);
-        setLastUpdate(new Date());
-        setIsUpdating(true);
-        setTimeout(() => setIsUpdating(false), 500);
-        
-        setAssets(current => {
-          const index = current.findIndex(a => a.id === payload.new.id);
-          if (index === -1) return [...current, payload.new as TradeAsset];
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_assets' }, (payload) => {
+        if (payload.eventType === 'UPDATE') {
+          console.log('[TradingPlatform] Asset Update Received:', payload.new.symbol, payload.new.price);
+          setLastUpdate(new Date());
+          setIsUpdating(true);
+          setTimeout(() => setIsUpdating(false), 500);
           
-          const updated = [...current];
-          const oldPrice = updated[index].price;
-          updated[index] = { ...updated[index], ...payload.new };
-          
-          if (payload.new.symbol === symbol) {
-            const newPrice = payload.new.price;
-            setPriceColor(newPrice > oldPrice ? 'text-emerald-400' : newPrice < oldPrice ? 'text-red-400' : 'text-white');
-          }
-          
-          return updated;
-        });
+          setAssets(current => {
+            const index = current.findIndex(a => a.id === payload.new.id);
+            if (index === -1) return [...current, payload.new as TradeAsset];
+            
+            const updated = [...current];
+            const oldPrice = updated[index].price;
+            updated[index] = { ...updated[index], ...payload.new };
+            
+            if (payload.new.symbol === symbol) {
+              const newPrice = payload.new.price;
+              setPriceColor(newPrice > oldPrice ? 'text-emerald-400' : newPrice < oldPrice ? 'text-red-400' : 'text-white');
+            }
+            
+            return updated;
+          });
+        }
       })
       .subscribe((status) => {
         console.log('[TradingPlatform] Subscription Status:', status);
@@ -249,7 +257,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
             {assets.slice(0, 5).map(a => (
               <span key={a.id} className="mx-4">
-                {a.symbol}: <span className={a.change_24h >= 0 ? 'text-emerald-400' : 'text-red-400'}>{a.price?.toFixed(a.digits || 2)}</span>
+                {a.symbol}: <span className={a.change_24h >= 0 ? 'text-emerald-400' : 'text-red-400'}>{Number(a.price || 0).toFixed(a.digits || 2)}</span>
               </span>
             ))}
           </div>
@@ -274,7 +282,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             </div>
             
             <div className={`text-3xl font-mono font-bold ${priceColor}`}>
-              {currentPrice.toFixed(currentAsset?.digits || 2)}
+              {Number(currentPrice || 0).toFixed(currentAsset?.digits || 2)}
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[10px] uppercase font-bold text-slate-500">

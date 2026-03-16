@@ -132,6 +132,8 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice }
   useEffect(() => {
     if (!seriesRef.current || !lastCandleRef.current || !livePrice) return;
 
+    console.log(`[LightweightChart] livePrice updated: ${livePrice} for ${symbol}`);
+
     const updateCandle = () => {
       const currentLastCandle = lastCandleRef.current;
       const newCandle = { ...currentLastCandle };
@@ -162,7 +164,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice }
     };
 
     updateCandle();
-  }, [livePrice]);
+  }, [livePrice, symbol]);
 
   // Tick simulation for smoothness
   useEffect(() => {
