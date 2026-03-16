@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Star, TrendingUp, TrendingDown } from 'lucide-react';
-import { supabase } from '../../../../supabaseClient';
-import { TradeAsset } from '../../../../types';
+import { supabase } from '../../supabaseClient';
+import { TradeAsset } from '../../../types';
 
 interface MarketWatchProps {
   onSelectAsset: (symbol: string) => void;
@@ -9,7 +9,11 @@ interface MarketWatchProps {
 }
 
 const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol }) => {
-  const [assets, setAssets] = useState<TradeAsset[]>([]);
+  const [assets, setAssets] = useState<TradeAsset[]>([
+    { id: '1', symbol: 'EURUSD', name: 'Euro / US Dollar', category: 'Forex Major', price: 1.0850, digits: 5, spread: 12, change_24h: 0.15, is_frozen: false },
+    { id: '2', symbol: 'XAUUSD', name: 'Gold / US Dollar', category: 'Metals', price: 2155.20, digits: 2, spread: 35, change_24h: -0.45, is_frozen: false },
+    { id: '3', symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', category: 'Crypto', price: 68450.00, digits: 2, spread: 500, change_24h: 2.5, is_frozen: false }
+  ]);
   const [category, setCategory] = useState<string>('All');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -19,15 +23,25 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
   useEffect(() => {
     const fetchAssets = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('trade_assets')
-        .select('*')
-        .order('symbol', { ascending: true });
+      try {
+        console.log('[MarketWatch] Fetching assets from Supabase...');
+        const { data, error } = await supabase
+          .from('trade_assets')
+          .select('*');
 
-      if (!error && data) {
-        setAssets(data as TradeAsset[]);
+        if (error) {
+          console.error('[MarketWatch] Supabase Error:', error.message);
+        } else if (data) {
+          console.log('[MarketWatch] Raw assets received:', data.length, data);
+          setAssets(data as TradeAsset[]);
+        } else {
+          console.warn('[MarketWatch] No data returned from Supabase.');
+        }
+      } catch (err: any) {
+        console.error('[MarketWatch] Unexpected Error:', err.message);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchAssets();

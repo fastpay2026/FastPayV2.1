@@ -81,30 +81,32 @@ async function startServer() {
 
   // --- Assets Seeding (MT5 Standard Assets) ---
   const seedAssets = async () => {
-    console.log('[Seed] Purging and rebuilding assets...');
+    console.log('[Seed] Starting asset verification...');
     try {
-      // 1. Delete existing assets
-      await supabase.from('trade_assets').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-
-      // 2. Define core assets
       const coreAssets = [
-        { symbol: 'EURUSD', name: 'Euro / US Dollar', category: 'Forex Major', type: 'crypto', price: 1.08, digits: 5, spread: 12, provider: 'yahoo' },
-        { symbol: 'GBPUSD', name: 'Great Britain Pound / US Dollar', category: 'Forex Major', type: 'crypto', price: 1.26, digits: 5, spread: 15, provider: 'yahoo' },
-        { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', category: 'Forex Major', type: 'crypto', price: 150.50, digits: 3, spread: 10, provider: 'yahoo' },
-        { symbol: 'XAUUSD', name: 'Gold / US Dollar', category: 'Metals', type: 'commodity', price: 2150.00, digits: 2, spread: 35, provider: 'yahoo' },
-        { symbol: 'XAGUSD', name: 'Silver / US Dollar', category: 'Metals', type: 'commodity', price: 24.50, digits: 3, spread: 25, provider: 'yahoo' },
-        { symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', category: 'Crypto', type: 'crypto', price: 68000.00, digits: 2, spread: 500, provider: 'binance' },
-        { symbol: 'ETHUSD', name: 'Ethereum / US Dollar', category: 'Crypto', type: 'crypto', price: 3800.00, digits: 2, spread: 300, provider: 'binance' },
-        { symbol: 'US30', name: 'Dow Jones 30', category: 'Indices', type: 'stock', price: 39000.00, digits: 2, spread: 150, provider: 'yahoo' },
-        { symbol: 'NAS100', name: 'Nasdaq 100', category: 'Indices', type: 'stock', price: 18000.00, digits: 2, spread: 120, provider: 'yahoo' },
-        { symbol: 'WTI', name: 'Crude Oil WTI', category: 'Energies', type: 'commodity', price: 78.50, digits: 2, spread: 40, provider: 'yahoo' }
+        { symbol: 'EURUSD', name: 'Euro / US Dollar', category: 'Forex Major', type: 'crypto', price: 1.0850, digits: 5, spread: 12, provider: 'yahoo', is_frozen: false },
+        { symbol: 'GBPUSD', name: 'Great Britain Pound / US Dollar', category: 'Forex Major', type: 'crypto', price: 1.2640, digits: 5, spread: 15, provider: 'yahoo', is_frozen: false },
+        { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', category: 'Forex Major', type: 'crypto', price: 150.50, digits: 3, spread: 10, provider: 'yahoo', is_frozen: false },
+        { symbol: 'XAUUSD', name: 'Gold / US Dollar', category: 'Metals', type: 'commodity', price: 2155.20, digits: 2, spread: 35, provider: 'yahoo', is_frozen: false },
+        { symbol: 'XAGUSD', name: 'Silver / US Dollar', category: 'Metals', type: 'commodity', price: 24.50, digits: 3, spread: 25, provider: 'yahoo', is_frozen: false },
+        { symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', category: 'Crypto', type: 'crypto', price: 68450.00, digits: 2, spread: 500, provider: 'binance', is_frozen: false },
+        { symbol: 'ETHUSD', name: 'Ethereum / US Dollar', category: 'Crypto', type: 'crypto', price: 3820.00, digits: 2, spread: 300, provider: 'binance', is_frozen: false },
+        { symbol: 'US30', name: 'Dow Jones 30', category: 'Indices', type: 'stock', price: 39120.00, digits: 2, spread: 150, provider: 'yahoo', is_frozen: false },
+        { symbol: 'NAS100', name: 'Nasdaq 100', category: 'Indices', type: 'stock', price: 18150.00, digits: 2, spread: 120, provider: 'yahoo', is_frozen: false },
+        { symbol: 'WTI', name: 'Crude Oil WTI', category: 'Energies', type: 'commodity', price: 78.40, digits: 2, spread: 40, provider: 'yahoo', is_frozen: false }
       ];
 
-      const { error } = await supabase.from('trade_assets').insert(coreAssets);
-      if (error) throw error;
-      console.log('[Seed] Successfully seeded 10 core assets.');
+      const { data, error } = await supabase
+        .from('trade_assets')
+        .upsert(coreAssets, { onConflict: 'symbol' });
+
+      if (error) {
+        console.error('[Seed] Critical Error during seeding:', error.message);
+      } else {
+        console.log('[Seed] Assets successfully verified and updated in database.');
+      }
     } catch (err: any) {
-      console.error('[Seed] Error:', err.message);
+      console.error('[Seed] Unexpected error during seeding:', err.message);
     }
   };
 

@@ -4,7 +4,7 @@ import LiveMarketFeed from './components/LiveMarketFeed';
 import OrderBook from './components/OrderBook';
 import MarketWatch from './components/MarketWatch';
 import { LayoutDashboard, BarChart3 } from 'lucide-react';
-import { supabase } from '../../../supabaseClient';
+import { supabase } from '../../supabaseClient';
 import { User, TradeAsset } from '../../../types';
 import { useNotification } from '../../../components/NotificationContext';
 
@@ -109,8 +109,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   }, [user, symbol, assets.length]);
 
   const fetchAssets = async () => {
-    const { data } = await supabase.from('trade_assets').select('*').eq('is_frozen', false);
-    if (data) setAssets(data as TradeAsset[]);
+    console.log('[TradingPlatform] Fetching assets...');
+    const { data, error } = await supabase.from('trade_assets').select('*');
+    if (error) {
+      console.error('[TradingPlatform] Asset Fetch Error:', error.message);
+    } else if (data) {
+      console.log('[TradingPlatform] Assets fetched:', data.length);
+      setAssets(data as TradeAsset[]);
+    }
   };
 
   const fetchWallet = async () => {
