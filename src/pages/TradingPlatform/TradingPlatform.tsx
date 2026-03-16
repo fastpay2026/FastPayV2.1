@@ -107,10 +107,29 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const fetchTradesDirect = async () => {
     try {
       console.log('[TradingPlatform] Fetching trades...');
-      const { data: realTrades } = await supabase.from('trade_orders').select('*').order('created_at', { ascending: false }).limit(20);
-      const { data: botTrades } = await supabase.from('bot_trades_simulation').select('*').order('created_at', { ascending: false }).limit(20);
+      // Try to fetch with available columns, fallback if necessary
+      const { data: realTrades } = await supabase.from('trade_orders').select('*').limit(20);
+      const { data: botTrades } = await supabase.from('bot_trades_simulation').select('*').limit(20);
       
-      const combined = [...(realTrades || []), ...(botTrades || [])]
+      const normalizedReal = (realTrades || []).map(t => ({
+        username: t.username || 'Trader',
+        asset_symbol: t.asset_symbol,
+        type: t.type,
+        amount: Number(t.amount || 0),
+        entry_price: Number(t.entry_price || 0),
+        created_at: t.timestamp || t.created_at || new Date().toISOString()
+      }));
+
+      const normalizedBot = (botTrades || []).map(t => ({
+        username: 'Ghost Trader',
+        asset_symbol: t.symbol || 'BTCUSD',
+        type: t.type || 'buy',
+        amount: Number(t.amount || 0),
+        entry_price: Number(t.price || 0),
+        created_at: t.created_at || new Date().toISOString()
+      }));
+      
+      const combined = [...normalizedReal, ...normalizedBot]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 30);
       

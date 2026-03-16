@@ -37,11 +37,11 @@ const LiveMarketFeed: React.FC<LiveMarketFeedProps> = ({ trades }) => {
             <tr key={index} className="border-b border-white/5">
               <td className="p-2 text-white font-bold">{maskName(trade.username)}</td>
               <td className="p-2">{trade.asset_symbol}</td>
-              <td className={`p-2 font-bold ${trade.type === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>
-                {trade.type.toUpperCase()}
+              <td className={`p-2 font-bold ${(trade.type || 'buy').toLowerCase() === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>
+                {(trade.type || 'BUY').toUpperCase()}
               </td>
-              <td className="p-2">${trade.amount.toFixed(2)}</td>
-              <td className="p-2">${trade.entry_price.toFixed(2)}</td>
+              <td className="p-2">${Number(trade.amount || 0).toFixed(2)}</td>
+              <td className="p-2">${Number(trade.entry_price || 0).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
