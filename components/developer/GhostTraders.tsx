@@ -24,13 +24,23 @@ const GhostTraders: React.FC = () => {
   }, []);
 
   const fetchBots = async () => {
-    const { data } = await supabase.from('bot_instances').select('*').order('created_at', { ascending: false });
-    if (data) setBots(data);
+    try {
+      const { data, error } = await supabase.from('bot_instances').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      setBots(data || []);
+    } catch (err: any) {
+      console.error('Fetch Bots Error:', err.message);
+    }
   };
 
   const fetchTrades = async () => {
-    const { data } = await supabase.from('bot_trades_simulation').select('*').eq('status', 'open');
-    if (data) setTrades(data);
+    try {
+      const { data, error } = await supabase.from('bot_trades_simulation').select('*').eq('status', 'open');
+      if (error) throw error;
+      setTrades(data || []);
+    } catch (err: any) {
+      console.error('Fetch Trades Error:', err.message);
+    }
   };
 
   const fetchSettings = async () => {

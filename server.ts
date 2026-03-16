@@ -155,88 +155,69 @@ async function startServer() {
   const runGhostEngine = async () => {
     console.log('[Ghost Engine] Background process started.');
     
-    // التأكد من وجود إعدادات الفئات
-    const initSettings = async () => {
-      const categories = ['scalper', 'day', 'swing'];
-      for (const cat of categories) {
-        const { data } = await supabase.from('bot_category_settings').select('*').eq('category', cat).maybeSingle();
-        if (!data) {
-          await supabase.from('bot_category_settings').insert({
-            category: cat,
-            min_duration_minutes: cat === 'scalper' ? 1 : cat === 'day' ? 60 : 1440,
-            max_duration_minutes: cat === 'scalper' ? 5 : cat === 'day' ? 240 : 4320
-          });
-          console.log(`[Ghost Engine] Initialized settings for ${cat}`);
-        }
-      }
-    };
-    await initSettings();
-
     setInterval(async () => {
       try {
-        const { data: bots, error: botErr } = await supabase.from('bot_instances').select('*');
-        if (botErr) throw botErr;
-
-        const { data: settings } = await supabase.from('bot_category_settings').select('*');
-        const settingsMap = Object.fromEntries(settings?.map(s => [s.category, s]) || []);
-
+        // 1. جلب البوتات
+        const { data: bots } = await supabase.from('bot_instances').select('*');
+        
         if (bots && bots.length > 0) {
           for (const bot of bots) {
-            // A. Close expired trades
-            const { data: openTrades } = await supabase.from('bot_trades_simulation').select('*').eq('bot_id', bot.id).eq('status', 'open');
+            // A. إغلاق الصفقات القديمة تلقائياً
+            const { data: openTrades } = await supabase
+              .from('bot_trades_simulation')
+              .select('*')
+              .eq('bot_id', bot.id)
+              .eq('status', 'open');
+
             if (openTrades) {
               for (const trade of openTrades) {
                 const startTime = new Date(trade.created_at).getTime();
                 const now = new Date().getTime();
                 const durationMinutes = (now - startTime) / (1000 * 60);
+
                 if (durationMinutes >= (trade.target_duration || 5)) {
-                  const isWin = Math.random() < (bot.win_rate || 0.6);
                   await supabase.from('bot_trades_simulation').update({
-                    status: isWin ? 'closed_profit' : 'closed_loss',
+                    status: Math.random() > 0.4 ? 'closed_profit' : 'closed_loss',
                     closed_at: new Date().toISOString()
                   }).eq('id', trade.id);
-                  console.log(`[Ghost Engine] Bot ${bot.name} closed trade: ${isWin ? 'Profit' : 'Loss'}`);
                 }
               }
             }
 
-            // B. Open new trades (Auto mode only)
+            // B. فتح صفقات جديدة (في وضع AUTO)
             if (bot.mode === 'auto') {
-              const { count } = await supabase.from('bot_trades_simulation').select('*', { count: 'exact', head: true }).eq('bot_id', bot.id).eq('status', 'open');
-              if (count === 0) {
-                const config = settingsMap[bot.strategy.toLowerCase()];
-                const minD = config?.min_duration_minutes || 1;
-                const maxD = config?.max_duration_minutes || 5;
-                const targetDuration = Math.floor(Math.random() * (maxD - minD + 1) + minD);
+              const { count } = await supabase
+                .from('bot_trades_simulation')
+                .select('*', { count: 'exact', head: true })
+                .eq('bot_id', bot.id)
+                .eq('status', 'open');
 
-                const { error: insErr } = await supabase.from('bot_trades_simulation').insert({
+              if (count === 0) {
+                await supabase.from('bot_trades_simulation').insert({
                   bot_id: bot.id,
                   symbol: 'BTCUSDT',
                   type: Math.random() > 0.5 ? 'buy' : 'sell',
                   amount: bot.fixed_amount || 100,
                   price: 95000 + (Math.random() * 100),
                   status: 'open',
-                  target_duration: targetDuration
+                  target_duration: Math.floor(Math.random() * 10) + 1
                 });
-                
-                if (insErr) console.error(`[Ghost Engine] Failed to open trade for ${bot.name}:`, insErr.message);
-                else console.log(`[Ghost Engine] Bot ${bot.name} opened new ${bot.strategy} trade (${targetDuration}m)`);
+                console.log(`[Ghost Engine] Auto-trade opened for ${bot.name}`);
               }
             }
           }
         }
       } catch (e: any) {
-        console.error('[Ghost Engine] Loop Error:', e.message);
+        console.error('[Ghost Engine] Error:', e.message);
       }
     }, 10000); 
   };
 
   runGhostEngine();
 
-  // API for Purge All (Must be BEFORE the 404 guard)
+  // API for Purge All
   app.post('/api/admin/purge-bots', async (req, res) => {
     try {
-      console.log('[Admin] Purge All triggered');
       await supabase.from('bot_trades_simulation').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       res.json({ success: true });
