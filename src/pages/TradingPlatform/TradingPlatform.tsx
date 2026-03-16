@@ -58,7 +58,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         // 2. جلب صفقات البوتات
         const { data: botSimTrades } = await supabase
           .from('bot_trades_simulation')
-          .select('*, bot_instances(name)')
+          .select('*')
           .eq('status', 'open')
           .order('created_at', { ascending: false })
           .limit(20);
@@ -72,7 +72,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         const flattenedBots = (botSimTrades || []).map((order: any) => ({
           ...order,
           id: order.id,
-          username: order.bot_instances?.name || 'Bot',
+          username: 'Bot Trader', // اسم افتراضي لضمان الظهور
           asset_symbol: order.symbol,
           entry_price: order.price,
           timestamp: order.created_at,

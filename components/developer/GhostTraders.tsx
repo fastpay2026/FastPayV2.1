@@ -91,16 +91,27 @@ const GhostTraders: React.FC = () => {
   };
 
   const triggerManualTrade = async (bot: any) => {
-    await supabase.from('bot_trades_simulation').insert({
-      bot_id: bot.id, 
-      symbol: 'BTCUSDT', 
-      type: 'buy', 
-      amount: bot.fixed_amount, 
-      price: 95000, 
-      status: 'open', 
-      target_duration: 5
-    });
-    fetchTrades();
+    try {
+      setLoading(true);
+      const { error } = await supabase.from('bot_trades_simulation').insert({
+        bot_id: bot.id, 
+        symbol: 'BTCUSDT', 
+        type: Math.random() > 0.5 ? 'buy' : 'sell', 
+        amount: bot.fixed_amount || 100, 
+        price: 95000 + (Math.random() * 100), 
+        status: 'open', 
+        target_duration: 5
+      });
+      
+      if (error) throw error;
+      
+      await fetchTrades();
+      alert('✅ تم فتح صفقة يدوية بنجاح! ستظهر في المنصة الآن.');
+    } catch (err: any) {
+      alert('❌ فشل فتح الصفقة: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
