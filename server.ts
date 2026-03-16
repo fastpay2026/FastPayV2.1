@@ -134,7 +134,18 @@ async function startServer() {
           try {
             const binanceSymbol = asset.symbol.toUpperCase().replace('USD', 'USDT');
             const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`);
-            const data = await response.json();
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`Binance API returned ${response.status}: ${errorText.substring(0, 50)}`);
+            }
+            const text = await response.text();
+            let data;
+            try {
+              data = JSON.parse(text);
+            } catch (e) {
+              console.error(`[Binance] Failed to parse JSON for ${asset.symbol}. Response: ${text.substring(0, 100)}`);
+              throw new Error(`Invalid JSON response: ${text.substring(0, 50)}`);
+            }
             
             if (data.lastPrice) {
               const currentPrice = parseFloat(data.lastPrice);
