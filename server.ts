@@ -298,6 +298,30 @@ async function startServer() {
     }
   });
 
+  app.post('/api/admin/purge-bots', async (req, res) => {
+    if (!isSupabaseConfigured) {
+      return res.status(500).json({ error: 'Supabase not configured' });
+    }
+    try {
+      console.log('[Purge] API: Cleaning up fake bots and simulation data...');
+      // Delete simulation tables
+      await supabase.from('bot_trades_simulation').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      // Delete only bot trades, keep real user trades
+      await supabase.from('trade_orders').delete().eq('is_bot', true);
+      
+      // Delete users marked as bot
+      await supabase.from('users').delete().eq('is_bot', true);
+      
+      console.log('[Purge] API: Cleanup complete.');
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error('[Purge] API: Cleanup failed:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   app.get('/api/test-trade', async (req, res) => {
     console.log('API: Manual test trade trigger');
     if (!isSupabaseConfigured) return res.status(503).json({ error: 'Supabase not configured' });
