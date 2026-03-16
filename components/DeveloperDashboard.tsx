@@ -1,5 +1,4 @@
 
-import SmartControlCenter from './developer/SmartControlCenter';
 import GhostTraders from './developer/GhostTraders';
 import React, { useState } from 'react';
 import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from '../types';
@@ -74,7 +73,7 @@ const DeveloperDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'smart_control' | 'bots_army' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -147,7 +146,6 @@ const handleManualSync = async () => {
             { id: 'users', l: t('nav_users'), i: '👥', canDisable: false },
             { id: 'withdrawals', l: t('nav_swift'), i: '🏦', canDisable: true },
             { id: 'bots_army', l: 'Bots Army', i: '🪖', canDisable: false },
-            { id: 'smart_control', l: 'مركز التحكم الذكي', i: '🤖', canDisable: false },
             { id: 'salary', l: t('nav_salary_funding'), i: '💵', canDisable: true },
             { id: 'cards', l: t('nav_card_gen'), i: '🎫', canDisable: true },
             { id: 'invest', l: t('nav_invest_plans'), i: '💎', canDisable: true },
@@ -194,7 +192,6 @@ const handleManualSync = async () => {
         {activeTab === 'home' && <StatsOverview accounts={accounts} withdrawalRequests={withdrawalRequests} tradeOrders={tradeOrders} siteConfig={siteConfig} onManualSync={handleManualSync} isSyncing={isSyncing} />}
         {activeTab === 'users' && <UserManagement accounts={accounts} setAccounts={setAccounts} onAddUser={onAddUser} onUpdateUser={onUpdateUser} />}
         {activeTab === 'withdrawals' && <SwiftManager withdrawalRequests={withdrawalRequests} setWithdrawalRequests={setWithdrawalRequests} accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} addNotification={addNotification} setTransactions={setTransactions} />}
-        {activeTab === 'smart_control' && <SmartControlCenter accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} tradeAssets={tradeAssets} setTradeAssets={setTradeAssets} tradeOrders={tradeOrders} setTradeOrders={setTradeOrders} />}
         {activeTab === 'bots_army' && <GhostTraders />}
         {activeTab === 'salary' && <SalaryFunding salaryPlans={salaryPlans} setSalaryPlans={setSalaryPlans} accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} />}
         {activeTab === 'cards' && <CardGenerator rechargeCards={rechargeCards} setRechargeCards={setRechargeCards} user={user} />}
