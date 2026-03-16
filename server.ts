@@ -198,6 +198,7 @@ async function startServer() {
           return;
         }
 
+        // Twelve Data symbols often require specific formats
         const symbolMap: Record<string, string> = {
           'EURUSD': 'EUR/USD',
           'GBPUSD': 'GBP/USD',
@@ -206,14 +207,16 @@ async function startServer() {
           'XAGUSD': 'XAG/USD',
           'US30': 'DJI',
           'NAS100': 'IXIC',
-          'WTI': 'WTI/USD'
+          'WTI': 'WTI/USD' // Or 'USOIL'
         };
 
         for (const asset of twelveDataAssets) {
           try {
             const tdSymbol = symbolMap[asset.symbol] || asset.symbol;
-            const response = await fetch(`https://api.twelvedata.com/price?symbol=${tdSymbol}&apikey=${apiKey}`);
+            const url = `https://api.twelvedata.com/price?symbol=${tdSymbol}&apikey=${apiKey}`;
+            console.log(`[TwelveData] Fetching: ${url}`);
             
+            const response = await fetch(url);
             const text = await response.text();
             console.log(`[TwelveData] Raw Data for ${asset.symbol} (${tdSymbol}):`, text);
             
@@ -226,6 +229,12 @@ async function startServer() {
             if (data.price) {
               const currentPrice = parseFloat(data.price);
               
+              // Validate price logic
+              if (asset.symbol === 'WTI' && currentPrice < 70) {
+                console.warn(`[TwelveData] WTI price suspiciously low: ${currentPrice}. Skipping update.`);
+                continue;
+              }
+
               const { error: updateError } = await supabase.from('trade_assets').update({
                 price: currentPrice,
                 is_frozen: false
@@ -237,12 +246,11 @@ async function startServer() {
                 console.log(`[TwelveData] UPDATED: ${asset.symbol} -> ${currentPrice}`);
               }
             } else {
-              // API succeeded but no price, set to 0
+              console.warn(`[TwelveData] No price in response for ${asset.symbol}:`, text);
               await supabase.from('trade_assets').update({ price: 0 }).eq('id', asset.id);
             }
           } catch (err: any) {
             console.error(`[TwelveData] Error for ${asset.symbol}:`, err);
-            // Set price to 0 on failure
             await supabase.from('trade_assets').update({ price: 0 }).eq('id', asset.id);
           }
         }
