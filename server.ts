@@ -79,11 +79,40 @@ async function startServer() {
     console.error('Server: Failed to initialize Binance client:', e);
   }
 
+  // --- Assets Seeding (MT5 Standard Assets) ---
+  const seedAssets = async () => {
+    console.log('[Seed] Purging and rebuilding assets...');
+    try {
+      // 1. Delete existing assets
+      await supabase.from('trade_assets').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+      // 2. Define core assets
+      const coreAssets = [
+        { symbol: 'EURUSD', name: 'Euro / US Dollar', category: 'Forex Major', type: 'crypto', price: 1.08, digits: 5, spread: 12, provider: 'yahoo' },
+        { symbol: 'GBPUSD', name: 'Great Britain Pound / US Dollar', category: 'Forex Major', type: 'crypto', price: 1.26, digits: 5, spread: 15, provider: 'yahoo' },
+        { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', category: 'Forex Major', type: 'crypto', price: 150.50, digits: 3, spread: 10, provider: 'yahoo' },
+        { symbol: 'XAUUSD', name: 'Gold / US Dollar', category: 'Metals', type: 'commodity', price: 2150.00, digits: 2, spread: 35, provider: 'yahoo' },
+        { symbol: 'XAGUSD', name: 'Silver / US Dollar', category: 'Metals', type: 'commodity', price: 24.50, digits: 3, spread: 25, provider: 'yahoo' },
+        { symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', category: 'Crypto', type: 'crypto', price: 68000.00, digits: 2, spread: 500, provider: 'binance' },
+        { symbol: 'ETHUSD', name: 'Ethereum / US Dollar', category: 'Crypto', type: 'crypto', price: 3800.00, digits: 2, spread: 300, provider: 'binance' },
+        { symbol: 'US30', name: 'Dow Jones 30', category: 'Indices', type: 'stock', price: 39000.00, digits: 2, spread: 150, provider: 'yahoo' },
+        { symbol: 'NAS100', name: 'Nasdaq 100', category: 'Indices', type: 'stock', price: 18000.00, digits: 2, spread: 120, provider: 'yahoo' },
+        { symbol: 'WTI', name: 'Crude Oil WTI', category: 'Energies', type: 'commodity', price: 78.50, digits: 2, spread: 40, provider: 'yahoo' }
+      ];
+
+      const { error } = await supabase.from('trade_assets').insert(coreAssets);
+      if (error) throw error;
+      console.log('[Seed] Successfully seeded 10 core assets.');
+    } catch (err: any) {
+      console.error('[Seed] Error:', err.message);
+    }
+  };
+
   // --- Master Price Feed Sync (MT5 Standards) ---
   const runPriceFeed = async () => {
     console.log('[Price Feed] Master Sync started with Dual-Routing (Binance + Yahoo).');
     
-    setInterval(async () => {
+    const syncPrices = async () => {
       try {
         const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
         if (assetsError) throw assetsError;
@@ -103,7 +132,6 @@ async function startServer() {
                 if (data.lastPrice) {
                   currentPrice = parseFloat(data.lastPrice);
                   change24h = parseFloat(data.priceChangePercent);
-                  console.log(`[Price Feed] BINANCE SUCCESS: ${asset.symbol} -> ${currentPrice}`);
                 }
               } catch (err) {
                 console.error(`[Price Feed] Binance Error for ${asset.symbol}:`, err);
@@ -135,7 +163,6 @@ async function startServer() {
               if (quote && quote.regularMarketPrice) {
                 currentPrice = quote.regularMarketPrice;
                 change24h = quote.regularMarketChangePercent || 0;
-                console.log(`[Price Feed] YAHOO SUCCESS: ${asset.symbol} (${yahooSymbol}) -> ${currentPrice}`);
               }
             }
 
@@ -147,6 +174,7 @@ async function startServer() {
                 is_frozen: false,
                 updated_at: new Date().toISOString()
               }).eq('id', asset.id);
+              console.log(`[Price Feed] UPDATED: ${asset.symbol} -> ${currentPrice}`);
             }
           } catch (innerError: any) {
             console.error(`[Price Feed] Error for ${asset.symbol}:`, innerError.message);
@@ -155,14 +183,19 @@ async function startServer() {
       } catch (e: any) {
         console.error('[Price Feed] Global Sync Error:', e.message);
       }
-    }, 5000);
+    };
+
+    // Run immediately then every 5s
+    await syncPrices();
+    setInterval(syncPrices, 5000);
   };
 
   if (isSupabaseConfigured) {
-    console.log('Server: Starting Price Feed Sync...');
+    console.log('Server: Starting initialization...');
+    await seedAssets();
     runPriceFeed();
   } else {
-    console.error('Server: Price Feed Sync NOT started due to missing Supabase config.');
+    console.error('Server: Initialization NOT started due to missing Supabase config.');
   }
 
   // 5. API Routes - MUST be before any catch-all or static middleware

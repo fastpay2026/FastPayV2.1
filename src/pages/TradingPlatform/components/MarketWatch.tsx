@@ -22,7 +22,6 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
       const { data, error } = await supabase
         .from('trade_assets')
         .select('*')
-        .eq('is_frozen', false)
         .order('symbol', { ascending: true });
 
       if (!error && data) {
@@ -33,12 +32,21 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
 
     fetchAssets();
 
+    // Realtime subscription for immediate UI updates
     const channel = supabase
-      .channel('market_watch_updates')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_assets' }, (payload) => {
-        setAssets(current => 
-          current.map(a => a.id === payload.new.id ? { ...a, ...payload.new } : a)
-        );
+      .channel('market_watch_realtime')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'trade_assets' 
+      }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setAssets(prev => [...prev, payload.new as TradeAsset].sort((a, b) => a.symbol.localeCompare(b.symbol)));
+        } else if (payload.eventType === 'UPDATE') {
+          setAssets(prev => prev.map(a => a.id === payload.new.id ? { ...a, ...payload.new } : a));
+        } else if (payload.eventType === 'DELETE') {
+          setAssets(prev => prev.filter(a => a.id !== payload.old.id));
+        }
       })
       .subscribe();
 
@@ -51,18 +59,8 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
     let matchesCategory = false;
     if (category === 'All') {
       matchesCategory = true;
-    } else if (category === 'Forex Major') {
-      matchesCategory = a.category === 'Forex Major';
-    } else if (category === 'Forex Crosses') {
-      matchesCategory = a.category === 'Forex Crosses';
-    } else if (category === 'Metals') {
-      matchesCategory = a.category === 'Metals';
-    } else if (category === 'Indices') {
-      matchesCategory = a.category === 'Indices';
-    } else if (category === 'Energies') {
-      matchesCategory = a.category === 'Energies';
-    } else if (category === 'Crypto') {
-      matchesCategory = a.category === 'Crypto';
+    } else {
+      matchesCategory = a.category === category;
     }
 
     const matchesSearch = a.symbol.toLowerCase().includes(search.toLowerCase()) || 
