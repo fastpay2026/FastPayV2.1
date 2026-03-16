@@ -161,7 +161,7 @@ async function startServer() {
                 yahooSymbol = 'BZ=F';
               }
 
-              const quote = await yahooFinance.quote(yahooSymbol);
+              const quote: any = await yahooFinance.quote(yahooSymbol);
               if (quote && quote.regularMarketPrice) {
                 currentPrice = quote.regularMarketPrice;
                 change24h = quote.regularMarketChangePercent || 0;

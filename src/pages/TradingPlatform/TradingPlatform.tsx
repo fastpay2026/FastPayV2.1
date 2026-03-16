@@ -4,7 +4,7 @@ import LiveMarketFeed from './components/LiveMarketFeed';
 import OrderBook from './components/OrderBook';
 import MarketWatch from './components/MarketWatch';
 import { LayoutDashboard, BarChart3 } from 'lucide-react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../supabaseClient';
 import { User, TradeAsset } from '../../../types';
 import { useNotification } from '../../../components/NotificationContext';
 

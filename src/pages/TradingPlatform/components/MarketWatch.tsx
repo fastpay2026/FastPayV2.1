@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Star, TrendingUp, TrendingDown } from 'lucide-react';
-import { supabase } from '../../supabaseClient';
-import { TradeAsset } from '../../../types';
+import { supabase } from '../../../../supabaseClient';
+import { TradeAsset } from '../../../../types';
 
 interface MarketWatchProps {
   onSelectAsset: (symbol: string) => void;
