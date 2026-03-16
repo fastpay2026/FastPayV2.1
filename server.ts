@@ -85,48 +85,73 @@ async function startServer() {
     
     setInterval(async () => {
       try {
-        const { data: assets } = await supabase.from('trade_assets').select('*');
-        if (!assets || assets.length === 0) return;
+        const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
+        if (assetsError) throw assetsError;
+        if (!assets || assets.length === 0) {
+          console.log('[Price Feed] No assets found in database to sync.');
+          return;
+        }
 
-        // Mapping symbols to Yahoo Finance format
-        const symbols = assets.map(a => {
-          if (a.category === 'Crypto') return `${a.symbol.replace('USD', '')}-USD`;
-          if (a.category && a.category.includes('Forex')) return `${a.symbol}=X`;
-          if (a.symbol === 'XAUUSD') return 'GC=F';
-          if (a.symbol === 'XAGUSD') return 'SI=F';
-          if (a.symbol === 'US30') return '^DJI';
-          if (a.symbol === 'NAS100') return '^IXIC';
-          if (a.symbol === 'SPX500') return '^GSPC';
-          if (a.symbol === 'WTI') return 'CL=F';
-          if (a.symbol === 'BRENT') return 'BZ=F';
-          return a.symbol;
-        });
+        console.log(`[Price Feed] Syncing ${assets.length} assets...`);
 
-        const results = await yahooFinance.quote(symbols) as any[];
-        
-        if (results && Array.isArray(results)) {
-          for (const quote of results) {
-            const asset = assets.find(a => 
-              symbols[assets.indexOf(a)] === quote.symbol
-            );
-  
-            if (asset && quote.regularMarketPrice) {
-              await supabase.from('trade_assets').update({
+        for (const asset of assets) {
+          try {
+            let yahooSymbol = asset.symbol;
+            
+            // Advanced Mapping Logic
+            if (asset.category === 'Crypto') {
+              yahooSymbol = `${asset.symbol.replace('USD', '').replace('USDT', '')}-USD`;
+            } else if (asset.category && asset.category.toLowerCase().includes('forex')) {
+              yahooSymbol = `${asset.symbol}=X`;
+            } else if (asset.symbol === 'XAUUSD') {
+              yahooSymbol = 'GC=F'; // Gold Futures
+            } else if (asset.symbol === 'XAGUSD') {
+              yahooSymbol = 'SI=F'; // Silver Futures
+            } else if (asset.symbol === 'US30') {
+              yahooSymbol = 'YM=F'; // Dow Jones Futures
+            } else if (asset.symbol === 'NAS100') {
+              yahooSymbol = 'NQ=F'; // Nasdaq Futures
+            } else if (asset.symbol === 'SPX500') {
+              yahooSymbol = 'ES=F'; // S&P 500 Futures
+            } else if (asset.symbol === 'WTI') {
+              yahooSymbol = 'CL=F'; // Crude Oil
+            } else if (asset.symbol === 'BRENT') {
+              yahooSymbol = 'BZ=F'; // Brent Oil
+            }
+
+            const quote = await yahooFinance.quote(yahooSymbol);
+            
+            if (quote && quote.regularMarketPrice) {
+              const { error: updateError } = await supabase.from('trade_assets').update({
                 price: quote.regularMarketPrice,
                 change_24h: quote.regularMarketChangePercent || 0,
-                is_frozen: false
+                is_frozen: false,
+                updated_at: new Date().toISOString()
               }).eq('id', asset.id);
+
+              if (updateError) {
+                console.error(`[Price Feed] Failed to update DB for ${asset.symbol}:`, updateError.message);
+              } else {
+                console.log(`[Price Feed] SUCCESS: ${asset.symbol} (${yahooSymbol}) -> ${quote.regularMarketPrice}`);
+              }
+            } else {
+              console.warn(`[Price Feed] No price data returned for ${asset.symbol} (${yahooSymbol})`);
             }
+          } catch (innerError: any) {
+            console.error(`[Price Feed] Error fetching ${asset.symbol}:`, innerError.message);
           }
         }
       } catch (e: any) {
-        console.error('[Price Feed] Sync Error:', e.message);
+        console.error('[Price Feed] Global Sync Error:', e.message);
       }
-    }, 10000); 
+    }, 5000); // Increased frequency to 5 seconds
   };
 
   if (isSupabaseConfigured) {
+    console.log('Server: Starting Price Feed Sync...');
     runPriceFeed();
+  } else {
+    console.error('Server: Price Feed Sync NOT started due to missing Supabase config.');
   }
 
   // 5. API Routes - MUST be before any catch-all or static middleware
