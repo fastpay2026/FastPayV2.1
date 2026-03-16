@@ -146,13 +146,7 @@ async function startServer() {
       }
     };
 
-    const syncTwelveDataPrices = async () => {
-      const twelveDataKey = process.env.TWELVE_DATA_API_KEY;
-      if (!twelveDataKey) {
-        console.warn('[Twelve Data] API Key missing. Skipping non-crypto assets.');
-        return;
-      }
-
+    const simulateNonCryptoPrices = async () => {
       try {
         const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
         if (assetsError) throw assetsError;
@@ -160,91 +154,37 @@ async function startServer() {
 
         const nonCryptoAssets = assets.filter(a => a.type?.toLowerCase() !== 'crypto' && a.category !== 'Crypto');
 
-        const symbolMap: Record<string, any> = {};
-        const twelveSymbols: string[] = [];
-
         for (const asset of nonCryptoAssets) {
-          let twelveSymbol = asset.symbol;
-          if (asset.category?.toLowerCase().includes('forex') || asset.type?.toLowerCase() === 'forex') {
-            twelveSymbol = `${asset.symbol.slice(0, 3)}/${asset.symbol.slice(3)}`;
-          } else if (asset.symbol === 'XAUUSD') {
-            twelveSymbol = 'XAU/USD';
-          } else if (asset.symbol === 'XAGUSD') {
-            twelveSymbol = 'XAG/USD';
-          } else if (asset.symbol === 'US30') {
-            twelveSymbol = 'DJI';
-          } else if (asset.symbol === 'NAS100') {
-            twelveSymbol = 'IXIC';
-          } else if (asset.symbol === 'SPX500') {
-            twelveSymbol = 'SPX';
-          } else if (asset.symbol === 'WTI') {
-            twelveSymbol = 'WTIC';
-          } else if (asset.symbol === 'BRENT') {
-            twelveSymbol = 'BRENT';
-          }
+          // Realistic random walk simulation
+          const volatility = asset.type === 'forex' ? 0.0001 : 
+                             asset.type === 'metal' ? 0.001 : 
+                             asset.type === 'index' ? 0.0005 : 0.002;
+                             
+          const changePercent = (Math.random() - 0.5) * volatility;
+          const currentPrice = Number(asset.price) * (1 + changePercent);
+          const change24h = Number(asset.change_24h) + (changePercent * 100);
           
-          symbolMap[twelveSymbol] = asset;
-          twelveSymbols.push(twelveSymbol);
+          // Keep change24h within reasonable bounds (-5% to +5%)
+          const boundedChange24h = Math.max(-5, Math.min(5, change24h));
+
+          await supabase.from('trade_assets').update({
+            price: currentPrice,
+            change_24h: boundedChange24h,
+            is_frozen: false
+          }).eq('id', asset.id);
         }
-
-        // Batch request to save API credits (1 credit per symbol)
-        // Twelve Data free tier allows 8 credits per minute.
-        const chunks = [];
-        for (let i = 0; i < twelveSymbols.length; i += 8) {
-          chunks.push(twelveSymbols.slice(i, i + 8));
-        }
-
-        for (const chunk of chunks) {
-          const symbolString = chunk.join(',');
-          try {
-            const response = await fetch(`https://api.twelvedata.com/quote?symbol=${symbolString}&apikey=${twelveDataKey}`);
-            const data = await response.json();
-
-            if (data.status === 'error') {
-              console.error(`[Twelve Data] API Error:`, data.message);
-              continue;
-            }
-
-            // If multiple symbols, data is an object with symbols as keys. If single, it's the quote object.
-            const quotes = chunk.length === 1 ? { [chunk[0]]: data } : data;
-
-            for (const tsym of chunk) {
-              const quote = quotes[tsym];
-              if (quote && quote.close) {
-                const asset = symbolMap[tsym];
-                const currentPrice = parseFloat(quote.close);
-                const change24h = parseFloat(quote.percent_change) || 0;
-                
-                await supabase.from('trade_assets').update({
-                  price: currentPrice,
-                  change_24h: change24h,
-                  is_frozen: false
-                }).eq('id', asset.id);
-                console.log(`[Twelve Data] UPDATED: ${asset.symbol} -> ${currentPrice}`);
-              }
-            }
-          } catch (err) {
-             console.error(`[Twelve Data] Fetch Error for chunk ${symbolString}:`, err);
-          }
-          
-          // If there are more chunks, wait 60 seconds to respect the 8 credits/min limit
-          if (chunks.length > 1 && chunk !== chunks[chunks.length - 1]) {
-             await new Promise(resolve => setTimeout(resolve, 60000));
-          }
-        }
-
       } catch (e: any) {
-        console.error('[Twelve Data] Global Sync Error:', e.message);
+        console.error('[Simulation] Global Sync Error:', e.message);
       }
     };
 
-    // Run Binance immediately then every 10s
+    // Run Binance immediately then every 5s
     syncBinancePrices();
-    setInterval(syncBinancePrices, 10000);
+    setInterval(syncBinancePrices, 5000);
 
-    // Run Twelve Data immediately then every 2 minutes (120000ms) to ensure we don't hit limits
-    syncTwelveDataPrices();
-    setInterval(syncTwelveDataPrices, 120000);
+    // Run Simulation immediately then every 3s
+    simulateNonCryptoPrices();
+    setInterval(simulateNonCryptoPrices, 3000);
   };
 
   if (isSupabaseConfigured) {

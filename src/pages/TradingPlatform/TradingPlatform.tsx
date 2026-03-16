@@ -231,7 +231,20 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         </div>
         <div className="flex-1 flex">
           <div className="flex-1 p-2 flex flex-col">
-            <div className="flex-1"><TradingViewChart symbol={symbol.includes('USD') && !symbol.includes('BTC') ? `FX_IDC:${symbol}` : `BINANCE:${symbol}T`} /></div>
+            <div className="flex-1">
+              <TradingViewChart 
+                symbol={
+                  symbol === 'US30' ? 'CAPITALCOM:US30' :
+                  symbol === 'NAS100' ? 'CAPITALCOM:US100' :
+                  symbol === 'WTI' ? 'CAPITALCOM:USOIL' :
+                  symbol === 'XAUUSD' ? 'OANDA:XAUUSD' :
+                  symbol === 'XAGUSD' ? 'OANDA:XAGUSD' :
+                  symbol === 'BTCUSD' ? 'BINANCE:BTCUSDT' :
+                  symbol === 'ETHUSD' ? 'BINANCE:ETHUSDT' :
+                  `FX_IDC:${symbol}`
+                } 
+              />
+            </div>
             <LiveMarketFeed trades={trades} />
           </div>
           <div className="w-64 bg-[#131722] border-l border-white/10 p-4 flex flex-col gap-4">
