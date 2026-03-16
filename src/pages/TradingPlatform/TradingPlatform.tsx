@@ -125,7 +125,16 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const fetchTradesDirect = async () => {
     try {
       console.log('[TradingPlatform] Fetching trades...');
-      const { data: realTrades } = await supabase.from('trade_orders').select('*').limit(30);
+      // Only fetch trades from the last 24 hours to keep it clean
+      const yesterday = new Date();
+      yesterday.setHours(yesterday.getHours() - 24);
+      
+      const { data: realTrades } = await supabase
+        .from('trade_orders')
+        .select('*')
+        .gt('created_at', yesterday.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(30);
       
       const normalizedReal = (realTrades || []).map(t => ({
         username: t.username || 'Trader',
@@ -136,11 +145,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         created_at: t.timestamp || t.created_at || new Date().toISOString()
       }));
 
-      const combined = normalizedReal
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 30);
-      
-      setTrades(combined);
+      setTrades(normalizedReal);
     } catch (error) {
       console.error('[TradingPlatform] Error fetching trades:', error);
     }

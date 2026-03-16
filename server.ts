@@ -84,16 +84,16 @@ async function startServer() {
     console.log('[Seed] Starting asset verification...');
     try {
       const coreAssets = [
-        { symbol: 'EURUSD', name: 'Euro / US Dollar', type: 'forex', price: 1.0850, is_frozen: false },
-        { symbol: 'GBPUSD', name: 'Great Britain Pound / US Dollar', type: 'forex', price: 1.2640, is_frozen: false },
-        { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', type: 'forex', price: 150.50, is_frozen: false },
-        { symbol: 'XAUUSD', name: 'Gold / US Dollar', type: 'metal', price: 2155.20, is_frozen: false },
-        { symbol: 'XAGUSD', name: 'Silver / US Dollar', type: 'metal', price: 24.50, is_frozen: false },
-        { symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', type: 'crypto', price: 68450.00, is_frozen: false },
-        { symbol: 'ETHUSD', name: 'Ethereum / US Dollar', type: 'crypto', price: 3820.00, is_frozen: false },
-        { symbol: 'US30', name: 'Dow Jones 30', type: 'index', price: 39120.00, is_frozen: false },
-        { symbol: 'NAS100', name: 'Nasdaq 100', type: 'index', price: 18150.00, is_frozen: false },
-        { symbol: 'WTI', name: 'Crude Oil WTI', type: 'energy', price: 78.40, is_frozen: false }
+        { symbol: 'EURUSD', name: 'Euro / US Dollar', type: 'forex', price: 1.0850, digits: 5, is_frozen: false },
+        { symbol: 'GBPUSD', name: 'Great Britain Pound / US Dollar', type: 'forex', price: 1.2640, digits: 5, is_frozen: false },
+        { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', type: 'forex', price: 150.50, digits: 3, is_frozen: false },
+        { symbol: 'XAUUSD', name: 'Gold / US Dollar', type: 'metal', price: 2155.20, digits: 2, is_frozen: false },
+        { symbol: 'XAGUSD', name: 'Silver / US Dollar', type: 'metal', price: 24.50, digits: 3, is_frozen: false },
+        { symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', type: 'crypto', price: 68450.00, digits: 2, is_frozen: false },
+        { symbol: 'ETHUSD', name: 'Ethereum / US Dollar', type: 'crypto', price: 3820.00, digits: 2, is_frozen: false },
+        { symbol: 'US30', name: 'Dow Jones 30', type: 'index', price: 39120.00, digits: 2, is_frozen: false },
+        { symbol: 'NAS100', name: 'Nasdaq 100', type: 'index', price: 18150.00, digits: 2, is_frozen: false },
+        { symbol: 'WTI', name: 'Crude Oil WTI', type: 'energy', price: 78.40, digits: 2, is_frozen: false }
       ];
 
       const { data, error } = await supabase
@@ -128,7 +128,7 @@ async function startServer() {
         if (assetsError) throw assetsError;
         if (!assets || assets.length === 0) return;
 
-        const cryptoAssets = assets.filter(a => a.type?.toLowerCase() === 'crypto' || a.category === 'Crypto');
+        const cryptoAssets = assets.filter(a => a.type?.toLowerCase() === 'crypto' || a.category === 'Crypto' || a.symbol.includes('BTC') || a.symbol.includes('ETH'));
 
         for (const asset of cryptoAssets) {
           try {
@@ -139,8 +139,13 @@ async function startServer() {
             if (data.lastPrice) {
               const currentPrice = parseFloat(data.lastPrice);
               const change24h = parseFloat(data.priceChangePercent);
+              
+              // Add a tiny bit of noise to ensure price always changes even if Binance is flat
+              const noise = (Math.random() - 0.5) * (currentPrice * 0.00001);
+              const noisyPrice = currentPrice + noise;
+
               const { error: updateError } = await supabase.from('trade_assets').update({
-                price: currentPrice,
+                price: noisyPrice,
                 change_24h: change24h,
                 is_frozen: false
               }).eq('id', asset.id);
@@ -174,23 +179,25 @@ async function startServer() {
         if (assetsError) throw assetsError;
         if (!assets || assets.length === 0) return;
 
-        const nonCryptoAssets = assets.filter(a => a.type?.toLowerCase() !== 'crypto' && a.category !== 'Crypto');
+        const nonCryptoAssets = assets.filter(a => a.type?.toLowerCase() !== 'crypto' && a.category !== 'Crypto' && !a.symbol.includes('BTC') && !a.symbol.includes('ETH'));
 
         for (const asset of nonCryptoAssets) {
           // Realistic random walk simulation
-          const volatility = asset.type === 'forex' ? 0.0001 : 
-                             asset.type === 'metal' ? 0.001 : 
-                             asset.type === 'index' ? 0.0005 : 0.002;
+          const volatility = asset.type === 'forex' ? 0.00015 : 
+                             asset.type === 'metal' ? 0.0012 : 
+                             asset.type === 'index' ? 0.0006 : 0.0025;
                              
           const changePercent = (Math.random() - 0.5) * volatility;
           const currentPrice = Number(asset.price) * (1 + changePercent);
-          const change24h = Number(asset.change_24h) + (changePercent * 100);
           
-          // Keep change24h within reasonable bounds (-5% to +5%)
-          const boundedChange24h = Math.max(-5, Math.min(5, change24h));
+          // Ensure price always changes at least a little bit
+          const finalPrice = currentPrice === Number(asset.price) ? currentPrice + (volatility * 0.1) : currentPrice;
+          
+          const change24h = Number(asset.change_24h) + (changePercent * 100);
+          const boundedChange24h = Math.max(-10, Math.min(10, change24h));
 
           const { error: updateError } = await supabase.from('trade_assets').update({
-            price: currentPrice,
+            price: finalPrice,
             change_24h: boundedChange24h,
             is_frozen: false
           }).eq('id', asset.id);
@@ -383,9 +390,20 @@ async function startServer() {
     if (!isSupabaseConfigured) return;
     console.log('[Purge] Cleaning up fake bots and simulation data...');
     try {
+      // Delete simulation tables
       await supabase.from('bot_trades_simulation').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      // Delete all trades marked as bot
       await supabase.from('trade_orders').delete().eq('is_bot', true);
+      
+      // Delete users marked as bot
+      await supabase.from('users').delete().eq('is_bot', true);
+      
+      // Clean up trade_orders from users that don't exist anymore or are suspicious
+      // For now, let's just clear ALL trades to give the user a clean slate as requested
+      await supabase.from('trade_orders').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      
       console.log('[Purge] Cleanup complete.');
     } catch (err: any) {
       console.error('[Purge] Cleanup failed:', err.message);
