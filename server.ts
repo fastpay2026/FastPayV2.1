@@ -114,7 +114,8 @@ async function startServer() {
     time: null as string | null,
     status: 'idle',
     error: null as string | null,
-    count: 0
+    count: 0,
+    twelveDataLimitReached: false
   };
 
   // --- Master Price Feed Sync (MT5 Standards) ---
@@ -184,6 +185,10 @@ async function startServer() {
     };
 
     const syncTwelveDataPrices = async () => {
+      if (lastPriceUpdate.twelveDataLimitReached) {
+        console.warn('[TwelveData] Daily limit reached. Skipping sync.');
+        return;
+      }
       try {
         lastPriceUpdate.status = 'syncing_twelve_data';
         const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
@@ -210,6 +215,11 @@ async function startServer() {
           'WTI': 'WTI/USD'
         };
 
+        // Manual price offsets
+        const priceOffsets: Record<string, number> = {
+          'XAUUSD': 550 // Example offset
+        };
+
         for (const asset of twelveDataAssets) {
           try {
             const tdSymbol = symbolMap[asset.symbol] || asset.symbol;
@@ -222,6 +232,12 @@ async function startServer() {
             // Log the full JSON response
             console.log(`[TwelveData] Full Response for ${asset.symbol} (${tdSymbol}):`, text);
             
+            if (response.status === 429) {
+              console.error(`[TwelveData] Daily limit reached (429). Stopping sync.`);
+              lastPriceUpdate.twelveDataLimitReached = true;
+              break;
+            }
+            
             if (!response.ok) {
               throw new Error(`TwelveData API returned ${response.status}`);
             }
@@ -229,8 +245,13 @@ async function startServer() {
             const data = JSON.parse(text);
             
             if (data.price) {
-              const currentPrice = parseFloat(data.price);
+              let currentPrice = parseFloat(data.price);
               
+              // Apply offset
+              if (priceOffsets[asset.symbol]) {
+                currentPrice += priceOffsets[asset.symbol];
+              }
+
               // Validate price logic
               if (asset.symbol === 'WTI' && currentPrice < 70) {
                 console.warn(`[TwelveData] WTI price suspiciously low: ${currentPrice}. Skipping update.`);
@@ -266,9 +287,9 @@ async function startServer() {
     syncBinancePrices();
     setInterval(syncBinancePrices, 1000);
 
-    // Run TwelveData immediately then every 60s (to respect API limits)
+    // Run TwelveData immediately then every 15 minutes (to respect API limits)
     syncTwelveDataPrices();
-    setInterval(syncTwelveDataPrices, 60000);
+    setInterval(syncTwelveDataPrices, 900000);
   };
 
   if (isSupabaseConfigured) {

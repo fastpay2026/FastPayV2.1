@@ -289,6 +289,15 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4">
           <LayoutDashboard size={20} className="text-sky-400" />
           <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                await fetch('/api/admin/refresh-prices', { method: 'POST' });
+                alert('Refresh triggered');
+              }}
+              className="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors"
+            >
+              Refresh Prices
+            </button>
             <div className={`flex items-center gap-2 px-2 py-1 rounded text-[10px] font-bold ${isConnected ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}`}>
               <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
               {isConnected ? 'Connected' : 'Disconnected'}
@@ -300,7 +309,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
             {assets.slice(0, 5).map(a => (
               <span key={a.id} className="mx-4">
-                {a.symbol}: <span className={a.change_24h >= 0 ? 'text-emerald-400' : 'text-red-400'}>{Number(a.price || 0).toFixed(a.digits || 2)}</span>
+                {a.symbol}: <span className={a.change_24h >= 0 ? 'text-emerald-400' : 'text-red-400'}>{Number(a.price || 0).toFixed(a.type === 'forex' ? 5 : 2)}</span>
               </span>
             ))}
           </div>

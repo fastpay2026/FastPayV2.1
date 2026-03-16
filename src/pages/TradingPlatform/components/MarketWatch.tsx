@@ -141,7 +141,7 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
                         <span className={`text-xs font-mono font-bold transition-all duration-300 ${
                           isSelected ? 'text-sky-400' : 'text-white'
                         }`}>
-                          {Number(asset.price || 0).toFixed(asset.digits || 2)}
+                          {Number(asset.price || 0).toFixed(asset.type === 'forex' ? 5 : 2)}
                         </span>
                       </div>
                     </td>
