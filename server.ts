@@ -512,7 +512,7 @@ async function startServer() {
     await purgeBots();
     runPriceFeed();
     runGhostEngine();
-    runLiveFeedGenerator();
+    // runLiveFeedGenerator(); // Removed to stop random names
   }
 
   // API 404 Guard

@@ -70,27 +70,30 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .channel(`trading_realtime_${symbol}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, fetchWallet)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders', filter: `user_id=eq.${user.id}` }, fetchPositions)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
-        console.log('[TradingPlatform] New trade detected:', payload.new);
-        const t = payload.new;
-        const newTrade = {
-          username: t.username || 'Trader',
-          asset_symbol: t.asset_symbol,
-          type: t.type as 'buy' | 'sell',
-          amount: Number(t.amount || 0),
-          entry_price: Number(t.entry_price || 0),
-          created_at: t.timestamp || t.created_at || new Date().toISOString()
-        };
-        setTrades(prev => {
-          // Avoid duplicates (e.g. from optimistic update)
-          const isDuplicate = prev.some(p => 
-            p.username === newTrade.username && 
-            p.asset_symbol === newTrade.asset_symbol && 
-            Math.abs(p.entry_price - newTrade.entry_price) < 0.00001
-          );
-          if (isDuplicate) return prev;
-          return [newTrade, ...prev].slice(0, 30);
-        });
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('[TradingPlatform] Trade update detected:', payload);
+        if (payload.eventType === 'INSERT') {
+          const t = payload.new;
+          const newTrade = {
+            username: t.username || 'Trader',
+            asset_symbol: t.asset_symbol,
+            type: t.type as 'buy' | 'sell',
+            amount: Number(t.amount || 0),
+            entry_price: Number(t.entry_price || 0),
+            created_at: t.timestamp || t.created_at || new Date().toISOString()
+          };
+          setTrades(prev => {
+            const isDuplicate = prev.some(p => 
+              p.username === newTrade.username && 
+              p.asset_symbol === newTrade.asset_symbol && 
+              Math.abs(p.entry_price - newTrade.entry_price) < 0.00001
+            );
+            if (isDuplicate) return prev;
+            return [newTrade, ...prev].slice(0, 30);
+          });
+        } else {
+          fetchTradesDirect();
+        }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_trades_simulation' }, fetchTradesDirect)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_assets' }, (payload) => {
