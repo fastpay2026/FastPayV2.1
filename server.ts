@@ -133,8 +133,7 @@ async function startServer() {
               await supabase.from('trade_assets').update({
                 price: currentPrice,
                 change_24h: change24h,
-                is_frozen: false,
-                updated_at: new Date().toISOString()
+                is_frozen: false
               }).eq('id', asset.id);
               console.log(`[Binance] UPDATED: ${asset.symbol} -> ${currentPrice}`);
             }
@@ -219,8 +218,7 @@ async function startServer() {
                 await supabase.from('trade_assets').update({
                   price: currentPrice,
                   change_24h: change24h,
-                  is_frozen: false,
-                  updated_at: new Date().toISOString()
+                  is_frozen: false
                 }).eq('id', asset.id);
                 console.log(`[Twelve Data] UPDATED: ${asset.symbol} -> ${currentPrice}`);
               }

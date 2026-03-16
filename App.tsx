@@ -394,7 +394,6 @@ const App: React.FC = () => {
   useSyncEffect(raffleEntries, supabaseService.upsertRaffleEntry, 'RaffleEntry', supabaseService.bulkUpsertRaffleEntries);
   useSyncEffect(raffleWinners, supabaseService.upsertRaffleWinner, 'RaffleWinner', supabaseService.bulkUpsertRaffleWinners);
   useSyncEffect(tradeOrders, supabaseService.upsertTradeOrder, 'TradeOrder', supabaseService.bulkUpsertTradeOrders);
-  useSyncEffect(tradeAssets, supabaseService.upsertTradeAsset, 'TradeAsset');
   useSyncEffect(services, supabaseService.upsertLandingService, 'Service');
   useSyncEffect(pages, supabaseService.upsertCustomPage, 'Page');
 

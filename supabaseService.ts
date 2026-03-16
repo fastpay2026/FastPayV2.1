@@ -471,11 +471,7 @@ export const supabaseService = {
       type: a.type,
       icon: a.icon,
       is_frozen: a.isFrozen,
-      trend_bias: a.trendBias,
-      digits: a.digits,
-      category: a.category,
-      spread: a.spread,
-      description: a.description
+      trend_bias: a.trendBias
     }, { onConflict: 'id' });
     if (error) throw error;
   },
