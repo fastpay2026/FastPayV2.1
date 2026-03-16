@@ -130,9 +130,9 @@ const LandingPage: React.FC<Props> = ({
   const activeAds = siteConfig.ads?.filter(ad => ad.isActive) || [];
 
   return (
-    <div className={`flex flex-col min-h-screen bg-[#020617] text-white overflow-x-hidden ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className={`flex flex-col min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>
       
-      <div className="fixed inset-0 z-0 bg-mesh opacity-60"></div>
+      <div className="fixed inset-0 z-0 bg-mesh opacity-20"></div>
       
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         {speedLines.map((top, idx) => (

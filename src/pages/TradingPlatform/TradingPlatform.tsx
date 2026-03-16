@@ -215,7 +215,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         <MarketWatch onSelectAsset={setSymbol} selectedSymbol={symbol} />
       </div>
       <div className="flex-1 flex flex-col">
-        <div className="h-12 bg-[#131722] border-b border-white/10 flex items-center px-4 gap-4">
+        <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4">
           <LayoutDashboard size={20} className="text-sky-400" />
           <div className={`flex items-center gap-2 px-2 py-1 rounded text-[10px] font-bold ${isConnected ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}`}>
             <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
@@ -239,7 +239,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             </div>
             <LiveMarketFeed trades={trades} />
           </div>
-          <div className="w-64 bg-[#131722] border-l border-white/10 p-4 flex flex-col gap-4">
+          <div className="w-64 bg-[#161a1e] border-l border-white/10 p-4 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <h3 className="text-white font-bold text-sm flex justify-between items-center">
                 {symbol}
@@ -302,7 +302,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             <span className="text-white">${balance.freeMargin.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
           </span>
         </div>
-        <div className="h-48 bg-[#131722] border-t border-white/10 overflow-y-auto">
+        <div className="h-48 bg-[#161a1e] border-t border-white/10 overflow-y-auto">
           <table className="w-full text-xs text-left">
             <thead className="bg-[#1e2329] text-slate-400 sticky top-0">
               <tr>

@@ -563,8 +563,8 @@ const UserDashboard: React.FC<Props> = ({
   };
 
   return (
-    <div className={`fixed inset-0 z-[150] bg-[#020617] text-white font-sans overflow-hidden flex flex-col ${language === 'ar' || language === 'ku' ? 'text-right' : 'text-left'}`} dir={language === 'ar' || language === 'ku' ? 'rtl' : 'ltr'}>
-       <header className="h-16 md:h-20 bg-[#0f172a] border-b border-white/5 px-4 md:px-8 flex justify-between items-center z-[200] shrink-0">
+    <div className={`fixed inset-0 z-[150] bg-[#0a0a0a] text-white font-sans overflow-hidden flex flex-col ${language === 'ar' || language === 'ku' ? 'text-right' : 'text-left'}`} dir={language === 'ar' || language === 'ku' ? 'rtl' : 'ltr'}>
+       <header className="h-16 md:h-20 bg-[#161a1e] border-b border-white/5 px-4 md:px-8 flex justify-between items-center z-[200] shrink-0">
           <div className="flex items-center gap-4 md:gap-10">
              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="xl:hidden text-white text-2xl p-2">
                 {isMobileMenuOpen ? '✕' : '☰'}

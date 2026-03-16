@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries } from 'lightweight-charts';
 
 interface LightweightChartProps {
   symbol: string;
@@ -23,7 +23,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice }
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#131722' },
+        background: { type: ColorType.Solid, color: '#161a1e' },
         textColor: '#d1d4dc',
       },
       grid: {
@@ -43,7 +43,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice }
       },
     });
 
-    const candlestickSeries = chart.addCandlestickSeries({
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#26a69a',
       downColor: '#ef5350',
       borderVisible: false,
@@ -178,7 +178,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice }
   }, [lastCandle, livePrice]);
 
   return (
-    <div className="w-full h-full bg-[#131722] rounded-lg overflow-hidden border border-white/10 relative">
+    <div className="w-full h-full bg-[#161a1e] rounded-lg overflow-hidden border border-white/10 relative">
       <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="text-white font-bold text-lg">{symbol}</span>

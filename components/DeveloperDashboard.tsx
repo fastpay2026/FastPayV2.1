@@ -117,7 +117,7 @@ const handleManualSync = async () => {
     }
   };
   return (
-    <div className="fixed inset-0 z-[150] flex bg-[#020617] text-white text-right font-sans overflow-hidden" dir="rtl">
+    <div className="fixed inset-0 z-[150] flex bg-[#0a0a0a] text-white text-right font-sans overflow-hidden" dir="rtl">
       {/* Mobile Menu Toggle */}
       <button 
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
@@ -127,7 +127,7 @@ const handleManualSync = async () => {
       </button>
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed lg:static inset-y-0 right-0 w-80 bg-slate-900 border-l border-white/5 flex flex-col shadow-2xl z-[180] overflow-y-auto custom-scrollbar transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <aside className={`fixed lg:static inset-y-0 right-0 w-80 bg-[#161a1e] border-l border-white/5 flex flex-col shadow-2xl z-[180] overflow-y-auto custom-scrollbar transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-10 border-b border-white/5 text-center">
            <div className="mb-4">
              <LanguageSwitcher />

@@ -345,7 +345,7 @@ header('Location: ' . $payment->checkout_url);`
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex flex-col bg-[#020617] text-white font-sans overflow-hidden" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="fixed inset-0 z-[150] flex flex-col bg-[#0a0a0a] text-white font-sans overflow-hidden" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="absolute inset-0 bg-mesh opacity-20 pointer-events-none"></div>
 
       {/* Currency Ticker */}
@@ -361,7 +361,7 @@ header('Location: ' . $payment->checkout_url);`
          </div>
       </div>
 
-      <header className="h-20 md:h-28 bg-[#0f172a]/50 backdrop-blur-2xl border-b border-white/5 px-4 md:px-12 flex justify-between items-center z-[200]">
+      <header className="h-20 md:h-28 bg-[#161a1e]/50 backdrop-blur-2xl border-b border-white/5 px-4 md:px-12 flex justify-between items-center z-[200]">
          <div className="flex items-center gap-4 md:gap-8">
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-white text-2xl p-2">
                {isMobileMenuOpen ? '✕' : '☰'}

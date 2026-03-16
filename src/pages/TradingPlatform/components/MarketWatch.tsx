@@ -91,7 +91,7 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
   });
 
   return (
-    <div className="flex flex-col h-full bg-[#131722] border-r border-white/10">
+    <div className="flex flex-col h-full bg-[#161a1e] border-r border-white/10">
       {/* Header & Search */}
       <div className="p-3 border-b border-white/10">
         <div className="relative">
@@ -124,7 +124,7 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
       {/* Assets Table */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">
-          <thead className="sticky top-0 bg-[#131722] z-10 shadow-sm">
+          <thead className="sticky top-0 bg-[#161a1e] z-10 shadow-sm">
             <tr className="text-[10px] text-slate-500 uppercase font-bold border-b border-white/5">
               <th className="p-3 font-medium">Symbol</th>
               <th className="p-3 font-medium text-right">Price</th>
