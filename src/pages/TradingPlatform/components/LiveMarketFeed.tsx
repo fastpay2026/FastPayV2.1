@@ -33,17 +33,23 @@ const LiveMarketFeed: React.FC<LiveMarketFeedProps> = ({ trades }) => {
           </tr>
         </thead>
         <tbody>
-          {trades.map((trade, index) => (
-            <tr key={index} className="border-b border-white/5">
-              <td className="p-2 text-white font-bold">{maskName(trade.username)}</td>
-              <td className="p-2">{trade.asset_symbol}</td>
-              <td className={`p-2 font-bold ${(trade.type || 'buy').toLowerCase() === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>
-                {(trade.type || 'BUY').toUpperCase()}
-              </td>
-              <td className="p-2">${Number(trade.amount || 0).toFixed(2)}</td>
-              <td className="p-2">${Number(trade.entry_price || 0).toFixed(2)}</td>
+          {trades.length > 0 ? (
+            trades.map((trade, index) => (
+              <tr key={index} className="border-b border-white/5">
+                <td className="p-2 text-white font-bold">{maskName(trade.username)}</td>
+                <td className="p-2">{trade.asset_symbol}</td>
+                <td className={`p-2 font-bold ${(trade.type || 'buy').toLowerCase() === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {(trade.type || 'BUY').toUpperCase()}
+                </td>
+                <td className="p-2">${Number(trade.amount || 0).toFixed(2)}</td>
+                <td className="p-2">${Number(trade.entry_price || 0).toFixed(2)}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={5} className="p-4 text-center text-slate-500">No active trades</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>

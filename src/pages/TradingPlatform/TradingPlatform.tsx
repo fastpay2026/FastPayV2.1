@@ -74,13 +74,16 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         console.log('[TradingPlatform] Trade update detected:', payload);
         if (payload.eventType === 'INSERT') {
           const t = payload.new;
+          // If we want to filter out bot trades, we can do it here
+          // For now, let's just add it to the list
           const newTrade = {
             username: t.username || 'Trader',
             asset_symbol: t.asset_symbol,
             type: t.type as 'buy' | 'sell',
             amount: Number(t.amount || 0),
             entry_price: Number(t.entry_price || 0),
-            created_at: t.timestamp || t.created_at || new Date().toISOString()
+            created_at: t.timestamp || t.created_at || new Date().toISOString(),
+            is_bot: t.is_bot
           };
           setTrades(prev => {
             const isDuplicate = prev.some(p => 
@@ -149,29 +152,30 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const fetchTradesDirect = async () => {
     try {
       console.log('[TradingPlatform] Fetching trades...');
-      // Only fetch trades from the last 24 hours to keep it clean
-      const yesterday = new Date();
-      yesterday.setHours(yesterday.getHours() - 24);
       
-      const { data: realTrades } = await supabase
+      // Fetch only from trade_orders, filter by is_bot as needed
+      const { data: trades, error } = await supabase
         .from('trade_orders')
         .select('*')
-        .gt('timestamp', yesterday.toISOString())
         .order('timestamp', { ascending: false })
         .limit(30);
       
-      const normalizedReal = (realTrades || []).map(t => ({
+      if (error) throw error;
+
+      const normalizedTrades = (trades || []).map(t => ({
         username: t.username || 'Trader',
         asset_symbol: t.asset_symbol,
         type: t.type,
         amount: Number(t.amount || 0),
         entry_price: Number(t.entry_price || 0),
-        created_at: t.timestamp || t.created_at || new Date().toISOString()
+        created_at: t.timestamp || t.created_at || new Date().toISOString(),
+        is_bot: t.is_bot
       }));
 
-      setTrades(normalizedReal);
+      setTrades(normalizedTrades);
     } catch (error) {
       console.error('[TradingPlatform] Error fetching trades:', error);
+      setTrades([]); // Ensure empty state on error
     }
   };
 
