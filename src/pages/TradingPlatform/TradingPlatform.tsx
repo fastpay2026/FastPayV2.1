@@ -55,10 +55,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           .order('timestamp', { ascending: false })
           .limit(10);
 
-        // 2. جلب صفقات البوتات
+        // 2. جلب صفقات البوتات مع أسماء البوتات الحقيقية
         const { data: botSimTrades } = await supabase
           .from('bot_trades_simulation')
-          .select('*')
+          .select('*, bot_instances(name)')
           .eq('status', 'open')
           .order('created_at', { ascending: false })
           .limit(20);
@@ -72,7 +72,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         const flattenedBots = (botSimTrades || []).map((order: any) => ({
           ...order,
           id: order.id,
-          username: 'Bot Trader', // اسم افتراضي لضمان الظهور
+          username: order.bot_instances?.name || 'Bot Trader',
           asset_symbol: order.symbol,
           entry_price: order.price,
           timestamp: order.created_at,
