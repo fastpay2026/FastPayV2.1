@@ -183,69 +183,50 @@ async function startServer() {
       }
     };
 
-    const simulateNonCryptoPrices = async () => {
+    const syncTwelveDataPrices = async () => {
       try {
-        lastPriceUpdate.status = 'simulating';
+        lastPriceUpdate.status = 'syncing_twelve_data';
         const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
         if (assetsError) throw assetsError;
         if (!assets || assets.length === 0) return;
 
-        const nonCryptoAssets = assets.filter(a => a.type?.toLowerCase() !== 'crypto' && a.category !== 'Crypto' && !a.symbol.includes('BTC') && !a.symbol.includes('ETH'));
+        const twelveDataAssets = assets.filter(a => a.type?.toLowerCase() !== 'crypto' && a.category !== 'Crypto' && !a.symbol.includes('BTC') && !a.symbol.includes('ETH'));
+        const apiKey = process.env.TWELVE_DATA_API_KEY;
 
-        for (const asset of nonCryptoAssets) {
-          // Realistic random walk simulation
-          // Increased volatility for Forex to ensure movement is visible
-          const volatility = asset.type === 'forex' ? 0.0004 : 
-                             asset.type === 'metal' ? 0.0015 : 
-                             asset.type === 'index' ? 0.0008 : 0.003;
-                             
-          const changePercent = (Math.random() - 0.5) * volatility;
-          const currentPrice = Number(asset.price) * (1 + changePercent);
-          
-          // Ensure price always changes at least a little bit (at least 1 pip for forex)
-          const minChange = asset.type === 'forex' ? 0.00001 : 0.01;
-          const finalPrice = Math.abs(currentPrice - Number(asset.price)) < minChange 
-            ? Number(asset.price) + (Math.random() > 0.5 ? minChange : -minChange)
-            : currentPrice;
-          
-          const change24h = Number(asset.change_24h) + (changePercent * 100);
-          const boundedChange24h = Math.max(-10, Math.min(10, change24h));
+        if (!apiKey) {
+          console.error('[TwelveData] API Key missing');
+          return;
+        }
 
-          const { error: updateError } = await supabase.from('trade_assets').update({
-            price: finalPrice,
-            change_24h: boundedChange24h,
-            is_frozen: false
-          }).eq('id', asset.id);
-
-          if (asset.symbol === 'EURUSD' || asset.symbol === 'GBPUSD') {
-            // Ensure Forex always moves at least 2-5 pips
-            const pips = (Math.floor(Math.random() * 4) + 2) * 0.0001;
-            const direction = Math.random() > 0.5 ? 1 : -1;
-            const forcedPrice = Number(asset.price) + (direction * pips);
+        for (const asset of twelveDataAssets) {
+          try {
+            const response = await fetch(`https://api.twelvedata.com/price?symbol=${asset.symbol}&apikey=${apiKey}`);
+            if (!response.ok) {
+              throw new Error(`TwelveData API returned ${response.status}`);
+            }
+            const data = await response.json();
             
-            await supabase.from('trade_assets').update({
-              price: forcedPrice,
-              change_24h: boundedChange24h,
-              is_frozen: false
-            }).eq('id', asset.id);
-            
-            console.log(`[Price Feed] FORCED ${asset.symbol} to ${forcedPrice.toFixed(5)}`);
-            continue; // Skip the default update below
-          }
-
-          if (updateError) {
-            console.error(`[Simulation] Update failed for ${asset.symbol}:`, updateError.message);
-            lastPriceUpdate.error = updateError.message;
-          } else {
-            console.log(`[Simulation] UPDATED: ${asset.symbol} -> ${currentPrice.toFixed(asset.digits || 2)}`);
-            lastPriceUpdate.time = new Date().toISOString();
-            lastPriceUpdate.count++;
+            if (data.price) {
+              const currentPrice = parseFloat(data.price);
+              
+              const { error: updateError } = await supabase.from('trade_assets').update({
+                price: currentPrice,
+                is_frozen: false
+              }).eq('id', asset.id);
+              
+              if (updateError) {
+                console.error(`[TwelveData] Update failed for ${asset.symbol}:`, updateError.message);
+              } else {
+                console.log(`[TwelveData] UPDATED: ${asset.symbol} -> ${currentPrice}`);
+              }
+            }
+          } catch (err: any) {
+            console.error(`[TwelveData] Error for ${asset.symbol}:`, err);
           }
         }
         lastPriceUpdate.status = 'idle';
       } catch (e: any) {
-        console.error('[Simulation] Global Sync Error:', e.message);
-        lastPriceUpdate.error = e.message;
+        console.error('[TwelveData] Global Sync Error:', e.message);
         lastPriceUpdate.status = 'error';
       }
     };
@@ -254,9 +235,9 @@ async function startServer() {
     syncBinancePrices();
     setInterval(syncBinancePrices, 1000);
 
-    // Run Simulation immediately then every 800ms
-    simulateNonCryptoPrices();
-    setInterval(simulateNonCryptoPrices, 800);
+    // Run TwelveData immediately then every 60s (to respect API limits)
+    syncTwelveDataPrices();
+    setInterval(syncTwelveDataPrices, 60000);
   };
 
   if (isSupabaseConfigured) {
