@@ -84,16 +84,16 @@ async function startServer() {
     console.log('[Seed] Starting asset verification...');
     try {
       const coreAssets = [
-        { symbol: 'EURUSD', name: 'Euro / US Dollar', type: 'forex', price: 1.0850, digits: 5, is_frozen: false },
-        { symbol: 'GBPUSD', name: 'Great Britain Pound / US Dollar', type: 'forex', price: 1.2640, digits: 5, is_frozen: false },
-        { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', type: 'forex', price: 150.50, digits: 3, is_frozen: false },
-        { symbol: 'XAUUSD', name: 'Gold / US Dollar', type: 'metal', price: 2155.20, digits: 2, is_frozen: false },
-        { symbol: 'XAGUSD', name: 'Silver / US Dollar', type: 'metal', price: 24.50, digits: 3, is_frozen: false },
-        { symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', type: 'crypto', price: 68450.00, digits: 2, is_frozen: false },
-        { symbol: 'ETHUSD', name: 'Ethereum / US Dollar', type: 'crypto', price: 3820.00, digits: 2, is_frozen: false },
-        { symbol: 'US30', name: 'Dow Jones 30', type: 'index', price: 39120.00, digits: 2, is_frozen: false },
-        { symbol: 'NAS100', name: 'Nasdaq 100', type: 'index', price: 18150.00, digits: 2, is_frozen: false },
-        { symbol: 'WTI', name: 'Crude Oil WTI', type: 'energy', price: 78.40, digits: 2, is_frozen: false }
+        { symbol: 'EURUSD', name: 'Euro / US Dollar', type: 'forex', price: 1.0850, is_frozen: false },
+        { symbol: 'GBPUSD', name: 'Great Britain Pound / US Dollar', type: 'forex', price: 1.2640, is_frozen: false },
+        { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', type: 'forex', price: 150.50, is_frozen: false },
+        { symbol: 'XAUUSD', name: 'Gold / US Dollar', type: 'metal', price: 2155.20, is_frozen: false },
+        { symbol: 'XAGUSD', name: 'Silver / US Dollar', type: 'metal', price: 24.50, is_frozen: false },
+        { symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', type: 'crypto', price: 68450.00, is_frozen: false },
+        { symbol: 'ETHUSD', name: 'Ethereum / US Dollar', type: 'crypto', price: 3820.00, is_frozen: false },
+        { symbol: 'US30', name: 'Dow Jones 30', type: 'index', price: 39120.00, is_frozen: false },
+        { symbol: 'NAS100', name: 'Nasdaq 100', type: 'index', price: 18150.00, is_frozen: false },
+        { symbol: 'WTI', name: 'Crude Oil WTI', type: 'energy', price: 78.40, is_frozen: false }
       ];
 
       const { data, error } = await supabase
@@ -207,8 +207,19 @@ async function startServer() {
           }).eq('id', asset.id);
 
           if (asset.symbol === 'EURUSD' || asset.symbol === 'GBPUSD') {
-            // Force a larger change if it's too small
-            console.log(`[Price Feed] ${asset.symbol} current: ${asset.price}, next: ${finalPrice.toFixed(5)}`);
+            // Ensure Forex always moves at least 2-5 pips
+            const pips = (Math.floor(Math.random() * 4) + 2) * 0.0001;
+            const direction = Math.random() > 0.5 ? 1 : -1;
+            const forcedPrice = Number(asset.price) + (direction * pips);
+            
+            await supabase.from('trade_assets').update({
+              price: forcedPrice,
+              change_24h: boundedChange24h,
+              is_frozen: false
+            }).eq('id', asset.id);
+            
+            console.log(`[Price Feed] FORCED ${asset.symbol} to ${forcedPrice.toFixed(5)}`);
+            continue; // Skip the default update below
           }
 
           if (updateError) {
@@ -330,8 +341,11 @@ async function startServer() {
   const runGhostEngine = async () => {
     console.log('[Ghost Engine] Background process started.');
     
+    // Increased frequency to 10 seconds for more activity
     setInterval(async () => {
       try {
+        if (!isSupabaseConfigured) return;
+        
         // 1. جلب البوتات
         const { data: bots } = await supabase.from('bot_instances').select('*');
         // 2. جلب الأصول المتاحة
@@ -357,6 +371,13 @@ async function startServer() {
                     status: Math.random() > 0.4 ? 'closed_profit' : 'closed_loss',
                     closed_at: new Date().toISOString()
                   }).eq('id', trade.id);
+                  
+                  // Also update the trade_orders table if it exists there
+                  await supabase.from('trade_orders')
+                    .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
+                    .eq('asset_symbol', trade.symbol)
+                    .eq('username', bot.name)
+                    .eq('status', 'open');
                 }
               }
             }
@@ -369,11 +390,10 @@ async function startServer() {
                 .eq('bot_id', bot.id)
                 .eq('status', 'open');
 
-              if (count === 0) {
-                // اختيار أصل عشوائي من الأصول الحقيقية
+              // Allow up to 3 concurrent trades per bot for more activity
+              if (!count || count < 3) {
                 const randomAsset = assets[Math.floor(Math.random() * assets.length)];
                 
-                // Insert into simulation table for bot management
                 await supabase.from('bot_trades_simulation').insert({
                   bot_id: bot.id,
                   symbol: randomAsset.symbol,
@@ -383,9 +403,8 @@ async function startServer() {
                   status: 'open'
                 });
 
-                // ALSO insert into trade_orders so it shows in the Recent Trades list
                 await supabase.from('trade_orders').insert({
-                  user_id: null, // Avoid foreign key errors if bot ID is not in users table
+                  user_id: null,
                   username: bot.name,
                   asset_symbol: randomAsset.symbol,
                   type: Math.random() > 0.5 ? 'buy' : 'sell',
@@ -395,8 +414,6 @@ async function startServer() {
                   is_bot: true,
                   timestamp: new Date().toISOString()
                 });
-
-                console.log(`[Ghost Engine] Auto-trade opened for ${bot.name} on ${randomAsset.symbol}`);
               }
             }
           }
@@ -404,10 +421,46 @@ async function startServer() {
       } catch (e: any) {
         console.error('[Ghost Engine] Error:', e.message);
       }
-    }, 15000); 
+    }, 10000); 
   };
 
-  runGhostEngine();
+  // --- Live Feed Generator (Simulated Global Activity) ---
+  const runLiveFeedGenerator = () => {
+    console.log('[Live Feed] Generator started.');
+    const fakeNames = [
+      'Alex', 'Sarah', 'John', 'Elena', 'Marco', 'Yuki', 'Sofia', 'David', 'Emma', 'Lucas',
+      'Ahmed', 'Fatima', 'Omar', 'Layla', 'Zaid', 'Nour', 'Hassan', 'Mona', 'Youssef', 'Amira'
+    ];
+    
+    setInterval(async () => {
+      try {
+        if (!isSupabaseConfigured) return;
+        
+        // 50% chance to generate a trade every 3 seconds for more activity
+        if (Math.random() > 0.5) {
+          const { data: assets } = await supabase.from('trade_assets').select('*').eq('is_frozen', false);
+          if (!assets || assets.length === 0) return;
+          
+          const asset = assets[Math.floor(Math.random() * assets.length)];
+          const name = fakeNames[Math.floor(Math.random() * fakeNames.length)];
+          
+          await supabase.from('trade_orders').insert({
+            user_id: null,
+            username: `${name}_${Math.floor(Math.random() * 1000)}`,
+            asset_symbol: asset.symbol,
+            type: Math.random() > 0.5 ? 'buy' : 'sell',
+            amount: (Math.random() * 0.5 + 0.1).toFixed(2),
+            entry_price: asset.price,
+            status: 'open',
+            is_bot: true,
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (e: any) {
+        console.error('[Live Feed] Error:', e.message);
+      }
+    }, 3000);
+  };
 
   // --- Purge Bots on Startup ---
   const purgeBots = async () => {
@@ -434,6 +487,8 @@ async function startServer() {
     await seedAssets();
     await purgeBots();
     runPriceFeed();
+    runGhostEngine();
+    runLiveFeedGenerator();
   }
 
   // API 404 Guard

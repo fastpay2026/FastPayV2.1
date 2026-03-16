@@ -99,11 +99,11 @@ const App: React.FC = () => {
   });
 
   const [tradeAssets, setTradeAssets] = useState<TradeAsset[]>([
-    { id: '1', name: 'Bitcoin / USD', symbol: 'BINANCE:BTCUSDT', price: 96420, change24h: 2.4, type: 'crypto', icon: '₿', isFrozen: false, trendBias: 'neutral' },
-    { id: '2', name: 'EUR / USD', symbol: 'FX:EURUSD', price: 1.0842, change24h: -0.15, type: 'crypto', icon: '🇪🇺', isFrozen: false, trendBias: 'neutral' },
-    { id: '3', name: 'Gold / USD', symbol: 'OANDA:XAUUSD', price: 2425.40, change24h: 0.8, type: 'commodity', icon: '📀', isFrozen: false, trendBias: 'neutral' },
-    { id: '4', name: 'GBP / USD', symbol: 'FX:GBPUSD', price: 1.2654, change24h: 0.12, type: 'crypto', icon: '🇬🇧', isFrozen: false, trendBias: 'neutral' },
-    { id: '5', name: 'NVIDIA Corp', symbol: 'NASDAQ:NVDA', price: 1150.20, change24h: 3.4, type: 'stock', icon: '🟢', isFrozen: false, trendBias: 'neutral' },
+    { id: '1', name: 'Bitcoin / USD', symbol: 'BTCUSD', price: 96420, change24h: 2.4, type: 'crypto', icon: '₿', isFrozen: false, trendBias: 'neutral' },
+    { id: '2', name: 'EUR / USD', symbol: 'EURUSD', price: 1.0842, change24h: -0.15, type: 'forex', icon: '🇪🇺', isFrozen: false, trendBias: 'neutral' },
+    { id: '3', name: 'Gold / USD', symbol: 'XAUUSD', price: 2425.40, change24h: 0.8, type: 'metal', icon: '📀', isFrozen: false, trendBias: 'neutral' },
+    { id: '4', name: 'GBP / USD', symbol: 'GBPUSD', price: 1.2654, change24h: 0.12, type: 'forex', icon: '🇬🇧', isFrozen: false, trendBias: 'neutral' },
+    { id: '5', name: 'NVIDIA Corp', symbol: 'NVDA', price: 1150.20, change24h: 3.4, type: 'stock', icon: '🟢', isFrozen: false, trendBias: 'neutral' },
   ]);
 
   const [tradeOrders, setTradeOrders] = useState<TradeOrder[]>([]);
