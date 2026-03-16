@@ -198,13 +198,30 @@ async function startServer() {
           return;
         }
 
+        const symbolMap: Record<string, string> = {
+          'EURUSD': 'EUR/USD',
+          'GBPUSD': 'GBP/USD',
+          'USDJPY': 'USD/JPY',
+          'XAUUSD': 'XAU/USD',
+          'XAGUSD': 'XAG/USD',
+          'US30': 'DJI',
+          'NAS100': 'IXIC',
+          'WTI': 'WTI/USD'
+        };
+
         for (const asset of twelveDataAssets) {
           try {
-            const response = await fetch(`https://api.twelvedata.com/price?symbol=${asset.symbol}&apikey=${apiKey}`);
+            const tdSymbol = symbolMap[asset.symbol] || asset.symbol;
+            const response = await fetch(`https://api.twelvedata.com/price?symbol=${tdSymbol}&apikey=${apiKey}`);
+            
+            const text = await response.text();
+            console.log(`[TwelveData] Raw Data for ${asset.symbol} (${tdSymbol}):`, text);
+            
             if (!response.ok) {
               throw new Error(`TwelveData API returned ${response.status}`);
             }
-            const data = await response.json();
+            
+            const data = JSON.parse(text);
             
             if (data.price) {
               const currentPrice = parseFloat(data.price);
@@ -219,9 +236,14 @@ async function startServer() {
               } else {
                 console.log(`[TwelveData] UPDATED: ${asset.symbol} -> ${currentPrice}`);
               }
+            } else {
+              // API succeeded but no price, set to 0
+              await supabase.from('trade_assets').update({ price: 0 }).eq('id', asset.id);
             }
           } catch (err: any) {
             console.error(`[TwelveData] Error for ${asset.symbol}:`, err);
+            // Set price to 0 on failure
+            await supabase.from('trade_assets').update({ price: 0 }).eq('id', asset.id);
           }
         }
         lastPriceUpdate.status = 'idle';
