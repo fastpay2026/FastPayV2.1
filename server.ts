@@ -81,70 +81,81 @@ async function startServer() {
 
   // --- Master Price Feed Sync (MT5 Standards) ---
   const runPriceFeed = async () => {
-    console.log('[Price Feed] Master Sync started.');
+    console.log('[Price Feed] Master Sync started with Dual-Routing (Binance + Yahoo).');
     
     setInterval(async () => {
       try {
         const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
         if (assetsError) throw assetsError;
-        if (!assets || assets.length === 0) {
-          console.log('[Price Feed] No assets found in database to sync.');
-          return;
-        }
-
-        console.log(`[Price Feed] Syncing ${assets.length} assets...`);
+        if (!assets || assets.length === 0) return;
 
         for (const asset of assets) {
           try {
-            let yahooSymbol = asset.symbol;
+            let currentPrice = 0;
+            let change24h = 0;
+
+            // ROUTE 1: Binance for Crypto
+            if (asset.category === 'Crypto' || asset.provider === 'binance') {
+              const binanceSymbol = asset.symbol.toUpperCase().replace('USD', 'USDT');
+              try {
+                const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`);
+                const data = await response.json();
+                if (data.lastPrice) {
+                  currentPrice = parseFloat(data.lastPrice);
+                  change24h = parseFloat(data.priceChangePercent);
+                  console.log(`[Price Feed] BINANCE SUCCESS: ${asset.symbol} -> ${currentPrice}`);
+                }
+              } catch (err) {
+                console.error(`[Price Feed] Binance Error for ${asset.symbol}:`, err);
+              }
+            } 
             
-            // Advanced Mapping Logic
-            if (asset.category === 'Crypto') {
-              yahooSymbol = `${asset.symbol.replace('USD', '').replace('USDT', '')}-USD`;
-            } else if (asset.category && asset.category.toLowerCase().includes('forex')) {
-              yahooSymbol = `${asset.symbol}=X`;
-            } else if (asset.symbol === 'XAUUSD') {
-              yahooSymbol = 'GC=F'; // Gold Futures
-            } else if (asset.symbol === 'XAGUSD') {
-              yahooSymbol = 'SI=F'; // Silver Futures
-            } else if (asset.symbol === 'US30') {
-              yahooSymbol = 'YM=F'; // Dow Jones Futures
-            } else if (asset.symbol === 'NAS100') {
-              yahooSymbol = 'NQ=F'; // Nasdaq Futures
-            } else if (asset.symbol === 'SPX500') {
-              yahooSymbol = 'ES=F'; // S&P 500 Futures
-            } else if (asset.symbol === 'WTI') {
-              yahooSymbol = 'CL=F'; // Crude Oil
-            } else if (asset.symbol === 'BRENT') {
-              yahooSymbol = 'BZ=F'; // Brent Oil
+            // ROUTE 2: Yahoo Finance for Forex, Metals, Indices
+            else {
+              let yahooSymbol = asset.symbol;
+              if (asset.category && asset.category.toLowerCase().includes('forex')) {
+                yahooSymbol = `${asset.symbol}=X`;
+              } else if (asset.symbol === 'XAUUSD') {
+                yahooSymbol = 'GC=F';
+              } else if (asset.symbol === 'XAGUSD') {
+                yahooSymbol = 'SI=F';
+              } else if (asset.symbol === 'US30') {
+                yahooSymbol = 'YM=F';
+              } else if (asset.symbol === 'NAS100') {
+                yahooSymbol = 'NQ=F';
+              } else if (asset.symbol === 'SPX500') {
+                yahooSymbol = 'ES=F';
+              } else if (asset.symbol === 'WTI') {
+                yahooSymbol = 'CL=F';
+              } else if (asset.symbol === 'BRENT') {
+                yahooSymbol = 'BZ=F';
+              }
+
+              const quote = await yahooFinance.quote(yahooSymbol);
+              if (quote && quote.regularMarketPrice) {
+                currentPrice = quote.regularMarketPrice;
+                change24h = quote.regularMarketChangePercent || 0;
+                console.log(`[Price Feed] YAHOO SUCCESS: ${asset.symbol} (${yahooSymbol}) -> ${currentPrice}`);
+              }
             }
 
-            const quote = await yahooFinance.quote(yahooSymbol);
-            
-            if (quote && quote.regularMarketPrice) {
-              const { error: updateError } = await supabase.from('trade_assets').update({
-                price: quote.regularMarketPrice,
-                change_24h: quote.regularMarketChangePercent || 0,
+            // Update Database
+            if (currentPrice > 0) {
+              await supabase.from('trade_assets').update({
+                price: currentPrice,
+                change_24h: change24h,
                 is_frozen: false,
                 updated_at: new Date().toISOString()
               }).eq('id', asset.id);
-
-              if (updateError) {
-                console.error(`[Price Feed] Failed to update DB for ${asset.symbol}:`, updateError.message);
-              } else {
-                console.log(`[Price Feed] SUCCESS: ${asset.symbol} (${yahooSymbol}) -> ${quote.regularMarketPrice}`);
-              }
-            } else {
-              console.warn(`[Price Feed] No price data returned for ${asset.symbol} (${yahooSymbol})`);
             }
           } catch (innerError: any) {
-            console.error(`[Price Feed] Error fetching ${asset.symbol}:`, innerError.message);
+            console.error(`[Price Feed] Error for ${asset.symbol}:`, innerError.message);
           }
         }
       } catch (e: any) {
         console.error('[Price Feed] Global Sync Error:', e.message);
       }
-    }, 5000); // Increased frequency to 5 seconds
+    }, 5000);
   };
 
   if (isSupabaseConfigured) {

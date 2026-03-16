@@ -48,7 +48,23 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
   }, []);
 
   const filteredAssets = assets.filter(a => {
-    const matchesCategory = category === 'All' || a.category === category;
+    let matchesCategory = false;
+    if (category === 'All') {
+      matchesCategory = true;
+    } else if (category === 'Forex Major') {
+      matchesCategory = a.category === 'Forex Major';
+    } else if (category === 'Forex Crosses') {
+      matchesCategory = a.category === 'Forex Crosses';
+    } else if (category === 'Metals') {
+      matchesCategory = a.category === 'Metals';
+    } else if (category === 'Indices') {
+      matchesCategory = a.category === 'Indices';
+    } else if (category === 'Energies') {
+      matchesCategory = a.category === 'Energies';
+    } else if (category === 'Crypto') {
+      matchesCategory = a.category === 'Crypto';
+    }
+
     const matchesSearch = a.symbol.toLowerCase().includes(search.toLowerCase()) || 
                          (a.description && a.description.toLowerCase().includes(search.toLowerCase()));
     return matchesCategory && matchesSearch;
