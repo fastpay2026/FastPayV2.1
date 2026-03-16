@@ -12,12 +12,6 @@ interface LiveMarketFeedProps {
   trades: Trade[];
 }
 
-const maskName = (name: string) => {
-  if (!name) return 'Unknown';
-  if (name.length <= 2) return name + '****';
-  return name.substring(0, 2) + '****';
-};
-
 const LiveMarketFeed: React.FC<LiveMarketFeedProps> = ({ trades }) => {
   console.log('LiveMarketFeed: Rendering with trades:', trades.length);
   return (
@@ -36,7 +30,7 @@ const LiveMarketFeed: React.FC<LiveMarketFeedProps> = ({ trades }) => {
           {trades.length > 0 ? (
             trades.map((trade, index) => (
               <tr key={index} className="border-b border-white/5">
-                <td className="p-2 text-white font-bold">{maskName(trade.username)}</td>
+                <td className="p-2 text-white font-bold">{trade.username || 'Trader'}</td>
                 <td className="p-2">{trade.asset_symbol}</td>
                 <td className={`p-2 font-bold ${(trade.type || 'buy').toLowerCase() === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>
                   {(trade.type || 'BUY').toUpperCase()}
