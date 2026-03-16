@@ -84,16 +84,16 @@ async function startServer() {
     console.log('[Seed] Starting asset verification...');
     try {
       const coreAssets = [
-        { symbol: 'EURUSD', name: 'Euro / US Dollar', category: 'Forex Major', type: 'crypto', price: 1.0850, digits: 5, spread: 12, provider: 'yahoo', is_frozen: false },
-        { symbol: 'GBPUSD', name: 'Great Britain Pound / US Dollar', category: 'Forex Major', type: 'crypto', price: 1.2640, digits: 5, spread: 15, provider: 'yahoo', is_frozen: false },
-        { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', category: 'Forex Major', type: 'crypto', price: 150.50, digits: 3, spread: 10, provider: 'yahoo', is_frozen: false },
-        { symbol: 'XAUUSD', name: 'Gold / US Dollar', category: 'Metals', type: 'commodity', price: 2155.20, digits: 2, spread: 35, provider: 'yahoo', is_frozen: false },
-        { symbol: 'XAGUSD', name: 'Silver / US Dollar', category: 'Metals', type: 'commodity', price: 24.50, digits: 3, spread: 25, provider: 'yahoo', is_frozen: false },
-        { symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', category: 'Crypto', type: 'crypto', price: 68450.00, digits: 2, spread: 500, provider: 'binance', is_frozen: false },
-        { symbol: 'ETHUSD', name: 'Ethereum / US Dollar', category: 'Crypto', type: 'crypto', price: 3820.00, digits: 2, spread: 300, provider: 'binance', is_frozen: false },
-        { symbol: 'US30', name: 'Dow Jones 30', category: 'Indices', type: 'stock', price: 39120.00, digits: 2, spread: 150, provider: 'yahoo', is_frozen: false },
-        { symbol: 'NAS100', name: 'Nasdaq 100', category: 'Indices', type: 'stock', price: 18150.00, digits: 2, spread: 120, provider: 'yahoo', is_frozen: false },
-        { symbol: 'WTI', name: 'Crude Oil WTI', category: 'Energies', type: 'commodity', price: 78.40, digits: 2, spread: 40, provider: 'yahoo', is_frozen: false }
+        { symbol: 'EURUSD', name: 'Euro / US Dollar', type: 'forex', price: 1.0850, is_frozen: false },
+        { symbol: 'GBPUSD', name: 'Great Britain Pound / US Dollar', type: 'forex', price: 1.2640, is_frozen: false },
+        { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', type: 'forex', price: 150.50, is_frozen: false },
+        { symbol: 'XAUUSD', name: 'Gold / US Dollar', type: 'metal', price: 2155.20, is_frozen: false },
+        { symbol: 'XAGUSD', name: 'Silver / US Dollar', type: 'metal', price: 24.50, is_frozen: false },
+        { symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', type: 'crypto', price: 68450.00, is_frozen: false },
+        { symbol: 'ETHUSD', name: 'Ethereum / US Dollar', type: 'crypto', price: 3820.00, is_frozen: false },
+        { symbol: 'US30', name: 'Dow Jones 30', type: 'index', price: 39120.00, is_frozen: false },
+        { symbol: 'NAS100', name: 'Nasdaq 100', type: 'index', price: 18150.00, is_frozen: false },
+        { symbol: 'WTI', name: 'Crude Oil WTI', type: 'energy', price: 78.40, is_frozen: false }
       ];
 
       const { data, error } = await supabase
@@ -112,84 +112,141 @@ async function startServer() {
 
   // --- Master Price Feed Sync (MT5 Standards) ---
   const runPriceFeed = async () => {
-    console.log('[Price Feed] Master Sync started with Dual-Routing (Binance + Yahoo).');
+    console.log('[Price Feed] Master Sync started with Dual-Routing (Binance + Twelve Data).');
     
-    const syncPrices = async () => {
+    const syncBinancePrices = async () => {
       try {
         const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
         if (assetsError) throw assetsError;
         if (!assets || assets.length === 0) return;
 
-        for (const asset of assets) {
+        const cryptoAssets = assets.filter(a => a.type?.toLowerCase() === 'crypto' || a.category === 'Crypto');
+
+        for (const asset of cryptoAssets) {
           try {
-            let currentPrice = 0;
-            let change24h = 0;
-
-            // ROUTE 1: Binance for Crypto
-            if (asset.category === 'Crypto' || asset.provider === 'binance') {
-              const binanceSymbol = asset.symbol.toUpperCase().replace('USD', 'USDT');
-              try {
-                const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`);
-                const data = await response.json();
-                if (data.lastPrice) {
-                  currentPrice = parseFloat(data.lastPrice);
-                  change24h = parseFloat(data.priceChangePercent);
-                }
-              } catch (err) {
-                console.error(`[Price Feed] Binance Error for ${asset.symbol}:`, err);
-              }
-            } 
-            
-            // ROUTE 2: Yahoo Finance for Forex, Metals, Indices
-            else {
-              let yahooSymbol = asset.symbol;
-              if (asset.category && asset.category.toLowerCase().includes('forex')) {
-                yahooSymbol = `${asset.symbol}=X`;
-              } else if (asset.symbol === 'XAUUSD') {
-                yahooSymbol = 'GC=F';
-              } else if (asset.symbol === 'XAGUSD') {
-                yahooSymbol = 'SI=F';
-              } else if (asset.symbol === 'US30') {
-                yahooSymbol = 'YM=F';
-              } else if (asset.symbol === 'NAS100') {
-                yahooSymbol = 'NQ=F';
-              } else if (asset.symbol === 'SPX500') {
-                yahooSymbol = 'ES=F';
-              } else if (asset.symbol === 'WTI') {
-                yahooSymbol = 'CL=F';
-              } else if (asset.symbol === 'BRENT') {
-                yahooSymbol = 'BZ=F';
-              }
-
-              const quote: any = await yahooFinance.quote(yahooSymbol);
-              if (quote && quote.regularMarketPrice) {
-                currentPrice = quote.regularMarketPrice;
-                change24h = quote.regularMarketChangePercent || 0;
-              }
-            }
-
-            // Update Database
-            if (currentPrice > 0) {
+            const binanceSymbol = asset.symbol.toUpperCase().replace('USD', 'USDT');
+            const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`);
+            const data = await response.json();
+            if (data.lastPrice) {
+              const currentPrice = parseFloat(data.lastPrice);
+              const change24h = parseFloat(data.priceChangePercent);
               await supabase.from('trade_assets').update({
                 price: currentPrice,
                 change_24h: change24h,
                 is_frozen: false,
                 updated_at: new Date().toISOString()
               }).eq('id', asset.id);
-              console.log(`[Price Feed] UPDATED: ${asset.symbol} -> ${currentPrice}`);
+              console.log(`[Binance] UPDATED: ${asset.symbol} -> ${currentPrice}`);
             }
-          } catch (innerError: any) {
-            console.error(`[Price Feed] Error for ${asset.symbol}:`, innerError.message);
+          } catch (err) {
+            console.error(`[Binance] Error for ${asset.symbol}:`, err);
           }
         }
       } catch (e: any) {
-        console.error('[Price Feed] Global Sync Error:', e.message);
+        console.error('[Binance] Global Sync Error:', e.message);
       }
     };
 
-    // Run immediately then every 5s
-    await syncPrices();
-    setInterval(syncPrices, 5000);
+    const syncTwelveDataPrices = async () => {
+      const twelveDataKey = process.env.TWELVE_DATA_API_KEY;
+      if (!twelveDataKey) {
+        console.warn('[Twelve Data] API Key missing. Skipping non-crypto assets.');
+        return;
+      }
+
+      try {
+        const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
+        if (assetsError) throw assetsError;
+        if (!assets || assets.length === 0) return;
+
+        const nonCryptoAssets = assets.filter(a => a.type?.toLowerCase() !== 'crypto' && a.category !== 'Crypto');
+
+        const symbolMap: Record<string, any> = {};
+        const twelveSymbols: string[] = [];
+
+        for (const asset of nonCryptoAssets) {
+          let twelveSymbol = asset.symbol;
+          if (asset.category?.toLowerCase().includes('forex') || asset.type?.toLowerCase() === 'forex') {
+            twelveSymbol = `${asset.symbol.slice(0, 3)}/${asset.symbol.slice(3)}`;
+          } else if (asset.symbol === 'XAUUSD') {
+            twelveSymbol = 'XAU/USD';
+          } else if (asset.symbol === 'XAGUSD') {
+            twelveSymbol = 'XAG/USD';
+          } else if (asset.symbol === 'US30') {
+            twelveSymbol = 'DJI';
+          } else if (asset.symbol === 'NAS100') {
+            twelveSymbol = 'IXIC';
+          } else if (asset.symbol === 'SPX500') {
+            twelveSymbol = 'SPX';
+          } else if (asset.symbol === 'WTI') {
+            twelveSymbol = 'WTIC';
+          } else if (asset.symbol === 'BRENT') {
+            twelveSymbol = 'BRENT';
+          }
+          
+          symbolMap[twelveSymbol] = asset;
+          twelveSymbols.push(twelveSymbol);
+        }
+
+        // Batch request to save API credits (1 credit per symbol)
+        // Twelve Data free tier allows 8 credits per minute.
+        const chunks = [];
+        for (let i = 0; i < twelveSymbols.length; i += 8) {
+          chunks.push(twelveSymbols.slice(i, i + 8));
+        }
+
+        for (const chunk of chunks) {
+          const symbolString = chunk.join(',');
+          try {
+            const response = await fetch(`https://api.twelvedata.com/quote?symbol=${symbolString}&apikey=${twelveDataKey}`);
+            const data = await response.json();
+
+            if (data.status === 'error') {
+              console.error(`[Twelve Data] API Error:`, data.message);
+              continue;
+            }
+
+            // If multiple symbols, data is an object with symbols as keys. If single, it's the quote object.
+            const quotes = chunk.length === 1 ? { [chunk[0]]: data } : data;
+
+            for (const tsym of chunk) {
+              const quote = quotes[tsym];
+              if (quote && quote.close) {
+                const asset = symbolMap[tsym];
+                const currentPrice = parseFloat(quote.close);
+                const change24h = parseFloat(quote.percent_change) || 0;
+                
+                await supabase.from('trade_assets').update({
+                  price: currentPrice,
+                  change_24h: change24h,
+                  is_frozen: false,
+                  updated_at: new Date().toISOString()
+                }).eq('id', asset.id);
+                console.log(`[Twelve Data] UPDATED: ${asset.symbol} -> ${currentPrice}`);
+              }
+            }
+          } catch (err) {
+             console.error(`[Twelve Data] Fetch Error for chunk ${symbolString}:`, err);
+          }
+          
+          // If there are more chunks, wait 60 seconds to respect the 8 credits/min limit
+          if (chunks.length > 1 && chunk !== chunks[chunks.length - 1]) {
+             await new Promise(resolve => setTimeout(resolve, 60000));
+          }
+        }
+
+      } catch (e: any) {
+        console.error('[Twelve Data] Global Sync Error:', e.message);
+      }
+    };
+
+    // Run Binance immediately then every 10s
+    syncBinancePrices();
+    setInterval(syncBinancePrices, 10000);
+
+    // Run Twelve Data immediately then every 2 minutes (120000ms) to ensure we don't hit limits
+    syncTwelveDataPrices();
+    setInterval(syncTwelveDataPrices, 120000);
   };
 
   if (isSupabaseConfigured) {
@@ -353,7 +410,7 @@ async function startServer() {
   });
 
   // API 404 Guard
-  app.all('/api/*', (req, res) => {
+  app.all('/api/*all', (req, res) => {
     res.status(404).json({ error: `API route ${req.originalUrl} not found` });
   });
   if (process.env.NODE_ENV !== 'production') {
@@ -371,7 +428,7 @@ async function startServer() {
       res.status(404).json({ error: `API endpoint ${req.url} not found` });
     });
 
-    app.get('*', (req, res) => {
+    app.get('*all', (req, res) => {
       console.log(`[DEBUG] Catch-all route hit for: ${req.url}`);
       res.sendFile(path.join(distPath, 'index.html'));
     });

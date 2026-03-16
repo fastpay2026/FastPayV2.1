@@ -74,7 +74,15 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
     if (category === 'All') {
       matchesCategory = true;
     } else {
-      matchesCategory = a.category === category;
+      // Fallback to type if category is missing
+      const assetCategory = a.category || (
+        a.type === 'crypto' ? 'Crypto' :
+        a.type === 'forex' ? 'Forex Major' :
+        a.type === 'metal' ? 'Metals' :
+        a.type === 'index' ? 'Indices' :
+        a.type === 'energy' ? 'Energies' : 'Other'
+      );
+      matchesCategory = assetCategory === category;
     }
 
     const matchesSearch = a.symbol.toLowerCase().includes(search.toLowerCase()) || 
