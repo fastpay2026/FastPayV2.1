@@ -496,7 +496,7 @@ async function startServer() {
       await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       
       // Delete only bot trades, keep real user trades
-      await supabase.from('trade_orders').delete().eq('is_bot', true);
+      await supabase.from('trade_orders').delete().is('user_id', null);
       
       // Delete users marked as bot
       await supabase.from('users').delete().eq('is_bot', true);
