@@ -2,7 +2,6 @@ import React from 'react';
 import AdminTradingBot from './AdminTradingBot';
 import DealsEngine from './DealsEngine';
 import TradingControl from './TradingControl';
-import GhostTraders from './GhostTraders';
 import { User, TradeAsset, TradeOrder } from '../../types';
 import { supabase } from '../../supabaseClient';
 
@@ -106,10 +105,6 @@ const SmartControlCenter: React.FC<Props> = ({
       
       <div className="bg-slate-800 p-6 rounded-2xl border border-white/5">
         <TradingControl />
-      </div>
-
-      <div className="bg-slate-800 p-6 rounded-2xl border border-white/5">
-        <GhostTraders />
       </div>
     </div>
   );
