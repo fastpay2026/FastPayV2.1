@@ -45,23 +45,25 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     // Direct Supabase Connection for Trades
     const fetchTradesDirect = async () => {
       try {
-        console.log('TradingPlatform: Fetching trades...');
+        console.log('TradingPlatform: Fetching trades directly from Supabase...');
         
-        // 1. جلب الصفقات الحقيقية
-        const { data: realTrades } = await supabase
+        // 1. Fetch real trades
+        const { data: realTrades, error: realError } = await supabase
           .from('trade_orders')
           .select('*, users(username, is_bot)')
           .eq('status', 'open')
           .order('timestamp', { ascending: false })
           .limit(10);
 
-        // 2. جلب صفقات البوتات
-        const { data: botSimTrades } = await supabase
+        // 2. Fetch bot simulated trades
+        const { data: botSimTrades, error: botError } = await supabase
           .from('bot_trades_simulation')
           .select('*, bot_instances(name)')
           .eq('status', 'open')
           .order('created_at', { ascending: false })
-          .limit(20);
+          .limit(10);
+
+        if (realError) throw realError;
 
         const flattenedReal = (realTrades || []).map((order: any) => ({
           ...order,
@@ -86,18 +88,44 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         setTrades(allTrades);
         setIsConnected(true);
       } catch (err: any) {
-        console.error('TradingPlatform Error:', err.message);
+        console.error('TradingPlatform: Direct fetch failed:', err.message);
       }
     };
 
     fetchTradesDirect();
 
     const channel = supabase
-      .channel('realtime_trading_v2')
+      .channel('realtime_trading')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, fetchWallet)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, fetchTradesDirect)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_trades_simulation' }, fetchTradesDirect)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_instances' }, fetchTradesDirect)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, fetchPositions)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, async (payload) => {
+        console.log('TradingPlatform: [SUPABASE REALTIME] New trade detected:', payload.new);
+        
+        // Fetch the username for the new trade since the payload only has user_id
+        const { data: userData } = await supabase
+          .from('users')
+          .select('username, is_bot')
+          .eq('id', payload.new.user_id)
+          .single();
+          
+        const tradeWithUser = {
+          ...payload.new,
+          username: userData?.username || 'Unknown',
+          is_bot: userData?.is_bot || false
+        };
+        
+        setTrades(prev => {
+          const newTrades = [tradeWithUser, ...prev];
+          // Sort by timestamp descending to mix bots and real users naturally
+          return newTrades.sort((a, b) => 
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          ).slice(0, 20);
+        });
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('TradingPlatform: [SUPABASE REALTIME] Trade deleted:', payload.old);
+        setTrades(prev => prev.filter(t => t.id !== payload.old.id));
+      })
       .subscribe((status) => {
         console.log('TradingPlatform: Supabase Realtime Status:', status);
         if (status === 'SUBSCRIBED') {
