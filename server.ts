@@ -156,120 +156,88 @@ async function startServer() {
     res.status(404).json({ error: `API route ${req.originalUrl} not found` });
   });
 
-  const startWatcherBot = () => {
-    if (!isSupabaseConfigured) {
-      console.log('Watcher Bot: Supabase not configured, skipping bot start.');
-      return;
-    }
-    console.log('Watcher Bot started...');
+  // --- New Ghost Engine Integration (Directly in Server) ---
+  const runGhostEngine = async () => {
+    console.log('[Ghost Engine] Running background process...');
+    
     setInterval(async () => {
       try {
-        const { data: positions, error } = await supabase
-          .from('trade_orders')
-          .select('*')
-          .eq('status', 'open');
+        // 1. Fetch active bots and settings
+        const { data: bots } = await supabase.from('bot_instances').select('*').eq('is_active', true);
+        const { data: settings } = await supabase.from('bot_category_settings').select('*');
+        const settingsMap = Object.fromEntries(settings?.map(s => [s.category, s]) || []);
 
-        if (error) throw error;
-        if (!positions || positions.length === 0) return;
+        if (bots) {
+          for (const bot of bots) {
+            // A. Close expired trades
+            const { data: openTrades } = await supabase
+              .from('bot_trades_simulation')
+              .select('*')
+              .eq('bot_id', bot.id)
+              .eq('status', 'open');
 
-        const botPositions = positions.filter(p => p.is_bot === true || p.is_bot_enabled === true);
-        if (botPositions.length === 0) return;
+            if (openTrades) {
+              for (const trade of openTrades) {
+                const startTime = new Date(trade.created_at).getTime();
+                const now = new Date().getTime();
+                const durationMinutes = (now - startTime) / (1000 * 60);
 
-        if (!binanceClient) {
-          console.error('Watcher Bot: Binance client not initialized, skipping cycle.');
-          return;
-        }
-
-        const now = new Date();
-
-        for (const pos of botPositions) {
-          try {
-            // 1. Smart Closing Logic: check target_close_time
-            let shouldClose = false;
-            if (pos.target_close_time) {
-              const targetTime = new Date(pos.target_close_time);
-              if (now >= targetTime) {
-                shouldClose = true;
+                if (durationMinutes >= (trade.target_duration || 5)) {
+                  const isWin = Math.random() < (bot.win_rate || 0.5);
+                  await supabase.from('bot_trades_simulation').update({
+                    status: isWin ? 'closed_profit' : 'closed_loss',
+                    closed_at: new Date().toISOString()
+                  }).eq('id', trade.id);
+                  console.log(`[Ghost Engine] Closed trade for ${bot.name} (${isWin ? 'Profit' : 'Loss'})`);
+                }
               }
-            } else {
-              // Fallback to old scalping logic if no target_close_time
-              const entryTime = new Date(pos.timestamp);
-              const minutesOpen = (now.getTime() - entryTime.getTime()) / 60000;
-              if (minutesOpen >= 15) shouldClose = true;
             }
 
-            // 2. Forced TP/SL (only if not already closing)
-            if (!shouldClose) {
-              const ticker = await binanceClient.tickerPrice(pos.asset_symbol);
-              const currentPrice = parseFloat(ticker.data.price);
-              const isBuy = pos.type === 'buy';
-              
-              shouldClose = isBuy 
-                ? (pos.forced_take_profit && currentPrice >= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice <= pos.forced_stop_loss)
-                : (pos.forced_take_profit && currentPrice <= pos.forced_take_profit) || (pos.forced_stop_loss && currentPrice >= pos.forced_stop_loss);
-            }
+            // B. Open new trades (Auto mode only)
+            if (bot.mode === 'auto') {
+              const { count } = await supabase
+                .from('bot_trades_simulation')
+                .select('*', { count: 'exact', head: true })
+                .eq('bot_id', bot.id)
+                .eq('status', 'open');
 
-            if (shouldClose) {
-              // 60/40 win/loss logic for bots
-              const winProbability = 0.6;
-              const finalStatus = (Math.random() < winProbability) ? 'closed_profit' : 'closed_loss';
-              
-              console.log(`[WATCHER] Closing bot trade ${pos.id} | Category: ${pos.bot_category} | Result: ${finalStatus}`);
-              
-              await supabase
-                .from('trade_orders')
-                .update({ status: finalStatus, closed_at: new Date().toISOString() })
-                .eq('id', pos.id);
+              if (count === 0) {
+                const config = settingsMap[bot.strategy];
+                const minDur = config?.min_duration_minutes || 1;
+                const maxDur = config?.max_duration_minutes || 5;
+                const targetDuration = Math.floor(Math.random() * (maxDur - minDur + 1) + minDur);
+
+                await supabase.from('bot_trades_simulation').insert({
+                  bot_id: bot.id,
+                  symbol: 'BTCUSDT',
+                  type: Math.random() > 0.5 ? 'buy' : 'sell',
+                  amount: bot.fixed_amount,
+                  price: 95000,
+                  status: 'open',
+                  target_duration: targetDuration
+                });
+                console.log(`[Ghost Engine] Auto-opened trade for ${bot.name} (${targetDuration}m)`);
+              }
             }
-          } catch (posError: any) {
-            console.error(`Watcher Bot: Error processing position ${pos.id}:`, posError.message || posError);
           }
         }
-      } catch (error: any) {
-        console.error('Watcher Bot Error:', error.message || error);
+      } catch (e) {
+        console.error('[Ghost Engine] Error:', e);
       }
-    }, 5000); // Check every 5 seconds for faster closing
+    }, 10000); // Check every 10 seconds
   };
 
-  // --- Ghost Engine Integration ---
-  import './ghost_engine';
+  runGhostEngine();
 
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
-    next();
-  });
-
-  const botLogs: string[] = [];
-  const addLog = (msg: string) => {
-    const timestamp = new Date().toISOString();
-    const log = `[Bot Engine] ${timestamp}: ${msg}`;
-    botLogs.push(log);
-    if (botLogs.length > 50) botLogs.shift();
-    console.log(log);
-  };
-
-  // API to fetch logs
-  app.get('/api/bot-logs', (req, res) => {
-    res.json({ logs: botLogs });
-  });
-
-  // API to trigger test trade
-  app.post('/api/test-trade', async (req, res) => {
-    addLog('Manual test trade triggered.');
+  // API for Purge All (Using Service Role for full control)
+  app.post('/api/admin/purge-bots', async (req, res) => {
     try {
-      const { data: users } = await supabase.from('users').select('*').eq('is_bot', true).limit(1);
-      if (!users || users.length === 0) {
-        throw new Error('No bots found to test.');
-      }
-      const botUser = users[0];
-      addLog(`Attempting test trade for: ${botUser.username}`);
-      await executeBotTrade(botUser);
-      addLog('Test trade executed successfully.');
+      console.log('[Admin] Purge All triggered');
+      await supabase.from('bot_trades_simulation').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       res.json({ success: true });
-    } catch (error: any) {
-      const errorMsg = `[Error] Failed to open trade: ${error.message}`;
-      addLog(errorMsg);
-      res.status(500).json({ error: errorMsg });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
     }
   });
     const distPath = path.join(process.cwd(), 'dist');

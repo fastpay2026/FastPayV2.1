@@ -75,13 +75,9 @@ const GhostTraders: React.FC = () => {
     if (window.confirm('⚠️ تحذير نهائي: سيتم مسح كل شيء الآن. هل أنت متأكد؟')) {
       setLoading(true);
       try {
-        // حذف جميع الصفقات
-        const { error: e1 } = await supabase.from('bot_trades_simulation').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-        // حذف جميع البوتات
-        const { error: e2 } = await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        const response = await fetch('/api/admin/purge-bots', { method: 'POST' });
+        if (!response.ok) throw new Error('Server failed to purge data');
         
-        if (e1 || e2) throw new Error('Failed to purge some data');
-
         await fetchBots();
         await fetchTrades();
         alert('تم التطهير الشامل بنجاح وإغلاق كافة الصفقات');
