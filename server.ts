@@ -6,7 +6,6 @@ import cors from 'cors';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { createServer } from 'http';
-import yahooFinance from 'yahoo-finance2';
 
 console.log('Server: Process starting...');
 if (!pkg) {
@@ -119,7 +118,7 @@ async function startServer() {
 
   // --- Master Price Feed Sync (MT5 Standards) ---
   const runPriceFeed = async () => {
-    console.log('[Price Feed] Master Sync started with Dual-Routing (Binance + Twelve Data).');
+    console.log('[Price Feed] Master Sync started with Dual-Routing (Binance + Yahoo Finance).');
     
     const syncBinancePrices = async () => {
       try {
@@ -134,117 +133,72 @@ async function startServer() {
           try {
             const binanceSymbol = asset.symbol.toUpperCase().replace('USD', 'USDT');
             const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`);
-            if (!response.ok) {
-              const errorText = await response.text();
-              throw new Error(`Binance API returned ${response.status}: ${errorText.substring(0, 50)}`);
-            }
-            const text = await response.text();
-            let data;
-            try {
-              data = JSON.parse(text);
-            } catch (e) {
-              console.error(`[Binance] Failed to parse JSON for ${asset.symbol}. Response: ${text.substring(0, 100)}`);
-              throw new Error(`Invalid JSON response: ${text.substring(0, 50)}`);
-            }
+            if (!response.ok) continue;
+            const data = await response.json();
             
             if (data.lastPrice) {
               const currentPrice = parseFloat(data.lastPrice);
               const change24h = parseFloat(data.priceChangePercent);
               
-              // Add a tiny bit of noise to ensure price always changes even if Binance is flat
-              const noise = (Math.random() - 0.5) * (currentPrice * 0.00001);
-              const noisyPrice = currentPrice + noise;
-
-              const { error: updateError } = await supabase.from('trade_assets').update({
-                price: noisyPrice,
+              await supabase.from('trade_assets').update({
+                price: currentPrice,
                 change_24h: change24h,
                 is_frozen: false
               }).eq('id', asset.id);
-              
-              if (updateError) {
-                console.error(`[Binance] Update failed for ${asset.symbol}:`, updateError.message);
-                lastPriceUpdate.error = updateError.message;
-              } else {
-                console.log(`[Binance] UPDATED: ${asset.symbol} -> ${currentPrice} | Time: ${new Date().toLocaleTimeString()}`);
-                lastPriceUpdate.time = new Date().toISOString();
-                lastPriceUpdate.count++;
-              }
             }
           } catch (err: any) {
             console.error(`[Binance] Error for ${asset.symbol}:`, err);
-            lastPriceUpdate.error = err.message;
           }
         }
         lastPriceUpdate.status = 'idle';
       } catch (e: any) {
         console.error('[Binance] Global Sync Error:', e.message);
-        lastPriceUpdate.error = e.message;
         lastPriceUpdate.status = 'error';
       }
     };
 
-    // Twelve Data removed.
+    const syncYahooFinancePrices = async () => {
+      try {
+        lastPriceUpdate.status = 'syncing_yahoo';
+        const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
+        if (assetsError) throw assetsError;
+        if (!assets || assets.length === 0) return;
 
+        const yahooAssets = assets.filter(a => a.type?.toLowerCase() !== 'crypto' && a.category !== 'Crypto' && !a.symbol.includes('BTC') && !a.symbol.includes('ETH'));
 
-        for (const asset of twelveDataAssets) {
+        const symbolMap: Record<string, string> = {
+          'EURUSD': 'EURUSD=X',
+          'GBPUSD': 'GBPUSD=X',
+          'USDJPY': 'JPY=X',
+          'XAUUSD': 'XAUUSD=X',
+          'XAGUSD': 'XAGUSD=X',
+          'US30': '^DJI',
+          'NAS100': '^IXIC',
+          'WTI': 'CL=F'
+        };
+
+        for (const asset of yahooAssets) {
           try {
-            const tdSymbol = symbolMap[asset.symbol] || asset.symbol;
-            const url = `https://api.twelvedata.com/price?symbol=${tdSymbol}&apikey=${apiKey}`;
-            console.log(`[TwelveData] Fetching: ${url}`);
+            const yahooSymbol = symbolMap[asset.symbol] || asset.symbol;
+            const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
+            if (!response.ok) continue;
+            const data = await response.json();
             
-            const response = await fetch(url);
-            const text = await response.text();
-            
-            // Log the full JSON response
-            console.log(`[TwelveData] Full Response for ${asset.symbol} (${tdSymbol}):`, text);
-            
-            if (response.status === 429) {
-              console.error(`[TwelveData] Daily limit reached (429). Stopping sync.`);
-              lastPriceUpdate.twelveDataLimitReached = true;
-              break;
-            }
-            
-            if (!response.ok) {
-              throw new Error(`TwelveData API returned ${response.status}`);
-            }
-            
-            const data = JSON.parse(text);
-            
-            if (data.price) {
-              let currentPrice = parseFloat(data.price);
+            if (data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta && data.chart.result[0].meta.regularMarketPrice) {
+              const currentPrice = data.chart.result[0].meta.regularMarketPrice;
               
-              // Apply offset
-              if (priceOffsets[asset.symbol]) {
-                currentPrice += priceOffsets[asset.symbol];
-              }
-
-              // Validate price logic
-              if (asset.symbol === 'WTI' && currentPrice < 70) {
-                console.warn(`[TwelveData] WTI price suspiciously low: ${currentPrice}. Skipping update.`);
-                continue;
-              }
-
-              const { error: updateError } = await supabase.from('trade_assets').update({
+              await supabase.from('trade_assets').update({
                 price: currentPrice,
                 is_frozen: false
               }).eq('id', asset.id);
-              
-              if (updateError) {
-                console.error(`[TwelveData] Update failed for ${asset.symbol}:`, updateError.message);
-              } else {
-                console.log(`[TwelveData] UPDATED: ${asset.symbol} -> ${currentPrice}`);
-              }
-            } else {
-              console.warn(`[TwelveData] No price in response for ${asset.symbol}. Keeping old price.`);
             }
           } catch (err: any) {
-            console.error(`[TwelveData] Error for ${asset.symbol}:`, err.message);
-            // Fallback: Do nothing, keep old price
+            console.error(`[Yahoo] Error for ${asset.symbol}:`, err.message);
           }
         }
         lastPriceUpdate.status = 'idle';
       } catch (e: any) {
-        console.error('[TwelveData] Global Sync Error:', e.message);
+        console.error('[Yahoo] Global Sync Error:', e.message);
         lastPriceUpdate.status = 'error';
       }
     };
@@ -252,6 +206,10 @@ async function startServer() {
     // Run Binance immediately then every 1s
     syncBinancePrices();
     setInterval(syncBinancePrices, 1000);
+
+    // Run Yahoo Finance immediately then every 3s
+    syncYahooFinancePrices();
+    setInterval(syncYahooFinancePrices, 3000);
   };
 
   if (isSupabaseConfigured) {
