@@ -16,6 +16,7 @@ const RecentTrades: React.FC = () => {
       const { data, error } = await supabase
         .from('trade_orders')
         .select('*')
+        .eq('is_bot', false)
         .order('timestamp', { ascending: false })
         .limit(10);
       if (data) setTrades(data);
@@ -26,7 +27,10 @@ const RecentTrades: React.FC = () => {
     const channel = supabase
       .channel('trade_orders_channel')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
-        setTrades(prev => [payload.new as TradeOrder, ...prev].slice(0, 10));
+        const newTrade = payload.new as TradeOrder;
+        if (!newTrade.is_bot) {
+          setTrades(prev => [newTrade, ...prev].slice(0, 10));
+        }
       })
       .subscribe();
 
