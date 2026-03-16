@@ -17,6 +17,7 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
   const [category, setCategory] = useState<string>('All');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [lastUpdatedId, setLastUpdatedId] = useState<string | null>(null);
 
   const categories = ['All', 'Forex Major', 'Forex Crosses', 'Metals', 'Indices', 'Energies', 'Crypto'];
 
@@ -57,6 +58,8 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
         if (payload.eventType === 'INSERT') {
           setAssets(prev => [...prev, payload.new as TradeAsset].sort((a, b) => a.symbol.localeCompare(b.symbol)));
         } else if (payload.eventType === 'UPDATE') {
+          setLastUpdatedId(payload.new.id);
+          setTimeout(() => setLastUpdatedId(null), 1000);
           setAssets(prev => prev.map(a => a.id === payload.new.id ? { ...a, ...payload.new } : a));
         } else if (payload.eventType === 'DELETE') {
           setAssets(prev => prev.filter(a => a.id !== payload.old.id));
@@ -155,8 +158,8 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
                   <tr
                     key={asset.id}
                     onClick={() => onSelectAsset(asset.symbol)}
-                    className={`group cursor-pointer border-b border-white/5 transition-all duration-200 ${
-                      isSelected ? 'bg-sky-500/10' : 'hover:bg-white/5'
+                    className={`group cursor-pointer border-b border-white/5 transition-all duration-500 ${
+                      isSelected ? 'bg-sky-500/10' : lastUpdatedId === asset.id ? 'bg-emerald-500/10' : 'hover:bg-white/5'
                     }`}
                   >
                     <td className="p-3">

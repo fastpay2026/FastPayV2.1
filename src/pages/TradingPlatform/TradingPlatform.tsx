@@ -21,6 +21,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [priceColor, setPriceColor] = useState('text-white');
   const [trades, setTrades] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [orderBook, setOrderBook] = useState<{ bids: [number, number][], asks: [number, number][] }>({ bids: [], asks: [] });
   const { showNotification } = useNotification();
 
@@ -57,6 +59,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_trades_simulation' }, fetchTradesDirect)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_assets' }, (payload) => {
         console.log('[TradingPlatform] Asset Update Received:', payload.new.symbol, payload.new.price);
+        setLastUpdate(new Date());
+        setIsUpdating(true);
+        setTimeout(() => setIsUpdating(false), 500);
         
         setAssets(current => {
           const index = current.findIndex(a => a.id === payload.new.id);
@@ -199,9 +204,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       <div className="flex-1 flex flex-col">
         <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4">
           <LayoutDashboard size={20} className="text-sky-400" />
-          <div className={`flex items-center gap-2 px-2 py-1 rounded text-[10px] font-bold ${isConnected ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
-            {isConnected ? 'Connected' : 'Disconnected'}
+          <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-2 px-2 py-1 rounded text-[10px] font-bold ${isConnected ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+              {isConnected ? 'Connected' : 'Disconnected'}
+            </div>
+            {isUpdating && (
+              <div className="w-2 h-2 bg-sky-400 rounded-full animate-ping" title="Receiving Data" />
+            )}
           </div>
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
             {assets.slice(0, 5).map(a => (
