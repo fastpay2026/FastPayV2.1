@@ -6,64 +6,28 @@ import { TradeAsset } from '../../../../types';
 interface MarketWatchProps {
   onSelectAsset: (symbol: string) => void;
   selectedSymbol: string;
+  assets: TradeAsset[];
+  loading?: boolean;
 }
 
-const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol }) => {
-  const [assets, setAssets] = useState<TradeAsset[]>([
-    { id: '1', symbol: 'EURUSD', name: 'Euro / US Dollar', category: 'Forex Major', price: 1.0850, digits: 5, spread: 12, change_24h: 0.15, is_frozen: false },
-    { id: '2', symbol: 'XAUUSD', name: 'Gold / US Dollar', category: 'Metals', price: 2155.20, digits: 2, spread: 35, change_24h: -0.45, is_frozen: false },
-    { id: '3', symbol: 'BTCUSD', name: 'Bitcoin / US Dollar', category: 'Crypto', price: 68450.00, digits: 2, spread: 500, change_24h: 2.5, is_frozen: false }
-  ]);
+const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol, assets, loading = false }) => {
   const [category, setCategory] = useState<string>('All');
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
   const [lastUpdatedId, setLastUpdatedId] = useState<string | null>(null);
 
   const categories = ['All', 'Forex Major', 'Forex Crosses', 'Metals', 'Indices', 'Energies', 'Crypto'];
 
   useEffect(() => {
-    const fetchAssets = async () => {
-      setLoading(true);
-      try {
-        console.log('[MarketWatch] Fetching assets from Supabase...');
-        const { data, error } = await supabase
-          .from('trade_assets')
-          .select('*');
-
-        if (error) {
-          console.error('[MarketWatch] Supabase Error:', error.message);
-        } else if (data) {
-          console.log('[MarketWatch] Raw assets received:', data.length, data);
-          setAssets(data as TradeAsset[]);
-        } else {
-          console.warn('[MarketWatch] No data returned from Supabase.');
-        }
-      } catch (err: any) {
-        console.error('[MarketWatch] Unexpected Error:', err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAssets();
-
     // Realtime subscription for immediate UI updates
     const channel = supabase
-      .channel('market_watch_realtime')
+      .channel('market_watch_realtime_local')
       .on('postgres_changes', { 
-        event: '*', 
+        event: 'UPDATE', 
         schema: 'public', 
         table: 'trade_assets' 
       }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          setAssets(prev => [...prev, payload.new as TradeAsset].sort((a, b) => a.symbol.localeCompare(b.symbol)));
-        } else if (payload.eventType === 'UPDATE') {
-          setLastUpdatedId(payload.new.id);
-          setTimeout(() => setLastUpdatedId(null), 1000);
-          setAssets(prev => prev.map(a => a.id === payload.new.id ? { ...a, ...payload.new } : a));
-        } else if (payload.eventType === 'DELETE') {
-          setAssets(prev => prev.filter(a => a.id !== payload.old.id));
-        }
+        setLastUpdatedId(payload.new.id);
+        setTimeout(() => setLastUpdatedId(null), 1000);
       })
       .subscribe();
 

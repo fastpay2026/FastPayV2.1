@@ -212,13 +212,13 @@ async function startServer() {
       }
     };
 
-    // Run Binance immediately then every 2s
+    // Run Binance immediately then every 1s
     syncBinancePrices();
-    setInterval(syncBinancePrices, 2000);
+    setInterval(syncBinancePrices, 1000);
 
-    // Run Simulation immediately then every 1s
+    // Run Simulation immediately then every 800ms
     simulateNonCryptoPrices();
-    setInterval(simulateNonCryptoPrices, 1000);
+    setInterval(simulateNonCryptoPrices, 800);
   };
 
   if (isSupabaseConfigured) {
@@ -376,18 +376,27 @@ async function startServer() {
     }, 15000); 
   };
 
-  runGhostEngine();
+  // runGhostEngine();
 
-  // API for Purge All
-  app.post('/api/admin/purge-bots', async (req, res) => {
+  // --- Purge Bots on Startup ---
+  const purgeBots = async () => {
+    if (!isSupabaseConfigured) return;
+    console.log('[Purge] Cleaning up fake bots and simulation data...');
     try {
       await supabase.from('bot_trades_simulation').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      res.json({ success: true });
+      await supabase.from('trade_orders').delete().eq('is_bot', true);
+      console.log('[Purge] Cleanup complete.');
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error('[Purge] Cleanup failed:', err.message);
     }
-  });
+  };
+
+  if (isSupabaseConfigured) {
+    await seedAssets();
+    await purgeBots();
+    runPriceFeed();
+  }
 
   // API 404 Guard
   app.all('/api/*all', (req, res) => {

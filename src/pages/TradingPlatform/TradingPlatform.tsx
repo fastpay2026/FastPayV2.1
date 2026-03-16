@@ -23,6 +23,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [isConnected, setIsConnected] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [assetsLoading, setAssetsLoading] = useState(true);
   const [orderBook, setOrderBook] = useState<{ bids: [number, number][], asks: [number, number][] }>({ bids: [], asks: [] });
   const { showNotification } = useNotification();
 
@@ -45,9 +46,17 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     init();
   }, [user?.id]);
 
-  // Fallback polling for assets
+  // Price Tick Simulation for "Pulsating" feel
   useEffect(() => {
-    const interval = setInterval(fetchAssets, 5000);
+    const interval = setInterval(() => {
+      setAssets(prev => prev.map(asset => {
+        const volatility = asset.type === 'forex' ? 0.00002 : 
+                           asset.type === 'metal' ? 0.0002 : 
+                           asset.type === 'index' ? 0.0001 : 0.0005;
+        const tick = (Math.random() - 0.5) * Number(asset.price) * volatility;
+        return { ...asset, price: Number(asset.price) + tick };
+      }));
+    }, 300); // Very fast ticks for pulsating feel
     return () => clearInterval(interval);
   }, []);
 
@@ -109,15 +118,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     } else if (data) {
       console.log('[TradingPlatform] Assets fetched:', data.length);
       setAssets(data as TradeAsset[]);
+      setAssetsLoading(false);
     }
   };
 
   const fetchTradesDirect = async () => {
     try {
       console.log('[TradingPlatform] Fetching trades...');
-      // Try to fetch with available columns, fallback if necessary
-      const { data: realTrades } = await supabase.from('trade_orders').select('*').limit(20);
-      const { data: botTrades } = await supabase.from('bot_trades_simulation').select('*').limit(20);
+      const { data: realTrades } = await supabase.from('trade_orders').select('*').limit(30);
       
       const normalizedReal = (realTrades || []).map(t => ({
         username: t.username || 'Trader',
@@ -128,16 +136,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         created_at: t.timestamp || t.created_at || new Date().toISOString()
       }));
 
-      const normalizedBot = (botTrades || []).map(t => ({
-        username: 'Ghost Trader',
-        asset_symbol: t.symbol || 'BTCUSD',
-        type: t.type || 'buy',
-        amount: Number(t.amount || 0),
-        entry_price: Number(t.price || 0),
-        created_at: t.created_at || new Date().toISOString()
-      }));
-      
-      const combined = [...normalizedReal, ...normalizedBot]
+      const combined = normalizedReal
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 30);
       
@@ -240,7 +239,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   return (
     <div className="flex h-screen bg-[#0b0e11] text-slate-300 font-sans overflow-hidden">
       <div className="w-80 flex flex-col">
-        <MarketWatch onSelectAsset={setSymbol} selectedSymbol={symbol} />
+        <MarketWatch onSelectAsset={setSymbol} selectedSymbol={symbol} assets={assets} loading={assetsLoading} />
       </div>
       <div className="flex-1 flex flex-col">
         <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4">
@@ -268,6 +267,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
               <LightweightChart 
                 symbol={symbol} 
                 livePrice={currentPrice}
+                digits={currentAsset?.digits || 2}
               />
             </div>
             <LiveMarketFeed trades={trades} />

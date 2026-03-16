@@ -4,9 +4,10 @@ import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries } from
 interface LightweightChartProps {
   symbol: string;
   livePrice: number;
+  digits?: number;
 }
 
-const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice }) => {
+const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, digits = 2 }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -194,7 +195,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice }
         <div className="flex items-center gap-2">
           <span className="text-white font-bold text-lg">{symbol}</span>
           <span className={`font-mono text-lg ${lastCandle?.close >= lastCandle?.open ? 'text-emerald-400' : 'text-red-400'}`}>
-            {livePrice?.toFixed(5) || '0.00000'}
+            {livePrice?.toFixed(digits) || '0.00'}
           </span>
         </div>
       </div>
