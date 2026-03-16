@@ -58,19 +58,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         // 2. جلب صفقات البوتات
         const { data: botSimTrades } = await supabase
           .from('bot_trades_simulation')
-          .select('*')
+          .select('*, bot_instances(name)')
           .eq('status', 'open')
           .order('created_at', { ascending: false })
           .limit(20);
-
-        // 3. جلب بيانات البوتات النشطة فقط للمقارنة
-        const { data: activeBots } = await supabase
-          .from('bot_instances')
-          .select('id, name, is_active')
-          .eq('is_active', true);
-
-        const activeBotIds = new Set(activeBots?.map(b => b.id) || []);
-        const botNamesMap = Object.fromEntries(activeBots?.map(b => [b.id, b.name]) || []);
 
         const flattenedReal = (realTrades || []).map((order: any) => ({
           ...order,
@@ -78,17 +69,15 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           is_bot: order.users?.is_bot || false
         }));
 
-        const flattenedBots = (botSimTrades || [])
-          .filter((order: any) => activeBotIds.has(order.bot_id))
-          .map((order: any) => ({
-            ...order,
-            id: order.id,
-            username: botNamesMap[order.bot_id] || 'Bot',
-            asset_symbol: order.symbol,
-            entry_price: order.price,
-            timestamp: order.created_at,
-            is_bot: true
-          }));
+        const flattenedBots = (botSimTrades || []).map((order: any) => ({
+          ...order,
+          id: order.id,
+          username: order.bot_instances?.name || 'Bot',
+          asset_symbol: order.symbol,
+          entry_price: order.price,
+          timestamp: order.created_at,
+          is_bot: true
+        }));
 
         const allTrades = [...flattenedReal, ...flattenedBots].sort((a, b) => 
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()

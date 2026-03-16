@@ -183,16 +183,6 @@ const GhostTraders: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Status</label>
-              <button 
-                onClick={() => updateBot(bot.id, { is_active: !bot.is_active })}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border ${bot.is_active ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/10'}`}
-              >
-                {bot.is_active ? 'ON' : 'OFF'}
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
               <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Control Mode</label>
               <div className="flex bg-black/60 rounded-xl p-1 border border-white/5">
                 <button 

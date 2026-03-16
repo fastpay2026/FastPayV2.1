@@ -157,7 +157,7 @@ async function startServer() {
     
     setInterval(async () => {
       try {
-        const { data: bots } = await supabase.from('bot_instances').select('*').eq('is_active', true);
+        const { data: bots } = await supabase.from('bot_instances').select('*');
         const { data: settings } = await supabase.from('bot_category_settings').select('*');
         const settingsMap = Object.fromEntries(settings?.map(s => [s.category, s]) || []);
 
