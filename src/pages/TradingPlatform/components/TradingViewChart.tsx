@@ -7,6 +7,7 @@ const TradingViewChart: React.FC<{ symbol: string }> = ({ symbol }) => {
       <AdvancedRealTimeChart
         symbol={symbol}
         theme="dark"
+        interval="1"
         autosize
         hide_side_toolbar={false}
         allow_symbol_change={true}

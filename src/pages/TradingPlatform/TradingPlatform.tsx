@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import TradingViewChart from './components/TradingViewChart';
+import LightweightChart from './components/LightweightChart';
 import LiveMarketFeed from './components/LiveMarketFeed';
 import OrderBook from './components/OrderBook';
 import MarketWatch from './components/MarketWatch';
@@ -230,19 +230,11 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           </div>
         </div>
         <div className="flex-1 flex">
-          <div className="flex-1 p-2 flex flex-col">
-            <div className="flex-1">
-              <TradingViewChart 
-                symbol={
-                  symbol === 'US30' ? 'CAPITALCOM:US30' :
-                  symbol === 'NAS100' ? 'CAPITALCOM:US100' :
-                  symbol === 'WTI' ? 'CAPITALCOM:USOIL' :
-                  symbol === 'XAUUSD' ? 'OANDA:XAUUSD' :
-                  symbol === 'XAGUSD' ? 'OANDA:XAGUSD' :
-                  symbol === 'BTCUSD' ? 'BINANCE:BTCUSDT' :
-                  symbol === 'ETHUSD' ? 'BINANCE:ETHUSDT' :
-                  `FX_IDC:${symbol}`
-                } 
+          <div className="flex-1 p-2 flex flex-col min-h-0">
+            <div className="flex-1 min-h-0">
+              <LightweightChart 
+                symbol={symbol} 
+                livePrice={currentPrice}
               />
             </div>
             <LiveMarketFeed trades={trades} />
