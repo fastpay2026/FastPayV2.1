@@ -151,18 +151,12 @@ async function startServer() {
     }
   });
 
-  // API 404 Guard - MUST be after all valid API routes but before catch-all
-  app.all('/api/*', (req, res) => {
-    res.status(404).json({ error: `API route ${req.originalUrl} not found` });
-  });
-
   // --- New Ghost Engine Integration (Directly in Server) ---
   const runGhostEngine = async () => {
-    console.log('[Ghost Engine] Running background process...');
+    console.log('[Ghost Engine] Background process started.');
     
     setInterval(async () => {
       try {
-        // 1. Fetch active bots and settings
         const { data: bots } = await supabase.from('bot_instances').select('*').eq('is_active', true);
         const { data: settings } = await supabase.from('bot_category_settings').select('*');
         const settingsMap = Object.fromEntries(settings?.map(s => [s.category, s]) || []);
@@ -170,66 +164,46 @@ async function startServer() {
         if (bots) {
           for (const bot of bots) {
             // A. Close expired trades
-            const { data: openTrades } = await supabase
-              .from('bot_trades_simulation')
-              .select('*')
-              .eq('bot_id', bot.id)
-              .eq('status', 'open');
-
+            const { data: openTrades } = await supabase.from('bot_trades_simulation').select('*').eq('bot_id', bot.id).eq('status', 'open');
             if (openTrades) {
               for (const trade of openTrades) {
                 const startTime = new Date(trade.created_at).getTime();
                 const now = new Date().getTime();
                 const durationMinutes = (now - startTime) / (1000 * 60);
-
                 if (durationMinutes >= (trade.target_duration || 5)) {
                   const isWin = Math.random() < (bot.win_rate || 0.5);
                   await supabase.from('bot_trades_simulation').update({
                     status: isWin ? 'closed_profit' : 'closed_loss',
                     closed_at: new Date().toISOString()
                   }).eq('id', trade.id);
-                  console.log(`[Ghost Engine] Closed trade for ${bot.name} (${isWin ? 'Profit' : 'Loss'})`);
                 }
               }
             }
 
             // B. Open new trades (Auto mode only)
             if (bot.mode === 'auto') {
-              const { count } = await supabase
-                .from('bot_trades_simulation')
-                .select('*', { count: 'exact', head: true })
-                .eq('bot_id', bot.id)
-                .eq('status', 'open');
-
+              const { count } = await supabase.from('bot_trades_simulation').select('*', { count: 'exact', head: true }).eq('bot_id', bot.id).eq('status', 'open');
               if (count === 0) {
                 const config = settingsMap[bot.strategy];
-                const minDur = config?.min_duration_minutes || 1;
-                const maxDur = config?.max_duration_minutes || 5;
-                const targetDuration = Math.floor(Math.random() * (maxDur - minDur + 1) + minDur);
-
+                const targetDuration = Math.floor(Math.random() * ((config?.max_duration_minutes || 5) - (config?.min_duration_minutes || 1) + 1) + (config?.min_duration_minutes || 1));
                 await supabase.from('bot_trades_simulation').insert({
-                  bot_id: bot.id,
-                  symbol: 'BTCUSDT',
-                  type: Math.random() > 0.5 ? 'buy' : 'sell',
-                  amount: bot.fixed_amount,
-                  price: 95000,
-                  status: 'open',
-                  target_duration: targetDuration
+                  bot_id: bot.id, symbol: 'BTCUSDT', type: Math.random() > 0.5 ? 'buy' : 'sell',
+                  amount: bot.fixed_amount, price: 95000, status: 'open', target_duration: targetDuration
                 });
-                console.log(`[Ghost Engine] Auto-opened trade for ${bot.name} (${targetDuration}m)`);
+                console.log(`[Ghost Engine] Auto-opened trade for ${bot.name}`);
               }
             }
           }
         }
       } catch (e) {
-        console.error('[Ghost Engine] Error:', e);
+        console.error('[Ghost Engine] Loop Error:', e);
       }
-    }, 10000); // Check every 10 seconds
+    }, 5000); // فحص كل 5 ثوانٍ لسرعة الاستجابة
   };
 
   runGhostEngine();
 
-  // API for Purge All (Using Service Role for full control)
+  // API for Purge All (Must be BEFORE the 404 guard)
   app.post('/api/admin/purge-bots', async (req, res) => {
     try {
       console.log('[Admin] Purge All triggered');
@@ -239,6 +213,11 @@ async function startServer() {
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
+  });
+
+  // API 404 Guard
+  app.all('/api/*', (req, res) => {
+    res.status(404).json({ error: `API route ${req.originalUrl} not found` });
   });
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
