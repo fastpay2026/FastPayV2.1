@@ -20,6 +20,18 @@ const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser,
     await supabase.from('trade_orders').update(updates).eq('id', id);
   };
 
+  const handlePurgeAllBots = async () => {
+    if (!confirm('هل أنت متأكد من حذف جميع صفقات البوتات؟')) return;
+    try {
+      const { error } = await supabase.from('trade_orders').delete().eq('is_bot', true);
+      if (error) throw error;
+      alert('تم حذف جميع صفقات البوتات بنجاح');
+      window.location.reload();
+    } catch (err: any) {
+      alert('خطأ في حذف الصفقات: ' + err.message);
+    }
+  };
+
   const handleBalanceUpdate = async () => {
     if (!selectedUser) return;
     const updatedUser = { ...selectedUser, balance: newBalance };
@@ -55,6 +67,9 @@ const AdminTradingBot: React.FC<Props> = ({ accounts, setAccounts, onUpdateUser,
               <button onClick={handleBalanceUpdate} className="bg-sky-600 text-white px-4 py-2 rounded">تحديث</button>
             </>
           )}
+        </div>
+        <div className="mt-4">
+          <button onClick={handlePurgeAllBots} className="bg-red-600 text-white px-4 py-2 rounded">حذف جميع صفقات البوتات</button>
         </div>
       </div>
 
