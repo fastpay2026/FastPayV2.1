@@ -132,8 +132,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       const { data: realTrades } = await supabase
         .from('trade_orders')
         .select('*')
-        .gt('created_at', yesterday.toISOString())
-        .order('created_at', { ascending: false })
+        .gt('timestamp', yesterday.toISOString())
+        .order('timestamp', { ascending: false })
         .limit(30);
       
       const normalizedReal = (realTrades || []).map(t => ({

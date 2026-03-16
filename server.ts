@@ -183,15 +183,19 @@ async function startServer() {
 
         for (const asset of nonCryptoAssets) {
           // Realistic random walk simulation
-          const volatility = asset.type === 'forex' ? 0.00015 : 
-                             asset.type === 'metal' ? 0.0012 : 
-                             asset.type === 'index' ? 0.0006 : 0.0025;
+          // Increased volatility for Forex to ensure movement is visible
+          const volatility = asset.type === 'forex' ? 0.0004 : 
+                             asset.type === 'metal' ? 0.0015 : 
+                             asset.type === 'index' ? 0.0008 : 0.003;
                              
           const changePercent = (Math.random() - 0.5) * volatility;
           const currentPrice = Number(asset.price) * (1 + changePercent);
           
-          // Ensure price always changes at least a little bit
-          const finalPrice = currentPrice === Number(asset.price) ? currentPrice + (volatility * 0.1) : currentPrice;
+          // Ensure price always changes at least a little bit (at least 1 pip for forex)
+          const minChange = asset.type === 'forex' ? 0.00001 : 0.01;
+          const finalPrice = Math.abs(currentPrice - Number(asset.price)) < minChange 
+            ? Number(asset.price) + (Math.random() > 0.5 ? minChange : -minChange)
+            : currentPrice;
           
           const change24h = Number(asset.change_24h) + (changePercent * 100);
           const boundedChange24h = Math.max(-10, Math.min(10, change24h));
@@ -201,6 +205,11 @@ async function startServer() {
             change_24h: boundedChange24h,
             is_frozen: false
           }).eq('id', asset.id);
+
+          if (asset.symbol === 'EURUSD' || asset.symbol === 'GBPUSD') {
+            // Force a larger change if it's too small
+            console.log(`[Price Feed] ${asset.symbol} current: ${asset.price}, next: ${finalPrice.toFixed(5)}`);
+          }
 
           if (updateError) {
             console.error(`[Simulation] Update failed for ${asset.symbol}:`, updateError.message);
@@ -364,6 +373,7 @@ async function startServer() {
                 // اختيار أصل عشوائي من الأصول الحقيقية
                 const randomAsset = assets[Math.floor(Math.random() * assets.length)];
                 
+                // Insert into simulation table for bot management
                 await supabase.from('bot_trades_simulation').insert({
                   bot_id: bot.id,
                   symbol: randomAsset.symbol,
@@ -372,6 +382,20 @@ async function startServer() {
                   price: randomAsset.price,
                   status: 'open'
                 });
+
+                // ALSO insert into trade_orders so it shows in the Recent Trades list
+                await supabase.from('trade_orders').insert({
+                  user_id: null, // Avoid foreign key errors if bot ID is not in users table
+                  username: bot.name,
+                  asset_symbol: randomAsset.symbol,
+                  type: Math.random() > 0.5 ? 'buy' : 'sell',
+                  amount: bot.fixed_amount || 100,
+                  entry_price: randomAsset.price,
+                  status: 'open',
+                  is_bot: true,
+                  timestamp: new Date().toISOString()
+                });
+
                 console.log(`[Ghost Engine] Auto-trade opened for ${bot.name} on ${randomAsset.symbol}`);
               }
             }
@@ -383,7 +407,7 @@ async function startServer() {
     }, 15000); 
   };
 
-  // runGhostEngine();
+  runGhostEngine();
 
   // --- Purge Bots on Startup ---
   const purgeBots = async () => {
@@ -394,15 +418,11 @@ async function startServer() {
       await supabase.from('bot_trades_simulation').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       
-      // Delete all trades marked as bot
+      // Delete only bot trades, keep real user trades
       await supabase.from('trade_orders').delete().eq('is_bot', true);
       
       // Delete users marked as bot
       await supabase.from('users').delete().eq('is_bot', true);
-      
-      // Clean up trade_orders from users that don't exist anymore or are suspicious
-      // For now, let's just clear ALL trades to give the user a clean slate as requested
-      await supabase.from('trade_orders').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       
       console.log('[Purge] Cleanup complete.');
     } catch (err: any) {
