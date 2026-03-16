@@ -453,7 +453,11 @@ export const supabaseService = {
       ...a,
       change24h: a.change_24h,
       isFrozen: a.is_frozen,
-      trendBias: a.trend_bias
+      trendBias: a.trend_bias,
+      digits: a.digits || 5,
+      category: a.category || 'Forex',
+      spread: a.spread || 0,
+      description: a.description
     }));
   },
 
@@ -467,7 +471,11 @@ export const supabaseService = {
       type: a.type,
       icon: a.icon,
       is_frozen: a.isFrozen,
-      trend_bias: a.trendBias
+      trend_bias: a.trendBias,
+      digits: a.digits,
+      category: a.category,
+      spread: a.spread,
+      description: a.description
     }, { onConflict: 'id' });
     if (error) throw error;
   },

@@ -58,6 +58,11 @@ export interface TradeAsset {
   icon: string;
   isFrozen?: boolean;
   trendBias?: 'up' | 'down' | 'neutral';
+  digits?: number;
+  category?: string;
+  spread?: number;
+  description?: string;
+  change_24h?: number; // Adding this for consistency with DB column name if needed
 }
 
 export interface TradeOrder {

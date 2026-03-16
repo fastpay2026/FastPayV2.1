@@ -27,7 +27,8 @@
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.5.0",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "yahoo-finance2": "^3.13.2"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.1",

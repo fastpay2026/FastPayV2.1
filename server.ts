@@ -6,6 +6,7 @@ import cors from 'cors';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { createServer } from 'http';
+import yahooFinance from 'yahoo-finance2';
 
 console.log('Server: Process starting...');
 if (!pkg) {
@@ -76,6 +77,56 @@ async function startServer() {
     }
   } catch (e) {
     console.error('Server: Failed to initialize Binance client:', e);
+  }
+
+  // --- Master Price Feed Sync (MT5 Standards) ---
+  const runPriceFeed = async () => {
+    console.log('[Price Feed] Master Sync started.');
+    
+    setInterval(async () => {
+      try {
+        const { data: assets } = await supabase.from('trade_assets').select('*');
+        if (!assets || assets.length === 0) return;
+
+        // Mapping symbols to Yahoo Finance format
+        const symbols = assets.map(a => {
+          if (a.category === 'Crypto') return `${a.symbol.replace('USD', '')}-USD`;
+          if (a.category && a.category.includes('Forex')) return `${a.symbol}=X`;
+          if (a.symbol === 'XAUUSD') return 'GC=F';
+          if (a.symbol === 'XAGUSD') return 'SI=F';
+          if (a.symbol === 'US30') return '^DJI';
+          if (a.symbol === 'NAS100') return '^IXIC';
+          if (a.symbol === 'SPX500') return '^GSPC';
+          if (a.symbol === 'WTI') return 'CL=F';
+          if (a.symbol === 'BRENT') return 'BZ=F';
+          return a.symbol;
+        });
+
+        const results = await yahooFinance.quote(symbols) as any[];
+        
+        if (results && Array.isArray(results)) {
+          for (const quote of results) {
+            const asset = assets.find(a => 
+              symbols[assets.indexOf(a)] === quote.symbol
+            );
+  
+            if (asset && quote.regularMarketPrice) {
+              await supabase.from('trade_assets').update({
+                price: quote.regularMarketPrice,
+                change_24h: quote.regularMarketChangePercent || 0,
+                is_frozen: false
+              }).eq('id', asset.id);
+            }
+          }
+        }
+      } catch (e: any) {
+        console.error('[Price Feed] Sync Error:', e.message);
+      }
+    }, 10000); 
+  };
+
+  if (isSupabaseConfigured) {
+    runPriceFeed();
   }
 
   // 5. API Routes - MUST be before any catch-all or static middleware
@@ -159,8 +210,10 @@ async function startServer() {
       try {
         // 1. جلب البوتات
         const { data: bots } = await supabase.from('bot_instances').select('*');
+        // 2. جلب الأصول المتاحة
+        const { data: assets } = await supabase.from('trade_assets').select('*').eq('is_frozen', false);
         
-        if (bots && bots.length > 0) {
+        if (bots && bots.length > 0 && assets && assets.length > 0) {
           for (const bot of bots) {
             // A. إغلاق الصفقات القديمة تلقائياً
             const { data: openTrades } = await supabase
@@ -193,15 +246,18 @@ async function startServer() {
                 .eq('status', 'open');
 
               if (count === 0) {
+                // اختيار أصل عشوائي من الأصول الحقيقية
+                const randomAsset = assets[Math.floor(Math.random() * assets.length)];
+                
                 await supabase.from('bot_trades_simulation').insert({
                   bot_id: bot.id,
-                  symbol: 'BTCUSDT',
+                  symbol: randomAsset.symbol,
                   type: Math.random() > 0.5 ? 'buy' : 'sell',
                   amount: bot.fixed_amount || 100,
-                  price: 95000 + (Math.random() * 100),
+                  price: randomAsset.price,
                   status: 'open'
                 });
-                console.log(`[Ghost Engine] Auto-trade opened for ${bot.name}`);
+                console.log(`[Ghost Engine] Auto-trade opened for ${bot.name} on ${randomAsset.symbol}`);
               }
             }
           }
@@ -209,7 +265,7 @@ async function startServer() {
       } catch (e: any) {
         console.error('[Ghost Engine] Error:', e.message);
       }
-    }, 10000); 
+    }, 15000); 
   };
 
   runGhostEngine();
@@ -229,6 +285,13 @@ async function startServer() {
   app.all('/api/*', (req, res) => {
     res.status(404).json({ error: `API route ${req.originalUrl} not found` });
   });
+  if (process.env.NODE_ENV !== 'production') {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     
