@@ -114,8 +114,7 @@ async function startServer() {
     time: null as string | null,
     status: 'idle',
     error: null as string | null,
-    count: 0,
-    twelveDataLimitReached: false
+    count: 0
   };
 
   // --- Master Price Feed Sync (MT5 Standards) ---
@@ -184,41 +183,8 @@ async function startServer() {
       }
     };
 
-    const syncTwelveDataPrices = async () => {
-      if (lastPriceUpdate.twelveDataLimitReached) {
-        console.warn('[TwelveData] Daily limit reached. Skipping sync.');
-        return;
-      }
-      try {
-        lastPriceUpdate.status = 'syncing_twelve_data';
-        const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
-        if (assetsError) throw assetsError;
-        if (!assets || assets.length === 0) return;
+    // Twelve Data removed.
 
-        const twelveDataAssets = assets.filter(a => a.type?.toLowerCase() !== 'crypto' && a.category !== 'Crypto' && !a.symbol.includes('BTC') && !a.symbol.includes('ETH'));
-        const apiKey = process.env.TWELVE_DATA_API_KEY;
-
-        if (!apiKey) {
-          console.error('[TwelveData] API Key missing');
-          return;
-        }
-
-        // Twelve Data symbols often require specific formats
-        const symbolMap: Record<string, string> = {
-          'EURUSD': 'EUR/USD',
-          'GBPUSD': 'GBP/USD',
-          'USDJPY': 'USD/JPY',
-          'XAUUSD': 'XAU/USD',
-          'XAGUSD': 'XAG/USD',
-          'US30': 'DJI',
-          'NAS100': 'IXIC',
-          'WTI': 'WTI/USD'
-        };
-
-        // Manual price offsets
-        const priceOffsets: Record<string, number> = {
-          'XAUUSD': 550 // Example offset
-        };
 
         for (const asset of twelveDataAssets) {
           try {
@@ -286,10 +252,6 @@ async function startServer() {
     // Run Binance immediately then every 1s
     syncBinancePrices();
     setInterval(syncBinancePrices, 1000);
-
-    // Run TwelveData immediately then every 15 minutes (to respect API limits)
-    syncTwelveDataPrices();
-    setInterval(syncTwelveDataPrices, 900000);
   };
 
   if (isSupabaseConfigured) {
