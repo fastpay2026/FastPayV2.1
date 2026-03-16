@@ -94,15 +94,29 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     };
   }, [user?.id, symbol]);
 
-  const fetchTradesDirect = async () => {
-    try {
-      console.log('[TradingPlatform] Fetching trades...');
+  const fetchAssets = async () => {
     const { data, error } = await supabase.from('trade_assets').select('*');
     if (error) {
       console.error('[TradingPlatform] Asset Fetch Error:', error.message);
     } else if (data) {
       console.log('[TradingPlatform] Assets fetched:', data.length);
       setAssets(data as TradeAsset[]);
+    }
+  };
+
+  const fetchTradesDirect = async () => {
+    try {
+      console.log('[TradingPlatform] Fetching trades...');
+      const { data: realTrades } = await supabase.from('trade_orders').select('*').order('created_at', { ascending: false }).limit(20);
+      const { data: botTrades } = await supabase.from('bot_trades_simulation').select('*').order('created_at', { ascending: false }).limit(20);
+      
+      const combined = [...(realTrades || []), ...(botTrades || [])]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 30);
+      
+      setTrades(combined);
+    } catch (error) {
+      console.error('[TradingPlatform] Error fetching trades:', error);
     }
   };
 
