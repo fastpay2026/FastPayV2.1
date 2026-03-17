@@ -268,7 +268,7 @@ const LandingPage: React.FC<Props> = ({
                        
                        <div className="flex justify-between items-start relative z-10">
                           <div className="space-y-4">
-                            {siteConfig.logoUrl && <Logo siteConfig={siteConfig} style={{ width: `120px` }} className="opacity-90" />}
+                            {siteConfig.logoUrl && <Logo siteConfig={siteConfig} style={{ width: `120px` }} className="opacity-90 !bg-transparent" />}
                             <div className="flex items-center gap-3">
                                <div className="w-16 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl shadow-lg border border-amber-300/30 overflow-hidden relative">
                                   <div className="absolute inset-0 flex flex-col gap-1.5 p-2">

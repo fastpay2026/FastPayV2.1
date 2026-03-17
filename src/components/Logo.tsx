@@ -17,12 +17,9 @@ const Logo: React.FC<LogoProps> = React.memo(({ siteConfig, className, style, on
         src={logoUrl} 
         alt="Logo" 
         className="w-full h-auto"
-        style={{ width: '100%', backgroundColor: 'transparent', mixBlendMode: 'screen' }}
+        style={{ width: '100%', backgroundColor: 'transparent' }}
         referrerPolicy="no-referrer"
       />
-      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-        Network
-      </span>
     </div>
   );
 });
