@@ -15,6 +15,7 @@ interface TradingPlatformProps {
 
 const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [symbol, setSymbol] = useState('EURUSD');
+  const [chartType, setChartType] = useState<'candlestick' | 'line'>('candlestick');
   const [volume, setVolume] = useState(0.1);
   const [balance, setBalance] = useState({ balance: 31820, equity: 31820, margin: 0, freeMargin: 31820 });
   const [positions, setPositions] = useState<any[]>([]);
@@ -187,11 +188,26 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         </div>
         <div className="flex-1 flex">
           <div className="flex-1 p-2 flex flex-col min-h-0">
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 relative">
+              <div className="absolute top-2 right-2 z-20 flex bg-[#1e2329] rounded border border-white/5">
+                <button 
+                  onClick={() => setChartType('candlestick')}
+                  className={`px-3 py-1 text-[10px] uppercase font-bold ${chartType === 'candlestick' ? 'bg-sky-500 text-white' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Candles
+                </button>
+                <button 
+                  onClick={() => setChartType('line')}
+                  className={`px-3 py-1 text-[10px] uppercase font-bold ${chartType === 'line' ? 'bg-sky-500 text-white' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Line
+                </button>
+              </div>
               <LightweightChart 
                 symbol={symbol} 
                 livePrice={currentPrice}
                 digits={currentAsset?.digits || 2}
+                chartType={chartType}
               />
             </div>
             <LiveMarketFeed trades={trades} />

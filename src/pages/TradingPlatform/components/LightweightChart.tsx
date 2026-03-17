@@ -1,16 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, AreaSeries } from 'lightweight-charts';
 
 interface LightweightChartProps {
   symbol: string;
   livePrice: number;
   digits?: number;
+  chartType?: 'candlestick' | 'line';
 }
 
-const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, digits = 2 }) => {
+const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, digits = 2, chartType = 'candlestick' }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const seriesRef = useRef<ISeriesApi<"Candlestick" | "Area"> | null>(null);
   const [lastCandle, setLastCandle] = useState<any>(null);
   const lastCandleRef = useRef<any>(null);
 
@@ -25,7 +26,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
   }, [livePrice]);
 
   useEffect(() => {
-    console.log('[LightweightChart] livePrice:', livePrice, 'symbol:', symbol);
+    console.log('[LightweightChart] livePrice:', livePrice, 'symbol:', symbol, 'chartType:', chartType);
     if (!chartContainerRef.current) return;
 
     const chart = createChart(chartContainerRef.current, {
@@ -50,16 +51,25 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
       },
     });
 
-    const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#26a69a',
-      downColor: '#ef5350',
-      borderVisible: false,
-      wickUpColor: '#26a69a',
-      wickDownColor: '#ef5350',
-    });
+    let series: ISeriesApi<"Candlestick" | "Area">;
+    if (chartType === 'candlestick') {
+      series = chart.addSeries(CandlestickSeries, {
+        upColor: '#26a69a',
+        downColor: '#ef5350',
+        borderVisible: false,
+        wickUpColor: '#26a69a',
+        wickDownColor: '#ef5350',
+      });
+    } else {
+      series = chart.addSeries(AreaSeries, {
+        lineColor: '#2962FF',
+        topColor: '#2962FF',
+        bottomColor: 'rgba(41, 98, 255, 0.28)',
+      });
+    }
 
     chartRef.current = chart;
-    seriesRef.current = candlestickSeries;
+    seriesRef.current = series;
 
     // Generate some fake historical data leading up to the current livePrice
     const generateHistoricalData = (basePrice: number) => {
@@ -74,23 +84,25 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
         const high = Math.max(open, close) + Math.random() * volatility;
         const low = Math.min(open, close) - Math.random() * volatility;
 
-        data.push({
-          time: time as any,
-          open,
-          high,
-          low,
-          close,
-        });
+        if (chartType === 'candlestick') {
+          data.push({ time: time as any, open, high, low, close });
+        } else {
+          data.push({ time: time as any, value: close });
+        }
 
         currentPrice = close;
         time += 60; // 1 minute candles
       }
       
       // Ensure the last candle's close is close to the livePrice
-      const last = data[data.length - 1];
-      last.close = basePrice;
-      if (basePrice > last.high) last.high = basePrice;
-      if (basePrice < last.low) last.low = basePrice;
+      if (chartType === 'candlestick') {
+        const last = data[data.length - 1];
+        last.close = basePrice;
+        if (basePrice > last.high) last.high = basePrice;
+        if (basePrice < last.low) last.low = basePrice;
+      } else {
+        data.push({ time: time as any, value: basePrice });
+      }
 
       return data;
     };
@@ -103,8 +115,10 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
       const price = livePriceRef.current;
       if (price > 0) {
         const initialData = generateHistoricalData(price);
-        candlestickSeries.setData(initialData);
-        setLastCandle(initialData[initialData.length - 1]);
+        series.setData(initialData);
+        if (chartType === 'candlestick') {
+          setLastCandle(initialData[initialData.length - 1]);
+        }
       } else {
         // Retry after a short delay if price is not yet available
         setTimeout(initData, 500);
@@ -128,74 +142,84 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, [symbol]); // Only re-create chart when symbol changes
+  }, [symbol, chartType]); // Re-create chart when symbol or chartType changes
 
   // Update the last candle when livePrice changes
   useEffect(() => {
-    if (!seriesRef.current || !lastCandleRef.current || !livePrice) return;
+    if (!seriesRef.current || !livePrice) return;
 
-    // console.log(`[LightweightChart] livePrice updated: ${livePrice} for ${symbol}`);
-
-    const updateCandle = () => {
-      const currentLastCandle = lastCandleRef.current;
-      const newCandle = { ...currentLastCandle };
-      newCandle.close = livePrice;
-      if (livePrice > newCandle.high) newCandle.high = livePrice;
-      if (livePrice < newCandle.low) newCandle.low = livePrice;
-      
-      // If we crossed into a new minute, create a new candle
-      const currentTime = Math.floor(Date.now() / 1000);
-      const candleTime = Number(newCandle.time);
-      
-      if (currentTime - candleTime >= 60) {
-        // New candle
-        const nextCandle = {
-          time: (Math.floor(currentTime / 60) * 60) as any,
-          open: livePrice,
-          high: livePrice,
-          low: livePrice,
-          close: livePrice,
-        };
-        seriesRef.current.update(nextCandle);
-        setLastCandle(nextCandle);
-      } else {
-        // Update current candle
-        seriesRef.current.update(newCandle);
-        setLastCandle(newCandle);
-      }
-    };
-
-    updateCandle();
-  }, [livePrice, symbol]);
+    if (chartType === 'candlestick') {
+      if (!lastCandleRef.current) return;
+      const updateCandle = () => {
+        const currentLastCandle = lastCandleRef.current;
+        const newCandle = { ...currentLastCandle };
+        newCandle.close = livePrice;
+        if (livePrice > newCandle.high) newCandle.high = livePrice;
+        if (livePrice < newCandle.low) newCandle.low = livePrice;
+        
+        // If we crossed into a new minute, create a new candle
+        const currentTime = Math.floor(Date.now() / 1000);
+        const candleTime = Number(newCandle.time);
+        
+        if (currentTime - candleTime >= 60) {
+          // New candle
+          const nextCandle = {
+            time: (Math.floor(currentTime / 60) * 60) as any,
+            open: livePrice,
+            high: livePrice,
+            low: livePrice,
+            close: livePrice,
+          };
+          (seriesRef.current as ISeriesApi<"Candlestick">).update(nextCandle);
+          setLastCandle(nextCandle);
+        } else {
+          // Update current candle
+          (seriesRef.current as ISeriesApi<"Candlestick">).update(newCandle);
+          setLastCandle(newCandle);
+        }
+      };
+      updateCandle();
+    } else {
+      (seriesRef.current as ISeriesApi<"Area">).update({
+        time: Math.floor(Date.now() / 1000) as any,
+        value: livePrice,
+      });
+    }
+  }, [livePrice, symbol, chartType]);
 
   // Tick simulation for smoothness
   useEffect(() => {
-    if (!seriesRef.current || !lastCandleRef.current || !livePrice) return;
+    if (!seriesRef.current || !livePrice) return;
 
     const interval = setInterval(() => {
-      const currentLastCandle = lastCandleRef.current;
-      if (!currentLastCandle) return;
-
       const tickVolatility = livePrice * 0.00002; // Smaller tick for smoother movement
       const simulatedPrice = livePrice + (Math.random() - 0.5) * tickVolatility;
       
-      const newCandle = { ...currentLastCandle };
-      newCandle.close = simulatedPrice;
-      if (simulatedPrice > newCandle.high) newCandle.high = simulatedPrice;
-      if (simulatedPrice < newCandle.low) newCandle.low = simulatedPrice;
-
-      seriesRef.current?.update(newCandle);
+      if (chartType === 'candlestick') {
+        const currentLastCandle = lastCandleRef.current;
+        if (!currentLastCandle) return;
+        const newCandle = { ...currentLastCandle };
+        newCandle.close = simulatedPrice;
+        if (simulatedPrice > newCandle.high) newCandle.high = simulatedPrice;
+        if (simulatedPrice < newCandle.low) newCandle.low = simulatedPrice;
+        (seriesRef.current as ISeriesApi<"Candlestick">).update(newCandle);
+      } else {
+        (seriesRef.current as ISeriesApi<"Area">).update({
+          time: Math.floor(Date.now() / 1000) as any,
+          value: simulatedPrice,
+        });
+      }
     }, 100); // Update every 100ms for smoother pulsing
 
     return () => clearInterval(interval);
-  }, [livePrice]); // Only restart if livePrice changes (to reset the base price)
+  }, [livePrice, chartType]); // Only restart if livePrice changes (to reset the base price)
 
   return (
     <div className="w-full h-full bg-[#161a1e] rounded-lg overflow-hidden border border-white/10 relative">
       <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="text-white font-bold text-lg">{symbol}</span>
-          <span className={`font-mono text-lg ${lastCandle?.close >= lastCandle?.open ? 'text-emerald-400' : 'text-red-400'}`}>
+          <span className={`font-mono text-lg ${chartType === 'candlestick' ? (lastCandle?.close >= lastCandle?.open ? 'text-emerald-400' : 'text-red-400') : 'text-sky-400'}`}>
             {livePrice?.toFixed(digits) || '0.00'}
           </span>
         </div>
