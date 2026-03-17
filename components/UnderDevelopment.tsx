@@ -15,7 +15,7 @@ const UnderDevelopment: React.FC = () => {
           {t('service_under_development')}
         </h2>
         <p className="text-slate-500 font-bold text-lg md:text-xl max-w-2xl mx-auto">
-          نعمل حالياً على تحديث وتطوير هذه الخدمة لتقديم أفضل تجربة ممكنة. يرجى العودة لاحقاً.
+          We are currently updating and improving this service to provide the best possible experience. Please check back later.
         </p>
       </div>
       <div className="flex gap-4 text-[10px] font-black text-amber-500 uppercase tracking-[0.3em] opacity-50">
