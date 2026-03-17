@@ -30,6 +30,13 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
           <div className="space-y-6">
             <h3 className="text-2xl font-black border-r-8 border-sky-500 pr-6 uppercase tracking-widest">{t('branding')}</h3>
             <div className="space-y-2"><label className="text-[10px] font-black text-slate-500 uppercase mr-4">{t('logo_url')}</label><input value={tempConfig.logoUrl} onChange={e => setTempConfig({ ...tempConfig, logoUrl: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all" /></div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase mr-4">{t('logo_width') || 'Logo Width (px)'}</label>
+              <div className="flex items-center gap-4">
+                <input type="range" min="50" max="300" value={tempConfig.logoWidth || 180} onChange={e => setTempConfig({ ...tempConfig, logoWidth: parseInt(e.target.value) })} className="w-full h-2 bg-black/40 rounded-lg appearance-none cursor-pointer accent-sky-500" />
+                <span className="font-black text-sky-400 w-16 text-center">{tempConfig.logoWidth || 180}px</span>
+              </div>
+            </div>
             <div className="space-y-2"><label className="text-[10px] font-black text-slate-500 uppercase mr-4">{t('network_name')}</label><input value={tempConfig.siteName} onChange={e => setTempConfig({ ...tempConfig, siteName: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all" /></div>
           </div>
           <div className="space-y-6">

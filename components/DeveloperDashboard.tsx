@@ -17,6 +17,8 @@ import InvestmentPlans from './developer/InvestmentPlans';
 import DrawManager from './developer/DrawManager';
 import SiteIdentity from './developer/SiteIdentity';
 import MerchantEscrowManager from './developer/MerchantEscrowManager';
+import OnlineUsers from './developer/OnlineUsers';
+import ActivityLog from './developer/ActivityLog';
 import { AdminVerificationReview } from './VerificationManager';
 import { AdExchange } from './AdExchange';
 import SecureGatewayManager from './developer/SecureGatewayManager';
@@ -76,7 +78,7 @@ const DeveloperDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator' | 'online_users' | 'activity_log'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -128,7 +130,7 @@ const handleManualSync = async () => {
     }
   };
   return (
-    <div className="fixed inset-0 z-[150] flex bg-[#1B365D] text-white text-right font-sans overflow-hidden" dir="rtl">
+    <div className="fixed inset-0 z-[150] flex bg-[#0a0c10] text-white text-right font-sans overflow-hidden" dir="rtl">
       {/* Mobile Menu Toggle */}
       <button 
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
@@ -167,7 +169,9 @@ const handleManualSync = async () => {
             { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁', canDisable: true },
             { id: 'gateway', l: t('secure_gateway'), i: '🛡️', canDisable: false },
             { id: 'content', l: t('nav_site_identity'), i: '⚙️', canDisable: false },
-            { id: 'logo_generator', l: 'Logo Generator', i: '🎨', canDisable: false }
+            { id: 'logo_generator', l: 'Logo Generator', i: '🎨', canDisable: false },
+            { id: 'online_users', l: 'Online Users', i: '🟢', canDisable: false },
+            { id: 'activity_log', l: 'Activity Log', i: '📜', canDisable: false }
           ].map(tab => {
             const isDisabled = siteConfig.disabledServices?.includes(tab.id);
             return (
@@ -255,6 +259,8 @@ const handleManualSync = async () => {
             <LogoUploader onLogoUploaded={(url) => onUpdateConfig({ ...siteConfig, logoUrl: url })} />
           </div>
         )}
+        {activeTab === 'online_users' && <OnlineUsers />}
+        {activeTab === 'activity_log' && <ActivityLog />}
       </main>
 
       <style>{`

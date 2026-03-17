@@ -163,7 +163,8 @@ const LandingPage: React.FC<Props> = ({
             {siteConfig.logoUrl && (
               <Logo 
                 siteConfig={siteConfig} 
-                className="object-contain max-w-[120px] h-auto transform group-hover:scale-110 transition-all duration-700" 
+                className="object-contain h-auto transform group-hover:scale-110 transition-all duration-700" 
+                style={{ maxWidth: `${siteConfig.logoWidth || 120}px` }}
               />
             )}
             {siteConfig.logoPosition === 'right' && (
@@ -268,7 +269,7 @@ const LandingPage: React.FC<Props> = ({
                        
                        <div className="flex justify-between items-start relative z-10">
                           <div className="space-y-4">
-                            {siteConfig.logoUrl && <Logo siteConfig={siteConfig} style={{ width: `120px` }} className="opacity-90 !bg-transparent" />}
+                            {siteConfig.logoUrl && <Logo siteConfig={siteConfig} style={{ width: `${siteConfig.logoWidth || 120}px` }} className="opacity-90 !bg-transparent" />}
                             <div className="flex items-center gap-3">
                                <div className="w-16 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl shadow-lg border border-amber-300/30 overflow-hidden relative">
                                   <div className="absolute inset-0 flex flex-col gap-1.5 p-2">

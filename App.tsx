@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, Suspense, useRef } fr
 import { useI18n } from './i18n/i18n.tsx';
 import { v4 as uuidv4 } from 'uuid';
 import LandingPage from './components/LandingPage';
+import SplashScreen from './components/SplashScreen';
 import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
 import DeveloperDashboard from './components/DeveloperDashboard';
@@ -22,6 +23,7 @@ const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState('home');
+  const [showSplash, setShowSplash] = useState(true);
   const { t, language } = useI18n();
   
   useEffect(() => {
@@ -491,7 +493,8 @@ const App: React.FC = () => {
 
   return (
     <NotificationProvider>
-      <div className="min-h-screen relative">
+      {showSplash && <SplashScreen siteConfig={siteConfig} onComplete={() => setShowSplash(false)} />}
+      <div className={`min-h-screen relative ${showSplash ? 'hidden' : ''}`}>
         {!isSupabaseConfigured && (
           <div className="fixed bottom-6 right-6 z-[2000] bg-red-600/90 backdrop-blur-xl text-white p-6 rounded-2xl shadow-2xl border border-white/10 max-w-sm animate-in slide-in-from-right duration-500">
             <h4 className="font-black text-sm mb-2">{t('supabaseDisconnectedTitle')}</h4>

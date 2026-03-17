@@ -1,4 +1,5 @@
 import express from 'express';
+import { Server } from 'socket.io';
 import pkg from '@binance/connector';
 const Spot = pkg ? (pkg as any).Spot : null;
 import { createClient } from '@supabase/supabase-js';
@@ -27,6 +28,35 @@ process.on('unhandledRejection', (reason, promise) => {
 async function startServer() {
   const app = express();
   const httpServer = createServer(app);
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"],
+      credentials: true
+    }
+  });
+
+  // Track online users
+  const onlineUsers = new Map<string, { userId: string, username: string }>();
+
+  io.on('connection', (socket) => {
+    console.log(`[Socket] User connected: ${socket.id}`);
+
+    socket.on('user:login', (data: { userId: string, username: string }) => {
+      onlineUsers.set(socket.id, data);
+      io.emit('users:online', Array.from(onlineUsers.values()));
+    });
+
+    socket.on('disconnect', () => {
+      onlineUsers.delete(socket.id);
+      io.emit('users:online', Array.from(onlineUsers.values()));
+      console.log(`[Socket] User disconnected: ${socket.id}`);
+    });
+  });
+
+  // Export io for use in API routes
+  (app as any).io = io;
+
   const PORT = 3000;
 
   // 1. Basic Middleware
