@@ -410,8 +410,8 @@ async function startServer() {
                 .eq('bot_id', bot.id)
                 .eq('status', 'open');
 
-              // Allow up to 3 concurrent trades per bot for more activity
-              if (!count || count < 3) {
+              // Allow only 1 concurrent trade per bot to seem human
+              if (!count || count < 1) {
                 const randomAsset = assets[Math.floor(Math.random() * assets.length)];
                 
                 await supabase.from('bot_trades_simulation').insert({
@@ -442,44 +442,6 @@ async function startServer() {
         console.error('[Ghost Engine] Error:', e.message);
       }
     }, 10000); 
-  };
-
-  // --- Live Feed Generator (Simulated Global Activity) ---
-  const runLiveFeedGenerator = () => {
-    console.log('[Live Feed] Generator started.');
-    const fakeNames = [
-      'Alex', 'Sarah', 'John', 'Elena', 'Marco', 'Yuki', 'Sofia', 'David', 'Emma', 'Lucas',
-      'Ahmed', 'Fatima', 'Omar', 'Layla', 'Zaid', 'Nour', 'Hassan', 'Mona', 'Youssef', 'Amira'
-    ];
-    
-    setInterval(async () => {
-      try {
-        if (!isSupabaseConfigured) return;
-        
-        // 50% chance to generate a trade every 3 seconds for more activity
-        if (Math.random() > 0.5) {
-          const { data: assets } = await supabase.from('trade_assets').select('*').eq('is_frozen', false);
-          if (!assets || assets.length === 0) return;
-          
-          const asset = assets[Math.floor(Math.random() * assets.length)];
-          const name = fakeNames[Math.floor(Math.random() * fakeNames.length)];
-          
-          await supabase.from('trade_orders').insert({
-            user_id: null,
-            username: `${name}_${Math.floor(Math.random() * 1000)}`,
-            asset_symbol: asset.symbol,
-            type: Math.random() > 0.5 ? 'buy' : 'sell',
-            amount: (Math.random() * 0.5 + 0.1).toFixed(2),
-            entry_price: asset.price,
-            status: 'open',
-            is_bot: true,
-            timestamp: new Date().toISOString()
-          });
-        }
-      } catch (e: any) {
-        console.error('[Live Feed] Error:', e.message);
-      }
-    }, 3000);
   };
 
   // --- Purge Bots on Startup ---

@@ -25,6 +25,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
   }, [livePrice]);
 
   useEffect(() => {
+    console.log('[LightweightChart] livePrice:', livePrice, 'symbol:', symbol);
     if (!chartContainerRef.current) return;
 
     const chart = createChart(chartContainerRef.current, {

@@ -143,7 +143,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     if (error) {
       console.error('[TradingPlatform] Asset Fetch Error:', error.message);
     } else if (data) {
-      console.log('[TradingPlatform] Assets fetched:', data.length);
+      console.log('[TradingPlatform] Assets fetched:', data.length, data);
       setAssets(data as TradeAsset[]);
       setAssetsLoading(false);
     }
