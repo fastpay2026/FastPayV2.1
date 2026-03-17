@@ -227,7 +227,8 @@ const GhostTraders: React.FC = () => {
               <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Asset</label>
               <select 
                 value={bot.trade_symbol || 'BTCUSDT'} 
-                onChange={e => updateBot(bot.id, { trade_symbol: e.target.value })} 
+                onChange={e => setBots(prev => prev.map(b => b.id === bot.id ? { ...b, trade_symbol: e.target.value } : b))}
+                onBlur={e => updateBot(bot.id, { trade_symbol: e.target.value })} 
                 className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-24" 
               >
                 {assets.map(a => (
