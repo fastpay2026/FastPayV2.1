@@ -22,8 +22,6 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const [priceColor, setPriceColor] = useState('text-white');
   const [trades, setTrades] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [assetsLoading, setAssetsLoading] = useState(true);
   const [orderBook, setOrderBook] = useState<{ bids: [number, number][], asks: [number, number][] }>({ bids: [], asks: [] });
   const { showNotification } = useNotification();
@@ -38,40 +36,25 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const init = async () => {
       await Promise.all([
         fetchWallet(),
-        fetchPositions(),
+        fetchInitialPositions(),
         fetchAssets(),
-        fetchTradesDirect()
+        fetchInitialTrades()
       ]);
     };
     
     init();
   }, [user?.id]);
 
-  // Price Tick Simulation for "Pulsating" feel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAssets(prev => prev.map(asset => {
-        const volatility = asset.type === 'forex' ? 0.00002 : 
-                           asset.type === 'metal' ? 0.0002 : 
-                           asset.type === 'index' ? 0.0001 : 0.0005;
-        const tick = (Math.random() - 0.5) * Number(asset.price) * volatility;
-        return { ...asset, price: Number(asset.price) + tick };
-      }));
-    }, 300); // Very fast ticks for pulsating feel
-    return () => clearInterval(interval);
-  }, []);
-
-  // Real-time subscriptions
+  // Real-time synchronization
   useEffect(() => {
     if (!user?.id) return;
 
     console.log('[TradingPlatform] Setting up full real-time synchronization...');
 
-    // 1. Setup Unified Trade Subscription
+    // 1. Unified Trade Subscription
     const tradesChannel = supabase
-      .channel('public:trade_orders')
+      .channel('trades-changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
-        console.log('[Realtime] Trade Inserted:', payload.new);
         const t = payload.new;
         const newTrade = {
           id: t.id,
@@ -84,19 +67,21 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           is_bot: t.is_bot
         };
         setTrades(prev => [newTrade, ...prev].slice(0, 30));
-        if (t.user_id === user.id) fetchPositions();
-      })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'trade_orders' }, (payload) => {
-        console.log('[Realtime] Trade Deleted:', payload.old);
-        setTrades(prev => prev.filter(t => t.id !== payload.old.id));
-        if (payload.old.user_id === user.id) fetchPositions();
+        if (t.status === 'open' && t.user_id === user.id) {
+            setPositions(prev => [...prev, t]);
+        }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_orders' }, (payload) => {
-        console.log('[Realtime] Trade Updated:', payload.new);
-        if (payload.new.status !== 'open') {
-          setTrades(prev => prev.filter(t => t.id !== payload.new.id));
+        const t = payload.new;
+        if (t.status === 'open') {
+            setPositions(prev => prev.map(p => p.id === t.id ? t : p));
+        } else {
+            setPositions(prev => prev.filter(p => p.id !== t.id));
         }
-        if (payload.new.user_id === user.id) fetchPositions();
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'trade_orders' }, (payload) => {
+        setTrades(prev => prev.filter(t => t.id !== payload.old.id));
+        setPositions(prev => prev.filter(p => p.id !== payload.old.id));
       })
       .subscribe();
 
@@ -106,7 +91,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, fetchWallet)
       .subscribe();
 
-    // 3. Asset Subscription (for PnL tracking)
+    // 3. Asset Subscription
     const assetChannel = supabase
       .channel('public:trade_assets')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_assets' }, (payload) => {
@@ -121,7 +106,6 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .subscribe();
 
     return () => {
-      console.log('[TradingPlatform] Cleaning up real-time subscriptions.');
       supabase.removeChannel(tradesChannel);
       supabase.removeChannel(walletChannel);
       supabase.removeChannel(assetChannel);
@@ -129,57 +113,30 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   }, [user?.id]);
 
   const fetchAssets = async () => {
-    const { data, error } = await supabase.from('trade_assets').select('*');
-    if (error) {
-      console.error('[TradingPlatform] Asset Fetch Error:', error.message);
-    } else if (data) {
-      console.log('[TradingPlatform] Assets fetched:', data.length, data);
+    const { data } = await supabase.from('trade_assets').select('*');
+    if (data) {
       setAssets(data as TradeAsset[]);
       setAssetsLoading(false);
     }
   };
 
-  const fetchTradesDirect = async () => {
-    try {
-      console.log('[TradingPlatform] Fetching trades...');
-      
-      // Fetch only from trade_orders, filter by is_bot as needed
-      const { data: trades, error } = await supabase
+  const fetchInitialTrades = async () => {
+    const { data } = await supabase
         .from('trade_orders')
         .select('*')
         .order('timestamp', { ascending: false })
         .limit(30);
-      
-      if (error) throw error;
-
-      const normalizedTrades = (trades || []).map(t => ({
-        username: t.username || 'Trader',
-        asset_symbol: t.asset_symbol,
-        type: t.type,
-        amount: Number(t.amount || 0),
-        entry_price: Number(t.entry_price || 0),
-        created_at: t.timestamp || t.created_at || new Date().toISOString(),
-        is_bot: t.is_bot
-      }));
-
-      setTrades(normalizedTrades);
-    } catch (error) {
-      console.error('[TradingPlatform] Error fetching trades:', error);
-      setTrades([]); // Ensure empty state on error
-    }
+    if (data) setTrades(data);
   };
 
   const fetchWallet = async () => {
     let { data: walletData } = await supabase.from('wallets').select('*').eq('user_id', user.id).maybeSingle();
     if (walletData) {
       setBalance({ balance: walletData.balance || 0, equity: walletData.equity || 0, margin: walletData.margin || 0, freeMargin: walletData.free_margin || 0 });
-    } else {
-      let { data: userData } = await supabase.from('users').select('balance').eq('id', user.id).single();
-      setBalance({ balance: userData?.balance || 0, equity: userData?.balance || 0, margin: 0, freeMargin: userData?.balance || 0 });
     }
   };
 
-  const fetchPositions = async () => {
+  const fetchInitialPositions = async () => {
     const { data } = await supabase.from('trade_orders').select('*').eq('user_id', user.id).eq('status', 'open');
     if (data) setPositions(data);
   };
@@ -187,18 +144,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const handleTrade = async (type: 'Buy' | 'Sell') => {
     const price = currentPrice;
     if (!currentAsset) return;
-    if (isNaN(volume) || volume <= 0) { alert("يرجى إدخال كمية صحيحة!"); return; }
-    if (isNaN(price) || price <= 0) { alert("بانتظار تحديث السعر..."); return; }
     
-    // حساب السعر مع السبريد
     const spreadValue = (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2));
     const executionPrice = type === 'Buy' ? price + spreadValue : price - spreadValue;
 
     const marginRequired = (volume * executionPrice) / 100;
-    if (isNaN(marginRequired)) { alert("خطأ في حساب الهامش!"); return; }
     if (balance.freeMargin < marginRequired) { alert("الرصيد غير كافٍ!"); return; }
 
-    const { data: pos, error: posError } = await supabase.from('trade_orders').insert({
+    await supabase.from('trade_orders').insert({
       user_id: user.id, 
       username: user.username || 'User', 
       asset_symbol: symbol, 
@@ -207,67 +160,11 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       entry_price: executionPrice, 
       status: 'open',
       timestamp: new Date().toISOString()
-    }).select().single();
-
-    if (!posError && pos) {
-      // Optimistically update the live feed
-      const newTrade = {
-        username: user.username || 'User',
-        asset_symbol: symbol,
-        type: type.toLowerCase() as 'buy' | 'sell',
-        amount: volume,
-        entry_price: executionPrice,
-        created_at: new Date().toISOString()
-      };
-      setTrades(prev => [newTrade, ...prev].slice(0, 30));
-
-      // Update wallet/balance
-      await supabase.from('wallets').update({ 
-        free_margin: balance.freeMargin - marginRequired, 
-        margin: balance.margin + marginRequired 
-      }).eq('user_id', user.id);
-
-      await supabase.from('users').update({ 
-        balance: balance.balance - marginRequired 
-      }).eq('id', user.id);
-      
-      fetchPositions();
-      fetchWallet();
-      
-      showNotification(`Success: ${type} order for ${volume} ${symbol} executed at ${executionPrice.toFixed(currentAsset.digits || 2)}`, 'success');
-      alert(`Success: ${type} order executed!`);
-    } else {
-      showNotification(`Trade Failed: ${posError?.message || 'Unknown error'}`, 'error');
-      alert(`حدث خطأ أثناء تنفيذ الصفقة: ${posError?.message || 'Unknown error'}`);
-    }
+    });
   };
 
   const closePosition = async (position: any) => {
-    try {
-      const { error: posError } = await supabase
-        .from('trade_orders')
-        .delete()
-        .eq('id', position.id);
-
-      if (posError) throw posError;
-
-      const amount = position.amount || 0;
-      const entryPrice = position.entry_price || 0;
-      const marginToReturn = (amount * entryPrice) / 100;
-      const profit = position.profit || 0;
-      
-      await supabase.from('users').update({ balance: balance.balance + profit }).eq('id', user.id);
-      await supabase.from('wallets').update({ 
-        free_margin: balance.freeMargin + marginToReturn + profit, 
-        margin: Math.max(0, balance.margin - marginToReturn)
-      }).eq('user_id', user.id);
-
-      setPositions(prev => prev.filter(p => p.id !== position.id));
-      fetchWallet();
-      alert("تم إغلاق الصفقة بنجاح!");
-    } catch (error: any) {
-      alert(`حدث خطأ أثناء إغلاق الصفقة: ${error.message}`);
-    }
+    await supabase.from('trade_orders').update({ status: 'closed' }).eq('id', position.id);
   };
 
   return (
@@ -278,24 +175,6 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       <div className="flex-1 flex flex-col">
         <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4">
           <LayoutDashboard size={20} className="text-sky-400" />
-          <div className="flex items-center gap-2">
-            <button
-              onClick={async () => {
-                await fetch('/api/admin/refresh-prices', { method: 'POST' });
-                alert('Refresh triggered');
-              }}
-              className="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors"
-            >
-              Refresh Prices
-            </button>
-            <div className={`flex items-center gap-2 px-2 py-1 rounded text-[10px] font-bold ${isConnected ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400'}`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
-              {isConnected ? 'Connected' : 'Disconnected'}
-            </div>
-            {isUpdating && (
-              <div className="w-2 h-2 bg-sky-400 rounded-full animate-ping" title="Receiving Data" />
-            )}
-          </div>
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
             {assets.slice(0, 5).map(a => (
               <span key={a.id} className="mx-4">
@@ -316,67 +195,21 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             <LiveMarketFeed trades={trades} />
           </div>
           <div className="w-64 bg-[#161a1e] border-l border-white/10 p-4 flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <h3 className="text-white font-bold text-sm flex justify-between items-center">
-                {symbol}
-                <span className="text-[10px] text-slate-500 font-normal uppercase">{currentAsset?.category}</span>
-              </h3>
-              <p className="text-[10px] text-slate-500 italic">{currentAsset?.description}</p>
-            </div>
-            
             <div className={`text-3xl font-mono font-bold ${priceColor}`}>
               {Number(currentPrice || 0).toFixed(currentAsset?.digits || 2)}
             </div>
-
-            <div className="grid grid-cols-2 gap-2 text-[10px] uppercase font-bold text-slate-500">
-              <div className="bg-white/5 p-2 rounded">
-                Spread: <span className="text-white float-right">{currentAsset?.spread}</span>
-              </div>
-              <div className="bg-white/5 p-2 rounded">
-                Digits: <span className="text-white float-right">{currentAsset?.digits}</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] uppercase font-bold text-slate-500">Volume (Lots)</label>
-              <input 
-                type="number" 
-                step="0.01"
-                value={volume} 
-                onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} 
-                className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 focus:border-sky-500 outline-none" 
-              />
-            </div>
-
+            <input 
+              type="number" 
+              step="0.01"
+              value={volume} 
+              onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} 
+              className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 focus:border-sky-500 outline-none" 
+            />
             <div className="grid grid-cols-2 gap-2 mt-2">
-              <button 
-                onClick={() => handleTrade('Buy')} 
-                className="bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded text-sm font-bold flex flex-col items-center transition-colors"
-              >
-                BUY
-                <span className="text-[10px] opacity-80 font-normal">{(currentPrice + (currentAsset?.spread || 0) * Math.pow(10, -(currentAsset?.digits || 2))).toFixed(currentAsset?.digits || 2)}</span>
-              </button>
-              <button 
-                onClick={() => handleTrade('Sell')} 
-                className="bg-red-600 hover:bg-red-500 text-white py-3 rounded text-sm font-bold flex flex-col items-center transition-colors"
-              >
-                SELL
-                <span className="text-[10px] opacity-80 font-normal">{(currentPrice - (currentAsset?.spread || 0) * Math.pow(10, -(currentAsset?.digits || 2))).toFixed(currentAsset?.digits || 2)}</span>
-              </button>
+              <button onClick={() => handleTrade('Buy')} className="bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded text-sm font-bold transition-colors">BUY</button>
+              <button onClick={() => handleTrade('Sell')} className="bg-red-600 hover:bg-red-500 text-white py-3 rounded text-sm font-bold transition-colors">SELL</button>
             </div>
-            
-            <OrderBook symbol={symbol} bids={orderBook.bids} asks={orderBook.asks} />
           </div>
-        </div>
-        <div className="h-10 bg-[#1e2329] border-t border-white/10 flex items-center px-4 gap-6 text-xs font-mono">
-          <span className="flex items-center gap-2">
-            <span className="text-slate-500 uppercase font-bold text-[10px]">Balance:</span> 
-            <span className="text-white">${balance.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="text-slate-500 uppercase font-bold text-[10px]">Free Margin:</span> 
-            <span className="text-white">${balance.freeMargin.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-          </span>
         </div>
         <div className="h-48 bg-[#161a1e] border-t border-white/10 overflow-y-auto">
           <table className="w-full text-xs text-left">
