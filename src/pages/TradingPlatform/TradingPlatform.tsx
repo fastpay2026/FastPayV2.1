@@ -60,47 +60,24 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Real-time subscriptions
+  // Real-time subscriptions and Fallback Polling
   useEffect(() => {
     if (!user?.id) return;
 
-    console.log('[TradingPlatform] Setting up subscriptions for symbol:', symbol);
+    console.log('[TradingPlatform] Setting up subscriptions and polling for symbol:', symbol);
 
+    // 1. Setup Subscriptions
     const channel = supabase
       .channel(`trading_realtime_${symbol}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, fetchWallet)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders', filter: `user_id=eq.${user.id}` }, fetchPositions)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, (payload) => {
-        console.log('[TradingPlatform] Trade update detected:', payload);
-        
-        if (payload.eventType === 'INSERT') {
-          const t = payload.new;
-          const newTrade = {
-            id: t.id,
-            username: t.username || 'Trader',
-            asset_symbol: t.asset_symbol,
-            type: t.type as 'buy' | 'sell',
-            amount: Number(t.amount || 0),
-            entry_price: Number(t.entry_price || 0),
-            created_at: t.timestamp || t.created_at || new Date().toISOString(),
-            is_bot: t.is_bot
-          };
-          setTrades(prev => [newTrade, ...prev].slice(0, 30));
-        } else if (payload.eventType === 'DELETE') {
-          setTrades(prev => prev.filter(t => t.id !== payload.old.id));
-        } else if (payload.eventType === 'UPDATE') {
-          // If a trade is updated (e.g., closed), we might want to remove it from the live feed if it's only for open trades
-          // Or update its status. The feed currently only shows open trades.
-          // Let's assume it should be removed if it's no longer open.
-          if (payload.new.status !== 'open') {
-            setTrades(prev => prev.filter(t => t.id !== payload.new.id));
-          }
-        }
+        console.log('[TradingPlatform] Trade order change detected:', payload);
+        fetchTradesDirect(); // Ensure feed is always synced
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_trades_simulation' }, fetchTradesDirect)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_assets' }, (payload) => {
         if (payload.eventType === 'UPDATE') {
-          console.log('[TradingPlatform] Asset Update Received:', payload.new.symbol, payload.new.price);
           setLastUpdate(new Date());
           setIsUpdating(true);
           setTimeout(() => setIsUpdating(false), 500);
@@ -114,7 +91,6 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             updated[index] = { ...updated[index], ...payload.new };
             
             if (payload.new.symbol === symbol) {
-              console.log('[TradingPlatform] Price update for selected symbol:', payload.new.symbol, payload.new.price);
               const newPrice = payload.new.price;
               setPriceColor(newPrice > oldPrice ? 'text-emerald-400' : newPrice < oldPrice ? 'text-red-400' : 'text-white');
             }
@@ -132,9 +108,16 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         }
       });
 
+    // 2. Setup Fallback Polling (every 500ms)
+    const pollInterval = setInterval(() => {
+      fetchPositions();
+      fetchTradesDirect();
+    }, 500);
+
     return () => {
-      console.log('[TradingPlatform] Cleaning up subscriptions for:', symbol);
+      console.log('[TradingPlatform] Cleaning up subscriptions and polling for:', symbol);
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
   }, [user?.id, symbol]);
 
