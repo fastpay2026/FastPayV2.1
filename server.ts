@@ -174,8 +174,8 @@ async function startServer() {
           'EURUSD': 'EURUSD=X',
           'GBPUSD': 'GBPUSD=X',
           'USDJPY': 'JPY=X',
-          'XAUUSD': 'XAUUSD=X',
-          'XAGUSD': 'XAGUSD=X',
+          'XAUUSD': 'GC=F',
+          'XAGUSD': 'SI=F',
           'US30': '^DJI',
           'NAS100': '^IXIC',
           'WTI': 'CL=F'
@@ -186,19 +186,25 @@ async function startServer() {
         for (const asset of yahooAssets) {
           try {
             let yahooSymbol = symbolMap[asset.symbol] || asset.symbol;
-            let response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
+            console.log(`[Yahoo] Fetching ${asset.symbol} as ${yahooSymbol}...`);
             
-            // 1. تدقيق الرمز: إذا فشل XAUUSD=X جرب GC=F
-            if (!response.ok && asset.symbol === 'XAUUSD') {
-              yahooSymbol = 'GC=F';
+            // إضافة محاولة ثانية مع تأخير بسيط في حال فشل الطلب الأول
+            let response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
+            if (!response.ok) {
+              console.log(`[Yahoo] First attempt failed for ${asset.symbol}, retrying...`);
+              await new Promise(r => setTimeout(r, 1000));
               response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
             }
 
-            if (!response.ok) continue;
+            if (!response.ok) {
+              console.error(`[Yahoo] Failed to fetch ${asset.symbol} (${yahooSymbol}): ${response.statusText}`);
+              continue;
+            }
             const data = await response.json();
             
             if (data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta && data.chart.result[0].meta.regularMarketPrice) {
               let currentPrice = data.chart.result[0].meta.regularMarketPrice;
+              console.log(`[Yahoo] Successfully fetched ${asset.symbol}: ${currentPrice}`);
               
               // 2. إضافة معامل التصحيح للذهب
               if (asset.symbol === 'XAUUSD') {

@@ -1,6 +1,7 @@
 import React from 'react';
 
 interface Trade {
+  id: string;
   username: string;
   asset_symbol: string;
   type: 'buy' | 'sell';
@@ -34,8 +35,8 @@ const LiveMarketFeed: React.FC<LiveMarketFeedProps> = ({ trades }) => {
         </thead>
         <tbody>
           {trades.length > 0 ? (
-            trades.map((trade, index) => (
-              <tr key={index} className="border-b border-white/5">
+            trades.map((trade) => (
+              <tr key={trade.id} className="border-b border-white/5">
                 <td className="p-2 text-white font-bold">{maskUsername(trade.username)}</td>
                 <td className="p-2">{trade.asset_symbol}</td>
                 <td className={`p-2 font-bold ${(trade.type || 'buy').toLowerCase() === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>

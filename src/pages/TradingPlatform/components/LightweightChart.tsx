@@ -175,7 +175,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
       const currentLastCandle = lastCandleRef.current;
       if (!currentLastCandle) return;
 
-      const tickVolatility = livePrice * 0.00005; // Very small tick
+      const tickVolatility = livePrice * 0.00002; // Smaller tick for smoother movement
       const simulatedPrice = livePrice + (Math.random() - 0.5) * tickVolatility;
       
       const newCandle = { ...currentLastCandle };
@@ -184,7 +184,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
       if (simulatedPrice < newCandle.low) newCandle.low = simulatedPrice;
 
       seriesRef.current?.update(newCandle);
-    }, 500); // Update every 500ms
+    }, 100); // Update every 100ms for smoother pulsing
 
     return () => clearInterval(interval);
   }, [livePrice]); // Only restart if livePrice changes (to reset the base price)

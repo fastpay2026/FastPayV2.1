@@ -72,11 +72,11 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders', filter: `user_id=eq.${user.id}` }, fetchPositions)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, (payload) => {
         console.log('[TradingPlatform] Trade update detected:', payload);
+        
         if (payload.eventType === 'INSERT') {
           const t = payload.new;
-          // If we want to filter out bot trades, we can do it here
-          // For now, let's just add it to the list
           const newTrade = {
+            id: t.id,
             username: t.username || 'Trader',
             asset_symbol: t.asset_symbol,
             type: t.type as 'buy' | 'sell',
@@ -85,17 +85,16 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             created_at: t.timestamp || t.created_at || new Date().toISOString(),
             is_bot: t.is_bot
           };
-          setTrades(prev => {
-            const isDuplicate = prev.some(p => 
-              p.username === newTrade.username && 
-              p.asset_symbol === newTrade.asset_symbol && 
-              Math.abs(p.entry_price - newTrade.entry_price) < 0.00001
-            );
-            if (isDuplicate) return prev;
-            return [newTrade, ...prev].slice(0, 30);
-          });
-        } else {
-          fetchTradesDirect();
+          setTrades(prev => [newTrade, ...prev].slice(0, 30));
+        } else if (payload.eventType === 'DELETE') {
+          setTrades(prev => prev.filter(t => t.id !== payload.old.id));
+        } else if (payload.eventType === 'UPDATE') {
+          // If a trade is updated (e.g., closed), we might want to remove it from the live feed if it's only for open trades
+          // Or update its status. The feed currently only shows open trades.
+          // Let's assume it should be removed if it's no longer open.
+          if (payload.new.status !== 'open') {
+            setTrades(prev => prev.filter(t => t.id !== payload.new.id));
+          }
         }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_trades_simulation' }, fetchTradesDirect)
