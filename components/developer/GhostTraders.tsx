@@ -5,23 +5,33 @@ const GhostTraders: React.FC = () => {
   const [bots, setBots] = useState<any[]>([]);
   const [trades, setTrades] = useState<any[]>([]);
   const [categorySettings, setCategorySettings] = useState<any[]>([]);
+  const [assets, setAssets] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchBots();
     fetchTrades();
     fetchSettings();
-
+    fetchAssets();
+    
+    // ... rest of useEffect
     const botChannel = supabase.channel('bot_instances_changes').on('postgres_changes', { event: '*', schema: 'public', table: 'bot_instances' }, fetchBots).subscribe();
     const tradeChannel = supabase.channel('bot_trades_changes').on('postgres_changes', { event: '*', schema: 'public', table: 'bot_trades_simulation' }, fetchTrades).subscribe();
     const settingsChannel = supabase.channel('bot_settings_changes').on('postgres_changes', { event: '*', schema: 'public', table: 'bot_category_settings' }, fetchSettings).subscribe();
+    const assetChannel = supabase.channel('asset_changes').on('postgres_changes', { event: '*', schema: 'public', table: 'trade_assets' }, fetchAssets).subscribe();
 
     return () => {
       supabase.removeChannel(botChannel);
       supabase.removeChannel(tradeChannel);
       supabase.removeChannel(settingsChannel);
+      supabase.removeChannel(assetChannel);
     };
   }, []);
+
+  const fetchAssets = async () => {
+    const { data } = await supabase.from('trade_assets').select('symbol');
+    if (data) setAssets(data);
+  };
 
   const fetchBots = async () => {
     try {
@@ -215,11 +225,15 @@ const GhostTraders: React.FC = () => {
             
             <div className="flex flex-col gap-1.5">
               <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Asset</label>
-              <input 
-                defaultValue={bot.trade_symbol || 'BTCUSDT'} 
-                onBlur={e => updateBot(bot.id, { trade_symbol: e.target.value })} 
+              <select 
+                value={bot.trade_symbol || 'BTCUSDT'} 
+                onChange={e => updateBot(bot.id, { trade_symbol: e.target.value })} 
                 className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-24" 
-              />
+              >
+                {assets.map(a => (
+                  <option key={a.symbol} value={a.symbol}>{a.symbol}</option>
+                ))}
+              </select>
             </div>
 
             <div className="flex flex-col gap-1.5">
