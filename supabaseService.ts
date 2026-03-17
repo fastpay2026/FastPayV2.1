@@ -335,6 +335,12 @@ export const supabaseService = {
       throw error;
     }
     console.log(`Fetched ${data?.length || 0} verification requests.`);
+    
+    if (!Array.isArray(data)) {
+      console.warn("supabaseService: getVerifications returned non-array data:", data);
+      return [];
+    }
+
     return (data || []).map(v => ({
       ...v,
       userId: v.user_id,
