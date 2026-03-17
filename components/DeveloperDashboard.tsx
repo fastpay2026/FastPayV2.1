@@ -1,4 +1,5 @@
 
+import LogoGenerator from '../src/components/LogoGenerator';
 import GhostTraders from './developer/GhostTraders';
 import React, { useState } from 'react';
 import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from '../types';
@@ -74,7 +75,7 @@ const DeveloperDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -164,7 +165,8 @@ const handleManualSync = async () => {
             { id: 'verification', l: t('nav_id_verification'), i: '🛡️', canDisable: true },
             { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁', canDisable: true },
             { id: 'gateway', l: t('secure_gateway'), i: '🛡️', canDisable: false },
-            { id: 'content', l: t('nav_site_identity'), i: '⚙️', canDisable: false }
+            { id: 'content', l: t('nav_site_identity'), i: '⚙️', canDisable: false },
+            { id: 'logo_generator', l: 'Logo Generator', i: '🎨', canDisable: false }
           ].map(tab => {
             const isDisabled = siteConfig.disabledServices?.includes(tab.id);
             return (
@@ -246,6 +248,7 @@ const handleManualSync = async () => {
         )}
         {activeTab === 'gateway' && <SecureGatewayManager accounts={accounts} onUpdateUser={onUpdateUser} />}
         {activeTab === 'content' && <SiteIdentity siteConfig={siteConfig} onUpdateConfig={onUpdateConfig} />}
+        {activeTab === 'logo_generator' && <LogoGenerator />}
       </main>
 
       <style>{`
