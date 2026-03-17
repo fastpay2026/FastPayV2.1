@@ -6,9 +6,14 @@ const LogoGenerator: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const generateLogo = async () => {
+    const aistudio = (window as any).aistudio;
+    if (aistudio && !(await aistudio.hasSelectedApiKey())) {
+      await aistudio.openSelectKey();
+      return;
+    }
     setLoading(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
       const response = await ai.models.generateContent({
         model: 'gemini-3.1-flash-image-preview',
         contents: {
