@@ -9,12 +9,12 @@ interface LogoProps {
 }
 
 const Logo: React.FC<LogoProps> = ({ siteConfig, className, style, onClick }) => {
-  if (!siteConfig.logoUrl) return null;
+  const logoUrl = siteConfig.logoUrl || "https://i.postimg.cc/Bvjdg2Zb/download-1-removebg-preview.png";
 
   return (
     <div className={`flex flex-col items-center ${className}`} style={style} onClick={onClick}>
       <img 
-        src={siteConfig.logoUrl} 
+        src={logoUrl} 
         alt="Logo" 
         className="w-full h-auto"
         style={{ width: '100%' }}

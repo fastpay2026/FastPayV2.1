@@ -37,7 +37,7 @@ const App: React.FC = () => {
     }
   }, [currentUserId]);
 
-  const professionalLogo = ""; // تم إزالة الشعار القديم لتجنب البطء، سيتم توليد شعار جديد باستخدام الأداة
+  const professionalLogo = "https://i.postimg.cc/Bvjdg2Zb/download-1-removebg-preview.png";
 
   const [siteConfig, setSiteConfig] = useState<SiteConfig>({
     logoUrl: professionalLogo,
@@ -519,7 +519,7 @@ const App: React.FC = () => {
         ) : (
           <>
             <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
-            {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} accounts={accounts} onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} />}
+            {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} onLogin={(u) => { setCurrentUserId(u.id); setIsLoginModalOpen(false); }} accounts={accounts} onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); }} siteConfig={siteConfig} />}
             {isRegisterModalOpen && <RegisterModal onClose={() => setIsRegisterModalOpen(false)} accounts={accounts} onRegister={(u) => { handleAddUser(u); setCurrentUserId(u.id); setIsRegisterModalOpen(false); }} onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); }} />}
           </>
         )}

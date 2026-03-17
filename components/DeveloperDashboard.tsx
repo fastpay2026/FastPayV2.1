@@ -1,5 +1,6 @@
 
 import LogoGenerator from '../src/components/LogoGenerator';
+import LogoUploader from '../src/components/LogoUploader';
 import GhostTraders from './developer/GhostTraders';
 import React, { useState } from 'react';
 import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from '../types';
@@ -127,7 +128,7 @@ const handleManualSync = async () => {
     }
   };
   return (
-    <div className="fixed inset-0 z-[150] flex bg-[#0a0a0a] text-white text-right font-sans overflow-hidden" dir="rtl">
+    <div className="fixed inset-0 z-[150] flex bg-[#1B365D] text-white text-right font-sans overflow-hidden" dir="rtl">
       {/* Mobile Menu Toggle */}
       <button 
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
@@ -248,7 +249,12 @@ const handleManualSync = async () => {
         )}
         {activeTab === 'gateway' && <SecureGatewayManager accounts={accounts} onUpdateUser={onUpdateUser} />}
         {activeTab === 'content' && <SiteIdentity siteConfig={siteConfig} onUpdateConfig={onUpdateConfig} />}
-        {activeTab === 'logo_generator' && <LogoGenerator />}
+        {activeTab === 'logo_generator' && (
+          <div className="space-y-8">
+            <LogoGenerator onLogoGenerated={(url) => onUpdateConfig({ ...siteConfig, logoUrl: url })} />
+            <LogoUploader onLogoUploaded={(url) => onUpdateConfig({ ...siteConfig, logoUrl: url })} />
+          </div>
+        )}
       </main>
 
       <style>{`

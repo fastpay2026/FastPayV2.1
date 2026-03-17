@@ -1,17 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
-import { Role, User } from '../types';
+import { Role, User, SiteConfig } from '../types';
 import { useI18n } from '../i18n/i18n';
 import { supabase, isSupabaseConfigured } from '../supabaseClient';
+import Logo from '../src/components/Logo';
 
 interface Props {
   onClose: () => void;
   onLogin: (user: User) => void;
   accounts: User[];
   onSwitchToRegister: () => void;
+  siteConfig: SiteConfig;
 }
 
-const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToRegister }) => {
+const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToRegister, siteConfig }) => {
   const { t } = useI18n();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [username, setUsername] = useState('');
@@ -185,8 +187,8 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
           ) : !selectedRole ? (
             <div className="space-y-6 md:space-y-8 pt-4 md:pt-0">
               <div className="mb-6 md:mb-12">
-                 <div className="w-16 h-16 md:w-24 md:h-24 bg-sky-600/20 rounded-2xl md:rounded-[2rem] flex items-center justify-center mx-auto mb-4 md:mb-6 border border-sky-500/30">
-                    <span className="text-3xl md:text-5xl">🔐</span>
+                 <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-[2rem] flex items-center justify-center mx-auto mb-4 md:mb-6">
+                    <Logo siteConfig={siteConfig} className="w-full h-full" />
                  </div>
                  <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">{t('secure_access_portal')}</h2>
                  <p className="text-slate-500 font-bold mt-2 text-sm md:text-base">{t('choose_account_type')}</p>
