@@ -55,6 +55,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const tradesChannel = supabase
       .channel('trades-changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('[Realtime] INSERT trade_orders:', payload);
         const t = payload.new;
         const newTrade = {
           id: t.id,
@@ -72,6 +73,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('[Realtime] UPDATE trade_orders:', payload);
         const t = payload.new;
         if (t.status === 'open') {
             setPositions(prev => prev.map(p => p.id === t.id ? t : p));
@@ -80,6 +82,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         }
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('[Realtime] DELETE trade_orders:', payload);
         setTrades(prev => prev.filter(t => t.id !== payload.old.id));
         setPositions(prev => prev.filter(p => p.id !== payload.old.id));
       })
@@ -177,7 +180,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   };
 
   const closePosition = async (position: any) => {
-    await supabase.from('trade_orders').update({ status: 'closed' }).eq('id', position.id);
+    console.log('[TradingPlatform] Closing position:', position.id);
+    const { error } = await supabase.from('trade_orders').update({ status: 'closed' }).eq('id', position.id);
+    if (error) {
+      console.error('[TradingPlatform] Close Position Error:', error);
+      alert(`فشل إغلاق الصفقة: ${error.message}`);
+    }
   };
 
   return (
