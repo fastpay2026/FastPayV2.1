@@ -155,7 +155,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const marginRequired = (volume * executionPrice) / 100;
     if (balance.freeMargin < marginRequired) { alert("الرصيد غير كافٍ!"); return; }
 
-    await supabase.from('trade_orders').insert({
+    console.log('[TradingPlatform] Attempting trade:', { user_id: user.id, symbol, type, volume, executionPrice });
+
+    const { data, error } = await supabase.from('trade_orders').insert({
       user_id: user.id, 
       username: user.username || 'User', 
       asset_symbol: symbol, 
@@ -165,6 +167,13 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       status: 'open',
       timestamp: new Date().toISOString()
     });
+
+    if (error) {
+      console.error('[TradingPlatform] Trade Insert Error:', error);
+      alert(`فشل تنفيذ الصفقة: ${error.message} (كود: ${error.code})`);
+    } else {
+      alert(`Success: ${type} order executed!`);
+    }
   };
 
   const closePosition = async (position: any) => {
