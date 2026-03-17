@@ -63,8 +63,7 @@ export const supabaseService = {
         assets: Array.isArray(user.assets) ? user.assets : [],
         api_keys: Array.isArray(user.apiKeys) ? user.apiKeys : [],
         is_bot: Boolean(user.isBot),
-        status: user.isActive ? 'active' : 'disabled',
-        is_active: user.isActive
+        status: user.isActive ? 'active' : 'disabled'
       };
 
       const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
