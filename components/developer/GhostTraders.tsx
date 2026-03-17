@@ -110,11 +110,14 @@ const GhostTraders: React.FC = () => {
   const triggerManualTrade = async (bot: any) => {
     try {
       setLoading(true);
+      const symbol = bot.trade_symbol || 'BTCUSDT';
+      const amount = bot.fixed_amount || 10;
+      
       const { error: simError } = await supabase.from('bot_trades_simulation').insert({
         bot_id: bot.id, 
-        symbol: 'BTCUSDT', 
+        symbol: symbol, 
         type: Math.random() > 0.5 ? 'buy' : 'sell', 
-        amount: bot.fixed_amount || 100, 
+        amount: amount, 
         price: 95000 + (Math.random() * 100), 
         status: 'open'
       });
@@ -124,9 +127,9 @@ const GhostTraders: React.FC = () => {
       const { error: orderError } = await supabase.from('trade_orders').insert({
         user_id: null,
         username: bot.name,
-        asset_symbol: 'BTCUSDT',
+        asset_symbol: symbol,
         type: Math.random() > 0.5 ? 'buy' : 'sell',
-        amount: bot.fixed_amount || 100,
+        amount: amount,
         entry_price: 95000 + (Math.random() * 100),
         status: 'open',
         is_bot: true,
@@ -136,7 +139,7 @@ const GhostTraders: React.FC = () => {
       if (orderError) throw orderError;
       
       await fetchTrades();
-      alert('✅ تم فتح صفقة يدوية بنجاح! ستظهر في المنصة الآن.');
+      alert(`✅ تم فتح صفقة يدوية بنجاح على ${symbol}! ستظهر في المنصة الآن.`);
     } catch (err: any) {
       alert('❌ فشل فتح الصفقة: ' + err.message);
     } finally {
@@ -208,6 +211,43 @@ const GhostTraders: React.FC = () => {
                 onBlur={e => updateBot(bot.id, { name: e.target.value })} 
                 className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all" 
               />
+            </div>
+            
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Asset</label>
+              <input 
+                defaultValue={bot.trade_symbol || 'BTCUSDT'} 
+                onBlur={e => updateBot(bot.id, { trade_symbol: e.target.value })} 
+                className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-24" 
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Amount</label>
+              <input 
+                type="number"
+                defaultValue={bot.fixed_amount || 10} 
+                onBlur={e => updateBot(bot.id, { fixed_amount: parseFloat(e.target.value) })} 
+                className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-20" 
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Start/End Time</label>
+              <div className="flex gap-1">
+                <input 
+                  type="time"
+                  defaultValue={bot.start_time} 
+                  onBlur={e => updateBot(bot.id, { start_time: e.target.value })} 
+                  className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-24" 
+                />
+                <input 
+                  type="time"
+                  defaultValue={bot.end_time} 
+                  onBlur={e => updateBot(bot.id, { end_time: e.target.value })} 
+                  className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-24" 
+                />
+              </div>
             </div>
             
             <div className="flex flex-col gap-1.5">

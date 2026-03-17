@@ -72,16 +72,34 @@ async function handleAutoTrade(bot: any, config: any) {
     const maxDur = config?.max_duration_minutes || 5;
     const targetDuration = Math.floor(Math.random() * (maxDur - minDur + 1) + minDur);
 
-    await supabase.from('bot_trades_simulation').insert({
-      bot_id: bot.id,
-      symbol: 'BTCUSDT',
-      type: Math.random() > 0.5 ? 'buy' : 'sell',
-      amount: bot.fixed_amount,
-      price: 95000,
-      status: 'open',
-      target_duration: targetDuration // تخزين المدة المستهدفة
-    });
-    console.log(`[Ghost Engine] Auto-opened trade for ${bot.name} (Duration: ${targetDuration}m)`);
+    // التحقق من الوقت الحالي
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    let canTrade = true;
+    if (bot.start_time && bot.end_time) {
+      const [startH, startM] = bot.start_time.split(':').map(Number);
+      const [endH, endM] = bot.end_time.split(':').map(Number);
+      const startTime = startH * 60 + startM;
+      const endTime = endH * 60 + endM;
+      
+      if (currentTime < startTime || currentTime > endTime) {
+        canTrade = false;
+      }
+    }
+
+    if (canTrade) {
+      await supabase.from('bot_trades_simulation').insert({
+        bot_id: bot.id,
+        symbol: bot.trade_symbol || 'BTCUSDT',
+        type: Math.random() > 0.5 ? 'buy' : 'sell',
+        amount: bot.fixed_amount || 10,
+        price: 95000,
+        status: 'open',
+        target_duration: targetDuration // تخزين المدة المستهدفة
+      });
+      console.log(`[Ghost Engine] Auto-opened trade for ${bot.name} (Asset: ${bot.trade_symbol || 'BTCUSDT'}, Amount: ${bot.fixed_amount || 10}, Duration: ${targetDuration}m)`);
+    }
   }
 }
 
