@@ -68,15 +68,25 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
           is_bot: t.is_bot
         };
         setTrades(prev => [newTrade, ...prev].slice(0, 30));
-        if (t.status === 'open' && t.user_id === user.id) {
-            setPositions(prev => [...prev, t]);
+        if (t.status === 'open' && (t.user_id === user.id || t.is_bot)) {
+            setPositions(prev => {
+                if (prev.find(p => p.id === t.id)) return prev;
+                return [...prev, t];
+            });
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_orders' }, (payload) => {
         console.log('[Realtime] UPDATE trade_orders:', payload);
         const t = payload.new;
         if (t.status === 'open') {
-            setPositions(prev => prev.map(p => p.id === t.id ? t : p));
+            setPositions(prev => {
+                const exists = prev.find(p => p.id === t.id);
+                if (exists) {
+                    return prev.map(p => p.id === t.id ? t : p);
+                } else {
+                    return [...prev, t];
+                }
+            });
         } else {
             setPositions(prev => prev.filter(p => p.id !== t.id));
         }
@@ -180,11 +190,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   };
 
   const closePosition = async (position: any) => {
-    console.log('[TradingPlatform] Closing position:', position.id);
-    const { error } = await supabase.from('trade_orders').update({ status: 'closed' }).eq('id', position.id);
+    console.log('[TradingPlatform] Deleting position:', position.id);
+    const { error } = await supabase.from('trade_orders').delete().eq('id', position.id);
     if (error) {
       console.error('[TradingPlatform] Close Position Error:', error);
       alert(`فشل إغلاق الصفقة: ${error.message}`);
+    } else {
+      // Optimistic update
+      setPositions(prev => prev.filter(p => p.id !== position.id));
     }
   };
 
