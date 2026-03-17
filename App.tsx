@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useCallback, useMemo, Suspense, useRef } from 'react';
+import { io } from 'socket.io-client';
 import { useI18n } from './i18n/i18n.tsx';
 import { v4 as uuidv4 } from 'uuid';
 import LandingPage from './components/LandingPage';
-import SplashScreen from './components/SplashScreen';
 import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
 import DeveloperDashboard from './components/DeveloperDashboard';
@@ -23,7 +23,6 @@ const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState('home');
-  const [showSplash, setShowSplash] = useState(true);
   const { t, language } = useI18n();
   
   useEffect(() => {
@@ -123,6 +122,19 @@ const App: React.FC = () => {
     { id: 'a1b2c3d4-e5f6-7890-1234-56789abcdef0', username: 'admin', fullName: 'مدير العمليات التنفيذي', email: 'admin@fastpay.com', password: 'ubnt', role: 'ADMIN', balance: 0, status: 'active', createdAt: '2023-01-01', linkedCards: [], assets: [] },
   ]);
   const accountsRef = useRef<User[]>(accounts);
+
+  useEffect(() => {
+    if (currentUserId) {
+      const socket = io();
+      const user = accounts.find(a => a.id === currentUserId);
+      if (user) {
+        socket.emit('user:login', { userId: user.id, username: user.username });
+      }
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [currentUserId, accounts]);
 
   useEffect(() => {
     accountsRef.current = accounts;
@@ -493,8 +505,7 @@ const App: React.FC = () => {
 
   return (
     <NotificationProvider>
-      {showSplash && <SplashScreen siteConfig={siteConfig} onComplete={() => setShowSplash(false)} />}
-      <div className={`min-h-screen relative ${showSplash ? 'hidden' : ''}`}>
+      <div className="min-h-screen relative">
         {!isSupabaseConfigured && (
           <div className="fixed bottom-6 right-6 z-[2000] bg-red-600/90 backdrop-blur-xl text-white p-6 rounded-2xl shadow-2xl border border-white/10 max-w-sm animate-in slide-in-from-right duration-500">
             <h4 className="font-black text-sm mb-2">{t('supabaseDisconnectedTitle')}</h4>

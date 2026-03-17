@@ -574,7 +574,7 @@ const UserDashboard: React.FC<Props> = ({
              <nav className="hidden xl:flex items-center h-full">
                 {[
                   { id: 'dashboard', l: t('nav_overview'), i: '🏠' },
-                  { id: 'trading_platform', l: 'محرك الصفقات', i: '🚀' },
+                  { id: 'trading_platform', l: t('nav_trading_engine'), i: '🚀' },
                   { id: 'investment', l: t('nav_invest_plans'), i: '💎' },
                   { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
                   { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },

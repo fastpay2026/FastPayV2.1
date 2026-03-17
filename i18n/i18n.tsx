@@ -490,7 +490,7 @@ const translationsData: Translations = {
   "nav_home": { "en": "Home", "ar": "الرئيسية", "fr": "Accueil", "tr": "Ana Sayfa", "zh": "首页", "ku": "سەرەکی", "ru": "Главная" },
   "nav_overview": { "en": "Overview", "ar": "نظرة عامة", "fr": "Aperçu", "tr": "Genel Bakış", "zh": "概览", "ku": "تێڕوانینێکی گشتی", "ru": "Обзор" },
   "nav_users": { "en": "User Management", "ar": "إدارة الأعضاء", "fr": "Gestion des utilisateurs", "tr": "Kullanıcı Yönetimi", "zh": "用户管理", "ku": "بەڕێوەبردنی ئەندامان", "ru": "Управление пользователями" },
-  "nav_trading_engine": { "en": "Trading Engine", "ar": "محرك الصفقات", "fr": "Moteur de trading", "tr": "Ticaret Motoru", "zh": "交易引擎", "ku": "بزوێنەری بازرگانی", "ru": "Торговый движок" },
+  "nav_trading_engine": { "en": "FastPay Trader", "ar": "FastPay Trader", "fr": "FastPay Trader", "tr": "FastPay Trader", "zh": "FastPay Trader", "ku": "FastPay Trader", "ru": "FastPay Trader" },
   "nav_salary_funding": { "en": "Salary Funding", "ar": "تمويل الرواتب", "fr": "Financement des salaires", "tr": "Maaş Finansmanı", "zh": "工资资金", "ku": "پارەدارکردنی مووچە", "ru": "Финансирование зарплаты" },
   "nav_card_gen": { "en": "Card Generation", "ar": "توليد البطاقات", "fr": "Génération de cartes", "tr": "Kart Oluşturma", "zh": "卡片生成", "ku": "دروستکردنی کارت", "ru": "Генерация карт" },
   "nav_invest_plans": { "en": "Investment Plans", "ar": "خطط الاستثمار", "fr": "Plans d'investissement", "tr": "Yatırım Planları", "zh": "投资计划", "ku": "پلانەکانی وەبەرهێنان", "ru": "Инвестиционные планы" },
