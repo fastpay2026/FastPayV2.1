@@ -16,7 +16,7 @@ const Logo: React.FC<LogoProps> = ({ siteConfig, className, style, onClick }) =>
       <img 
         src={siteConfig.logoUrl} 
         alt="Logo" 
-        className="mix-blend-multiply"
+        className="w-full h-auto"
         style={{ width: '100%' }}
         referrerPolicy="no-referrer"
       />

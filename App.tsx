@@ -37,7 +37,7 @@ const App: React.FC = () => {
     }
   }, [currentUserId]);
 
-  const professionalLogo = "https://i.ibb.co/FLRD8zZ2/logo.png"; // تم تحديث الرابط للشعار الجديد
+  const professionalLogo = "https://i.ibb.co/PG6VHym6/fast.png"; // تم تحديث الرابط للشعار الجديد بخلفية شفافة
 
   const [siteConfig, setSiteConfig] = useState<SiteConfig>({
     logoUrl: professionalLogo,
