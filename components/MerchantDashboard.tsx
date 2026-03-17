@@ -11,6 +11,7 @@ import DistributorGatewayManager from './merchant/DistributorGatewayManager';
 import UnderDevelopment from './UnderDevelopment';
 import LanguageSwitcher from './LanguageSwitcher';
 import Logo from '../src/components/Logo';
+import LogoGenerator from '../src/components/LogoGenerator';
 
 interface Props {
   user: User;
@@ -435,6 +436,7 @@ header('Location: ' . $payment->checkout_url);`
          {activeView === 'main' && (
             isServiceDisabled('cards') ? <UnderDevelopment /> : (
            <div className="max-w-[1600px] mx-auto space-y-12">
+               <LogoGenerator />
                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
                   <div className="lg:col-span-2 bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/10 rounded-3xl md:rounded-[4rem] p-8 md:p-16 shadow-2xl relative overflow-hidden group">
                      <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>

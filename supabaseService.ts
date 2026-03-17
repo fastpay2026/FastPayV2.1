@@ -49,27 +49,35 @@ export const supabaseService = {
 
   async updateUser(user: User) {
     console.log('supabaseService: Updating user:', user.username, 'ID:', user.id);
+    
+    // فحص أمان: التأكد من وجود ID صالح
+    if (!user.id) {
+      console.error('supabaseService: Critical Error: Attempted to update user without ID!', user);
+      throw new Error('Cannot update user: Missing ID');
+    }
+
     try {
       // تنظيف البيانات لضمان عدم إرسال أي حقل غير موجود في SQL
-      const userData = {
-        id: user.id,
-        username: user.username,
-        full_name: String(user.fullName || ''),
-        email: String(user.email || ''),
-        phone_number: String(user.phoneNumber || ''),
-        password: String(user.password || ''),
-        role: String(user.role || 'USER'),
-        balance: parseFloat(String(user.balance)) || 0,
-        status_reason: String(user.statusReason || ''),
-        is_verified: Boolean(user.isVerified),
-        verification_status: String(user.verificationStatus || 'none'),
-        verification_reason: String(user.verificationReason || ''),
-        linked_cards: Array.isArray(user.linkedCards) ? user.linkedCards : [],
-        assets: Array.isArray(user.assets) ? user.assets : [],
-        api_keys: Array.isArray(user.apiKeys) ? user.apiKeys : [],
-        is_bot: Boolean(user.isBot),
-        status: user.isActive ? 'active' : 'disabled'
+      const userData: any = {
+        id: user.id
       };
+      
+      if (user.username !== undefined) userData.username = String(user.username);
+      if (user.fullName !== undefined) userData.full_name = String(user.fullName);
+      if (user.email !== undefined) userData.email = String(user.email);
+      if (user.phoneNumber !== undefined) userData.phone_number = String(user.phoneNumber);
+      if (user.password !== undefined) userData.password = String(user.password);
+      if (user.role !== undefined) userData.role = String(user.role);
+      if (user.balance !== undefined) userData.balance = parseFloat(String(user.balance)) || 0;
+      if (user.statusReason !== undefined) userData.status_reason = String(user.statusReason);
+      if (user.isVerified !== undefined) userData.is_verified = Boolean(user.isVerified);
+      if (user.verificationStatus !== undefined) userData.verification_status = String(user.verificationStatus);
+      if (user.verificationReason !== undefined) userData.verification_reason = String(user.verificationReason);
+      if (user.linkedCards !== undefined) userData.linked_cards = Array.isArray(user.linkedCards) ? user.linkedCards : [];
+      if (user.assets !== undefined) userData.assets = Array.isArray(user.assets) ? user.assets : [];
+      if (user.apiKeys !== undefined) userData.api_keys = Array.isArray(user.apiKeys) ? user.apiKeys : [];
+      if (user.isBot !== undefined) userData.is_bot = Boolean(user.isBot);
+      if (user.isActive !== undefined) userData.status = user.isActive ? 'active' : 'disabled';
 
       console.log('supabaseService: Upserting userData:', userData);
 

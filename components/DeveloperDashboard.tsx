@@ -100,10 +100,19 @@ const handleManualSync = async () => {
     try {
       const { supabaseService } = await import('../supabaseService');
 
+      // Fetch existing users to merge and prevent data loss
+      const existingUsers = await supabaseService.getUsers();
+      const existingUsersMap = new Map(existingUsers.map(u => [u.id, u]));
+
+      const mergedAccounts = accounts.map(acc => {
+        const existing = existingUsersMap.get(acc.id);
+        return existing ? { ...existing, ...acc } : acc;
+      });
+
       await Promise.all([
         supabaseService.updateSiteConfig(siteConfig),
 
-        ...accounts.map(acc => supabaseService.updateUser(acc)),
+        ...mergedAccounts.map(acc => supabaseService.updateUser(acc)),
         ...transactions.map(t => supabaseService.addTransaction(t)),
         ...notifications.map(n => supabaseService.addNotification(n))
       ]);
