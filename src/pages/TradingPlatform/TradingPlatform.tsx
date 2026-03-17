@@ -99,7 +99,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   const fetchAssets = async () => {
     const { data } = await supabase.from('trade_assets').select('*');
     if (data) {
-      setAssets(data as TradeAsset[]);
+      const sortedAssets = (data as TradeAsset[]).sort((a, b) => a.symbol.localeCompare(b.symbol));
+      setAssets(sortedAssets);
       setAssetsLoading(false);
     }
   };
