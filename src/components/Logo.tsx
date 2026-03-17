@@ -12,12 +12,12 @@ const Logo: React.FC<LogoProps> = ({ siteConfig, className, style, onClick }) =>
   const logoUrl = siteConfig.logoUrl || "https://i.postimg.cc/Bvjdg2Zb/download-1-removebg-preview.png";
 
   return (
-    <div className={`flex flex-col items-center ${className}`} style={style} onClick={onClick}>
+    <div className={`flex flex-col items-center bg-transparent ${className}`} style={{ ...style, backgroundColor: 'transparent' }} onClick={onClick}>
       <img 
         src={logoUrl} 
         alt="Logo" 
         className="w-full h-auto"
-        style={{ width: '100%' }}
+        style={{ width: '100%', backgroundColor: 'transparent' }}
         referrerPolicy="no-referrer"
       />
       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">

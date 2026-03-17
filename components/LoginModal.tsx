@@ -124,13 +124,14 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
               password: trimmedPassword,
             });
             if (authError) {
-              console.warn("Supabase Auth Warning:", authError.message);
+              console.warn("Supabase Auth Warning (ignoring):", authError.message);
             }
           }
         } catch (authErr) {
-          console.error("Supabase Auth Error:", authErr);
+          console.error("Supabase Auth Error (ignoring):", authErr);
         }
         
+        // Proceed with local login regardless of Supabase result
         setAuthenticatedUser(user);
         setIsAuthenticating(true);
       }
