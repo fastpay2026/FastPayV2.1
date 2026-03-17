@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import LightweightChart from './components/LightweightChart';
 import LiveMarketFeed from './components/LiveMarketFeed';
 import OrderBook from './components/OrderBook';
 import MarketWatch from './components/MarketWatch';
-import { LayoutDashboard, BarChart3 } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { User, TradeAsset } from '../../../types';
 import { useNotification } from '../../../components/NotificationContext';
@@ -60,66 +61,72 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Real-time subscriptions and Fallback Polling
+  // Real-time subscriptions
   useEffect(() => {
     if (!user?.id) return;
 
-    console.log('[TradingPlatform] Setting up subscriptions and polling for symbol:', symbol);
+    console.log('[TradingPlatform] Setting up full real-time synchronization...');
 
-    // 1. Setup Subscriptions
-    const channel = supabase
-      .channel(`trading_realtime_${symbol}`)
+    // 1. Setup Unified Trade Subscription
+    const tradesChannel = supabase
+      .channel('public:trade_orders')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('[Realtime] Trade Inserted:', payload.new);
+        const t = payload.new;
+        const newTrade = {
+          id: t.id,
+          username: t.username || 'Trader',
+          asset_symbol: t.asset_symbol,
+          type: t.type as 'buy' | 'sell',
+          amount: Number(t.amount || 0),
+          entry_price: Number(t.entry_price || 0),
+          created_at: t.timestamp || t.created_at || new Date().toISOString(),
+          is_bot: t.is_bot
+        };
+        setTrades(prev => [newTrade, ...prev].slice(0, 30));
+        if (t.user_id === user.id) fetchPositions();
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('[Realtime] Trade Deleted:', payload.old);
+        setTrades(prev => prev.filter(t => t.id !== payload.old.id));
+        if (payload.old.user_id === user.id) fetchPositions();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('[Realtime] Trade Updated:', payload.new);
+        if (payload.new.status !== 'open') {
+          setTrades(prev => prev.filter(t => t.id !== payload.new.id));
+        }
+        if (payload.new.user_id === user.id) fetchPositions();
+      })
+      .subscribe();
+
+    // 2. Wallet Subscription
+    const walletChannel = supabase
+      .channel(`wallet_${user.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, fetchWallet)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders', filter: `user_id=eq.${user.id}` }, fetchPositions)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, (payload) => {
-        console.log('[TradingPlatform] Trade order change detected:', payload);
-        fetchTradesDirect(); // Ensure feed is always synced
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_trades_simulation' }, fetchTradesDirect)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_assets' }, (payload) => {
-        if (payload.eventType === 'UPDATE') {
-          setLastUpdate(new Date());
-          setIsUpdating(true);
-          setTimeout(() => setIsUpdating(false), 500);
-          
-          setAssets(current => {
-            const index = current.findIndex(a => a.id === payload.new.id);
-            if (index === -1) return [...current, payload.new as TradeAsset];
-            
-            const updated = [...current];
-            const oldPrice = updated[index].price;
-            updated[index] = { ...updated[index], ...payload.new };
-            
-            if (payload.new.symbol === symbol) {
-              const newPrice = payload.new.price;
-              setPriceColor(newPrice > oldPrice ? 'text-emerald-400' : newPrice < oldPrice ? 'text-red-400' : 'text-white');
-            }
-            
-            return updated;
-          });
-        }
-      })
-      .subscribe((status) => {
-        console.log('[TradingPlatform] Subscription Status:', status);
-        if (status === 'SUBSCRIBED') {
-          setIsConnected(true);
-        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-          setIsConnected(false);
-        }
-      });
+      .subscribe();
 
-    // 2. Setup Fallback Polling (every 500ms)
-    const pollInterval = setInterval(() => {
-      fetchPositions();
-      fetchTradesDirect();
-    }, 500);
+    // 3. Asset Subscription (for PnL tracking)
+    const assetChannel = supabase
+      .channel('public:trade_assets')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_assets' }, (payload) => {
+        setAssets(current => {
+          const index = current.findIndex(a => a.id === payload.new.id);
+          if (index === -1) return [...current, payload.new as TradeAsset];
+          const updated = [...current];
+          updated[index] = { ...updated[index], ...payload.new };
+          return updated;
+        });
+      })
+      .subscribe();
 
     return () => {
-      console.log('[TradingPlatform] Cleaning up subscriptions and polling for:', symbol);
-      supabase.removeChannel(channel);
-      clearInterval(pollInterval);
+      console.log('[TradingPlatform] Cleaning up real-time subscriptions.');
+      supabase.removeChannel(tradesChannel);
+      supabase.removeChannel(walletChannel);
+      supabase.removeChannel(assetChannel);
     };
-  }, [user?.id, symbol]);
+  }, [user?.id]);
 
   const fetchAssets = async () => {
     const { data, error } = await supabase.from('trade_assets').select('*');
@@ -383,21 +390,31 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
                 <th className="p-2">Action</th>
               </tr>
             </thead>
-            <tbody>
-              {positions.map(p => (
-                <tr key={p.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                  <td className="p-2 font-bold text-white">{p.asset_symbol}</td>
-                  <td className={`p-2 font-bold uppercase ${p.type === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p.type}</td>
-                  <td className="p-2">{p.amount}</td>
-                  <td className="p-2 font-mono">{p.entry_price?.toFixed(assets.find(a => a.symbol === p.asset_symbol)?.digits || 2)}</td>
-                  <td className="p-2 font-mono text-slate-400">0.00</td>
-                  <td className="p-2">
-                    <button onClick={() => closePosition(p)} className="bg-red-900/30 hover:bg-red-900/50 text-red-400 px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors">
-                      Close
-                    </button>
-                  </td>
-                </tr>
-              ))}
+            <tbody className="relative">
+              <AnimatePresence>
+                {positions.map(p => (
+                  <motion.tr 
+                    key={p.id} 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                  >
+                    <td className="p-2 font-bold text-white">{p.asset_symbol}</td>
+                    <td className={`p-2 font-bold uppercase ${p.type === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p.type}</td>
+                    <td className="p-2">{p.amount}</td>
+                    <td className="p-2 font-mono">{p.entry_price?.toFixed(assets.find(a => a.symbol === p.asset_symbol)?.digits || 2)}</td>
+                    <td className="p-2 font-mono text-slate-400">
+                      {((currentPrice - p.entry_price) * p.amount * (p.type === 'buy' ? 1 : -1)).toFixed(2)}
+                    </td>
+                    <td className="p-2">
+                      <button onClick={() => closePosition(p)} className="bg-red-900/30 hover:bg-red-900/50 text-red-400 px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors">
+                        Close
+                      </button>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>
