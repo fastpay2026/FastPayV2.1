@@ -54,53 +54,24 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     // 1. Unified Trade Subscription (Listening to BOTH tables)
     const tradesChannel = supabase
       .channel('trades-changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
-        console.log('[Realtime] INSERT trade_orders:', payload);
-        const t = payload.new;
-        const newTrade = {
-          id: t.id,
-          username: t.username || 'Trader',
-          asset_symbol: t.asset_symbol,
-          type: t.type as 'buy' | 'sell',
-          amount: Number(t.amount || 0),
-          entry_price: Number(t.entry_price || 0),
-          created_at: t.timestamp || t.created_at || new Date().toISOString(),
-          is_bot: t.is_bot
-        };
-        setTrades(prev => [newTrade, ...prev].slice(0, 30));
-        if (t.status === 'open' && (t.user_id === user.id || t.is_bot)) {
-            setPositions(prev => {
-                if (prev.find(p => p.id === t.id)) return prev;
-                return [...prev, t];
-            });
-        }
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_orders' }, (payload) => {
-        console.log('[Realtime] UPDATE trade_orders:', payload);
-        const t = payload.new;
-        if (t.status === 'open') {
-            setPositions(prev => {
-                const exists = prev.find(p => p.id === t.id);
-                if (exists) {
-                    return prev.map(p => p.id === t.id ? t : p);
-                } else {
-                    return [...prev, t];
-                }
-            });
-        } else {
-            setPositions(prev => prev.filter(p => p.id !== t.id));
-        }
-      })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'trade_orders' }, (payload) => {
-        console.log('[Realtime] DELETE trade_orders:', payload);
-        setTrades(prev => prev.filter(t => t.id !== payload.old.id));
-        setPositions(prev => prev.filter(p => p.id !== payload.old.id));
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('[Realtime] trade_orders change:', payload);
+        // Refresh data on any change
+        fetchInitialTrades();
+        fetchInitialPositions();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trades' }, (payload) => {
         console.log('[Realtime] trades table change:', payload);
         fetchInitialTrades();
       })
       .subscribe();
+
+    // 4. Fallback Polling (Ensures UI is ALWAYS up-to-date every 3 seconds)
+    const pollingInterval = setInterval(() => {
+        console.log('[Polling] Syncing trades and positions...');
+        fetchInitialTrades();
+        fetchInitialPositions();
+    }, 3000);
 
     // 2. Wallet Subscription
     const walletChannel = supabase
@@ -111,14 +82,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     // 3. Asset Subscription
     const assetChannel = supabase
       .channel('public:trade_assets')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trade_assets' }, (payload) => {
-        setAssets(current => {
-          const index = current.findIndex(a => a.id === payload.new.id);
-          if (index === -1) return [...current, payload.new as TradeAsset];
-          const updated = [...current];
-          updated[index] = { ...updated[index], ...payload.new };
-          return updated;
-        });
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_assets' }, (payload) => {
+        console.log('[Realtime] Asset change:', payload);
+        fetchAssets();
       })
       .subscribe();
 
@@ -126,6 +92,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       supabase.removeChannel(tradesChannel);
       supabase.removeChannel(walletChannel);
       supabase.removeChannel(assetChannel);
+      clearInterval(pollingInterval); // Clear polling
     };
   }, [user?.id]);
 
