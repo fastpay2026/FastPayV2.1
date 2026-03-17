@@ -37,7 +37,7 @@ const App: React.FC = () => {
     }
   }, [currentUserId]);
 
-  const professionalLogo = "https://i.postimg.cc/Bvjdg2Zb/download-1-removebg-preview.png";
+  const professionalLogo = "https://i.postimg.cc/R0FNTSDc/download-1-removebg-preview.png";
 
   const [siteConfig, setSiteConfig] = useState<SiteConfig>({
     logoUrl: professionalLogo,
