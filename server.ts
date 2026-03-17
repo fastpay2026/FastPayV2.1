@@ -140,8 +140,12 @@ async function startServer() {
               const currentPrice = parseFloat(data.lastPrice);
               const change24h = parseFloat(data.priceChangePercent);
               
+              // تطبيق تذبذب وهمي لضمان حركة السعر
+              const jitter = (Math.random() - 0.5) * (currentPrice * 0.00005);
+              const noisyPrice = currentPrice + jitter;
+              
               await supabase.from('trade_assets').update({
-                price: currentPrice,
+                price: noisyPrice,
                 change_24h: change24h,
                 is_frozen: false
               }).eq('id', asset.id);
@@ -201,8 +205,8 @@ async function startServer() {
                 currentPrice += GOLD_ADJUSTMENT;
               }
 
-              // 4. نظام التذبذب الوهمي (Jittering) +/- 0.01
-              const jitter = (Math.random() - 0.5) * 0.02;
+              // 4. نظام التذبذب الوهمي (Jittering)
+              const jitter = (Math.random() - 0.5) * (currentPrice * 0.00005);
               currentPrice += jitter;
 
               // 3. معالجة الكسور (Precision)
