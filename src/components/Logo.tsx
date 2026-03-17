@@ -9,10 +9,11 @@ interface LogoProps {
 }
 
 const Logo: React.FC<LogoProps> = ({ siteConfig, className, style, onClick }) => {
+  console.log("Logo rendered");
   const logoUrl = siteConfig.logoUrl || "https://i.postimg.cc/Bvjdg2Zb/download-1-removebg-preview.png";
 
   return (
-    <div className={`flex flex-col items-center bg-transparent ${className}`} style={{ ...style, backgroundColor: 'transparent' }} onClick={onClick}>
+    <div className={`flex flex-col items-center !bg-transparent ${className}`} style={{ ...style, backgroundColor: 'transparent' }} onClick={onClick}>
       <img 
         src={logoUrl} 
         alt="Logo" 
