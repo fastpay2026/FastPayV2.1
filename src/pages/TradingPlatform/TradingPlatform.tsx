@@ -115,6 +115,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             updated[index] = { ...updated[index], ...payload.new };
             
             if (payload.new.symbol === symbol) {
+              console.log('[TradingPlatform] Price update for selected symbol:', payload.new.symbol, payload.new.price);
               const newPrice = payload.new.price;
               setPriceColor(newPrice > oldPrice ? 'text-emerald-400' : newPrice < oldPrice ? 'text-red-400' : 'text-white');
             }

@@ -351,91 +351,70 @@ async function startServer() {
     }
   });
 
-  // --- New Ghost Engine Integration (Directly in Server) ---
+  // --- Enhanced Ghost Engine (3 Types Logic + Human Simulation) ---
   const runGhostEngine = async () => {
-    console.log('[Ghost Engine] Background process started.');
-    
-    // Increased frequency to 10 seconds for more activity
-    setInterval(async () => {
-      try {
-        if (!isSupabaseConfigured) return;
-        
-        // 1. جلب البوتات
-        const { data: bots } = await supabase.from('bot_instances').select('*');
-        // 2. جلب الأصول المتاحة
-        const { data: assets } = await supabase.from('trade_assets').select('*').eq('is_frozen', false);
-        
-        if (bots && bots.length > 0 && assets && assets.length > 0) {
-          for (const bot of bots) {
-            // A. إغلاق الصفقات القديمة تلقائياً
-            const { data: openTrades } = await supabase
-              .from('bot_trades_simulation')
-              .select('*')
-              .eq('bot_id', bot.id)
-              .eq('status', 'open');
+    console.log('[Ghost Engine] Advanced Bot Engine started.');
 
-            if (openTrades) {
-              for (const trade of openTrades) {
-                const startTime = new Date(trade.created_at).getTime();
-                const now = new Date().getTime();
-                const durationMinutes = (now - startTime) / (1000 * 60);
+    const BOT_TYPES = [
+      { name: 'ScalperBot', minAmount: 10, maxAmount: 50, minDuration: 5 * 60 * 1000, maxDuration: 15 * 60 * 1000 },
+      { name: 'DayBot', minAmount: 100, maxAmount: 500, minDuration: 4 * 60 * 60 * 1000, maxDuration: 8 * 60 * 60 * 1000 },
+      { name: 'SwingBot', minAmount: 1000, maxAmount: 5000, minDuration: 24 * 60 * 60 * 1000, maxDuration: 96 * 60 * 60 * 1000 }
+    ];
 
-                if (durationMinutes >= (trade.target_duration || 5)) {
-                  await supabase.from('bot_trades_simulation').update({
-                    status: Math.random() > 0.4 ? 'closed_profit' : 'closed_loss',
-                    closed_at: new Date().toISOString()
-                  }).eq('id', trade.id);
-                  
-                  // Also update the trade_orders table if it exists there
-                  await supabase.from('trade_orders')
-                    .update({ status: 'closed_profit', closed_at: new Date().toISOString() })
-                    .eq('asset_symbol', trade.symbol)
-                    .eq('username', bot.name)
-                    .eq('status', 'open');
-                }
-              }
-            }
+    const runBotLifecycle = async (config: any) => {
+      while (true) {
+        try {
+          // 1. توقيت دخول عشوائي (Human Simulation)
+          const randomEntryDelay = Math.random() * 10000 + 2000; // 2-12 ثانية
+          await new Promise(r => setTimeout(r, randomEntryDelay));
 
-            // B. فتح صفقات جديدة (في وضع AUTO)
-            if (bot.mode === 'auto') {
-              const { count } = await supabase
-                .from('bot_trades_simulation')
-                .select('*', { count: 'exact', head: true })
-                .eq('bot_id', bot.id)
-                .eq('status', 'open');
+          if (!isSupabaseConfigured) continue;
 
-              // Allow up to 3 concurrent trades per bot for more activity
-              if (!count || count < 3) {
-                const randomAsset = assets[Math.floor(Math.random() * assets.length)];
-                
-                await supabase.from('bot_trades_simulation').insert({
-                  bot_id: bot.id,
-                  symbol: randomAsset.symbol,
-                  type: Math.random() > 0.5 ? 'buy' : 'sell',
-                  amount: bot.fixed_amount || 100,
-                  price: randomAsset.price,
-                  status: 'open'
-                });
+          // 2. جلب أصل عشوائي
+          const { data: assets } = await supabase.from('trade_assets').select('*').eq('is_frozen', false);
+          if (!assets || assets.length === 0) continue;
+          const asset = assets[Math.floor(Math.random() * assets.length)];
 
-                await supabase.from('trade_orders').insert({
-                  user_id: null,
-                  username: bot.name,
-                  asset_symbol: randomAsset.symbol,
-                  type: Math.random() > 0.5 ? 'buy' : 'sell',
-                  amount: bot.fixed_amount || 100,
-                  entry_price: randomAsset.price,
-                  status: 'open',
-                  is_bot: true,
-                  timestamp: new Date().toISOString()
-                });
-              }
-            }
-          }
+          // 3. فتح الصفقة
+          const amount = (Math.random() * (config.maxAmount - config.minAmount) + config.minAmount).toFixed(2);
+          const trade = {
+            user_id: null,
+            username: config.name,
+            asset_symbol: asset.symbol,
+            type: Math.random() > 0.5 ? 'buy' : 'sell',
+            amount: parseFloat(amount),
+            entry_price: asset.price,
+            status: 'open',
+            is_bot: true,
+            timestamp: new Date().toISOString()
+          };
+
+          await supabase.from('trade_orders').insert(trade);
+
+          // 4. انتظار فترة الخروج (Duration)
+          const duration = Math.random() * (config.maxDuration - config.minDuration) + config.minDuration;
+          await new Promise(r => setTimeout(r, duration));
+
+          // 5. إغلاق الصفقة (60% ربح، 40% خسارة)
+          const isWin = Math.random() < 0.6;
+          await supabase.from('trade_orders')
+            .update({ 
+              status: isWin ? 'closed_profit' : 'closed_loss',
+              closed_at: new Date().toISOString() 
+            })
+            .eq('username', config.name)
+            .eq('status', 'open')
+            .eq('asset_symbol', asset.symbol);
+
+        } catch (e: any) {
+          console.error(`[Ghost Engine] ${config.name} Error:`, e.message);
+          await new Promise(r => setTimeout(r, 5000)); // انتظار قبل المحاولة التالية
         }
-      } catch (e: any) {
-        console.error('[Ghost Engine] Error:', e.message);
       }
-    }, 10000); 
+    };
+
+    // تشغيل البوتات الثلاثة بشكل متوازي
+    BOT_TYPES.forEach(config => runBotLifecycle(config));
   };
 
   // --- Live Feed Generator (Simulated Global Activity) ---
@@ -501,8 +480,8 @@ async function startServer() {
     await seedAssets();
     await purgeBots();
     runPriceFeed();
-    // runGhostEngine(); // Removed to stop random bot trades
-    // runLiveFeedGenerator(); // Removed to stop random names
+    runGhostEngine();
+    runLiveFeedGenerator();
   }
 
   // API 404 Guard
