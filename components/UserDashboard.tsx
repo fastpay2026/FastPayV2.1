@@ -573,16 +573,15 @@ const UserDashboard: React.FC<Props> = ({
              <Logo siteConfig={siteConfig} style={{ width: `80px` }} className="cursor-pointer md:w-[100px]" onClick={() => setActiveTab('dashboard')} />
              <nav className="hidden xl:flex items-center h-full">
                 {[
-                  { id: 'dashboard', l: t('nav_overview'), i: '🏠' },
-                  { id: 'trading_platform', l: t('nav_trading_engine'), i: '🚀' },
-                  { id: 'investment', l: t('nav_invest_plans'), i: '💎' },
-                  { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
-                  { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
-                  { id: 'salary', l: t('nav_salary_funding'), i: '🏦' },
-                  { id: 'profile', l: t('nav_profile'), i: '⚙️' }
+                  { id: 'dashboard', l: t('nav_overview') },
+                  { id: 'trading_platform', l: t('nav_trading_engine') },
+                  { id: 'investment', l: t('nav_invest_plans') },
+                  { id: 'raffle', l: t('nav_raffle_mgmt') },
+                  { id: 'ads', l: t('nav_ad_exchange') },
+                  { id: 'salary', l: t('nav_salary_funding') },
+                  { id: 'profile', l: t('nav_profile') }
                 ].map(t => (
                   <button key={t.id} onClick={() => setActiveTab(t.id as any)} className={`flex items-center gap-2 font-bold px-6 h-16 md:h-20 border-b-2 transition-all duration-300 ${activeTab === t.id ? 'text-sky-400 border-sky-400 bg-sky-400/5' : 'text-slate-500 border-transparent hover:text-white'}`}>
-                    <span className="text-xl">{t.i}</span>
                     <span className="text-sm">{t.l}</span>
                   </button>
                 ))}
@@ -601,20 +600,19 @@ const UserDashboard: React.FC<Props> = ({
          <div className="xl:hidden fixed inset-0 z-[190] bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
            <div className="absolute top-16 md:top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
              {[
-               { id: 'dashboard', l: t('nav_overview'), i: '🏠' },
-               { id: 'trading_platform', l: 'محرك الصفقات', i: '🚀' },
-               { id: 'investment', l: t('nav_invest_plans'), i: '💎' },
-               { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁' },
-               { id: 'ads', l: t('nav_ad_exchange'), i: '📢' },
-               { id: 'salary', l: t('nav_salary_funding'), i: '🏦' },
-               { id: 'profile', l: t('nav_profile'), i: '⚙️' }
+               { id: 'dashboard', l: t('nav_overview') },
+               { id: 'trading_platform', l: 'FastPay Trader' },
+               { id: 'investment', l: t('nav_invest_plans') },
+               { id: 'raffle', l: t('nav_raffle_mgmt') },
+               { id: 'ads', l: t('nav_ad_exchange') },
+               { id: 'salary', l: t('nav_salary_funding') },
+               { id: 'profile', l: t('nav_profile') }
              ].map(t => (
                <button 
                  key={t.id} 
                  onClick={() => { setActiveTab(t.id as any); setIsMobileMenuOpen(false); }} 
                  className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black transition-all ${activeTab === t.id ? 'bg-sky-600 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
                >
-                 <span className="text-2xl">{t.i}</span>
                  <span className="text-base">{t.l}</span>
                </button>
              ))}
