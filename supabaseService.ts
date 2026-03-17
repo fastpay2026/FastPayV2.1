@@ -23,6 +23,10 @@ export const supabaseService = {
     }
     console.log(`supabaseService: Fetched ${data?.length || 0} users`);
     
+    if (!data || data.length === 0) {
+        console.warn('supabaseService: Fetched 0 users from Supabase!');
+    }
+    
     return (data || []).map(u => {
       if (!u.password) {
         console.warn(`supabaseService: User ${u.username} has no password in DB!`);
@@ -44,6 +48,7 @@ export const supabaseService = {
   },
 
   async updateUser(user: User) {
+    console.log('supabaseService: Updating user:', user.username, 'ID:', user.id);
     try {
       // تنظيف البيانات لضمان عدم إرسال أي حقل غير موجود في SQL
       const userData = {
@@ -66,11 +71,14 @@ export const supabaseService = {
         status: user.isActive ? 'active' : 'disabled'
       };
 
+      console.log('supabaseService: Upserting userData:', userData);
+
       const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
       if (error) {
         console.error("Supabase Error Details:", error);
         throw new Error(error.message);
       }
+      console.log('supabaseService: Successfully updated user:', user.username);
       return true;
     } catch (err: any) {
       console.error("Critical Sync Error:", err);
