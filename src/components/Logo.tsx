@@ -8,16 +8,6 @@ interface LogoProps {
   onClick?: () => void;
 }
 
-import React from 'react';
-import { SiteConfig } from '../../types';
-
-interface LogoProps {
-  siteConfig: SiteConfig;
-  className?: string;
-  style?: React.CSSProperties;
-  onClick?: () => void;
-}
-
 const Logo: React.FC<LogoProps> = React.memo(({ siteConfig, className, style, onClick }) => {
   const logoUrl = siteConfig.logoUrl || "https://i.postimg.cc/Bvjdg2Zb/download-1-removebg-preview.png";
 
@@ -36,7 +26,5 @@ const Logo: React.FC<LogoProps> = React.memo(({ siteConfig, className, style, on
     </div>
   );
 });
-
-export default Logo;
 
 export default Logo;
