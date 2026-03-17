@@ -459,7 +459,7 @@ header('Location: ' . $payment->checkout_url);`
                            </button>
                         </div>
                      </div>
-                  </div>  </div>
+                  </div>
                   </div>
 
                   <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
