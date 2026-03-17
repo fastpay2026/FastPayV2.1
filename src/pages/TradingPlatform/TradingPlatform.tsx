@@ -51,7 +51,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
     console.log('[TradingPlatform] Setting up full real-time synchronization...');
 
-    // 1. Unified Trade Subscription
+    // 1. Unified Trade Subscription (Listening to BOTH tables)
     const tradesChannel = supabase
       .channel('trades-changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'trade_orders' }, (payload) => {
@@ -82,6 +82,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'trade_orders' }, (payload) => {
         setTrades(prev => prev.filter(t => t.id !== payload.old.id));
         setPositions(prev => prev.filter(p => p.id !== payload.old.id));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trades' }, (payload) => {
+        console.log('[Realtime] trades table change:', payload);
+        fetchInitialTrades();
       })
       .subscribe();
 
