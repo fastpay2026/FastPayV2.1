@@ -40,6 +40,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
       role: userForm.role,
       balance: userForm.balance,
       status: 'active',
+      isActive: true,
       email: `${userForm.username}@fastpay.com`,
       createdAt: new Date().toLocaleDateString()
     };
@@ -64,8 +65,13 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
         onUpdateUser({ ...actionModal.user, balance: 0 });
         break;
       case 'suspend':
-        const newStatus = actionModal.user.status === 'active' ? 'suspended' : 'active';
-        onUpdateUser({ ...actionModal.user, status: newStatus as any });
+        const isCurrentlyActive = actionModal.user.status === 'active';
+        const newStatus = isCurrentlyActive ? 'suspended' : 'active';
+        onUpdateUser({ 
+          ...actionModal.user, 
+          status: newStatus as any,
+          isActive: !isCurrentlyActive
+        });
         break;
       case 'delete':
         setAccounts(prev => prev.filter(u => u.id !== userId));
