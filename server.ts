@@ -156,7 +156,7 @@ async function startServer() {
         }
         lastPriceUpdate.status = 'idle';
       } catch (e: any) {
-        console.error('[Binance] Global Sync Error:', e.message);
+        console.error('[Binance] Global Sync Error:', e);
         lastPriceUpdate.status = 'error';
       }
     };
