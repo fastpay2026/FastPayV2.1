@@ -118,9 +118,29 @@ const UserDashboard: React.FC<Props> = ({
   salaryPlans, setSalaryPlans, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const { t, language } = useI18n();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads' | 'trading_platform'>('dashboard');
   const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | 'withdraw_warning' | 'usdt_gateway' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const savedTab = localStorage.getItem('current_tab');
+    if (savedTab === 'trader') {
+      setActiveTab('trading_platform');
+    } else if (savedTab) {
+      const allowedTabs = ['dashboard', 'investment', 'raffle', 'salary', 'profile', 'ads', 'trading_platform'];
+      if (allowedTabs.includes(savedTab)) {
+        setActiveTab(savedTab as any);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'trading_platform') {
+      localStorage.setItem('current_tab', 'trader');
+    } else {
+      localStorage.setItem('current_tab', activeTab);
+    }
+  }, [activeTab]);
 
   // USDT Gateway States
   const [fxSettings, setFxSettings] = useState<FXExchangeSettings | null>(null);
