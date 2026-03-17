@@ -34,16 +34,16 @@ const LiveMarketFeed: React.FC<LiveMarketFeedProps> = ({ trades }) => {
           </tr>
         </thead>
         <tbody>
-          {trades.length > 0 ? (
-            trades.map((trade) => (
-              <tr key={trade.id} className="border-b border-white/5">
-                <td className="p-2 text-white font-bold">{maskUsername(trade.username)}</td>
-                <td className="p-2">{trade.asset_symbol}</td>
-                <td className={`p-2 font-bold ${(trade.type || 'buy').toLowerCase() === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {(trade.type || 'BUY').toUpperCase()}
+          {(trades || []).length > 0 ? (
+            (trades || []).map((trade) => (
+              <tr key={trade?.id} className="border-b border-white/5">
+                <td className="p-2 text-white font-bold">{maskUsername(trade?.username || '')}</td>
+                <td className="p-2">{trade?.asset_symbol}</td>
+                <td className={`p-2 font-bold ${(trade?.type || 'buy').toLowerCase() === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {(trade?.type || 'BUY').toUpperCase()}
                 </td>
-                <td className="p-2">${Number(trade.amount || 0).toFixed(2)}</td>
-                <td className="p-2">${Number(trade.entry_price || 0).toFixed(2)}</td>
+                <td className="p-2">${Number(trade?.amount || 0).toFixed(2)}</td>
+                <td className="p-2">${Number(trade?.entry_price || 0).toFixed(2)}</td>
               </tr>
             ))
           ) : (

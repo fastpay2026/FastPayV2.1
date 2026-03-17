@@ -179,9 +179,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4">
           <LayoutDashboard size={20} className="text-sky-400" />
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
-            {assets.slice(0, 5).map(a => (
+            {(assets || []).slice(0, 5).map(a => (
               <span key={a.id} className="mx-4">
-                {a.symbol}: <span className={a.change_24h >= 0 ? 'text-emerald-400' : 'text-red-400'}>{Number(a.price || 0).toFixed(a.type === 'forex' ? 5 : 2)}</span>
+                {a.symbol}: <span className={(a.change_24h || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}>{Number(a.price || 0).toFixed(a.type === 'forex' ? 5 : 2)}</span>
               </span>
             ))}
           </div>
@@ -269,20 +269,20 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
             </thead>
             <tbody className="relative">
               <AnimatePresence>
-                {positions.map(p => (
+                {(positions || []).map(p => (
                   <motion.tr 
-                    key={p.id} 
+                    key={p?.id} 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     className="border-b border-white/5 hover:bg-white/5 transition-colors"
                   >
-                    <td className="p-2 font-bold text-white">{p.asset_symbol}</td>
-                    <td className={`p-2 font-bold uppercase ${p.type === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p.type}</td>
-                    <td className="p-2">{p.amount}</td>
-                    <td className="p-2 font-mono">{p.entry_price?.toFixed(assets.find(a => a.symbol === p.asset_symbol)?.digits || 2)}</td>
+                    <td className="p-2 font-bold text-white">{p?.asset_symbol}</td>
+                    <td className={`p-2 font-bold uppercase ${(p?.type || 'buy') === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p?.type}</td>
+                    <td className="p-2">{p?.amount}</td>
+                    <td className="p-2 font-mono">{p?.entry_price?.toFixed(assets?.find(a => a.symbol === p?.asset_symbol)?.digits || 2)}</td>
                     <td className="p-2 font-mono text-slate-400">
-                      {((currentPrice - p.entry_price) * p.amount * (p.type === 'buy' ? 1 : -1)).toFixed(2)}
+                      {((currentPrice - (p?.entry_price || 0)) * (p?.amount || 0) * ((p?.type || 'buy') === 'buy' ? 1 : -1)).toFixed(2)}
                     </td>
                     <td className="p-2">
                       <button onClick={() => closePosition(p)} className="bg-red-900/30 hover:bg-red-900/50 text-red-400 px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors">
