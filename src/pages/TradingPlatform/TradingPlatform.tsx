@@ -134,8 +134,35 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     const spreadValue = (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2));
     const executionPrice = type === 'Buy' ? price + spreadValue : price - spreadValue;
 
-    const marginRequired = (volume * executionPrice) / 100;
-    if (balance.freeMargin < marginRequired) { alert("الرصيد غير كافٍ!"); return; }
+    const tradeAmount = volume * executionPrice;
+    
+    // 1. Fetch latest balance from 'users' table
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('balance')
+      .eq('id', user.id)
+      .single();
+      
+    if (userError || !userData) {
+      alert("فشل التحقق من الرصيد!");
+      return;
+    }
+    
+    if (userData.balance < tradeAmount) {
+      alert("الرصيد غير كافٍ!");
+      return;
+    }
+
+    // 2. Deduct amount
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ balance: userData.balance - tradeAmount })
+      .eq('id', user.id);
+      
+    if (updateError) {
+      alert("فشل خصم الرصيد!");
+      return;
+    }
 
     console.log('[TradingPlatform] Attempting trade:', { user_id: user.id, symbol, type, volume, executionPrice });
 
@@ -152,21 +179,59 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
     if (error) {
       console.error('[TradingPlatform] Trade Insert Error:', error);
+      // Rollback balance if trade insert fails
+      await supabase.from('users').update({ balance: userData.balance }).eq('id', user.id);
       alert(`فشل تنفيذ الصفقة: ${error.message} (كود: ${error.code})`);
     } else {
       alert(`Success: ${type} order executed!`);
+      // 3. Refresh UI
+      fetchWallet(); // This fetches from 'wallets' table, might need to fetch from 'users' instead?
     }
   };
 
-  const closePosition = async (position: any) => {
-    console.log('[TradingPlatform] Deleting position:', position.id);
-    const { error } = await supabase.from('trade_orders').delete().eq('id', position.id);
+  const closePosition = async (position: any, isWin: boolean, profit: number) => {
+    console.log('[TradingPlatform] Closing position:', position.id, { isWin, profit });
+
+    if (isWin) {
+      // 1. Fetch latest balance
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('balance')
+        .eq('id', user.id)
+        .single();
+        
+      if (userError || !userData) {
+        alert("فشل التحقق من الرصيد!");
+        return;
+      }
+
+      // 2. Add amount + profit
+      const totalReturn = (position.amount * position.entry_price) + profit;
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ balance: userData.balance + totalReturn })
+        .eq('id', user.id);
+        
+      if (updateError) {
+        alert("فشل تحديث الرصيد!");
+        return;
+      }
+      
+      // 3. Show notification
+      showNotification('Trade Result', `You won! Profit: $${profit.toFixed(2)}. Balance updated.`, 'money');
+    } else {
+      showNotification('Trade Result', 'You lost the trade.', 'money');
+    }
+
+    // 4. Update status or delete
+    const { error } = await supabase.from('trade_orders').update({ status: isWin ? 'closed_profit' : 'closed_loss' }).eq('id', position.id);
     if (error) {
       console.error('[TradingPlatform] Close Position Error:', error);
       alert(`فشل إغلاق الصفقة: ${error.message}`);
     } else {
       // Optimistic update
       setPositions(prev => prev.filter(p => p.id !== position.id));
+      fetchWallet();
     }
   };
 
