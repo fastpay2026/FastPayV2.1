@@ -19,6 +19,7 @@ import { AdminVerificationReview } from './VerificationManager';
 import { AdExchange } from './AdExchange';
 import SecureGatewayManager from './developer/SecureGatewayManager';
 import LanguageSwitcher from './LanguageSwitcher';
+import Logo from '../src/components/Logo';
 
 interface Props {
   user: User;
@@ -131,7 +132,7 @@ const handleManualSync = async () => {
            <div className="mb-4">
              <LanguageSwitcher />
            </div>
-           <img src={siteConfig.logoUrl} style={{ width: `120px` }} className="mx-auto mb-4" alt="Logo" />
+           <Logo siteConfig={siteConfig} style={{ width: `120px` }} className="mx-auto mb-4" />
            <p className="text-[10px] font-black text-sky-400 uppercase tracking-widest">{t('executive_ops_mgmt')}</p>
            <div className="mt-4 flex items-center justify-center gap-2">
              <div className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>

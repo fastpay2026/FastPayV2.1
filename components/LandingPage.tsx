@@ -4,6 +4,7 @@ import { SiteConfig, LandingService, CustomPage, User } from '../types';
 import { useI18n } from '../i18n/i18n';
 import { BadgeCheck } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
+import Logo from '../src/components/Logo';
 
 interface Props {
   siteConfig: SiteConfig;
@@ -160,9 +161,8 @@ const LandingPage: React.FC<Props> = ({
         <div className="max-w-[1600px] mx-auto bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl md:rounded-[4rem] py-4 md:py-6 px-6 md:px-20 flex justify-between items-center shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
           <div className={`flex items-center gap-4 md:gap-12 group cursor-pointer flex-1 ${siteConfig.logoPosition === 'center' ? 'justify-center' : siteConfig.logoPosition === 'left' ? 'justify-start' : 'justify-end'}`} onClick={() => setCurrentPath('home')}>
             {siteConfig.logoUrl && (
-              <img 
-                src={siteConfig.logoUrl} 
-                alt="Logo" 
+              <Logo 
+                siteConfig={siteConfig} 
                 className="object-contain max-w-[120px] h-auto transform group-hover:scale-110 transition-all duration-700" 
               />
             )}
@@ -268,7 +268,7 @@ const LandingPage: React.FC<Props> = ({
                        
                        <div className="flex justify-between items-start relative z-10">
                           <div className="space-y-4">
-                            {siteConfig.logoUrl && <img src={siteConfig.logoUrl} style={{ width: `120px` }} className="opacity-90 filter brightness-200" alt="Logo" />}
+                            {siteConfig.logoUrl && <Logo siteConfig={siteConfig} style={{ width: `120px` }} className="opacity-90 filter brightness-200" />}
                             <div className="flex items-center gap-3">
                                <div className="w-16 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl shadow-lg border border-amber-300/30 overflow-hidden relative">
                                   <div className="absolute inset-0 flex flex-col gap-1.5 p-2">
@@ -479,7 +479,7 @@ const LandingPage: React.FC<Props> = ({
           <footer className="bg-[#020617] py-20 md:py-60 px-6 md:px-32 border-t border-white/5 relative z-10 overflow-hidden">
             <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-3 gap-12 md:gap-40">
               <div className="space-y-8 md:space-y-16">
-                {siteConfig.logoUrl && <img src={siteConfig.logoUrl} style={{ width: `${siteConfig.logoWidth ? Math.min(siteConfig.logoWidth, 150) : 150}px` }} alt="Logo" />}
+                {siteConfig.logoUrl && <Logo siteConfig={siteConfig} style={{ width: `${siteConfig.logoWidth ? Math.min(siteConfig.logoWidth, 150) : 150}px` }} />}
                 <p className="text-lg md:text-2xl text-slate-400 font-bold leading-relaxed md:leading-[2.2] max-w-2xl">{t(siteConfig.footerAbout)}</p>
               </div>
               <div className="space-y-8 md:space-y-16">

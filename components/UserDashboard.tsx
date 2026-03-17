@@ -9,6 +9,7 @@ import { useI18n } from '../i18n/i18n';
 import UnderDevelopment from './UnderDevelopment';
 import { supabaseService } from '../supabaseService';
 import LanguageSwitcher from './LanguageSwitcher';
+import Logo from '../src/components/Logo';
 
 const TradingPlatform = React.lazy(() => import('../src/pages/TradingPlatform/TradingPlatform'));
 
@@ -569,7 +570,7 @@ const UserDashboard: React.FC<Props> = ({
              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="xl:hidden text-white text-2xl p-2">
                 {isMobileMenuOpen ? '✕' : '☰'}
              </button>
-             <img src={siteConfig.logoUrl} style={{ width: `80px` }} alt="Logo" className="cursor-pointer md:w-[100px]" onClick={() => setActiveTab('dashboard')} />
+             <Logo siteConfig={siteConfig} style={{ width: `80px` }} className="cursor-pointer md:w-[100px]" onClick={() => setActiveTab('dashboard')} />
              <nav className="hidden xl:flex items-center h-full">
                 {[
                   { id: 'dashboard', l: t('nav_overview'), i: '🏠' },

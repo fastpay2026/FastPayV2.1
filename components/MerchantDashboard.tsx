@@ -10,6 +10,7 @@ import { AdExchange } from './AdExchange';
 import DistributorGatewayManager from './merchant/DistributorGatewayManager';
 import UnderDevelopment from './UnderDevelopment';
 import LanguageSwitcher from './LanguageSwitcher';
+import Logo from '../src/components/Logo';
 
 interface Props {
   user: User;
@@ -368,7 +369,7 @@ header('Location: ' . $payment->checkout_url);`
             </button>
             {siteConfig.logoUrl && (
               <div className="bg-white p-2 md:p-3 rounded-xl md:rounded-2xl shadow-xl cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveView('main')}>
-                 <img src={siteConfig.logoUrl} className="h-6 md:h-10" alt="Logo" />
+                 <Logo siteConfig={siteConfig} className="h-6 md:h-10" />
               </div>
             )}
             <div className="space-y-1 hidden md:block">
@@ -657,7 +658,7 @@ header('Location: ' . $payment->checkout_url);`
                      <h3 className="text-xl md:text-2xl font-black uppercase tracking-widest">{t('payment_simulator')}</h3>
                      <p className="text-slate-400 font-bold text-sm md:text-base">{t('payment_simulator_desc')}</p>
                      <div className="p-6 bg-[#020617] rounded-3xl border border-white/10 w-full flex flex-col gap-4 animate-pulse">
-                        {siteConfig.logoUrl && <img src={siteConfig.logoUrl} className="h-6 opacity-50" alt="Logo" />}
+                        {siteConfig.logoUrl && <Logo siteConfig={siteConfig} className="h-6 opacity-50" />}
                         <div className="h-8 bg-white/5 rounded-lg"></div>
                         <div className="h-10 bg-sky-600/50 rounded-lg"></div>
                      </div>
