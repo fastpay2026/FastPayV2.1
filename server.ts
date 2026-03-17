@@ -177,15 +177,37 @@ async function startServer() {
           'WTI': 'CL=F'
         };
 
+        const GOLD_ADJUSTMENT = 5.0; // معامل تصحيح سعر الذهب
+
         for (const asset of yahooAssets) {
           try {
-            const yahooSymbol = symbolMap[asset.symbol] || asset.symbol;
-            const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
+            let yahooSymbol = symbolMap[asset.symbol] || asset.symbol;
+            let response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
+            
+            // 1. تدقيق الرمز: إذا فشل XAUUSD=X جرب GC=F
+            if (!response.ok && asset.symbol === 'XAUUSD') {
+              yahooSymbol = 'GC=F';
+              response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
+            }
+
             if (!response.ok) continue;
             const data = await response.json();
             
             if (data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta && data.chart.result[0].meta.regularMarketPrice) {
-              const currentPrice = data.chart.result[0].meta.regularMarketPrice;
+              let currentPrice = data.chart.result[0].meta.regularMarketPrice;
+              
+              // 2. إضافة معامل التصحيح للذهب
+              if (asset.symbol === 'XAUUSD') {
+                currentPrice += GOLD_ADJUSTMENT;
+              }
+
+              // 4. نظام التذبذب الوهمي (Jittering) +/- 0.01
+              const jitter = (Math.random() - 0.5) * 0.02;
+              currentPrice += jitter;
+
+              // 3. معالجة الكسور (Precision)
+              const precision = asset.symbol === 'XAUUSD' ? 2 : 5;
+              currentPrice = parseFloat(currentPrice.toFixed(precision));
               
               await supabase.from('trade_assets').update({
                 price: currentPrice,
