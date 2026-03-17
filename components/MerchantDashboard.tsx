@@ -368,7 +368,7 @@ header('Location: ' . $payment->checkout_url);`
                {isMobileMenuOpen ? '✕' : '☰'}
             </button>
             {siteConfig.logoUrl && (
-              <div className="bg-white p-2 md:p-3 rounded-xl md:rounded-2xl shadow-xl cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveView('main')}>
+              <div className="p-2 md:p-3 rounded-xl md:rounded-2xl cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveView('main')}>
                  <Logo siteConfig={siteConfig} className="h-6 md:h-10" />
               </div>
             )}

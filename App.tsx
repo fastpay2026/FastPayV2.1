@@ -312,8 +312,10 @@ const App: React.FC = () => {
   }, [siteConfig]);
 
   // Cleanup siteConfig to use keys for default values (migration)
+  const hasMigratedConfig = useRef(false);
   useEffect(() => {
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && !hasMigratedConfig.current) {
+      hasMigratedConfig.current = true;
       const defaultMappings: { [key: string]: string } = {
         "السيادة المالية في عصر السرعة": "hero_title",
         "بوابة FastPay Network لإدارة الأصول والتداول الفوري وحماية الثروات الرقمية بأعلى معايير الأمان العالمية.": "hero_subtitle",
@@ -358,7 +360,7 @@ const App: React.FC = () => {
         return hasChanged ? newConfig : prev;
       });
     }
-  }, [siteConfig, isSupabaseConfigured]); // Run whenever siteConfig changes (e.g. after load)
+  }, [isSupabaseConfigured]);
 
   // Generic Sync Effect for Arrays
   const useSyncEffect = (data: any[], syncFn: (item: any) => Promise<void>, label: string, bulkSync?: (items: any[]) => Promise<void>) => {
