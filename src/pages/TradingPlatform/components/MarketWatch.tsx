@@ -109,12 +109,12 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
                   </div>
                 </td>
               </tr>
-            ) : filteredAssets.length === 0 ? (
+            ) : (Array.isArray(filteredAssets) && filteredAssets.length === 0) ? (
               <tr>
                 <td colSpan={4} className="p-8 text-center text-slate-500 text-xs italic">No assets found</td>
               </tr>
             ) : (
-              filteredAssets.map(asset => {
+              (Array.isArray(filteredAssets) ? filteredAssets : []).map(asset => {
                 const isSelected = selectedSymbol === asset.symbol;
                 const isPositive = (asset.change_24h || 0) >= 0;
                 
