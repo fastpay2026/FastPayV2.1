@@ -210,8 +210,26 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
               className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 focus:border-sky-500 outline-none" 
             />
             <div className="grid grid-cols-2 gap-2 mt-2">
-              <button onClick={() => handleTrade('Buy')} className="bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded text-sm font-bold transition-colors">BUY</button>
-              <button onClick={() => handleTrade('Sell')} className="bg-red-600 hover:bg-red-500 text-white py-3 rounded text-sm font-bold transition-colors">SELL</button>
+              <button 
+                onClick={() => handleTrade('Buy')} 
+                className="bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded text-sm font-bold flex flex-col items-center transition-colors"
+                disabled={!currentAsset}
+              >
+                BUY
+                <span className="text-[10px] opacity-80 font-normal">
+                  {currentAsset ? (currentPrice + (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2))).toFixed(currentAsset.digits || 2) : '---'}
+                </span>
+              </button>
+              <button 
+                onClick={() => handleTrade('Sell')} 
+                className="bg-red-600 hover:bg-red-500 text-white py-3 rounded text-sm font-bold flex flex-col items-center transition-colors"
+                disabled={!currentAsset}
+              >
+                SELL
+                <span className="text-[10px] opacity-80 font-normal">
+                  {currentAsset ? (currentPrice - (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2))).toFixed(currentAsset.digits || 2) : '---'}
+                </span>
+              </button>
             </div>
           </div>
         </div>
