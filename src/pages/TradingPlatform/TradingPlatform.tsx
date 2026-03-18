@@ -146,6 +146,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       .eq('id', user.id)
       .single();
       
+    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, tradeAmount, userBalance: userData?.balance });
+    
     if (userError || !userData) {
       alert("فشل التحقق من الرصيد!");
       return;

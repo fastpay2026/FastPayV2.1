@@ -447,6 +447,7 @@ const App: React.FC = () => {
 
   // دالة لتحديث رصيد المستخدم محلياً (للتحديث اللحظي)
   const updateUserBalance = (userId: string, newBalance: number) => {
+    console.log('[App] Updating user balance locally:', { userId, newBalance });
     setAccounts(prev => prev.map(acc => acc.id === userId ? { ...acc, balance: newBalance } : acc));
   };
 
