@@ -210,24 +210,24 @@ const GhostTraders: React.FC = () => {
       </div>
 
       {/* Bots Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {bots.map(bot => (
-          <div key={bot.id} className="p-5 bg-white/5 rounded-2xl border border-white/5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 hover:bg-white/[0.07] transition-all group">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Bot Identity</label>
+          <div key={bot.id} className="p-6 bg-white/5 rounded-2xl border border-white/5 flex flex-wrap items-end gap-6 hover:bg-white/[0.07] transition-all group">
+            <div className="flex flex-col gap-1.5 flex-[2_2_200px]">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Bot Identity</label>
               <input 
                 defaultValue={bot.name} 
                 onBlur={e => updateBot(bot.id, { name: e.target.value })} 
-                className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all" 
+                className="bg-black/40 p-3 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all" 
               />
             </div>
             
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Asset</label>
+            <div className="flex flex-col gap-1.5 flex-[1_1_120px]">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Asset</label>
               <select 
                 defaultValue={bot.trade_symbol || 'BTCUSDT'} 
                 onBlur={e => updateBot(bot.id, { trade_symbol: e.target.value })} 
-                className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-full" 
+                className="bg-black/40 p-3 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all" 
               >
                 {assets.map(a => (
                   <option key={a.symbol} value={a.symbol}>{a.symbol}</option>
@@ -235,40 +235,40 @@ const GhostTraders: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Amount</label>
+            <div className="flex flex-col gap-1.5 flex-[1_1_100px]">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Amount</label>
               <input 
                 type="number"
                 defaultValue={bot.fixed_amount || 10} 
                 onBlur={e => updateBot(bot.id, { fixed_amount: parseFloat(e.target.value) })} 
-                className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-full" 
+                className="bg-black/40 p-3 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all" 
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Start/End Time</label>
-              <div className="flex gap-1">
+            <div className="flex flex-col gap-1.5 flex-[1_1_180px]">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Start/End Time</label>
+              <div className="flex gap-2">
                 <input 
                   type="time"
                   defaultValue={bot.start_time} 
                   onBlur={e => updateBot(bot.id, { start_time: e.target.value })} 
-                  className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-full" 
+                  className="bg-black/40 p-3 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-full" 
                 />
                 <input 
                   type="time"
                   defaultValue={bot.end_time} 
                   onBlur={e => updateBot(bot.id, { end_time: e.target.value })} 
-                  className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-full" 
+                  className="bg-black/40 p-3 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-full" 
                 />
               </div>
             </div>
             
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Strategy</label>
+            <div className="flex flex-col gap-1.5 flex-[1_1_120px]">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Strategy</label>
               <select 
                 value={bot.strategy} 
                 onChange={e => updateBot(bot.id, { strategy: e.target.value })} 
-                className="bg-black/40 p-2.5 rounded-xl text-white text-xs font-bold border border-white/10 outline-none w-full"
+                className="bg-black/40 p-3 rounded-xl text-white font-bold border border-white/10 outline-none"
               >
                 <option value="scalper">Scalper</option>
                 <option value="day">Day</option>
@@ -276,36 +276,36 @@ const GhostTraders: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Control Mode</label>
-              <div className="flex bg-black/60 rounded-xl p-1 border border-white/5 w-full">
+            <div className="flex flex-col gap-1.5 flex-[1_1_140px]">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Control Mode</label>
+              <div className="flex bg-black/60 rounded-xl p-1 border border-white/5">
                 <button 
                   onClick={() => updateBot(bot.id, { mode: 'manual' })} 
-                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-black transition-all ${bot.mode === 'manual' ? 'bg-amber-500 text-white shadow-lg shadow-amber-900/20' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`flex-1 px-4 py-2 rounded-lg text-[11px] font-black transition-all ${bot.mode === 'manual' ? 'bg-amber-500 text-white shadow-lg shadow-amber-900/20' : 'text-slate-500 hover:text-slate-300'}`}
                 >
                   MANUAL
                 </button>
                 <button 
                   onClick={() => updateBot(bot.id, { mode: 'auto' })} 
-                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-black transition-all ${bot.mode === 'auto' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`flex-1 px-4 py-2 rounded-lg text-[11px] font-black transition-all ${bot.mode === 'auto' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-slate-500 hover:text-slate-300'}`}
                 >
                   AUTO
                 </button>
               </div>
             </div>
 
-            <div className="flex items-end gap-3 pb-1">
+            <div className="flex items-center gap-3 ml-auto">
               {bot.mode === 'manual' && (
                 <button 
                   onClick={() => triggerManualTrade(bot)} 
-                  className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-sky-900/20 w-full"
+                  className="bg-sky-600 hover:bg-sky-500 text-white px-6 py-3 rounded-xl text-[11px] font-black transition-all shadow-lg shadow-sky-900/20"
                 >
                   OPEN TRADE
                 </button>
               )}
               <button 
                 onClick={() => deleteBot(bot.id)} 
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/10"
+                className="w-12 h-12 flex items-center justify-center rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/10"
               >
                 🗑️
               </button>
