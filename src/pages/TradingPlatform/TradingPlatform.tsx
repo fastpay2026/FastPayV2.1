@@ -201,6 +201,11 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       alert(`فشل تنفيذ الصفقة: ${error.message} (كود: ${error.code})`);
     } else {
       console.log('[TradingPlatform] Trade inserted successfully:', data);
+      
+      // Play sound on success
+      const tradeSound = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+      tradeSound.play().catch(e => console.error('Error playing sound:', e));
+
       // Log transaction
       await supabaseService.addTransaction({
         id: uuidv4(),
@@ -301,6 +306,13 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       </div>
       <div className="flex-1 flex flex-col">
         <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4">
+          <div className="flex items-center gap-2 text-[10px] text-emerald-500 font-bold uppercase">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            Server: London-LND-1 (Connected)
+          </div>
           <LayoutDashboard size={20} className="text-sky-400" />
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
             {(assets || []).slice(0, 5).map(a => (
@@ -348,13 +360,29 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
             <div className={`text-3xl font-mono font-bold ${priceColor}`}>
               {Number(currentPrice || 0).toFixed(currentAsset?.digits || 2)}
             </div>
-            <input 
-              type="number" 
-              step="0.01"
-              value={volume} 
-              onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} 
-              className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 focus:border-sky-500 outline-none" 
-            />
+            <div className="space-y-2">
+              <label className="text-[10px] text-slate-400 font-bold uppercase">Lot Size</label>
+              <input 
+                type="number" 
+                step="0.01"
+                value={volume} 
+                onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} 
+                className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 focus:border-sky-500 outline-none" 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] text-slate-400 font-bold uppercase">TP</label>
+                <input type="number" className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 outline-none" placeholder="0.00" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] text-slate-400 font-bold uppercase">SL</label>
+                <input type="number" className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 outline-none" placeholder="0.00" />
+              </div>
+            </div>
+            <div className="text-[10px] text-slate-400 font-mono">
+              Pip Value: {(volume * 10 * (currentAsset?.type === 'forex' ? 0.0001 : 1)).toFixed(2)}
+            </div>
             <div className="grid grid-cols-2 gap-2 mt-2">
               <button 
                 onClick={() => handleTrade('Buy')} 
@@ -387,13 +415,17 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                 <th className="p-2">Type</th>
                 <th className="p-2">Volume</th>
                 <th className="p-2">Entry</th>
+                <th className="p-2">Swap</th>
+                <th className="p-2">Comm</th>
                 <th className="p-2">Profit</th>
                 <th className="p-2">Action</th>
               </tr>
             </thead>
             <tbody className="relative">
               <AnimatePresence>
-                {(positions || []).map(p => (
+                {(positions || []).map(p => {
+                  const profit = ((currentPrice - (p?.entry_price || 0)) * (p?.amount || 0) * ((p?.type || 'buy') === 'buy' ? 1 : -1));
+                  return (
                   <motion.tr 
                     key={p?.id} 
                     initial={{ opacity: 0, y: -10 }}
@@ -405,19 +437,21 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                     <td className={`p-2 font-bold uppercase ${(p?.type || 'buy') === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p?.type}</td>
                     <td className="p-2">{p?.amount}</td>
                     <td className="p-2 font-mono">{p?.entry_price?.toFixed(assets?.find(a => a.symbol === p?.asset_symbol)?.digits || 2)}</td>
-                    <td className="p-2 font-mono text-slate-400">
-                      {((currentPrice - (p?.entry_price || 0)) * (p?.amount || 0) * ((p?.type || 'buy') === 'buy' ? 1 : -1)).toFixed(2)}
+                    <td className="p-2 font-mono text-slate-400">0.00</td>
+                    <td className="p-2 font-mono text-slate-400">0.00</td>
+                    <td className={`p-2 font-mono ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>
+                      {profit.toFixed(2)}
                     </td>
                     <td className="p-2">
                       <button onClick={() => {
-                        const profit = ((currentPrice - (p?.entry_price || 0)) * (p?.amount || 0) * ((p?.type || 'buy') === 'buy' ? 1 : -1));
                         closePosition(p, profit > 0, profit);
                       }} className="bg-red-900/30 hover:bg-red-900/50 text-red-400 px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors">
                         Close
                       </button>
                     </td>
                   </motion.tr>
-                ))}
+                  );
+                })}
               </AnimatePresence>
             </tbody>
           </table>

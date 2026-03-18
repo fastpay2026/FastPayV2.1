@@ -14,6 +14,9 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
   const seriesRef = useRef<ISeriesApi<"Candlestick" | "Area"> | null>(null);
   const [lastCandle, setLastCandle] = useState<any>(null);
   const lastCandleRef = useRef<any>(null);
+  const [timeframe, setTimeframe] = useState('1m');
+  const [showRSI, setShowRSI] = useState(false);
+  const [showMA, setShowMA] = useState(false);
 
   useEffect(() => {
     lastCandleRef.current = lastCandle;
@@ -144,7 +147,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, [symbol, chartType]); // Re-create chart when symbol or chartType changes
+  }, [symbol, chartType, timeframe]); // Re-create chart when symbol, chartType, or timeframe changes
 
   // Update the last candle when livePrice changes
   useEffect(() => {
@@ -224,6 +227,26 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
           <span className={`font-mono text-lg ${chartType === 'candlestick' ? (lastCandle?.close >= lastCandle?.open ? 'text-emerald-400' : 'text-red-400') : 'text-sky-400'}`}>
             {livePrice?.toFixed(digits) || '0.00'}
           </span>
+        </div>
+        <select 
+          value={timeframe} 
+          onChange={(e) => setTimeframe(e.target.value)}
+          className="bg-[#2a2e39] text-white text-xs rounded px-2 py-1 border-none focus:outline-none"
+        >
+          <option value="1m">1m</option>
+          <option value="5m">5m</option>
+          <option value="15m">15m</option>
+          <option value="1h">1h</option>
+          <option value="4h">4h</option>
+          <option value="1d">1d</option>
+        </select>
+        <div className="flex items-center gap-2 text-xs text-white">
+          <label className="flex items-center gap-1">
+            <input type="checkbox" checked={showRSI} onChange={() => setShowRSI(!showRSI)} /> RSI
+          </label>
+          <label className="flex items-center gap-1">
+            <input type="checkbox" checked={showMA} onChange={() => setShowMA(!showMA)} /> MA
+          </label>
         </div>
       </div>
       <div ref={chartContainerRef} className="w-full h-full" />
