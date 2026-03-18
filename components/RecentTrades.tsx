@@ -13,24 +13,49 @@ const RecentTrades: React.FC = () => {
 
   useEffect(() => {
     const fetchTrades = async () => {
-      const { data, error } = await supabase
+      const { data: humanTrades } = await supabase
         .from('trade_orders')
         .select('*')
         .eq('status', 'open')
         .order('timestamp', { ascending: false })
         .limit(10);
-      if (data) setTrades(data);
+
+      const { data: botTrades } = await supabase
+        .from('bot_trades_simulation')
+        .select('*')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      const mappedBotTrades: TradeOrder[] = (botTrades || []).map(t => ({
+        id: t.id,
+        userId: t.bot_id,
+        username: `Bot ${t.bot_id.substring(0, 4)}`,
+        assetSymbol: t.symbol,
+        amount: t.amount,
+        entryPrice: t.price,
+        type: t.type,
+        status: 'open',
+        timestamp: t.created_at,
+        is_bot: true
+      }));
+
+      const allTrades = [...(humanTrades || []), ...mappedBotTrades]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 10);
+      
+      setTrades(allTrades);
     };
 
     fetchTrades();
 
-    const channel = supabase
+    const humanChannel = supabase
       .channel('trade_orders_channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, (payload) => {
         if (payload.eventType === 'INSERT') {
           const newTrade = payload.new as TradeOrder;
           if (newTrade.status === 'open') {
-            setTrades(prev => [newTrade, ...prev].slice(0, 10));
+            setTrades(prev => [newTrade, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10));
           }
         } else if (payload.eventType === 'UPDATE') {
           const updatedTrade = payload.new as TradeOrder;
@@ -41,8 +66,38 @@ const RecentTrades: React.FC = () => {
       })
       .subscribe();
 
+    const botChannel = supabase
+      .channel('bot_trades_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_trades_simulation' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const t = payload.new;
+          const newTrade: TradeOrder = {
+            id: t.id,
+            userId: t.bot_id,
+            username: `Bot ${t.bot_id.substring(0, 4)}`,
+            assetSymbol: t.symbol,
+            amount: t.amount,
+            entryPrice: t.price,
+            type: t.type,
+            status: 'open',
+            timestamp: t.created_at,
+            is_bot: true
+          };
+          if (newTrade.status === 'open') {
+            setTrades(prev => [newTrade, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10));
+          }
+        } else if (payload.eventType === 'UPDATE') {
+          const t = payload.new;
+          if (t.status !== 'open') {
+            setTrades(prev => prev.filter(trade => trade.id !== t.id));
+          }
+        }
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(humanChannel);
+      supabase.removeChannel(botChannel);
     };
   }, []);
 
@@ -52,7 +107,7 @@ const RecentTrades: React.FC = () => {
       <div className="space-y-2">
         {trades.map(trade => (
           <div key={trade.id} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 text-xs">
-            <span className="font-bold">{maskUsername(trade.username || trade.userId || 'User')}</span>
+            <span className="font-bold">{trade.is_bot ? trade.username : maskUsername(trade.username || trade.userId || 'User')}</span>
             <span className={`font-black ${trade.type === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{trade.type === 'buy' ? 'BUY' : 'SELL'}</span>
             <span className="font-mono">${trade.amount.toLocaleString()}</span>
             <span className="text-slate-500">{new Date(trade.timestamp).toLocaleTimeString()}</span>
