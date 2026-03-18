@@ -163,10 +163,15 @@ async function startServer() {
           try {
             const binanceSymbol = asset.symbol.toUpperCase().replace('USD', 'USDT');
             const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`);
-            if (!response.ok) continue;
+            
+            if (!response.ok) {
+              console.warn(`[Binance] Request failed for ${asset.symbol}: ${response.status} ${response.statusText}`);
+              continue;
+            }
+
             const data = await response.json();
             
-            if (data.lastPrice) {
+            if (data && data.lastPrice) {
               const currentPrice = parseFloat(data.lastPrice);
               const change24h = parseFloat(data.priceChangePercent);
               
@@ -181,7 +186,7 @@ async function startServer() {
               }).eq('id', asset.id);
             }
           } catch (err: any) {
-            console.error(`[Binance] Error for ${asset.symbol}:`, err);
+            console.error(`[Binance] Error for ${asset.symbol}:`, err.message);
           }
         }
         lastPriceUpdate.status = 'idle';

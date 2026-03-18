@@ -168,6 +168,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       return;
     }
     console.log('[TradingPlatform] Balance deducted successfully.');
+    await fetchWallet();
 
     console.log('[TradingPlatform] Attempting trade:', { user_id: user.id, symbol, type, volume, executionPrice });
 
@@ -236,6 +237,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         return;
       }
       console.log('[TradingPlatform] Profit added successfully.');
+      await fetchWallet();
       
       // 3. Show notification
       showNotification('Trade Result', `You won! Profit: $${profit.toFixed(2)}. Balance updated.`, 'money');
