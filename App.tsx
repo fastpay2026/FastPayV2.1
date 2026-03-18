@@ -445,6 +445,11 @@ const App: React.FC = () => {
     return await syncUser(updatedUser);
   };
 
+  // دالة لتحديث رصيد المستخدم محلياً (للتحديث اللحظي)
+  const updateUserBalance = (userId: string, newBalance: number) => {
+    setAccounts(prev => prev.map(acc => acc.id === userId ? { ...acc, balance: newBalance } : acc));
+  };
+
   const handleAddUser = async (newUser: User) => {
     console.log('App: Adding new user to state:', newUser.username);
     setAccounts(prev => [...prev, newUser]);
@@ -484,6 +489,7 @@ const App: React.FC = () => {
     user: currentUser!, onLogout: handleLogout, siteConfig, onUpdateConfig: setSiteConfig, 
     accounts, setAccounts, transactions, setTransactions, 
     addNotification, salaryPlans, setSalaryPlans, onUpdateUser: handleUpdateUser, onAddUser: handleAddUser,
+    updateUserBalance,
     services, setServices, pages, setPages, notifications, setNotifications,
     tradeAssets, setTradeAssets, tradeOrders, setTradeOrders,
     withdrawalRequests, setWithdrawalRequests,

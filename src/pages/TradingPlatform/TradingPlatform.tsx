@@ -13,9 +13,10 @@ import { useNotification } from '../../../components/NotificationContext';
 
 interface TradingPlatformProps {
   user: User;
+  updateUserBalance: (userId: string, newBalance: number) => void;
 }
 
-const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
+const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalance }) => {
   const [symbol, setSymbol] = useState('EURUSD');
   const [chartType, setChartType] = useState<'candlestick' | 'line'>('candlestick');
   const [volume, setVolume] = useState(0.1);
@@ -168,6 +169,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       return;
     }
     console.log('[TradingPlatform] Balance deducted successfully.');
+    updateUserBalance(user.id, userData.balance - tradeAmount);
     await fetchWallet();
 
     console.log('[TradingPlatform] Attempting trade:', { user_id: user.id, symbol, type, volume, executionPrice });
@@ -237,6 +239,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
         return;
       }
       console.log('[TradingPlatform] Profit added successfully.');
+      updateUserBalance(user.id, userData.balance + totalReturn);
       await fetchWallet();
       
       // 3. Show notification
