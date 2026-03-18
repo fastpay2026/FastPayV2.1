@@ -156,15 +156,18 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     }
 
     // 2. Deduct amount
+    console.log('[TradingPlatform] Deducting balance:', { oldBalance: userData.balance, tradeAmount, newBalance: userData.balance - tradeAmount });
     const { error: updateError } = await supabase
       .from('users')
       .update({ balance: userData.balance - tradeAmount })
       .eq('id', user.id);
       
     if (updateError) {
-      alert("فشل خصم الرصيد!");
+      console.error('[TradingPlatform] Deduct Error:', updateError);
+      alert(`فشل خصم الرصيد: ${updateError.message}`);
       return;
     }
+    console.log('[TradingPlatform] Balance deducted successfully.');
 
     console.log('[TradingPlatform] Attempting trade:', { user_id: user.id, symbol, type, volume, executionPrice });
 
@@ -221,15 +224,18 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
       // 2. Add amount + profit
       const totalReturn = (position.amount * position.entry_price) + profit;
+      console.log('[TradingPlatform] Adding profit:', { oldBalance: userData.balance, totalReturn, newBalance: userData.balance + totalReturn });
       const { error: updateError } = await supabase
         .from('users')
         .update({ balance: userData.balance + totalReturn })
         .eq('id', user.id);
         
       if (updateError) {
-        alert("فشل تحديث الرصيد!");
+        console.error('[TradingPlatform] Profit Error:', updateError);
+        alert(`فشل تحديث الرصيد: ${updateError.message}`);
         return;
       }
+      console.log('[TradingPlatform] Profit added successfully.');
       
       // 3. Show notification
       showNotification('Trade Result', `You won! Profit: $${profit.toFixed(2)}. Balance updated.`, 'money');
