@@ -401,7 +401,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                       {((currentPrice - (p?.entry_price || 0)) * (p?.amount || 0) * ((p?.type || 'buy') === 'buy' ? 1 : -1)).toFixed(2)}
                     </td>
                     <td className="p-2">
-                      <button onClick={() => closePosition(p)} className="bg-red-900/30 hover:bg-red-900/50 text-red-400 px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors">
+                      <button onClick={() => {
+                        const profit = ((currentPrice - (p?.entry_price || 0)) * (p?.amount || 0) * ((p?.type || 'buy') === 'buy' ? 1 : -1));
+                        closePosition(p, profit > 0, profit);
+                      }} className="bg-red-900/30 hover:bg-red-900/50 text-red-400 px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors">
                         Close
                       </button>
                     </td>

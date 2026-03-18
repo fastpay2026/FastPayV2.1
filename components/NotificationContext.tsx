@@ -2,16 +2,16 @@ import React, { createContext, useState, useContext, ReactNode } from 'react';
 import Notification from './Notification';
 
 interface NotificationContextType {
-  showNotification: (message: string) => void;
+  showNotification: (title: string, message: string, type: string) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [notification, setNotification] = useState<{ message: string; id: number } | null>(null);
+  const [notification, setNotification] = useState<{ title: string; message: string; type: string; id: number } | null>(null);
 
-  const showNotification = (message: string) => {
-    setNotification({ message, id: Date.now() });
+  const showNotification = (title: string, message: string, type: string) => {
+    setNotification({ title, message, type, id: Date.now() });
   };
 
   return (
@@ -20,7 +20,9 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       {notification && (
         <Notification
           key={notification.id}
+          title={notification.title}
           message={notification.message}
+          type={notification.type}
           onClose={() => setNotification(null)}
         />
       )}
