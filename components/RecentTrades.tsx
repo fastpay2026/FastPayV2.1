@@ -36,8 +36,7 @@ const RecentTrades: React.FC = () => {
         entryPrice: t.price,
         type: t.type,
         status: 'open',
-        timestamp: t.created_at,
-        is_bot: true
+        timestamp: t.created_at
       }));
 
       const allTrades = [...(humanTrades || []), ...mappedBotTrades]
@@ -82,8 +81,7 @@ const RecentTrades: React.FC = () => {
             entryPrice: t.price,
             type: t.type,
             status: 'open',
-            timestamp: t.created_at,
-            is_bot: true
+            timestamp: t.created_at
           };
           if (newTrade.status === 'open') {
             setTrades(prev => [newTrade, ...prev].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10));
@@ -111,7 +109,7 @@ const RecentTrades: React.FC = () => {
       <div className="space-y-2">
         {trades.map(trade => (
           <div key={trade.id} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 text-xs">
-            <span className="font-bold">{trade.is_bot ? trade.username : maskUsername(trade.username || trade.userId || 'User')}</span>
+            <span className="font-bold">{maskUsername(trade.username || trade.userId || 'User')}</span>
             <span className={`font-black ${trade.type === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{trade.type === 'buy' ? 'BUY' : 'SELL'}</span>
             <span className="font-mono">${trade.amount.toLocaleString()}</span>
             <span className="text-slate-500">{new Date(trade.timestamp).toLocaleTimeString()}</span>

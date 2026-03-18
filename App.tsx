@@ -252,9 +252,7 @@ const App: React.FC = () => {
         console.log('Real-time trade_orders update:', payload);
         if (payload.eventType === 'INSERT') {
           const newOrder = payload.new as any;
-          if (newOrder.is_bot) {
-            console.log(`[Bot Engine] Opening trade for user: ${newOrder.username || newOrder.user_id}`);
-          }
+          console.log(`[Bot Engine] Opening trade for user: ${newOrder.username || newOrder.user_id}`);
           setTradeOrders(prev => {
             if (prev.find(o => o.id === newOrder.id)) return prev;
             return [{
@@ -296,7 +294,6 @@ const App: React.FC = () => {
             linkedCards: u.linked_cards,
             assets: u.assets,
             apiKeys: u.api_keys,
-            isBot: u.is_bot,
             isActive: u.status === 'active'
           };
           setAccounts(prev => {

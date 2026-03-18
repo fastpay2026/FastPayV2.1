@@ -88,7 +88,7 @@ const GhostTraders: React.FC = () => {
     await supabase.from('bot_trades_simulation').delete().eq('bot_id', id);
     
     if (botToDelete) {
-      await supabase.from('trade_orders').delete().eq('username', botToDelete.name).eq('is_bot', true);
+      await supabase.from('trade_orders').delete().eq('username', botToDelete.name);
     }
     
     // حذف البوت
@@ -142,7 +142,6 @@ const GhostTraders: React.FC = () => {
         amount: amount,
         entry_price: 95000 + (Math.random() * 100),
         status: 'open',
-        is_bot: true,
         timestamp: new Date().toISOString()
       });
 

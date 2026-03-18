@@ -10,7 +10,7 @@ const ActivityLog: React.FC = () => {
       // Fetch transactions
       const { data: transactions } = await supabase.from('transactions').select('*').order('timestamp', { ascending: false }).limit(20);
       // Fetch non-bot trades
-      const { data: trades } = await supabase.from('trade_orders').select('*').eq('is_bot', false).order('timestamp', { ascending: false }).limit(20);
+      const { data: trades } = await supabase.from('trade_orders').select('*').order('timestamp', { ascending: false }).limit(20);
 
       const combined = [
         ...(transactions || []).map(t => ({ ...t, type: 'transaction' })),

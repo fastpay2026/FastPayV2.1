@@ -310,10 +310,9 @@ async function startServer() {
       const { data: openBotTrades } = await supabase
         .from('trade_orders')
         .select('id, user_id, username, bot_category')
-        .eq('status', 'open')
-        .eq('is_bot', true);
+        .eq('status', 'open');
       
-      const { data: allBots } = await supabase.from('users').select('id, username, is_bot').eq('is_bot', true);
+      const { data: allBots } = await supabase.from('users').select('id, username');
       
       res.json({
         config,
@@ -340,7 +339,6 @@ async function startServer() {
       await supabase.from('bot_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       
       // Delete only bot trades, keep real user trades
-      await supabase.from('trade_orders').delete().eq('is_bot', true);
       
       console.log('[Purge] API: Cleanup complete.');
       res.json({ success: true });
@@ -463,7 +461,6 @@ async function startServer() {
                   amount: bot.fixed_amount || 100,
                   entry_price: randomAsset.price,
                   status: 'open',
-                  is_bot: true,
                   timestamp: new Date().toISOString()
                 });
               }

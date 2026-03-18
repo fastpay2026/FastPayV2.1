@@ -16,7 +16,7 @@ export const supabaseService = {
   // Users
   async getUsers(): Promise<User[]> {
     console.log('supabaseService: Fetching users...');
-    const { data, error } = await supabase.from('users').select('id, username, full_name, phone_number, password, role, balance, status, status_reason, is_verified, verification_status, verification_reason, linked_cards, assets, api_keys, is_bot, email, created_at');
+    const { data, error } = await supabase.from('users').select('id, username, full_name, phone_number, password, role, balance, status, status_reason, is_verified, verification_status, verification_reason, linked_cards, assets, api_keys, email, created_at');
     if (error) {
       console.error('supabaseService: Error fetching users:', error);
       throw error;
@@ -41,7 +41,6 @@ export const supabaseService = {
         linkedCards: u.linked_cards,
         assets: u.assets,
         apiKeys: u.api_keys,
-        isBot: true,
         isActive: u.status === 'active'
       };
     });
