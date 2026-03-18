@@ -15,6 +15,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
   const [lastCandle, setLastCandle] = useState<any>(null);
   const lastCandleRef = useRef<any>(null);
   const [timeframe, setTimeframe] = useState('1m');
+  const [showIndicators, setShowIndicators] = useState(false);
   const [showRSI, setShowRSI] = useState(false);
   const [showMA, setShowMA] = useState(false);
 
@@ -228,25 +229,19 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
             {livePrice?.toFixed(digits) || '0.00'}
           </span>
         </div>
-        <select 
-          value={timeframe} 
-          onChange={(e) => setTimeframe(e.target.value)}
-          className="bg-[#2a2e39] text-white text-xs rounded px-2 py-1 border-none focus:outline-none"
-        >
-          <option value="1m">1m</option>
-          <option value="5m">5m</option>
-          <option value="15m">15m</option>
-          <option value="1h">1h</option>
-          <option value="4h">4h</option>
-          <option value="1d">1d</option>
-        </select>
-        <div className="flex items-center gap-2 text-xs text-white">
-          <label className="flex items-center gap-1">
-            <input type="checkbox" checked={showRSI} onChange={() => setShowRSI(!showRSI)} /> RSI
-          </label>
-          <label className="flex items-center gap-1">
-            <input type="checkbox" checked={showMA} onChange={() => setShowMA(!showMA)} /> MA
-          </label>
+        <div className="flex gap-1">
+          {['1m', '5m', '15m', '1h', '1d'].map(tf => (
+            <button key={tf} onClick={() => setTimeframe(tf)} className={`px-2 py-1 text-[10px] rounded ${timeframe === tf ? 'bg-sky-600' : 'bg-[#2a2e39]'}`}>{tf}</button>
+          ))}
+        </div>
+        <div className="relative">
+          <button onClick={() => setShowIndicators(!showIndicators)} className="bg-[#2a2e39] text-white text-xs rounded px-2 py-1">Indicators</button>
+          {showIndicators && (
+            <div className="absolute top-full left-0 bg-[#2a2e39] p-2 rounded mt-1 z-20">
+              <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={showRSI} onChange={() => setShowRSI(!showRSI)} /> RSI</label>
+              <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={showMA} onChange={() => setShowMA(!showMA)} /> MA</label>
+            </div>
+          )}
         </div>
       </div>
       <div ref={chartContainerRef} className="w-full h-full" />

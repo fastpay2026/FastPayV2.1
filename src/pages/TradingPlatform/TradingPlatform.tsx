@@ -311,7 +311,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            Server: London-LND-1 (Connected)
+            Server: FastPay-London (Connected)
           </div>
           <LayoutDashboard size={20} className="text-sky-400" />
           <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
