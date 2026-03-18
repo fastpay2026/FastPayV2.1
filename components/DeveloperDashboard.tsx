@@ -259,7 +259,7 @@ const handleManualSync = async () => {
             <LogoUploader onLogoUploaded={(url) => onUpdateConfig({ ...siteConfig, logoUrl: url })} />
           </div>
         )}
-        {activeTab === 'online_users' && <OnlineUsers />}
+        {activeTab === 'online_users' && <OnlineUsers user={user} />}
         {activeTab === 'activity_log' && <ActivityLog />}
       </main>
 

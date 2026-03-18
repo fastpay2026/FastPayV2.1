@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { User } from '../../types';
 
-const OnlineUsers: React.FC = () => {
+interface Props {
+  user: User;
+}
+
+const OnlineUsers: React.FC<Props> = ({ user }) => {
   const [onlineUsers, setOnlineUsers] = useState<{ userId: string, username: string }[]>([]);
 
   useEffect(() => {
     const socket: Socket = io(); // Connect to the same server
+
+    socket.emit('user:login', { userId: user.id, username: user.username });
 
     socket.on('users:online', (users: { userId: string, username: string }[]) => {
       setOnlineUsers(users);
@@ -14,7 +21,7 @@ const OnlineUsers: React.FC = () => {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [user]);
 
   return (
     <div className="bg-[#0f172a] p-8 rounded-3xl border border-white/5 shadow-2xl">
