@@ -212,8 +212,8 @@ const GhostTraders: React.FC = () => {
       {/* Bots Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {bots.map(bot => (
-          <div key={bot.id} className="p-5 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between gap-6 hover:bg-white/[0.07] transition-all group">
-            <div className="flex flex-col gap-1.5 flex-1">
+          <div key={bot.id} className="p-5 bg-white/5 rounded-2xl border border-white/5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 hover:bg-white/[0.07] transition-all group">
+            <div className="flex flex-col gap-1.5">
               <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Bot Identity</label>
               <input 
                 defaultValue={bot.name} 
@@ -227,7 +227,7 @@ const GhostTraders: React.FC = () => {
               <select 
                 defaultValue={bot.trade_symbol || 'BTCUSDT'} 
                 onBlur={e => updateBot(bot.id, { trade_symbol: e.target.value })} 
-                className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-24" 
+                className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-full" 
               >
                 {assets.map(a => (
                   <option key={a.symbol} value={a.symbol}>{a.symbol}</option>
@@ -241,7 +241,7 @@ const GhostTraders: React.FC = () => {
                 type="number"
                 defaultValue={bot.fixed_amount || 10} 
                 onBlur={e => updateBot(bot.id, { fixed_amount: parseFloat(e.target.value) })} 
-                className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-20" 
+                className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-full" 
               />
             </div>
 
@@ -252,13 +252,13 @@ const GhostTraders: React.FC = () => {
                   type="time"
                   defaultValue={bot.start_time} 
                   onBlur={e => updateBot(bot.id, { start_time: e.target.value })} 
-                  className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-24" 
+                  className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-full" 
                 />
                 <input 
                   type="time"
                   defaultValue={bot.end_time} 
                   onBlur={e => updateBot(bot.id, { end_time: e.target.value })} 
-                  className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-24" 
+                  className="bg-black/40 p-2.5 rounded-xl text-white font-bold border border-white/10 focus:border-emerald-500/50 outline-none transition-all w-full" 
                 />
               </div>
             </div>
@@ -268,7 +268,7 @@ const GhostTraders: React.FC = () => {
               <select 
                 value={bot.strategy} 
                 onChange={e => updateBot(bot.id, { strategy: e.target.value })} 
-                className="bg-black/40 p-2.5 rounded-xl text-white text-xs font-bold border border-white/10 outline-none"
+                className="bg-black/40 p-2.5 rounded-xl text-white text-xs font-bold border border-white/10 outline-none w-full"
               >
                 <option value="scalper">Scalper</option>
                 <option value="day">Day</option>
@@ -278,27 +278,27 @@ const GhostTraders: React.FC = () => {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-[9px] text-slate-500 font-black uppercase tracking-tighter">Control Mode</label>
-              <div className="flex bg-black/60 rounded-xl p-1 border border-white/5">
+              <div className="flex bg-black/60 rounded-xl p-1 border border-white/5 w-full">
                 <button 
                   onClick={() => updateBot(bot.id, { mode: 'manual' })} 
-                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${bot.mode === 'manual' ? 'bg-amber-500 text-white shadow-lg shadow-amber-900/20' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-black transition-all ${bot.mode === 'manual' ? 'bg-amber-500 text-white shadow-lg shadow-amber-900/20' : 'text-slate-500 hover:text-slate-300'}`}
                 >
                   MANUAL
                 </button>
                 <button 
                   onClick={() => updateBot(bot.id, { mode: 'auto' })} 
-                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${bot.mode === 'auto' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-black transition-all ${bot.mode === 'auto' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-slate-500 hover:text-slate-300'}`}
                 >
                   AUTO
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 pt-4">
+            <div className="flex items-end gap-3 pb-1">
               {bot.mode === 'manual' && (
                 <button 
                   onClick={() => triggerManualTrade(bot)} 
-                  className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-sky-900/20"
+                  className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-sky-900/20 w-full"
                 >
                   OPEN TRADE
                 </button>
