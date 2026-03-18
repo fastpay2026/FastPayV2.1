@@ -139,30 +139,20 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
 
     const tradeAmount = volume * executionPrice;
     
-    // 1. Fetch latest balance from 'users' table
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('balance')
-      .eq('id', user.id)
-      .single();
-      
-    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, tradeAmount, userBalance: userData?.balance });
+    // استخدام الرصيد الحالي من الـ props مباشرة
+    const currentBalance = user.balance || 0;
+    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, tradeAmount, userBalance: currentBalance });
     
-    if (userError || !userData) {
-      alert("فشل التحقق من الرصيد!");
-      return;
-    }
-    
-    if (userData.balance < tradeAmount) {
+    if (currentBalance < tradeAmount) {
       alert("الرصيد غير كافٍ!");
       return;
     }
 
     // 2. Deduct amount
-    console.log('[TradingPlatform] Deducting balance:', { oldBalance: userData.balance, tradeAmount, newBalance: userData.balance - tradeAmount });
+    console.log('[TradingPlatform] Deducting balance:', { oldBalance: currentBalance, tradeAmount, newBalance: currentBalance - tradeAmount });
     const { error: updateError } = await supabase
       .from('users')
-      .update({ balance: userData.balance - tradeAmount })
+      .update({ balance: currentBalance - tradeAmount })
       .eq('id', user.id);
       
     if (updateError) {
@@ -171,7 +161,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       return;
     }
     console.log('[TradingPlatform] Balance deducted successfully.');
-    updateUserBalance(user.id, userData.balance - tradeAmount);
+    updateUserBalance(user.id, currentBalance - tradeAmount);
     await fetchWallet();
 
     console.log('[TradingPlatform] Attempting trade:', { user_id: user.id, symbol, type, volume, executionPrice });
@@ -190,7 +180,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     if (error) {
       console.error('[TradingPlatform] Trade Insert Error:', error);
       // Rollback balance if trade insert fails
-      await supabase.from('users').update({ balance: userData.balance }).eq('id', user.id);
+      await supabase.from('users').update({ balance: currentBalance }).eq('id', user.id);
+      updateUserBalance(user.id, currentBalance);
       alert(`فشل تنفيذ الصفقة: ${error.message} (كود: ${error.code})`);
     } else {
       // Log transaction
