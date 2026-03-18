@@ -137,13 +137,28 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     const spreadValue = (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2));
     const executionPrice = type === 'Buy' ? price + spreadValue : price - spreadValue;
 
+    // إضافة فحص للتأكد من وجود user.id
+    if (!user || !user.id) {
+      console.error('[TradingPlatform] User ID missing!');
+      alert("خطأ: لم يتم التعرف على المستخدم. يرجى تسجيل الدخول مرة أخرى.");
+      return;
+    }
+
     const tradeAmount = volume * executionPrice;
+    
+    // إضافة فحص للتأكد من أن حجم التداول أكبر من صفر
+    if (volume <= 0) {
+      console.log('[TradingPlatform] Invalid volume:', volume);
+      alert("يرجى إدخال حجم تداول صحيح أكبر من صفر!");
+      return;
+    }
     
     // استخدام الرصيد الحالي من الـ props مباشرة
     const currentBalance = user.balance || 0;
-    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, tradeAmount, userBalance: currentBalance });
+    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, tradeAmount, userBalance: currentBalance, user_id: user.id });
     
     if (currentBalance < tradeAmount) {
+      console.log('[TradingPlatform] Insufficient balance!');
       alert("الرصيد غير كافٍ!");
       return;
     }
@@ -180,10 +195,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     if (error) {
       console.error('[TradingPlatform] Trade Insert Error:', error);
       // Rollback balance if trade insert fails
+      console.log('[TradingPlatform] Rolling back balance...');
       await supabase.from('users').update({ balance: currentBalance }).eq('id', user.id);
       updateUserBalance(user.id, currentBalance);
       alert(`فشل تنفيذ الصفقة: ${error.message} (كود: ${error.code})`);
     } else {
+      console.log('[TradingPlatform] Trade inserted successfully:', data);
       // Log transaction
       await supabaseService.addTransaction({
         id: uuidv4(),

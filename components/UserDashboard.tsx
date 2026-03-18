@@ -826,7 +826,10 @@ const UserDashboard: React.FC<Props> = ({
 
           {activeTab === 'trading_platform' && (
              <Suspense fallback={<div className="flex-1 flex items-center justify-center text-white">Loading...</div>}>
-                <TradingPlatform user={user} />
+                <TradingPlatform 
+                  user={user} 
+                  updateUserBalance={(userId, newBalance) => onUpdateUser({ ...user, balance: newBalance })} 
+                />
              </Suspense>
           )}
 
