@@ -342,9 +342,6 @@ async function startServer() {
       // Delete only bot trades, keep real user trades
       await supabase.from('trade_orders').delete().eq('is_bot', true);
       
-      // Delete users marked as bot
-      await supabase.from('users').delete().eq('is_bot', true);
-      
       console.log('[Purge] API: Cleanup complete.');
       res.json({ success: true });
     } catch (err: any) {
@@ -490,9 +487,6 @@ async function startServer() {
       
       // Delete only bot trades, keep real user trades
       await supabase.from('trade_orders').delete().is('user_id', null);
-      
-      // Delete users marked as bot
-      await supabase.from('users').delete().eq('is_bot', true);
       
       console.log('[Purge] Cleanup complete.');
     } catch (err: any) {

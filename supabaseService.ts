@@ -76,7 +76,6 @@ export const supabaseService = {
       if (user.linkedCards !== undefined) userData.linked_cards = Array.isArray(user.linkedCards) ? user.linkedCards : [];
       if (user.assets !== undefined) userData.assets = Array.isArray(user.assets) ? user.assets : [];
       if (user.apiKeys !== undefined) userData.api_keys = Array.isArray(user.apiKeys) ? user.apiKeys : [];
-      if (user.isBot !== undefined) userData.is_bot = Boolean(user.isBot);
       if (user.isActive !== undefined) userData.status = user.isActive ? 'active' : 'disabled';
 
       console.log('supabaseService: Upserting userData:', userData);
