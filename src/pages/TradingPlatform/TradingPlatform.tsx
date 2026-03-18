@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { v4 as uuidv4 } from 'uuid';
 import LightweightChart from './components/LightweightChart';
 import LiveMarketFeed from './components/LiveMarketFeed';
 import OrderBook from './components/OrderBook';
 import MarketWatch from './components/MarketWatch';
 import { LayoutDashboard } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
+import { supabaseService } from '../../../supabaseService';
 import { User, TradeAsset } from '../../../types';
 import { useNotification } from '../../../components/NotificationContext';
 
@@ -76,8 +78,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
 
     // 2. Wallet Subscription
     const walletChannel = supabase
-      .channel(`wallet_${user.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, fetchWallet)
+      .channel(`user_balance_${user.id}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, fetchWallet)
       .subscribe();
 
     // 3. Asset Subscription
@@ -116,9 +118,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
   };
 
   const fetchWallet = async () => {
-    let { data: walletData } = await supabase.from('wallets').select('*').eq('user_id', user.id).maybeSingle();
-    if (walletData) {
-      setBalance({ balance: walletData.balance || 0, equity: walletData.equity || 0, margin: walletData.margin || 0, freeMargin: walletData.free_margin || 0 });
+    let { data: userData } = await supabase.from('users').select('balance').eq('id', user.id).maybeSingle();
+    if (userData) {
+      setBalance({ balance: userData.balance || 0, equity: 0, margin: 0, freeMargin: 0 });
     }
   };
 
@@ -175,7 +177,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       entry_price: executionPrice, 
       status: 'open',
       timestamp: new Date().toISOString()
-    });
+    }).select().single();
 
     if (error) {
       console.error('[TradingPlatform] Trade Insert Error:', error);
@@ -183,6 +185,18 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       await supabase.from('users').update({ balance: userData.balance }).eq('id', user.id);
       alert(`فشل تنفيذ الصفقة: ${error.message} (كود: ${error.code})`);
     } else {
+      // Log transaction
+      await supabaseService.addTransaction({
+        id: uuidv4(),
+        userId: user.id,
+        type: 'trade',
+        amount: tradeAmount,
+        relatedId: data.id,
+        timestamp: new Date().toISOString(),
+        status: 'completed',
+        notes: `Trade opened for ${symbol}`
+      });
+
       alert(`Success: ${type} order executed!`);
       // 3. Refresh UI
       fetchWallet(); // This fetches from 'wallets' table, might need to fetch from 'users' instead?
@@ -219,8 +233,32 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
       
       // 3. Show notification
       showNotification('Trade Result', `You won! Profit: $${profit.toFixed(2)}. Balance updated.`, 'money');
+      
+      // Log transaction
+      await supabaseService.addTransaction({
+        id: uuidv4(),
+        userId: user.id,
+        type: 'profit',
+        amount: totalReturn,
+        relatedId: position.id,
+        timestamp: new Date().toISOString(),
+        status: 'completed',
+        notes: `Profit from trade ${position.id}`
+      });
     } else {
       showNotification('Trade Result', 'You lost the trade.', 'money');
+      
+      // Log transaction
+      await supabaseService.addTransaction({
+        id: uuidv4(),
+        userId: user.id,
+        type: 'trade',
+        amount: 0,
+        relatedId: position.id,
+        timestamp: new Date().toISOString(),
+        status: 'completed',
+        notes: `Loss from trade ${position.id}`
+      });
     }
 
     // 4. Update status or delete

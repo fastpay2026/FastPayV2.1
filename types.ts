@@ -121,7 +121,7 @@ export interface SalaryFinancing {
 export interface Transaction {
   id: string;
   userId: string;
-  type: 'send' | 'receive' | 'redeem' | 'generate_card' | 'bank_transfer' | 'salary_financing' | 'fixed_deposit' | 'trade_buy' | 'trade_sell' | 'raffle_entry' | 'withdrawal';
+  type: 'send' | 'receive' | 'redeem' | 'generate_card' | 'bank_transfer' | 'salary_financing' | 'fixed_deposit' | 'trade_buy' | 'trade_sell' | 'raffle_entry' | 'withdrawal' | 'trade' | 'profit';
   amount: number;
   relatedUser?: string; 
   relatedId?: string; 
