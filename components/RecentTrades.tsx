@@ -62,6 +62,8 @@ const RecentTrades: React.FC = () => {
           if (updatedTrade.status !== 'open') {
             setTrades(prev => prev.filter(t => t.id !== updatedTrade.id));
           }
+        } else if (payload.eventType === 'DELETE') {
+          setTrades(prev => prev.filter(t => t.id !== payload.old.id));
         }
       })
       .subscribe();
@@ -91,6 +93,8 @@ const RecentTrades: React.FC = () => {
           if (t.status !== 'open') {
             setTrades(prev => prev.filter(trade => trade.id !== t.id));
           }
+        } else if (payload.eventType === 'DELETE') {
+          setTrades(prev => prev.filter(trade => trade.id !== payload.old.id));
         }
       })
       .subscribe();

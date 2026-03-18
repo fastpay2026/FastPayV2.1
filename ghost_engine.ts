@@ -48,10 +48,8 @@ async function closeExpiredTrades(bot: any, config: any) {
       // إذا تجاوزت الصفقة المدة العشوائية المحددة للفئة
       if (durationMinutes >= (trade.target_duration || 5)) {
         const isWin = Math.random() < (bot.win_rate || 0.5);
-        await supabase.from('bot_trades_simulation').update({
-          status: isWin ? 'closed_profit' : 'closed_loss',
-          closed_at: new Date().toISOString()
-        }).eq('id', trade.id);
+        // حذف الصفقة من جدول bot_trades_simulation
+        await supabase.from('bot_trades_simulation').delete().eq('id', trade.id);
         console.log(`[Ghost Engine] Closed trade for ${bot.name} (${isWin ? 'Profit' : 'Loss'})`);
       }
     }

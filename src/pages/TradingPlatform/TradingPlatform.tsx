@@ -262,7 +262,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user }) => {
     }
 
     // 4. Update status or delete
-    const { error } = await supabase.from('trade_orders').update({ status: isWin ? 'closed_profit' : 'closed_loss' }).eq('id', position.id);
+    const { error } = await supabase.from('trade_orders').delete().eq('id', position.id);
     if (error) {
       console.error('[TradingPlatform] Close Position Error:', error);
       alert(`فشل إغلاق الصفقة: ${error.message}`);
