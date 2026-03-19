@@ -158,7 +158,7 @@ const LandingPage: React.FC<Props> = ({
       </div>
 
       <nav className="fixed w-full z-[90] top-14 px-4 md:px-12 lg:px-24">
-        <div className="max-w-[1600px] mx-auto bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl md:rounded-[4rem] py-4 md:py-5 px-4 md:px-8 flex justify-between items-center shadow-[0_40px_100px_rgba(0,0,0,0.5)] gap-4">
+        <div className="max-w-[1600px] mx-auto bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl md:rounded-[4rem] py-2 md:py-3 px-4 md:px-8 flex justify-between items-center shadow-[0_40px_100px_rgba(0,0,0,0.5)] gap-4">
           
           {/* Left: Logo */}
           <div className={`flex items-center gap-3 group cursor-pointer flex-shrink-0 ${siteConfig.logoPosition === 'center' ? 'justify-center' : siteConfig.logoPosition === 'left' ? 'justify-start' : 'justify-end'}`} onClick={() => setCurrentPath('home')}>
@@ -202,8 +202,8 @@ const LandingPage: React.FC<Props> = ({
             </div>
 
             <div className="hidden sm:flex items-center gap-2 md:gap-3 flex-shrink-0">
-              <button onClick={onLoginClick} className="px-5 md:px-6 py-2.5 rounded-3xl text-white bg-sky-600 font-black text-sm hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40 whitespace-nowrap">{t('login')}</button>
-              <button onClick={onRegisterClick} className="px-5 md:px-6 py-2.5 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-sm hover:bg-white/10 transition-all hidden md:block whitespace-nowrap">{t('register')}</button>
+              <button onClick={onLoginClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-white bg-sky-600 font-black text-xs md:text-sm hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40 whitespace-nowrap">{t('login')}</button>
+              <button onClick={onRegisterClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-xs md:text-sm hover:bg-white/10 transition-all hidden md:block whitespace-nowrap">{t('register')}</button>
             </div>
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="xl:hidden text-white text-3xl p-2 flex-shrink-0">
               {isMobileMenuOpen ? '✕' : '☰'}
@@ -255,87 +255,47 @@ const LandingPage: React.FC<Props> = ({
                     <span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full animate-pulse shadow-[0_0_15px_#0ea5e9]"></span>
                     <span className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.3em]">{t('system_premium')} {siteConfig.siteName} v5.5 Premium</span>
                  </div>
-                 <h1 className="text-4xl md:text-[6.5rem] font-black leading-[1.1] tracking-tighter hero-gradient-text text-glow" dangerouslySetInnerHTML={{ __html: t(siteConfig.heroTitle).replace(' ', '<br/>') }}></h1>
+                 <h1 className="text-4xl md:text-[6.5rem] font-black leading-[1.1] tracking-tighter text-white">{t(siteConfig.heroTitle)}</h1>
                  <p className="text-lg md:text-3xl text-slate-300 max-w-3xl mx-auto lg:mx-0 leading-relaxed font-bold border-r-0 lg:border-r-[12px] border-sky-500 pr-0 lg:pr-8">{t(siteConfig.heroSubtitle)}</p>
                  <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-4 md:gap-8 pt-6">
                     <button onClick={onRegisterClick} className="px-8 md:px-14 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] bg-white text-black font-black text-xl md:text-2xl shadow-[0_25px_60px_rgba(255,255,255,0.2)] hover:scale-105 transition-all flex items-center justify-center gap-4 md:gap-6 group">
                       <span>{t(siteConfig.heroCtaText)}</span>
-                      <span className="text-2xl md:text-3xl group-hover:translate-x-[-10px] transition-transform">⚡</span>
+                      <span className="text-2xl md:text-3xl group-hover:translate-x-[10px] transition-transform">→</span>
                     </button>
                     <button onClick={() => scrollToSection('services')} className="px-8 md:px-14 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] bg-white/5 border border-white/10 text-white font-black text-xl md:text-2xl backdrop-blur-3xl hover:bg-white/10 transition-all">{t(siteConfig.salesCtaText)}</button>
                  </div>
               </div>
               
-              <div className="w-full lg:flex-1 order-1 lg:order-2 max-w-[600px] mx-auto">
-                 <div className="relative animate-float group transform lg:-rotate-6 hover:rotate-0 transition-all duration-700">
-                    <div className="relative w-full aspect-[1.58/1] rounded-3xl md:rounded-[3.5rem] border border-white/20 shadow-[0_40px_80px_rgba(0,0,0,0.7)] md:shadow-[0_80px_160px_rgba(0,0,0,0.9)] overflow-hidden p-6 md:p-12 flex flex-col justify-between backdrop-blur-3xl bg-black/40 card-shimmer">
-                       <div className="absolute inset-0 holo-glow"></div>
-                       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
-                       
-                       <div className="flex justify-between items-start relative z-10">
-                          <div className="space-y-4">
-                            {siteConfig.logoUrl && <Logo siteConfig={siteConfig} style={{ width: `${siteConfig.logoWidth || 120}px` }} className="opacity-90 !bg-transparent" />}
-                            <div className="flex items-center gap-3">
-                               <div className="w-16 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl shadow-lg border border-amber-300/30 overflow-hidden relative">
-                                  <div className="absolute inset-0 flex flex-col gap-1.5 p-2">
-                                     <div className="h-px bg-black/20 w-full"></div>
-                                     <div className="h-px bg-black/20 w-full"></div>
-                                     <div className="h-px bg-black/20 w-full"></div>
-                                     <div className="h-px bg-black/20 w-full"></div>
-                                  </div>
-                               </div>
-                               <div className="text-[20px]">📶</div>
-                            </div>
-                          </div>
-                          <div className="text-left">
-                            <p className="text-[12px] font-black tracking-[0.4em] text-white/40 uppercase">Sovereign Edition</p>
-                            <p className="text-[14px] font-black text-sky-400 mt-1">WORLD ELITE</p>
-                          </div>
-                       </div>
-
-                       <div className="relative z-10 space-y-4">
-                          <div className="text-3xl md:text-5xl font-mono tracking-[0.25em] text-white drop-shadow-lg">
-                             7724 <span className="opacity-20">•</span> 9912 <span className="opacity-20">•</span> 0042 <span className="opacity-20">•</span> 1109
-                          </div>
-                       </div>
-
-                       <div className="flex justify-between items-end relative z-10">
-                          <div className="space-y-2">
-                             <p className="text-[10px] text-white/30 font-black tracking-widest uppercase">ELITE ASSET HOLDER</p>
-                              <p className="text-2xl font-black tracking-[0.1em] text-white uppercase flex items-center gap-2">
-                                {user?.fullName || "FASTPAY MEMBER"}
-                                {user?.isVerified && <BadgeCheck className="w-6 h-6 fill-[#1877F2] text-white" />}
-                              </p>
-                          </div>
-                          <div className="flex -space-x-4 opacity-90 scale-125">
-                             <div className="w-14 h-14 bg-red-600 rounded-full shadow-lg"></div>
-                             <div className="w-14 h-14 bg-amber-500 rounded-full shadow-lg mix-blend-screen"></div>
-                          </div>
-                       </div>
-                    </div>
+              <div className="w-full lg:flex-1 order-1 lg:order-2 max-w-[400px] mx-auto lg:ml-auto">
+                 <div className="relative animate-float group perspective-1000">
+                     <Logo 
+                       siteConfig={siteConfig} 
+                       className="w-full h-auto transform group-hover:scale-110 transition-all duration-700" 
+                       style={{ width: '100%' }}
+                     />
                  </div>
               </div>
             </div>
           </section>
 
            <section id="transfer-ad" className="py-20 md:py-40 px-6 md:px-24">
-            <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-emerald-500/10 hover:border-emerald-500/40 transition-all duration-1000 relative">
-               <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
-                  <div className="flex items-center gap-6 text-emerald-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-emerald-500"></span>{t('global_liquidity_engine')}</div>
-                  <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-emerald-400 transition-all duration-700">{t(siteConfig.transferAdTitle)}</h2>
-                  <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-emerald-500 pr-6 md:pr-10">{t(siteConfig.transferAdDesc)}</p>
-                  <div className="flex flex-wrap gap-6 md:gap-8 items-center pt-4 md:pt-8">
-                    <button onClick={onLoginClick} className="bg-emerald-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-emerald-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(16,185,129,0.3)] w-full md:w-max">{t('start_global_transfer')}</button>
-                    <div className="flex items-center gap-4 text-slate-500 font-black text-[10px] md:text-xs uppercase tracking-widest bg-white/5 px-6 py-3 rounded-full">
-                       <span>Swift Secured</span>
-                       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                       <span>Instant P2P</span>
+            <div className="max-w-[1800px] mx-auto group bg-[#0f0f0f] rounded-[3rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-emerald-500/10 relative">
+               <div className="w-full lg:w-[50%] p-10 md:p-24 space-y-8 md:space-y-10 flex flex-col justify-center relative z-10">
+                  <div className="flex items-center gap-4 text-emerald-400 font-bold text-xs uppercase tracking-[0.3em]"><span className="w-10 h-px bg-emerald-500"></span>GLOBAL LIQUIDITY ENGINE</div>
+                  <h2 className="text-4xl md:text-7xl font-black text-white leading-tight tracking-tighter">Global Liquidity Bridge</h2>
+                  <p className="text-lg md:text-2xl text-slate-300 font-medium leading-relaxed max-w-lg">Send and receive money instantly via the global Swift system with extreme precision.</p>
+                  <div className="flex flex-wrap gap-6 items-center pt-4">
+                    <button onClick={onLoginClick} className="bg-emerald-500 px-10 py-5 rounded-full font-bold text-lg text-black hover:bg-emerald-400 transition-all shadow-[0_10px_30px_rgba(16,185,129,0.3)]">Start Global Transfer 🌐</button>
+                    <div className="flex items-center gap-4 text-slate-500 font-bold text-xs uppercase tracking-widest">
+                       <span>SWIFT SECURED</span>
+                       <span className="w-1 h-1 bg-emerald-500 rounded-full"></span>
+                       <span>INSTANT P2P</span>
                     </div>
                   </div>
                </div>
-               <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
-                  <img src={siteConfig.transferAdImage} className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-[5s]" alt="Global Transfers" />
-                  <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#020617] via-transparent to-transparent"></div>
+               <div className="w-full lg:w-[50%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1200&h=800&auto=format&fit=crop" className="w-full h-full object-cover opacity-80" alt="Global Transfers" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-transparent"></div>
                </div>
             </div>
           </section>

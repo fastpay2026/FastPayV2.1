@@ -147,6 +147,20 @@ async function startServer() {
   };
 
   // --- Master Price Feed Sync (MT5 Standards) ---
+  const fetchWithRetry = async (url: string, retries = 2): Promise<Response> => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(url);
+        if (response.ok) return response;
+        console.warn(`[Fetch] Request failed: ${url} - Status: ${response.status}`);
+      } catch (err) {
+        console.warn(`[Fetch] Network error: ${url} - Attempt ${i + 1}`);
+      }
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+    return fetch(url);
+  };
+
   const runPriceFeed = async () => {
     console.log('[Price Feed] Master Sync started with Dual-Routing (Binance + Yahoo Finance).');
     
@@ -162,10 +176,16 @@ async function startServer() {
         for (const asset of cryptoAssets) {
           try {
             const binanceSymbol = asset.symbol.toUpperCase().replace('USD', 'USDT');
-            const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`);
+            const response = await fetchWithRetry(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`);
             
             if (!response.ok) {
               console.warn(`[Binance] Request failed for ${asset.symbol}: ${response.status} ${response.statusText}`);
+              continue;
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+              console.warn(`[Binance] Expected JSON but got ${contentType} for ${asset.symbol}`);
               continue;
             }
 
@@ -224,17 +244,19 @@ async function startServer() {
             console.log(`[Yahoo] Fetching ${asset.symbol} as ${yahooSymbol}...`);
             
             // إضافة محاولة ثانية مع تأخير بسيط في حال فشل الطلب الأول
-            let response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
-            if (!response.ok) {
-              console.log(`[Yahoo] First attempt failed for ${asset.symbol}, retrying...`);
-              await new Promise(r => setTimeout(r, 1000));
-              response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
-            }
+            let response = await fetchWithRetry(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
 
             if (!response.ok) {
               console.error(`[Yahoo] Failed to fetch ${asset.symbol} (${yahooSymbol}): ${response.statusText}`);
               continue;
             }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+              console.warn(`[Yahoo] Expected JSON but got ${contentType} for ${asset.symbol}`);
+              continue;
+            }
+
             const data = await response.json();
             
             if (data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta && data.chart.result[0].meta.regularMarketPrice) {
