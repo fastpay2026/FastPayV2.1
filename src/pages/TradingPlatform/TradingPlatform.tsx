@@ -164,6 +164,27 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     const spreadAmount = 0.50; // 50 points * 0.01 = 0.50 (example)
     const totalDeduction = tradeAmount + spreadAmount;
     
+    // Margin Calculation (1:100 Leverage)
+    const contractSize = 100000;
+    const requiredMargin = (volume * contractSize) / 100;
+
+    // Safety Lock: Check Free Margin
+    const totalPnL = positions.reduce((acc, p) => {
+      const asset = assets.find(a => a.symbol === p.asset_symbol);
+      const price = Number(asset?.price || 0);
+      const pnl = (price - p.entry_price) * p.amount * (p.type === 'buy' ? 1 : -1);
+      return acc + pnl;
+    }, 0);
+    const equity = (user.balance || 0) + totalPnL;
+    const totalMargin = positions.reduce((acc, p) => acc + (p.required_margin || 0), 0);
+    const freeMargin = equity - totalMargin;
+
+    if (freeMargin < requiredMargin) {
+      console.log('[TradingPlatform] Not enough money (Margin)!');
+      alert('Not enough money (Margin)');
+      return;
+    }
+    
     // إضافة فحص للتأكد من أن حجم التداول أكبر من صفر
     if (volume <= 0) {
       console.log('[TradingPlatform] Invalid volume:', volume);
@@ -448,7 +469,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
             <tbody className="relative">
               <AnimatePresence>
                 {(positions || []).map(p => {
-                  const profit = ((currentPrice - (p?.entry_price || 0)) * (p?.amount || 0) * ((p?.type || 'buy') === 'buy' ? 1 : -1));
+                  const asset = assets.find(a => a.symbol === p.asset_symbol);
+                  const price = Number(asset?.price || 0);
+                  const profit = ((price - (p?.entry_price || 0)) * (p?.amount || 0) * ((p?.type || 'buy') === 'buy' ? 1 : -1));
                   return (
                   <motion.tr 
                     key={p?.id} 
@@ -460,7 +483,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                     <td className="p-2 font-bold text-white">{p?.asset_symbol}</td>
                     <td className={`p-2 font-bold uppercase ${(p?.type || 'buy') === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p?.type}</td>
                     <td className="p-2">{p?.amount}</td>
-                    <td className="p-2 font-mono">{p?.entry_price?.toFixed(assets?.find(a => a.symbol === p?.asset_symbol)?.digits || 2)}</td>
+                    <td className="p-2 font-mono">{p?.entry_price?.toFixed(asset?.digits || 2)}</td>
                     <td className="p-2 font-mono text-slate-400">0.00</td>
                     <td className="p-2 font-mono text-slate-400">{p?.platform_revenues?.[0]?.amount ? `-${p.platform_revenues[0].amount.toFixed(2)}` : '0.00'}</td>
                     <td className={`p-2 font-mono ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>
@@ -479,6 +502,31 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
               </AnimatePresence>
             </tbody>
           </table>
+        </div>
+        {/* Trading Status Bar */}
+        <div className="h-10 bg-[#1e2329] border-t border-white/10 flex items-center px-4 gap-6 text-[11px] font-mono text-slate-300">
+          {(() => {
+            const totalPnL = positions.reduce((acc, p) => {
+              const asset = assets.find(a => a.symbol === p.asset_symbol);
+              const price = Number(asset?.price || 0);
+              const pnl = (price - p.entry_price) * p.amount * (p.type === 'buy' ? 1 : -1);
+              return acc + pnl;
+            }, 0);
+            const equity = balance.balance + totalPnL;
+            const margin = positions.reduce((acc, p) => acc + (Number(p.required_margin) || 0), 0);
+            const freeMargin = equity - margin;
+            const marginLevel = margin === 0 ? 0 : (equity / margin) * 100;
+            
+            return (
+              <>
+                <div>Balance: <span className="text-white">{balance.balance.toFixed(2)}$</span></div>
+                <div>Equity: <span className={equity >= balance.balance ? 'text-emerald-400' : 'text-red-400'}>{equity.toFixed(2)}$</span></div>
+                <div>Margin: <span className="text-white">{margin.toFixed(2)}$</span></div>
+                <div>Free Margin: <span className="text-white">{freeMargin.toFixed(2)}$</span></div>
+                <div>Margin Level: <span className="text-white">{marginLevel.toFixed(2)}%</span></div>
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>

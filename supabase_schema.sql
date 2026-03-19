@@ -205,7 +205,8 @@ CREATE TABLE IF NOT EXISTS trade_orders (
     forced_take_profit DECIMAL(20, 8),
     forced_stop_loss DECIMAL(20, 8),
     closed_at TIMESTAMP WITH TIME ZONE,
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    required_margin DECIMAL(20, 2) DEFAULT 0
 );
 
 -- Ensure columns exist if table was created before
@@ -214,6 +215,7 @@ ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS is_bot_enabled BOOLEAN DEFAULT
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS bot_config JSONB DEFAULT '{}';
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS bot_category TEXT;
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS target_close_time TIMESTAMP WITH TIME ZONE;
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS required_margin DECIMAL(20, 2) DEFAULT 0;
 
 -- 16. Platform Revenues
 CREATE TABLE IF NOT EXISTS platform_revenues (
