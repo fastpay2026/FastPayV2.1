@@ -197,7 +197,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     }
 
     // Margin Calculation (Leverage)
-    const leverage = 100; // يمكن جلبها من قاعدة البيانات لاحقاً
+    const leverage = 100; 
     const contractSize = 100000;
     const requiredMargin = (volume * contractSize) / leverage;
 
@@ -231,9 +231,11 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     const currentBalance = user.balance || 0;
     
     // السبريد يُخصم فور فتح الصفقة
-    const totalDeduction = spreadAmount; 
+    // استخدام السبريد الفعلي من الأصل إذا كان متاحاً، وإلا نستخدم القيمة الافتراضية
+    const spreadValue = (currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2));
+    const totalDeduction = spreadValue * volume * 1000; // مثال لحساب تكلفة السبريد
     
-    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, tradeAmount, spreadAmount, totalDeduction, userBalance: currentBalance, user_id: user.id });
+    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, spreadValue, totalDeduction, userBalance: currentBalance, user_id: user.id });
     
     if (currentBalance < totalDeduction) {
       console.log('[TradingPlatform] Insufficient balance for spread!');
