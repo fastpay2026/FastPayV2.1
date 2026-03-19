@@ -63,6 +63,9 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
       return setError('كلمتا المرور غير متطابقتين');
     }
 
+    const queryParams = new URLSearchParams(window.location.search);
+    const ref = queryParams.get('ref');
+
     const newUser: User = {
       id: uuidv4(),
       username: formData.username.trim(),
@@ -73,7 +76,8 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
       role: 'USER',
       balance: 0,
       status: 'active',
-      createdAt: new Date().toISOString().split('T')[0]
+      createdAt: new Date().toISOString().split('T')[0],
+      referred_by: ref || undefined
     };
 
     console.log('Registering new user:', newUser);

@@ -16,7 +16,7 @@ export const supabaseService = {
   // Users
   async getUsers(): Promise<User[]> {
     console.log('supabaseService: Fetching users...');
-    const { data, error } = await supabase.from('users').select('id, username, full_name, phone_number, password, role, balance, status, status_reason, is_verified, verification_status, verification_reason, linked_cards, assets, api_keys, email, created_at');
+    const { data, error } = await supabase.from('users').select('id, username, full_name, phone_number, password, role, balance, status, status_reason, is_verified, verification_status, verification_reason, linked_cards, assets, api_keys, email, created_at, referred_by');
     if (error) {
       console.error('supabaseService: Error fetching users:', error);
       throw error;
@@ -76,6 +76,7 @@ export const supabaseService = {
       if (user.assets !== undefined) userData.assets = Array.isArray(user.assets) ? user.assets : [];
       if (user.apiKeys !== undefined) userData.api_keys = Array.isArray(user.apiKeys) ? user.apiKeys : [];
       if (user.isActive !== undefined) userData.status = user.isActive ? 'active' : 'disabled';
+      if (user.referred_by !== undefined) userData.referred_by = String(user.referred_by);
 
       console.log('supabaseService: Upserting userData:', userData);
 
