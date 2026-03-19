@@ -45,22 +45,37 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
     const amount = parseFloat(transferAmount);
     const targetUser = accounts.find(u => u.username === transferUser);
     
+    console.log('[AgentDashboard] handleTransfer - Target User Found:', targetUser);
+    
     if (!targetUser) {
-      alert('User not found');
+      alert('اسم المستخدم غير موجود في النظام');
       return;
     }
-    if (amount <= 0 || amount > currentUser.balance) {
-      alert('Invalid amount or insufficient balance');
+    
+    // التحقق من أن معرف المستخدم صالح
+    if (!targetUser.id || targetUser.id === 'null' || targetUser.id === null) {
+      console.error('[AgentDashboard] handleTransfer - Invalid target user ID:', targetUser);
+      alert('خطأ: بيانات المستخدم المستهدف غير صالحة (معرف مفقود). يرجى التواصل مع الدعم.');
       return;
     }
 
-    // Update balances
-    await onUpdateUser({ ...currentUser, balance: currentUser.balance - amount });
-    await onUpdateUser({ ...targetUser, balance: targetUser.balance + amount });
-    
-    alert('Transfer successful');
-    setTransferAmount('');
-    setTransferUser('');
+    if (amount <= 0 || amount > currentUser.balance) {
+      alert('المبلغ غير صالح أو الرصيد غير كافٍ');
+      return;
+    }
+
+    try {
+      // Update balances
+      await onUpdateUser({ ...currentUser, balance: currentUser.balance - amount });
+      await onUpdateUser({ ...targetUser, balance: targetUser.balance + amount });
+      
+      alert('تمت عملية التحويل بنجاح');
+      setTransferAmount('');
+      setTransferUser('');
+    } catch (error) {
+      console.error('[AgentDashboard] handleTransfer - Error during update:', error);
+      alert('حدث خطأ أثناء عملية التحويل. يرجى المحاولة مرة أخرى.');
+    }
   };
 
   const handlePasswordChange = async () => {
