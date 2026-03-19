@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { v4 as uuidv4 } from 'uuid';
 import LightweightChart from './components/LightweightChart';
@@ -31,6 +31,20 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   const [orderBook, setOrderBook] = useState<{ bids: [number, number][], asks: [number, number][] }>({ bids: [], asks: [] });
   const [spreads, setSpreads] = useState<Record<string, { value: number, mode: 'manual' | 'auto' }>>({});
   const { showNotification } = useNotification();
+
+  const tradingStatus = useMemo(() => {
+    const totalPnL = positions.reduce((acc, p) => {
+      const asset = assets.find(a => a.symbol === p.asset_symbol);
+      const price = Number(asset?.price || 0);
+      const pnl = (price - p.entry_price) * p.amount * (p.type === 'buy' ? 1 : -1);
+      return acc + pnl;
+    }, 0);
+    const equity = balance.balance + totalPnL;
+    const margin = positions.reduce((acc, p) => acc + (Number(p.required_margin) || 0), 0);
+    const freeMargin = equity - margin;
+    const marginLevel = margin === 0 ? 0 : (equity / margin) * 100;
+    return { equity, margin, freeMargin, marginLevel };
+  }, [positions, assets, balance.balance]);
 
   const currentAsset = assets.find(a => a.symbol === symbol);
   const currentPrice = Number(currentAsset?.price || 0);
@@ -505,28 +519,11 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         </div>
         {/* Trading Status Bar */}
         <div className="h-10 bg-[#1e2329] border-t border-white/10 flex items-center px-4 gap-6 text-[11px] font-mono text-slate-300">
-          {(() => {
-            const totalPnL = positions.reduce((acc, p) => {
-              const asset = assets.find(a => a.symbol === p.asset_symbol);
-              const price = Number(asset?.price || 0);
-              const pnl = (price - p.entry_price) * p.amount * (p.type === 'buy' ? 1 : -1);
-              return acc + pnl;
-            }, 0);
-            const equity = balance.balance + totalPnL;
-            const margin = positions.reduce((acc, p) => acc + (Number(p.required_margin) || 0), 0);
-            const freeMargin = equity - margin;
-            const marginLevel = margin === 0 ? 0 : (equity / margin) * 100;
-            
-            return (
-              <>
-                <div>Balance: <span className="text-white">{balance.balance.toFixed(2)}$</span></div>
-                <div>Equity: <span className={equity >= balance.balance ? 'text-emerald-400' : 'text-red-400'}>{equity.toFixed(2)}$</span></div>
-                <div>Margin: <span className="text-white">{margin.toFixed(2)}$</span></div>
-                <div>Free Margin: <span className="text-white">{freeMargin.toFixed(2)}$</span></div>
-                <div>Margin Level: <span className="text-white">{marginLevel.toFixed(2)}%</span></div>
-              </>
-            );
-          })()}
+          <div>Balance: <span className="text-white">{balance.balance.toFixed(2)}$</span></div>
+          <div>Equity: <span className={tradingStatus.equity >= balance.balance ? 'text-emerald-400' : 'text-red-400'}>{tradingStatus.equity.toFixed(2)}$</span></div>
+          <div>Margin: <span className="text-white">{tradingStatus.margin.toFixed(2)}$</span></div>
+          <div>Free Margin: <span className="text-white">{tradingStatus.freeMargin.toFixed(2)}$</span></div>
+          <div>Margin Level: <span className="text-white">{tradingStatus.marginLevel.toFixed(2)}%</span></div>
         </div>
       </div>
     </div>

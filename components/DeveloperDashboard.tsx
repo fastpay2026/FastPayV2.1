@@ -79,6 +79,7 @@ const DeveloperDashboard: React.FC<Props> = ({
   verificationRequests, setVerificationRequests,
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
+  console.log('[DeveloperDashboard] User prop:', user);
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator' | 'online_users' | 'activity_log' | 'spread_manager' | 'platform_profits'>('home');
   const [isSyncing, setIsSyncing] = useState(false);

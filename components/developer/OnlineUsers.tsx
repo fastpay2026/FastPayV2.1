@@ -10,11 +10,22 @@ const OnlineUsers: React.FC<Props> = ({ user }) => {
   const [onlineUsers, setOnlineUsers] = useState<{ userId: string, username: string }[]>([]);
 
   useEffect(() => {
-    const socket: Socket = io(); // Connect to the same server
+    console.log('[OnlineUsers] User prop:', user);
+    if (!user || !user.id) return;
+    
+    const socket: Socket = io();
+    
+    socket.on('connect', () => {
+      console.log('[OnlineUsers] Connected to socket:', socket.id);
+      socket.emit('user:login', { userId: user.id, username: user.username });
+    });
 
-    socket.emit('user:login', { userId: user.id, username: user.username });
+    socket.on('connect_error', (err) => {
+      console.error('[OnlineUsers] Connection error:', err);
+    });
 
     socket.on('users:online', (users: { userId: string, username: string }[]) => {
+      console.log('[OnlineUsers] Received online users:', users);
       setOnlineUsers(users);
     });
 
