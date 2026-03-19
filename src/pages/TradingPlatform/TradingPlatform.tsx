@@ -243,6 +243,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       entry_price: executionPrice, 
       status: 'open',
       timestamp: new Date().toISOString(),
+      required_margin: requiredMargin,
     }).select().single();
 
     if (error) {
