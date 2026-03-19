@@ -78,16 +78,14 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
 
   return (
     <div className="min-h-screen bg-[#0a0f1d] text-white p-8 animate-in fade-in duration-500">
-      {/* Logout Button */}
-      <div className="absolute top-8 right-8">
-        <button onClick={onLogout} className="flex items-center gap-2 px-6 py-3 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-2xl font-black transition-all border border-red-500/20">
-          <X className="w-5 h-5" /> Logout
-        </button>
-      </div>
-
-      {/* Header with Centered Logo - Very Large */}
-      <div className="flex justify-center mb-16 mt-16">
-        <img src={siteConfig.logoUrl} alt="Logo" className="h-64 md:h-96 drop-shadow-2xl" />
+      {/* Header with Centered Logo and Logout Button */}
+      <div className="relative flex justify-center items-center mb-8 mt-4">
+        <img src={siteConfig.logoUrl} alt="Logo" className="h-40 md:h-64 drop-shadow-2xl" />
+        <div className="absolute top-0 right-0">
+          <button onClick={onLogout} className="flex items-center gap-2 px-6 py-3 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-2xl font-black transition-all border border-red-500/20">
+            <X className="w-5 h-5" /> Logout
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -152,6 +150,10 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
             <div>
               <p className="text-slate-400 font-bold">Email</p>
               <p className="text-xl font-black">{currentUser.email}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 font-bold">Phone Number</p>
+              <p className="text-xl font-black">{currentUser.phoneNumber || 'Not provided'}</p>
             </div>
             <div>
               <p className="text-slate-400 font-bold">Verification Status</p>
