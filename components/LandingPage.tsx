@@ -83,39 +83,8 @@ const LandingPage: React.FC<Props> = ({
   const [speedLines, setSpeedLines] = useState<number[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const [marketData, setMarketData] = useState<MarketAsset[]>([
-    { id: '1', name: 'asset_gold', price: 2410.50, change: 1.1, icon: '📀' },
-    { id: '2', name: 'asset_btc', price: 92421.10, change: 4.5, icon: '₿' },
-    { id: '3', name: 'asset_brent', price: 88.14, change: 1.3, icon: '🛢️' },
-    { id: '4', name: 'asset_eth', price: 2845.30, change: -0.8, icon: '💎' },
-    { id: '5', name: 'asset_eur_usd', price: 1.0842, change: 0.05, icon: '🇪🇺' },
-    { id: '6', name: 'asset_gbp_usd', price: 1.2654, change: 0.12, icon: '🇬🇧' },
-    { id: '7', name: 'asset_usd_jpy', price: 151.20, change: -0.22, icon: '🇯🇵' },
-    { id: '8', name: 'asset_nasdaq', price: 18240.5, change: 0.65, icon: '📊' },
-    { id: '9', name: 'asset_apple', price: 192.42, change: 1.2, icon: '🍎' },
-    { id: '10', name: 'asset_nvidia', price: 1150.20, change: 3.4, icon: '🟢' },
-  ]);
-
   useEffect(() => {
     setSpeedLines(Array.from({ length: 15 }, () => Math.random() * 100));
-    const interval = setInterval(() => {
-      setMarketData(prev => prev.map(asset => {
-        const volatility = 0.0005;
-        const move = (Math.random() - 0.5) * asset.price * volatility;
-        const newPrice = asset.price + move;
-        const isUp = move > 0;
-        return {
-          ...asset,
-          price: Number(newPrice.toFixed(asset.price < 10 ? 5 : 2)),
-          flash: isUp ? 'up' : 'down',
-          isUp: isUp
-        };
-      }));
-      setTimeout(() => {
-        setMarketData(prev => prev.map(a => ({ ...a, flash: null })));
-      }, 1000);
-    }, 3000);
-    return () => clearInterval(interval);
   }, []);
 
   const scrollToSection = (id: string) => {
@@ -141,53 +110,37 @@ const LandingPage: React.FC<Props> = ({
         ))}
       </div>
 
-      <div className="fixed top-0 w-full z-[100] bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4 overflow-hidden">
-         <div className="flex animate-marquee whitespace-nowrap gap-20 items-center">
-            {[...marketData, ...marketData].map((asset, idx) => (
-              <div key={`${asset.id}-${idx}`} className={`flex items-center gap-4 font-black text-[11px] tracking-widest group cursor-default transition-all duration-1000 ${asset.flash === 'up' ? 'text-emerald-400 scale-105' : asset.flash === 'down' ? 'text-red-400 scale-105' : 'text-white'}`}>
-                 <span className="text-white/40 group-hover:text-sky-400 transition-colors">{asset.icon} {t(asset.name)}</span>
-                 <span className={`font-mono text-sm transition-colors duration-300 ${asset.flash === 'up' ? 'text-emerald-400' : asset.flash === 'down' ? 'text-red-400' : 'text-white'}`}>
-                   ${asset.price.toLocaleString(undefined, { minimumFractionDigits: asset.price < 10 ? 4 : 2 })}
-                 </span>
-                 <span className={`font-mono text-[10px] ${asset.change >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {asset.change >= 0 ? '▲' : '▼'} {Math.abs(asset.change)}%
-                 </span>
-              </div>
-            ))}
-         </div>
-      </div>
-
-      <nav className="fixed w-full z-[90] top-14 px-4 md:px-12 lg:px-24">
+      <nav className="fixed w-full z-[90] top-6 px-4 md:px-12 lg:px-24">
         <div className="max-w-[1600px] mx-auto bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl md:rounded-[4rem] py-2 md:py-3 px-4 md:px-8 flex justify-between items-center shadow-[0_40px_100px_rgba(0,0,0,0.5)] gap-4">
           
-          {/* Left: Logo */}
-          <div className={`flex items-center gap-3 group cursor-pointer flex-shrink-0 ${siteConfig.logoPosition === 'center' ? 'justify-center' : siteConfig.logoPosition === 'left' ? 'justify-start' : 'justify-end'}`} onClick={() => setCurrentPath('home')}>
-            <div className="flex-shrink-0 flex items-center">
-              <Logo 
-                siteConfig={siteConfig} 
-                className="object-contain h-auto transform group-hover:scale-110 transition-all duration-700" 
-                style={{ width: `${siteConfig.logoWidth || 120}px` }}
-              />
+          {/* Left: Logo + Actions */}
+          <div className="flex items-center gap-6 flex-shrink-0">
+            <div className={`flex items-center gap-3 group cursor-pointer ${siteConfig.logoPosition === 'center' ? 'justify-center' : siteConfig.logoPosition === 'left' ? 'justify-start' : 'justify-end'}`} onClick={() => setCurrentPath('home')}>
+              <div className="flex-shrink-0 flex items-center">
+                <Logo 
+                  siteConfig={siteConfig} 
+                  className="object-contain h-auto transform group-hover:scale-110 transition-all duration-700" 
+                  style={{ width: `${siteConfig.logoWidth || 120}px` }}
+                />
+              </div>
             </div>
-            {siteConfig.logoPosition === 'right' && (
-                <span className="text-xl md:text-2xl font-black tracking-tighter hidden sm:block xl:hidden 2xl:block bg-gradient-to-r from-white to-sky-400 bg-clip-text text-transparent whitespace-nowrap">
-                  {siteConfig.siteName}
-                </span>
-            )}
+            <div className="hidden sm:flex items-center gap-2 md:gap-3">
+              <button onClick={onLoginClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-white bg-sky-600 font-black text-xs md:text-sm hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40 whitespace-nowrap">{t('login')}</button>
+              <button onClick={onRegisterClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-xs md:text-sm hover:bg-white/10 transition-all hidden md:block whitespace-nowrap">{t('register')}</button>
+            </div>
           </div>
           
           {/* Middle: Nav Links */}
-          <div className="hidden xl:flex gap-4 2xl:gap-8 text-slate-400 font-black text-[11px] 2xl:text-[13px] uppercase tracking-widest justify-center items-center flex-1 overflow-x-auto no-scrollbar px-2">
+          <div className="hidden xl:flex gap-12 2xl:gap-16 text-slate-200 font-black text-[18px] 2xl:text-[20px] uppercase tracking-widest justify-center items-center flex-1 overflow-x-auto no-scrollbar px-2">
             {[
               { label: t('nav_home'), id: 'home' },
-              { label: 'Secure Access Portal', id: 'agent-login' },
               { label: t('raffle'), id: 'raffle-ad' },
               { label: t('nav_swift'), id: 'transfer-ad' },
               { label: t('nav_gateway'), id: 'gateway-ad' },
               { label: t('nav_transfer'), id: 'salary-ad' },
               { label: t('nav_trading'), id: 'trading-ad' }
             ].map((item, idx) => (
-              <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : item.id === 'agent-login' ? setCurrentPath('agent-login') : scrollToSection(item.id)} className="hover:text-white transition-all relative py-2 group whitespace-nowrap flex-shrink-0">
+              <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : scrollToSection(item.id)} className="hover:text-sky-400 transition-all relative py-3 group whitespace-nowrap flex-shrink-0">
                 {item.label}
                 <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-sky-500 group-hover:w-full transition-all duration-500"></span>
               </button>
@@ -196,15 +149,11 @@ const LandingPage: React.FC<Props> = ({
 
           {/* Right: Actions */}
           <div className="flex items-center gap-3 md:gap-4 flex-shrink-0 justify-end">
-            {/* زر تغيير اللغة - بجانب تسجيل الدخول مباشرة */}
+            {/* زر تغيير اللغة */}
             <div className="relative z-[100] flex-shrink-0">
               <LanguageSwitcher />
             </div>
 
-            <div className="hidden sm:flex items-center gap-2 md:gap-3 flex-shrink-0">
-              <button onClick={onLoginClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-white bg-sky-600 font-black text-xs md:text-sm hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40 whitespace-nowrap">{t('login')}</button>
-              <button onClick={onRegisterClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-xs md:text-sm hover:bg-white/10 transition-all hidden md:block whitespace-nowrap">{t('register')}</button>
-            </div>
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="xl:hidden text-white text-3xl p-2 flex-shrink-0">
               {isMobileMenuOpen ? '✕' : '☰'}
             </button>

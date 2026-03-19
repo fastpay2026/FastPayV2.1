@@ -405,7 +405,7 @@ header('Location: ' . $payment->checkout_url);`
            {/* Financial Cards */}
            {activeView === 'main' && (
              <div className="space-y-8 animate-in slide-in-from-bottom duration-500">
-               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {/* Main Balance Card */}
                   <div className="lg:col-span-2 bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/10 rounded-[2rem] p-10 shadow-2xl relative overflow-hidden flex flex-col justify-between">
                      <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
@@ -540,7 +540,7 @@ header('Location: ' . $payment->checkout_url);`
                   </div>
                </div>
 
-               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
                   <div className="lg:col-span-2">
                      <div className="bg-[#111827] p-6 md:p-12 border border-white/5 rounded-2xl md:rounded-[4rem] shadow-2xl space-y-10">
                         <div className="flex flex-col sm:flex-row justify-between items-center border-b border-white/5 pb-8 gap-4">
@@ -731,7 +731,7 @@ header('Location: ' . $payment->checkout_url);`
                <div className="space-y-6 md:space-y-8 text-right">
                   <div className="space-y-3">
                      <label className="text-[10px] font-black text-slate-500 mr-6 uppercase tracking-widest">{t('card_value_usd')}</label>
-                     <div className="grid grid-cols-3 gap-3 md:gap-4">
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                         {[10, 50, 100, 500, 1000, 5000].map(v => (
                           <button key={v} onClick={()=>setCardAmount(v)} className={`py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl border transition-all ${cardAmount === v ? 'bg-sky-600 border-sky-400 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'}`}>${v}</button>
                         ))}
