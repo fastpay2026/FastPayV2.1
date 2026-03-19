@@ -7,16 +7,17 @@ import { useI18n } from '../../i18n/i18n';
 
 interface Props {
   accounts: User[];
+  currentUser: User;
   setAccounts: React.Dispatch<React.SetStateAction<User[]>>;
   onAddUser: (user: User) => void;
   onUpdateUser: (user: User) => void;
 }
 
-const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onUpdateUser }) => {
+const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, onAddUser, onUpdateUser }) => {
   const { t } = useI18n();
   const [userSearch, setUserSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [userForm, setUserForm] = useState({ fullName: '', username: '', password: '', role: 'USER' as Role, balance: 0, phoneNumber: '' });
+  const [userForm, setUserForm] = useState({ fullName: '', username: '', password: '', role: 'USER' as Role, balance: 0, phoneNumber: '', agent_percentage: 0 });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -53,11 +54,13 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
       status: 'active',
       isActive: true,
       email: `${userForm.username}@fastpay.com`,
-      createdAt: new Date().toLocaleDateString()
+      createdAt: new Date().toLocaleDateString(),
+      is_agent: userForm.role === 'AGENT',
+      agent_percentage: userForm.role === 'AGENT' ? userForm.agent_percentage : 0
     };
     onAddUser(newUser);
     setIsModalOpen(false);
-    setUserForm({ fullName: '', username: '', password: '', role: 'USER', balance: 0, phoneNumber: '' });
+    setUserForm({ fullName: '', username: '', password: '', role: 'USER', balance: 0, phoneNumber: '', agent_percentage: 0 });
     alert(`تمت إضافة ${newUser.role} بنجاح ✅\nكلمة المرور المؤقتة: ${newUser.password}`);
   };
 
@@ -182,11 +185,18 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
                 <input type="text" value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white font-mono" placeholder="FastPay123" />
               </div>
             </div>
+            {userForm.role === 'AGENT' && (
+              <div className="space-y-2 text-right">
+                <label className="text-xs text-slate-500 mr-6 font-black uppercase">نسبة أرباح الوكيل (%)</label>
+                <input type="number" value={userForm.agent_percentage} onChange={e => setUserForm({ ...userForm, agent_percentage: parseFloat(e.target.value) })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-emerald-400 outline-none text-2xl text-center" placeholder="0%" />
+              </div>
+            )}
             <div className="space-y-3 text-right">
               <label className="text-xs text-slate-500 mr-6 font-black uppercase tracking-widest">{t('select_member_rank')}</label>
               <select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value as Role })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-sky-400 outline-none cursor-pointer">
                 <option value="USER">مستخدم (User)</option>
                 <option value="DISTRIBUTOR">موزع معتمد (Distributor)</option>
+                <option value="AGENT">وكيل (Agent)</option>
                 <option value="MERCHANT">تاجر - Merchant Suite</option>
                 <option value="ACCOUNTANT">محاسب نظام (Accountant)</option>
                 <option value="DEVELOPER">مدير تنفيذي (Admin)</option>
@@ -292,9 +302,57 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
                 {accounts.filter(a => a.id !== editingAgentUser.id).map(a => <option key={a.id} value={a.id}>{a.username}</option>)}
               </select>
             </div>
+            
+            {/* Referred Users List */}
+            <div className="mt-6 text-right">
+              <h4 className="text-sm font-black mb-4 text-slate-400">Referred Users</h4>
+              
+              {/* Add User to Agent */}
+              {currentUser?.role === 'DEVELOPER' && (
+                <div className="flex gap-2 mb-4">
+                  <select id="userToAdd" className="flex-1 p-3 bg-black/40 border border-white/10 rounded-xl text-sm outline-none">
+                    <option value="">Select user to add...</option>
+                    {accounts.filter(a => a.referred_by !== editingAgentUser.id && a.id !== editingAgentUser.id).map(a => (
+                      <option key={a.id} value={a.id}>{a.fullName}</option>
+                    ))}
+                  </select>
+                  <button 
+                    onClick={() => {
+                      const select = document.getElementById('userToAdd') as HTMLSelectElement;
+                      const userId = select.value;
+                      if (userId) {
+                        const userToAdd = accounts.find(a => a.id === userId);
+                        if (userToAdd) onUpdateUser({...userToAdd, referred_by: editingAgentUser.id});
+                      }
+                    }}
+                    className="px-4 py-2 bg-sky-600 rounded-xl font-black text-sm hover:bg-sky-500"
+                  >
+                    Apply
+                  </button>
+                </div>
+              )}
+
+              <div className="space-y-2 max-h-40 overflow-y-auto bg-black/20 p-2 rounded-2xl">
+                {accounts.filter(a => a.referred_by === editingAgentUser.id).length > 0 ? (
+                  accounts.filter(a => a.referred_by === editingAgentUser.id).map(u => (
+                    <div key={u.id} className="flex justify-between items-center bg-black/40 p-3 rounded-xl">
+                      <span className="text-sm">{u.fullName}</span>
+                      {currentUser?.role === 'DEVELOPER' && (
+                        <button onClick={() => onUpdateUser({...u, referred_by: ''})} className="text-red-400 text-xs font-black hover:text-red-300">Remove</button>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-600 text-center py-4">No referred users found.</p>
+                )}
+              </div>
+            </div>
+
             <div className="flex gap-4 pt-4">
-              <button onClick={handleSaveAgentSettings} className="flex-1 py-4 bg-emerald-600 rounded-2xl font-black text-lg shadow-xl hover:bg-emerald-500 transition-all">Save</button>
-              <button onClick={() => { setIsAgentModalOpen(false); setEditingAgentUser(null); }} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-lg hover:bg-white/10 transition-all">Cancel</button>
+              {currentUser?.role === 'DEVELOPER' && (
+                <button onClick={handleSaveAgentSettings} className="flex-1 py-4 bg-emerald-600 rounded-2xl font-black text-lg shadow-xl hover:bg-emerald-500 transition-all">Save</button>
+              )}
+              <button onClick={() => { setIsAgentModalOpen(false); setEditingAgentUser(null); }} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-lg hover:bg-white/10 transition-all">Close</button>
             </div>
           </div>
         </div>
