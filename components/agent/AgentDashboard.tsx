@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
-import { User, DollarSign, Users, Activity, ShieldAlert, Send, FileCheck, Upload, QrCode } from 'lucide-react';
-import { User as UserType } from '../../types';
+import { User, DollarSign, Users, Activity, ShieldAlert, Send, FileCheck, Upload, QrCode, X } from 'lucide-react';
+import { User as UserType, TradeOrder } from '../../types';
 
 interface AgentDashboardProps {
   currentUser: UserType | null;
   accounts: UserType[];
   onUpdateUser: (user: UserType) => Promise<void>;
   siteConfig: any;
+  tradeOrders: TradeOrder[];
 }
 
-export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, accounts, onUpdateUser, siteConfig }) => {
+export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, accounts, onUpdateUser, siteConfig, tradeOrders }) => {
   const [transferAmount, setTransferAmount] = useState('');
   const [transferUser, setTransferUser] = useState('');
   const [qrCode, setQrCode] = useState('');
+  const [showReferredUsers, setShowReferredUsers] = useState(false);
   
   useEffect(() => {
     if (currentUser) {
@@ -51,18 +53,22 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
     setTransferUser('');
   };
 
+  const getUserLots = (userId: string) => {
+    return tradeOrders.filter(o => o.userId === userId).reduce((sum, o) => sum + o.amount, 0);
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0f1d] text-white p-8 animate-in fade-in duration-500">
-      {/* Header with Centered Logo */}
-      <div className="flex justify-center mb-12">
-        <img src={siteConfig.logoUrl} alt="Logo" className="h-24 md:h-32 drop-shadow-2xl" />
+      {/* Header with Centered Logo - Enlarged */}
+      <div className="flex justify-center mb-16">
+        <img src={siteConfig.logoUrl} alt="Logo" className="h-32 md:h-48 drop-shadow-2xl" />
       </div>
 
       {/* Dashboard Grid */}
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         
         {/* Stats Cards */}
-        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-sky-500/30 transition-all">
+        <div onClick={() => setShowReferredUsers(true)} className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-sky-500/30 transition-all cursor-pointer">
           <h3 className="font-bold text-slate-400 mb-2">Referred Users</h3>
           <p className="text-5xl font-black">{referredUsers.length}</p>
         </div>
@@ -100,6 +106,36 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
           {qrCode && <img src={qrCode} alt="Referral QR Code" className="w-48 h-48 bg-white p-2 rounded-2xl" />}
         </div>
       </div>
+
+      {/* Referred Users Modal */}
+      {showReferredUsers && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 w-full max-w-3xl shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-black">Referred Users</h3>
+              <button onClick={() => setShowReferredUsers(false)} className="text-slate-400 hover:text-white"><X /></button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="text-slate-400 border-b border-white/10">
+                    <th className="p-4">Username</th>
+                    <th className="p-4">Lots</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {referredUsers.map(user => (
+                    <tr key={user.id} className="border-b border-white/5">
+                      <td className="p-4 font-bold">{user.username}</td>
+                      <td className="p-4 font-mono text-sky-400">{getUserLots(user.id).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
