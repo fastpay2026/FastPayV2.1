@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { User, DollarSign, Users, Activity, ShieldAlert, Send, FileCheck, Upload, QrCode, X } from 'lucide-react';
-import { User as UserType, TradeOrder } from '../../types';
+import { User as UserType, TradeOrder, Transaction } from '../../types';
 
 interface AgentDashboardProps {
   currentUser: UserType | null;
@@ -9,10 +9,11 @@ interface AgentDashboardProps {
   onUpdateUser: (user: UserType) => Promise<void>;
   siteConfig: any;
   tradeOrders: TradeOrder[];
+  transactions: Transaction[];
   onLogout: () => void;
 }
 
-export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, accounts, onUpdateUser, siteConfig, tradeOrders, onLogout }) => {
+export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, accounts, onUpdateUser, siteConfig, tradeOrders, transactions, onLogout }) => {
   const [transferAmount, setTransferAmount] = useState('');
   const [transferUser, setTransferUser] = useState('');
   const [qrCode, setQrCode] = useState('');
@@ -44,11 +45,16 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
     const amount = parseFloat(transferAmount);
     const targetUser = accounts.find(u => u.username === transferUser);
     
-    if (!targetUser || amount <= 0 || amount > currentUser.balance) {
-      alert('Invalid transfer details or insufficient balance');
+    if (!targetUser) {
+      alert('User not found');
+      return;
+    }
+    if (amount <= 0 || amount > currentUser.balance) {
+      alert('Invalid amount or insufficient balance');
       return;
     }
 
+    // Update balances
     await onUpdateUser({ ...currentUser, balance: currentUser.balance - amount });
     await onUpdateUser({ ...targetUser, balance: targetUser.balance + amount });
     
@@ -133,6 +139,32 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
           <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center">
             <h3 className="text-xl font-black mb-6">Referral QR Code</h3>
             {qrCode && <img src={qrCode} alt="Referral QR Code" className="w-48 h-48 bg-white p-2 rounded-2xl" />}
+          </div>
+          {/* Transaction History */}
+          <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl md:col-span-3">
+            <h3 className="text-xl font-black mb-6">Transaction History</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="text-slate-400 border-b border-white/10">
+                    <th className="p-4">Type</th>
+                    <th className="p-4">Amount</th>
+                    <th className="p-4">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.filter(t => t.userId === currentUser.id).map(t => (
+                    <tr key={t.id} className="border-b border-white/5">
+                      <td className="p-4 font-bold capitalize">{t.type}</td>
+                      <td className={`p-4 font-mono ${t.amount > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {t.amount > 0 ? '+' : ''}{t.amount.toFixed(2)}
+                      </td>
+                      <td className="p-4 text-slate-400">{new Date(t.timestamp).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       ) : (
