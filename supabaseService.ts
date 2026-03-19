@@ -76,7 +76,14 @@ export const supabaseService = {
       if (user.assets !== undefined) userData.assets = Array.isArray(user.assets) ? user.assets : [];
       if (user.apiKeys !== undefined) userData.api_keys = Array.isArray(user.apiKeys) ? user.apiKeys : [];
       if (user.isActive !== undefined) userData.status = user.isActive ? 'active' : 'disabled';
-      if (user.referred_by !== undefined && user.referred_by !== null && user.referred_by !== 'null') userData.referred_by = String(user.referred_by);
+      
+      // Fix: Ensure referred_by is only included if it is a valid, non-empty, non-"null" string.
+      if (user.referred_by !== undefined && user.referred_by !== null && user.referred_by !== 'null' && user.referred_by !== '') {
+        userData.referred_by = String(user.referred_by);
+      } else {
+        // If it's null/empty, we explicitly set it to null so Supabase treats it as a NULL database value.
+        userData.referred_by = null;
+      }
 
       console.log('supabaseService: Upserting userData:', userData);
 
