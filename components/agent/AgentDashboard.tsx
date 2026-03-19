@@ -11,7 +11,6 @@ interface AgentDashboardProps {
 }
 
 export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, accounts, onUpdateUser, siteConfig }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'transfer' | 'verify' | 'qr'>('dashboard');
   const [transferAmount, setTransferAmount] = useState('');
   const [transferUser, setTransferUser] = useState('');
   const [qrCode, setQrCode] = useState('');
@@ -44,9 +43,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
       return;
     }
 
-    // Deduct from agent
     await onUpdateUser({ ...currentUser, balance: currentUser.balance - amount });
-    // Add to target user
     await onUpdateUser({ ...targetUser, balance: targetUser.balance + amount });
     
     alert('Transfer successful');
@@ -55,63 +52,54 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
   };
 
   return (
-    <div className="p-8 space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
-        <img src={siteConfig.logoUrl} alt="Logo" className="h-16" />
-        <div className="flex gap-2 bg-[#111827] p-2 rounded-2xl border border-white/5">
-          {(['dashboard', 'transfer', 'verify', 'qr'] as const).map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-3 rounded-xl font-black uppercase text-xs ${activeTab === tab ? 'bg-sky-600 text-white' : 'text-slate-400'}`}>
-              {tab}
-            </button>
-          ))}
-        </div>
+    <div className="min-h-screen bg-[#0a0f1d] text-white p-8 animate-in fade-in duration-500">
+      {/* Header with Centered Logo */}
+      <div className="flex justify-center mb-12">
+        <img src={siteConfig.logoUrl} alt="Logo" className="h-24 md:h-32 drop-shadow-2xl" />
       </div>
 
-      {activeTab === 'dashboard' && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-[#111827] p-6 rounded-3xl border border-white/5 shadow-xl">
-              <h3 className="font-bold text-slate-400 mb-2">Referred Users</h3>
-              <p className="text-4xl font-black">{referredUsers.length}</p>
-            </div>
-            <div className="bg-[#111827] p-6 rounded-3xl border border-white/5 shadow-xl">
-              <h3 className="font-bold text-slate-400 mb-2">Total Earnings</h3>
-              <p className="text-4xl font-black text-emerald-400">${(currentUser.balance + totalEarnings).toFixed(2)}</p>
-            </div>
-            <div className="bg-[#111827] p-6 rounded-3xl border border-white/5 shadow-xl">
-              <h3 className="font-bold text-slate-400 mb-2">Commission Rate</h3>
-              <p className="text-4xl font-black text-sky-400">{currentUser.agent_percentage}%</p>
-            </div>
+      {/* Dashboard Grid */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        
+        {/* Stats Cards */}
+        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-sky-500/30 transition-all">
+          <h3 className="font-bold text-slate-400 mb-2">Referred Users</h3>
+          <p className="text-5xl font-black">{referredUsers.length}</p>
+        </div>
+        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-emerald-500/30 transition-all">
+          <h3 className="font-bold text-slate-400 mb-2">Total Earnings</h3>
+          <p className="text-5xl font-black text-emerald-400">${(currentUser.balance + totalEarnings).toFixed(2)}</p>
+        </div>
+        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-sky-500/30 transition-all">
+          <h3 className="font-bold text-slate-400 mb-2">Commission Rate</h3>
+          <p className="text-5xl font-black text-sky-400">{currentUser.agent_percentage}%</p>
+        </div>
+
+        {/* Transfer Card */}
+        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl md:col-span-2 lg:col-span-1">
+          <h3 className="text-xl font-black mb-6">Transfer Balance</h3>
+          <div className="space-y-4">
+            <input type="text" placeholder="Username" value={transferUser} onChange={e => setTransferUser(e.target.value)} className="w-full p-4 bg-black/40 rounded-2xl border border-white/10" />
+            <input type="number" placeholder="Amount" value={transferAmount} onChange={e => setTransferAmount(e.target.value)} className="w-full p-4 bg-black/40 rounded-2xl border border-white/10" />
+            <button onClick={handleTransfer} className="w-full py-4 bg-emerald-600 rounded-2xl font-black hover:bg-emerald-500 transition-all">Transfer</button>
           </div>
         </div>
-      )}
 
-      {activeTab === 'transfer' && (
-        <div className="bg-[#111827] p-8 rounded-3xl border border-white/5 space-y-6">
-          <h3 className="text-2xl font-black">Transfer Balance</h3>
-          <input type="text" placeholder="Username" value={transferUser} onChange={e => setTransferUser(e.target.value)} className="w-full p-4 bg-black/40 rounded-xl border border-white/10" />
-          <input type="number" placeholder="Amount" value={transferAmount} onChange={e => setTransferAmount(e.target.value)} className="w-full p-4 bg-black/40 rounded-xl border border-white/10" />
-          <button onClick={handleTransfer} className="w-full py-4 bg-emerald-600 rounded-xl font-black">Transfer</button>
-        </div>
-      )}
-
-      {activeTab === 'verify' && (
-        <div className="bg-[#111827] p-8 rounded-3xl border border-white/5 space-y-6">
-          <h3 className="text-2xl font-black">Account Verification</h3>
-          <p className="text-slate-400">Upload your documents to verify your account.</p>
-          <button className="flex items-center gap-2 px-6 py-4 bg-sky-600 rounded-xl font-black">
+        {/* Verification Card */}
+        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl">
+          <h3 className="text-xl font-black mb-6">Verification</h3>
+          <p className="text-slate-400 mb-6">Upload your documents to verify your account.</p>
+          <button className="flex items-center justify-center gap-2 w-full py-4 bg-sky-600 rounded-2xl font-black hover:bg-sky-500 transition-all">
             <Upload className="w-5 h-5" /> Upload Documents
           </button>
         </div>
-      )}
 
-      {activeTab === 'qr' && (
-        <div className="bg-[#111827] p-8 rounded-3xl border border-white/5 space-y-6 flex flex-col items-center">
-          <h3 className="text-2xl font-black">Referral QR Code</h3>
-          <p className="text-slate-400">Scan this QR code to register under your account.</p>
-          {qrCode && <img src={qrCode} alt="Referral QR Code" className="w-64 h-64" />}
+        {/* QR Card */}
+        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center">
+          <h3 className="text-xl font-black mb-6">Referral QR Code</h3>
+          {qrCode && <img src={qrCode} alt="Referral QR Code" className="w-48 h-48 bg-white p-2 rounded-2xl" />}
         </div>
-      )}
+      </div>
     </div>
   );
 };
