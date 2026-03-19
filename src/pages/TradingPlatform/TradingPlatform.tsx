@@ -497,7 +497,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
             </div>
           </div>
         </div>
-        <div className="h-48 bg-[#161a1e] border-t border-white/10 overflow-y-auto shrink-0">
+        <div className="h-48 bg-[#161a1e] border-t border-white/10 overflow-y-auto shrink-0 flex flex-col">
           <table className="w-full text-xs text-left">
             <thead className="bg-[#1e2329] text-slate-400 sticky top-0">
               <tr>
@@ -547,14 +547,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
               </AnimatePresence>
             </tbody>
           </table>
-        </div>
-        {/* Trading Status Bar */}
-        <div className="h-10 bg-[#1e2329] border-t border-white/10 flex items-center px-4 gap-6 text-[11px] font-mono text-slate-300 shrink-0">
-          <div>Balance: <span className="text-white">{balance.balance.toFixed(2)}$</span></div>
-          <div>Equity: <span className={tradingStatus.equity >= balance.balance ? 'text-emerald-400' : 'text-red-400'}>{tradingStatus.equity.toFixed(2)}$</span></div>
-          <div>Margin: <span className="text-white">{tradingStatus.margin.toFixed(2)}$</span></div>
-          <div>Free Margin: <span className="text-white">{tradingStatus.freeMargin.toFixed(2)}$</span></div>
-          <div>Margin Level: <span className="text-white">{tradingStatus.marginLevel.toFixed(2)}%</span></div>
+          {/* Trading Status Bar */}
+          <div className="bg-[#111418] border-t border-white/10 flex items-center px-4 py-2 gap-6 text-[11px] font-mono text-slate-300 mt-auto sticky bottom-0">
+            <div>Balance: <span className="text-white">{balance.balance.toFixed(2)}$</span></div>
+            <div>Equity: <span className={tradingStatus.equity >= balance.balance ? 'text-emerald-400' : 'text-red-400'}>{tradingStatus.equity.toFixed(2)}$</span></div>
+            <div>Margin: <span className="text-white">{tradingStatus.margin.toFixed(2)}$</span></div>
+            <div>Free Margin: <span className="text-emerald-400 font-bold">{tradingStatus.freeMargin.toFixed(2)}$</span></div>
+            <div>Margin Level: <span className="text-white">{tradingStatus.marginLevel.toFixed(2)}%</span></div>
+          </div>
         </div>
       </div>
     </div>
