@@ -157,24 +157,27 @@ const LandingPage: React.FC<Props> = ({
          </div>
       </div>
 
-      <nav className="fixed w-full z-[90] top-14 px-4 md:px-24">
-        <div className="max-w-[1600px] mx-auto bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl md:rounded-[4rem] py-4 md:py-6 px-6 md:px-20 flex justify-between items-center shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
-          <div className={`flex items-center gap-4 md:gap-12 group cursor-pointer flex-1 ${siteConfig.logoPosition === 'center' ? 'justify-center' : siteConfig.logoPosition === 'left' ? 'justify-start' : 'justify-end'}`} onClick={() => setCurrentPath('home')}>
-            {siteConfig.logoUrl && (
+      <nav className="fixed w-full z-[90] top-14 px-4 md:px-12 lg:px-24">
+        <div className="max-w-[1600px] mx-auto bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl md:rounded-[4rem] py-4 md:py-5 px-4 md:px-8 flex justify-between items-center shadow-[0_40px_100px_rgba(0,0,0,0.5)] gap-4">
+          
+          {/* Left: Logo */}
+          <div className={`flex items-center gap-3 group cursor-pointer flex-shrink-0 ${siteConfig.logoPosition === 'center' ? 'justify-center' : siteConfig.logoPosition === 'left' ? 'justify-start' : 'justify-end'}`} onClick={() => setCurrentPath('home')}>
+            <div className="flex-shrink-0 flex items-center">
               <Logo 
                 siteConfig={siteConfig} 
                 className="object-contain h-auto transform group-hover:scale-110 transition-all duration-700" 
-                style={{ maxWidth: `${siteConfig.logoWidth || 120}px` }}
+                style={{ width: `${siteConfig.logoWidth || 120}px` }}
               />
-            )}
+            </div>
             {siteConfig.logoPosition === 'right' && (
-                <span className="text-xl md:text-3xl font-black tracking-tighter hidden xl:block bg-gradient-to-r from-white to-sky-400 bg-clip-text text-transparent">
+                <span className="text-xl md:text-2xl font-black tracking-tighter hidden sm:block xl:hidden 2xl:block bg-gradient-to-r from-white to-sky-400 bg-clip-text text-transparent whitespace-nowrap">
                   {siteConfig.siteName}
                 </span>
             )}
           </div>
           
-          <div className="hidden lg:flex space-x-reverse space-x-12 text-slate-400 font-black text-[13px] uppercase tracking-widest mx-12">
+          {/* Middle: Nav Links */}
+          <div className="hidden xl:flex gap-4 2xl:gap-8 text-slate-400 font-black text-[11px] 2xl:text-[13px] uppercase tracking-widest justify-center items-center flex-1 overflow-x-auto no-scrollbar px-2">
             {[
               { label: t('nav_home'), id: 'home' },
               { label: 'Secure Access Portal', id: 'agent-login' },
@@ -184,24 +187,25 @@ const LandingPage: React.FC<Props> = ({
               { label: t('nav_transfer'), id: 'salary-ad' },
               { label: t('nav_trading'), id: 'trading-ad' }
             ].map((item, idx) => (
-              <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : item.id === 'agent-login' ? setCurrentPath('agent-login') : scrollToSection(item.id)} className="hover:text-white transition-all relative py-2 group">
+              <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : item.id === 'agent-login' ? setCurrentPath('agent-login') : scrollToSection(item.id)} className="hover:text-white transition-all relative py-2 group whitespace-nowrap flex-shrink-0">
                 {item.label}
                 <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-sky-500 group-hover:w-full transition-all duration-500"></span>
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-4 md:gap-8">
+          {/* Right: Actions */}
+          <div className="flex items-center gap-3 md:gap-4 flex-shrink-0 justify-end">
             {/* زر تغيير اللغة - بجانب تسجيل الدخول مباشرة */}
-            <div className="relative z-[100]">
+            <div className="relative z-[100] flex-shrink-0">
               <LanguageSwitcher />
             </div>
 
-            <div className="hidden sm:flex items-center gap-4 md:gap-8">
-              <button onClick={onLoginClick} className="px-6 md:px-10 py-3 md:py-4 rounded-3xl text-white bg-sky-600 font-black text-sm md:text-base hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40 whitespace-nowrap">{t('login')}</button>
-              <button onClick={onRegisterClick} className="px-6 md:px-10 py-3 md:py-4 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-sm md:text-base hover:bg-white/10 transition-all hidden md:block whitespace-nowrap">{t('register')}</button>
+            <div className="hidden sm:flex items-center gap-2 md:gap-3 flex-shrink-0">
+              <button onClick={onLoginClick} className="px-5 md:px-6 py-2.5 rounded-3xl text-white bg-sky-600 font-black text-sm hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40 whitespace-nowrap">{t('login')}</button>
+              <button onClick={onRegisterClick} className="px-5 md:px-6 py-2.5 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-sm hover:bg-white/10 transition-all hidden md:block whitespace-nowrap">{t('register')}</button>
             </div>
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-white text-3xl p-2">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="xl:hidden text-white text-3xl p-2 flex-shrink-0">
               {isMobileMenuOpen ? '✕' : '☰'}
             </button>
           </div>
@@ -245,8 +249,8 @@ const LandingPage: React.FC<Props> = ({
       {currentPath === 'home' ? (
         <>
           <section className="relative pt-[25vh] md:pt-[35vh] pb-20 md:pb-32 px-6 md:px-24 z-10 overflow-hidden">
-            <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row items-center gap-12 md:gap-24">
-              <div className="w-full lg:w-[55%] space-y-8 md:space-y-12 order-2 lg:order-1 text-center lg:text-right">
+            <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
+              <div className="w-full lg:flex-1 space-y-8 md:space-y-12 order-2 lg:order-1 text-center lg:text-right">
                  <div className="inline-flex items-center gap-4 px-6 md:px-8 py-2 md:py-3 bg-sky-500/10 border border-sky-500/20 rounded-full shadow-[0_0_50px_rgba(14,165,233,0.2)]">
                     <span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full animate-pulse shadow-[0_0_15px_#0ea5e9]"></span>
                     <span className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.3em]">{t('system_premium')} {siteConfig.siteName} v5.5 Premium</span>
@@ -262,8 +266,8 @@ const LandingPage: React.FC<Props> = ({
                  </div>
               </div>
               
-              <div className="w-full lg:w-[45%] order-1 lg:order-2">
-                 <div className="relative animate-float group">
+              <div className="w-full lg:flex-1 order-1 lg:order-2 max-w-[600px] mx-auto">
+                 <div className="relative animate-float group transform lg:-rotate-6 hover:rotate-0 transition-all duration-700">
                     <div className="relative w-full aspect-[1.58/1] rounded-3xl md:rounded-[3.5rem] border border-white/20 shadow-[0_40px_80px_rgba(0,0,0,0.7)] md:shadow-[0_80px_160px_rgba(0,0,0,0.9)] overflow-hidden p-6 md:p-12 flex flex-col justify-between backdrop-blur-3xl bg-black/40 card-shimmer">
                        <div className="absolute inset-0 holo-glow"></div>
                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
