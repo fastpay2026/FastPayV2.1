@@ -17,6 +17,9 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
   const [transferUser, setTransferUser] = useState('');
   const [qrCode, setQrCode] = useState('');
   const [showReferredUsers, setShowReferredUsers] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'profile'>('dashboard');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   
   useEffect(() => {
     if (currentUser) {
@@ -54,6 +57,21 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
     setTransferUser('');
   };
 
+  const handlePasswordChange = async () => {
+    if (newPassword !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+    if (newPassword.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+    await onUpdateUser({ ...currentUser, password: newPassword });
+    alert('Password updated successfully');
+    setNewPassword('');
+    setConfirmPassword('');
+  };
+
   const getUserLots = (userId: string) => {
     return tradeOrders.filter(o => o.userId === userId).reduce((sum, o) => sum + o.amount, 0);
   };
@@ -67,53 +85,91 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
         </button>
       </div>
 
-      {/* Header with Centered Logo - Enlarged */}
+      {/* Header with Centered Logo - Very Large */}
       <div className="flex justify-center mb-16 mt-16">
-        <img src={siteConfig.logoUrl} alt="Logo" className="h-40 md:h-64 drop-shadow-2xl" />
+        <img src={siteConfig.logoUrl} alt="Logo" className="h-64 md:h-96 drop-shadow-2xl" />
       </div>
 
-      {/* Dashboard Grid */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        
-        {/* Stats Cards */}
-        <div onClick={() => setShowReferredUsers(true)} className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-sky-500/30 transition-all cursor-pointer">
-          <h3 className="font-bold text-slate-400 mb-2">Referred Users</h3>
-          <p className="text-5xl font-black">{referredUsers.length}</p>
-        </div>
-        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-emerald-500/30 transition-all">
-          <h3 className="font-bold text-slate-400 mb-2">Total Earnings</h3>
-          <p className="text-5xl font-black text-emerald-400">${(currentUser.balance + totalEarnings).toFixed(2)}</p>
-        </div>
-        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-sky-500/30 transition-all">
-          <h3 className="font-bold text-slate-400 mb-2">Commission Rate</h3>
-          <p className="text-5xl font-black text-sky-400">{currentUser.agent_percentage}%</p>
-        </div>
+      {/* Tabs */}
+      <div className="flex justify-center gap-4 mb-12">
+        <button onClick={() => setActiveTab('dashboard')} className={`px-8 py-4 rounded-2xl font-black transition-all ${activeTab === 'dashboard' ? 'bg-sky-600 text-white' : 'bg-[#111827] text-slate-400'}`}>Dashboard</button>
+        <button onClick={() => setActiveTab('profile')} className={`px-8 py-4 rounded-2xl font-black transition-all ${activeTab === 'profile' ? 'bg-sky-600 text-white' : 'bg-[#111827] text-slate-400'}`}>Profile</button>
+      </div>
 
-        {/* Transfer Card */}
-        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl md:col-span-2 lg:col-span-1">
-          <h3 className="text-xl font-black mb-6">Transfer Balance</h3>
-          <div className="space-y-4">
-            <input type="text" placeholder="Username" value={transferUser} onChange={e => setTransferUser(e.target.value)} className="w-full p-4 bg-black/40 rounded-2xl border border-white/10" />
-            <input type="number" placeholder="Amount" value={transferAmount} onChange={e => setTransferAmount(e.target.value)} className="w-full p-4 bg-black/40 rounded-2xl border border-white/10" />
-            <button onClick={handleTransfer} className="w-full py-4 bg-emerald-600 rounded-2xl font-black hover:bg-emerald-500 transition-all">Transfer</button>
+      {activeTab === 'dashboard' ? (
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Stats Cards */}
+          <div onClick={() => setShowReferredUsers(true)} className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-sky-500/30 transition-all cursor-pointer">
+            <h3 className="font-bold text-slate-400 mb-2">Referred Users</h3>
+            <p className="text-5xl font-black">{referredUsers.length}</p>
+          </div>
+          <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-emerald-500/30 transition-all">
+            <h3 className="font-bold text-slate-400 mb-2">Total Earnings</h3>
+            <p className="text-5xl font-black text-emerald-400">${(currentUser.balance + totalEarnings).toFixed(2)}</p>
+          </div>
+          <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl hover:border-sky-500/30 transition-all">
+            <h3 className="font-bold text-slate-400 mb-2">Commission Rate</h3>
+            <p className="text-5xl font-black text-sky-400">{currentUser.agent_percentage}%</p>
+          </div>
+
+          {/* Transfer Card */}
+          <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl md:col-span-2 lg:col-span-1">
+            <h3 className="text-xl font-black mb-6">Transfer Balance</h3>
+            <div className="space-y-4">
+              <input type="text" placeholder="Username" value={transferUser} onChange={e => setTransferUser(e.target.value)} className="w-full p-4 bg-black/40 rounded-2xl border border-white/10" />
+              <input type="number" placeholder="Amount" value={transferAmount} onChange={e => setTransferAmount(e.target.value)} className="w-full p-4 bg-black/40 rounded-2xl border border-white/10" />
+              <button onClick={handleTransfer} className="w-full py-4 bg-emerald-600 rounded-2xl font-black hover:bg-emerald-500 transition-all">Transfer</button>
+            </div>
+          </div>
+
+          {/* Verification Card */}
+          <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl">
+            <h3 className="text-xl font-black mb-6">Verification</h3>
+            <p className="text-slate-400 mb-6">Upload your documents to verify your account.</p>
+            <button className="flex items-center justify-center gap-2 w-full py-4 bg-sky-600 rounded-2xl font-black hover:bg-sky-500 transition-all">
+              <Upload className="w-5 h-5" /> Upload Documents
+            </button>
+          </div>
+
+          {/* QR Card */}
+          <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center">
+            <h3 className="text-xl font-black mb-6">Referral QR Code</h3>
+            {qrCode && <img src={qrCode} alt="Referral QR Code" className="w-48 h-48 bg-white p-2 rounded-2xl" />}
           </div>
         </div>
-
-        {/* Verification Card */}
-        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl">
-          <h3 className="text-xl font-black mb-6">Verification</h3>
-          <p className="text-slate-400 mb-6">Upload your documents to verify your account.</p>
-          <button className="flex items-center justify-center gap-2 w-full py-4 bg-sky-600 rounded-2xl font-black hover:bg-sky-500 transition-all">
-            <Upload className="w-5 h-5" /> Upload Documents
-          </button>
+      ) : (
+        <div className="max-w-2xl mx-auto bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl">
+          <h3 className="text-2xl font-black mb-8">Profile Settings</h3>
+          <div className="space-y-6">
+            <div>
+              <p className="text-slate-400 font-bold">Full Name</p>
+              <p className="text-xl font-black">{currentUser.fullName}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 font-bold">Username</p>
+              <p className="text-xl font-black">{currentUser.username}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 font-bold">Email</p>
+              <p className="text-xl font-black">{currentUser.email}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 font-bold">Verification Status</p>
+              <p className={`text-xl font-black ${currentUser.verificationStatus === 'verified' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {currentUser.verificationStatus || 'unverified'}
+              </p>
+            </div>
+            <div className="pt-8 border-t border-white/10">
+              <h4 className="text-xl font-black mb-4">Change Password</h4>
+              <div className="space-y-4">
+                <input type="password" placeholder="New Password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full p-4 bg-black/40 rounded-2xl border border-white/10" />
+                <input type="password" placeholder="Confirm New Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full p-4 bg-black/40 rounded-2xl border border-white/10" />
+                <button onClick={handlePasswordChange} className="w-full py-4 bg-sky-600 rounded-2xl font-black hover:bg-sky-500 transition-all">Update Password</button>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* QR Card */}
-        <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center">
-          <h3 className="text-xl font-black mb-6">Referral QR Code</h3>
-          {qrCode && <img src={qrCode} alt="Referral QR Code" className="w-48 h-48 bg-white p-2 rounded-2xl" />}
-        </div>
-      </div>
+      )}
 
       {/* Referred Users Modal */}
       {showReferredUsers && (
