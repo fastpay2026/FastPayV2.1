@@ -20,14 +20,16 @@ const PlatformEarnings: React.FC = () => {
   }, []);
 
   const fetchEarnings = async () => {
+    console.log('PlatformEarnings: Fetching earnings from Supabase...');
     const { data, error } = await supabase
       .from('platform_revenues')
       .select('*')
       .order('timestamp', { ascending: false });
     
     if (error) {
-      console.error('Error fetching earnings:', error);
+      console.error('PlatformEarnings: Error fetching earnings:', error);
     } else {
+      console.log('PlatformEarnings: Fetched earnings:', data);
       setEarnings(data || []);
     }
     setLoading(false);
