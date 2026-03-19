@@ -204,7 +204,6 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       entry_price: executionPrice, 
       status: 'open',
       timestamp: new Date().toISOString(),
-      comm: spreadAmount
     }).select().single();
 
     if (error) {
@@ -218,12 +217,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       console.log('[TradingPlatform] Trade inserted successfully:', data);
       
       // Insert into platform_revenues
-      await supabase.from('platform_revenues').insert({
+      supabase.from('platform_revenues').insert({
         trade_id: data.id,
         user_id: user.id,
         username: user.username || 'User',
         asset_symbol: symbol,
         amount: spreadAmount
+      }).then(({ error }) => {
+        if (error) console.error('[TradingPlatform] Revenue Log Error:', error);
       });
       
       // Play sound on success
@@ -457,7 +458,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                     <td className="p-2">{p?.amount}</td>
                     <td className="p-2 font-mono">{p?.entry_price?.toFixed(assets?.find(a => a.symbol === p?.asset_symbol)?.digits || 2)}</td>
                     <td className="p-2 font-mono text-slate-400">0.00</td>
-                    <td className="p-2 font-mono text-slate-400">{p?.comm?.toFixed(2) || '0.00'}</td>
+                    <td className="p-2 font-mono text-slate-400">0.00</td>
                     <td className={`p-2 font-mono ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>
                       {profit.toFixed(2)}
                     </td>
