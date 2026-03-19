@@ -147,7 +147,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   const fetchWallet = async () => {
     let { data: userData } = await supabase.from('users').select('balance').eq('id', user.id).maybeSingle();
     if (userData) {
-      setBalance({ balance: userData.balance || 0, equity: 0, margin: 0, freeMargin: 0 });
+      setBalance(prev => ({ ...prev, balance: userData.balance || 0 }));
     }
   };
 
