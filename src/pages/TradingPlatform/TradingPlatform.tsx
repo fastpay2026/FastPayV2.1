@@ -343,25 +343,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                 </div>
               ) : (
                 <>
-                  <div className="absolute top-2 right-2 z-20 flex bg-[#1e2329] rounded border border-white/5">
-                    <button 
-                      onClick={() => setChartType('candlestick')}
-                      className={`px-3 py-1 text-[10px] uppercase font-bold ${chartType === 'candlestick' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                    >
-                      Candles
-                    </button>
-                    <button 
-                      onClick={() => setChartType('line')}
-                      className={`px-3 py-1 text-[10px] uppercase font-bold ${chartType === 'line' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                    >
-                      Line
-                    </button>
-                  </div>
                   <LightweightChart 
                     symbol={symbol} 
                     livePrice={currentPrice}
                     digits={currentAsset?.digits || 2}
                     chartType={chartType}
+                    setChartType={setChartType}
                     spread={currentSpread}
                   />
                 </>

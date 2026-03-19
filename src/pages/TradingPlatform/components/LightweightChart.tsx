@@ -6,10 +6,11 @@ interface LightweightChartProps {
   livePrice: number;
   digits?: number;
   chartType?: 'candlestick' | 'line';
+  setChartType: (type: 'candlestick' | 'line') => void;
   spread?: number;
 }
 
-const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, digits = 2, chartType = 'candlestick', spread = 0 }) => {
+const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, digits = 2, chartType = 'candlestick', setChartType, spread = 0 }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick" | "Area"> | null>(null);
@@ -263,6 +264,22 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
           <span className={`font-mono text-lg ${chartType === 'candlestick' ? (lastCandle?.close >= lastCandle?.open ? 'text-emerald-400' : 'text-red-400') : 'text-sky-400'}`}>
             {livePrice?.toFixed(digits) || '0.00'}
           </span>
+        </div>
+        
+        {/* أزرار نوع الشارت */}
+        <div className="flex bg-[#1e2329] rounded border border-white/5 w-fit">
+          <button 
+            onClick={() => setChartType('candlestick')}
+            className={`px-3 py-1 text-[10px] uppercase font-bold ${chartType === 'candlestick' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            Candles
+          </button>
+          <button 
+            onClick={() => setChartType('line')}
+            className={`px-3 py-1 text-[10px] uppercase font-bold ${chartType === 'line' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+          >
+            Line
+          </button>
         </div>
         <div className="flex gap-1">
           {['1m', '5m', '15m', '1h', '1d'].map(tf => (
