@@ -44,7 +44,7 @@ const PlatformEarnings: React.FC = () => {
             <th className="border p-2">Trade ID</th>
             <th className="border p-2">Username</th>
             <th className="border p-2">Asset</th>
-            <th className="border p-2">Profit</th>
+            <th className="border p-2">Net Profit ($)</th>
             <th className="border p-2">Date</th>
           </tr>
         </thead>

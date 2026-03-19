@@ -458,7 +458,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                     <td className="p-2">{p?.amount}</td>
                     <td className="p-2 font-mono">{p?.entry_price?.toFixed(assets?.find(a => a.symbol === p?.asset_symbol)?.digits || 2)}</td>
                     <td className="p-2 font-mono text-slate-400">0.00</td>
-                    <td className="p-2 font-mono text-slate-400">0.00</td>
+                    <td className="p-2 font-mono text-slate-400">{p?.comm ? `-${p.comm.toFixed(2)}` : '0.00'}</td>
                     <td className={`p-2 font-mono ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>
                       {profit.toFixed(2)}
                     </td>
