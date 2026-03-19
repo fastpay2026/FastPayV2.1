@@ -178,6 +178,25 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     const spreadAmount = 0.50; // 50 points * 0.01 = 0.50 (example)
     const totalDeduction = tradeAmount + spreadAmount;
     
+    // 1. جلب بيانات الوكيل (إذا وجد)
+    let agentProfit = 0;
+    let adminProfit = spreadAmount; // الافتراضي أن كل الربح للمنصة
+    let agentId = null;
+
+    if (user.referred_by) {
+      const { data: agent } = await supabase
+        .from('users')
+        .select('agent_percentage')
+        .eq('id', user.referred_by)
+        .single();
+
+      if (agent && agent.agent_percentage > 0) {
+        agentId = user.referred_by;
+        agentProfit = (spreadAmount * agent.agent_percentage) / 100;
+        adminProfit = spreadAmount - agentProfit;
+      }
+    }
+
     // Margin Calculation (1:100 Leverage)
     const contractSize = 100000;
     const requiredMargin = (volume * contractSize) / 100;
@@ -262,7 +281,11 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         user_id: user.id,
         username: user.username || 'User',
         asset_symbol: symbol,
-        amount: spreadAmount
+        amount: spreadAmount,
+        agent_id: agentId,
+        agent_profit: agentProfit,
+        admin_profit: adminProfit,
+        type: 'Trade Commission'
       }).then(({ error }) => {
         if (error) console.error('[TradingPlatform] Revenue Log Error:', error);
       });

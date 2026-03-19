@@ -20,6 +20,9 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
+  const [editingAgentUser, setEditingAgentUser] = useState<User | null>(null);
+  const [agentSettings, setAgentSettings] = useState({ is_agent: false, agent_percentage: 0, referred_by: '' });
 
   // Action Modal States
   const [actionModal, setActionModal] = useState<{
@@ -28,6 +31,14 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
     user: User | null;
     value: string;
   }>({ isOpen: false, type: null, user: null, value: '' });
+
+  const handleSaveAgentSettings = () => {
+    if (!editingAgentUser) return;
+    onUpdateUser({ ...editingAgentUser, ...agentSettings });
+    setIsAgentModalOpen(false);
+    setEditingAgentUser(null);
+    setAgentSettings({ is_agent: false, agent_percentage: 0, referred_by: '' });
+  };
 
   const handleSaveUser = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,6 +157,7 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
                         {u.status === 'active' ? t('suspend') : t('activate')}
                       </button>
                       <button onClick={() => { setEditingUser(u); setIsPasswordModalOpen(true); }} className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-indigo-600 hover:text-white transition-all">{t('password')}</button>
+                      <button onClick={() => { setEditingAgentUser(u); setAgentSettings({ is_agent: !!u.is_agent, agent_percentage: u.agent_percentage || 0, referred_by: u.referred_by || '' }); setIsAgentModalOpen(true); }} className="bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-600 hover:text-white transition-all">Agent</button>
                       <button onClick={() => setActionModal({ isOpen: true, type: 'delete', user: u, value: '' })} className="bg-red-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase shadow-lg hover:bg-red-500 transition-all">{t('delete')}</button>
                     </div>
                   </td>
@@ -263,6 +275,28 @@ const UserManagement: React.FC<Props> = ({ accounts, setAccounts, onAddUser, onU
               <button type="button" onClick={() => { setIsPasswordModalOpen(false); setEditingUser(null); }} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-lg hover:bg-white/10 transition-all">{t('cancel')}</button>
             </div>
           </form>
+        </div>
+      )}
+      {isAgentModalOpen && editingAgentUser && (
+        <div className="fixed inset-0 z-[320] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+          <div className="bg-[#111827] border border-white/10 w-full max-w-md rounded-[3rem] p-12 space-y-8 animate-in zoom-in text-center shadow-3xl">
+            <h3 className="text-3xl font-black tracking-tighter">Agent Settings: {editingAgentUser.fullName}</h3>
+            <div className="space-y-4 text-right">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={agentSettings.is_agent} onChange={e => setAgentSettings({ ...agentSettings, is_agent: e.target.checked })} className="w-5 h-5" />
+                Is Agent
+              </label>
+              <input type="number" value={agentSettings.agent_percentage} onChange={e => setAgentSettings({ ...agentSettings, agent_percentage: Number(e.target.value) })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white font-mono text-center" placeholder="Agent Percentage (%)" />
+              <select value={agentSettings.referred_by} onChange={e => setAgentSettings({ ...agentSettings, referred_by: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white">
+                <option value="">No Agent</option>
+                {accounts.filter(a => a.id !== editingAgentUser.id).map(a => <option key={a.id} value={a.id}>{a.username}</option>)}
+              </select>
+            </div>
+            <div className="flex gap-4 pt-4">
+              <button onClick={handleSaveAgentSettings} className="flex-1 py-4 bg-emerald-600 rounded-2xl font-black text-lg shadow-xl hover:bg-emerald-500 transition-all">Save</button>
+              <button onClick={() => { setIsAgentModalOpen(false); setEditingAgentUser(null); }} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-lg hover:bg-white/10 transition-all">Cancel</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -45,6 +45,9 @@ export interface User {
   assets?: UserAsset[];
   apiKeys?: APIKey[];
   isActive?: boolean;
+  is_agent?: boolean;
+  agent_percentage?: number;
+  referred_by?: string;
 }
 
 export interface TradeAsset {
