@@ -9,7 +9,7 @@ import { LayoutDashboard } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { supabaseService } from '../../../supabaseService';
 import { User, TradeAsset } from '../../../types';
-import { useNotification } from '../../../components/NotificationContext';
+import { useDynamicSpread } from '../../../hooks/useDynamicSpread';
 
 interface TradingPlatformProps {
   user: User;
@@ -28,12 +28,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   const [isConnected, setIsConnected] = useState(true);
   const [assetsLoading, setAssetsLoading] = useState(true);
   const [orderBook, setOrderBook] = useState<{ bids: [number, number][], asks: [number, number][] }>({ bids: [], asks: [] });
-  const [spreads, setSpreads] = useState<Record<string, number>>({});
+  const [spreads, setSpreads] = useState<Record<string, { value: number, mode: 'manual' | 'auto' }>>({});
   const { showNotification } = useNotification();
 
   const currentAsset = assets.find(a => a.symbol === symbol);
   const currentPrice = Number(currentAsset?.price || 0);
-  const currentSpread = spreads[symbol] || currentAsset?.spread || 0;
+  const currentSpreadConfig = spreads[symbol] || { value: currentAsset?.spread || 0, mode: 'manual' };
+  const dynamicSpread = useDynamicSpread(symbol, currentPrice, currentSpreadConfig.value, currentSpreadConfig.mode);
+  const currentSpread = dynamicSpread;
 
   // Initial data fetch
   useEffect(() => {

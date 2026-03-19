@@ -1,6 +1,6 @@
 import { supabase } from '../../supabaseClient';
 
-export const getSpreads = async (): Promise<Record<string, number>> => {
+export const getSpreads = async (): Promise<Record<string, { value: number, mode: 'manual' | 'auto' }>> => {
   const { data, error } = await supabase
     .from('site_config')
     .select('config')
@@ -8,10 +8,21 @@ export const getSpreads = async (): Promise<Record<string, number>> => {
     .single();
 
   if (error || !data) return {};
-  return data.config.spreads || {};
+  // ضمان التوافق مع الهيكلية القديمة والجديدة
+  const spreads = data.config.spreads || {};
+  const formattedSpreads: Record<string, { value: number, mode: 'manual' | 'auto' }> = {};
+  
+  Object.keys(spreads).forEach(key => {
+    const val = spreads[key];
+    formattedSpreads[key] = typeof val === 'number' 
+      ? { value: val, mode: 'manual' } 
+      : val;
+  });
+  
+  return formattedSpreads;
 };
 
-export const updateSpread = async (symbol: string, spread: number) => {
+export const updateSpread = async (symbol: string, spread: { value: number, mode: 'manual' | 'auto' }) => {
   const { data: currentConfig, error: fetchError } = await supabase
     .from('site_config')
     .select('config')
