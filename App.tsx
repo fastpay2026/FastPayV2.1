@@ -8,7 +8,7 @@ import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
 import DeveloperDashboard from './components/DeveloperDashboard';
 import MerchantDashboard from './components/MerchantDashboard';
-import AgentDashboard from './components/AgentDashboard';
+import AgentDashboard from './components/agent/AgentDashboard';
 import AgentLoginPortal from './components/AgentLoginPortal';
 import MerchantDealCreator from './components/MerchantDealCreator';
 import UserDashboard from './components/UserDashboard';
@@ -508,7 +508,7 @@ const App: React.FC = () => {
 
   const renderDashboard = () => {
     if (currentUser?.role === 'AGENT') {
-      return <AgentDashboard user={currentUser} />;
+      return <AgentDashboard currentUser={currentUser} accounts={accounts} />;
     }
     switch (currentUser?.role) {
       case 'DEVELOPER': 

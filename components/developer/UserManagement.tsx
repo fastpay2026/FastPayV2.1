@@ -23,6 +23,8 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
   const [newPassword, setNewPassword] = useState('');
   const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
   const [editingAgentUser, setEditingAgentUser] = useState<User | null>(null);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [editingUserForRole, setEditingUserForRole] = useState<User | null>(null);
   const [agentSettings, setAgentSettings] = useState({ is_agent: false, agent_percentage: 0, referred_by: '' });
 
   // Action Modal States
@@ -160,6 +162,7 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
                         {u.status === 'active' ? t('suspend') : t('activate')}
                       </button>
                       <button onClick={() => { setEditingUser(u); setIsPasswordModalOpen(true); }} className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-indigo-600 hover:text-white transition-all">{t('password')}</button>
+                      <button onClick={() => { setEditingUserForRole(u); setIsRoleModalOpen(true); }} className="bg-orange-600/20 text-orange-400 border border-orange-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-orange-600 hover:text-white transition-all">Role</button>
                       <button onClick={() => { setEditingAgentUser(u); setAgentSettings({ is_agent: !!u.is_agent, agent_percentage: u.agent_percentage || 0, referred_by: u.referred_by || '' }); setIsAgentModalOpen(true); }} className="bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-600 hover:text-white transition-all">Agent</button>
                       <button onClick={() => setActionModal({ isOpen: true, type: 'delete', user: u, value: '' })} className="bg-red-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase shadow-lg hover:bg-red-500 transition-all">{t('delete')}</button>
                     </div>
@@ -170,6 +173,42 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
           </table>
         </div>
       </div>
+
+      {/* Role Change Modal */}
+      {isRoleModalOpen && editingUserForRole && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+          <div className="bg-[#111827] border border-white/10 w-full max-w-md rounded-[2rem] p-8 space-y-6 animate-in zoom-in text-center shadow-3xl">
+            <h3 className="text-2xl font-black">Change Role for {editingUserForRole.fullName}</h3>
+            <select 
+              value={editingUserForRole.role} 
+              onChange={e => setEditingUserForRole({...editingUserForRole, role: e.target.value as Role})} 
+              className="w-full p-4 bg-black/40 border border-white/10 rounded-xl font-black text-sky-400 outline-none"
+            >
+              <option value="USER">مستخدم (User)</option>
+              <option value="ADMIN">مسؤول (Admin)</option>
+              <option value="MERCHANT">تاجر (Merchant)</option>
+              <option value="DISTRIBUTOR">موزع (Distributor)</option>
+              <option value="AGENT">وكيل (Agent)</option>
+              <option value="DEVELOPER">مطور (Developer)</option>
+              <option value="ACCOUNTANT">محاسب (Accountant)</option>
+              <option value="GUEST">ضيف (Guest)</option>
+            </select>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => {
+                  onUpdateUser(editingUserForRole);
+                  setIsRoleModalOpen(false);
+                  setEditingUserForRole(null);
+                }} 
+                className="flex-1 py-3 bg-emerald-600 rounded-xl font-black hover:bg-emerald-500"
+              >
+                Save
+              </button>
+              <button onClick={() => { setIsRoleModalOpen(false); setEditingUserForRole(null); }} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-xl font-black hover:bg-white/10">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add User Modal */}
       {isModalOpen && (
