@@ -43,9 +43,10 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
       return setError('اسم المستخدم يجب أن يتكون من 4 أحرف على الأقل');
     }
 
-    // Duplicate Username Check
+    // Duplicate Username Check (Case-Insensitive and trimmed)
+    const usernameTrimmed = formData.username.trim();
     const isDuplicate = accounts.some(
-      (acc) => acc.username.toLowerCase() === formData.username.trim().toLowerCase()
+      (acc) => acc.username.toLowerCase() === usernameTrimmed.toLowerCase()
     );
     if (isDuplicate) {
       return setError('عذراً، اسم المستخدم هذا محجوز مسبقاً، يرجى اختيار اسم آخر');
