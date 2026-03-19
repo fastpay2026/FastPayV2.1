@@ -197,6 +197,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
   }, [livePrice, symbol, chartType]);
 
   // Update Bid/Ask lines
+  /*
   useEffect(() => {
     if (!seriesRef.current || !livePrice) return;
 
@@ -225,6 +226,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
       title: 'Ask',
     });
   }, [livePrice, spread, digits]);
+  */
 
   // Tick simulation for smoothness
   useEffect(() => {

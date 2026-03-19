@@ -9,7 +9,8 @@ import { LayoutDashboard } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { supabaseService } from '../../../supabaseService';
 import { User, TradeAsset } from '../../../types';
-import { useDynamicSpread } from '../../../hooks/useDynamicSpread';
+import { useNotification } from '../../../components/NotificationContext';
+import { useDynamicSpread } from '../../hooks/useDynamicSpread';
 
 interface TradingPlatformProps {
   user: User;
