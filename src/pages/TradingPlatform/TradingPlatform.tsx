@@ -176,7 +176,6 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
 
     const tradeAmount = volume * executionPrice;
     const spreadAmount = 0.50; // 50 points * 0.01 = 0.50 (example)
-    const totalDeduction = tradeAmount + spreadAmount;
     
     // 1. جلب بيانات الوكيل (إذا وجد)
     let agentProfit = 0;
