@@ -9,9 +9,10 @@ interface AgentDashboardProps {
   onUpdateUser: (user: UserType) => Promise<void>;
   siteConfig: any;
   tradeOrders: TradeOrder[];
+  onLogout: () => void;
 }
 
-export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, accounts, onUpdateUser, siteConfig, tradeOrders }) => {
+export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, accounts, onUpdateUser, siteConfig, tradeOrders, onLogout }) => {
   const [transferAmount, setTransferAmount] = useState('');
   const [transferUser, setTransferUser] = useState('');
   const [qrCode, setQrCode] = useState('');
@@ -59,9 +60,16 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
 
   return (
     <div className="min-h-screen bg-[#0a0f1d] text-white p-8 animate-in fade-in duration-500">
+      {/* Logout Button */}
+      <div className="absolute top-8 right-8">
+        <button onClick={onLogout} className="flex items-center gap-2 px-6 py-3 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-2xl font-black transition-all border border-red-500/20">
+          <X className="w-5 h-5" /> Logout
+        </button>
+      </div>
+
       {/* Header with Centered Logo - Enlarged */}
-      <div className="flex justify-center mb-16">
-        <img src={siteConfig.logoUrl} alt="Logo" className="h-32 md:h-48 drop-shadow-2xl" />
+      <div className="flex justify-center mb-16 mt-16">
+        <img src={siteConfig.logoUrl} alt="Logo" className="h-40 md:h-64 drop-shadow-2xl" />
       </div>
 
       {/* Dashboard Grid */}

@@ -508,7 +508,7 @@ const App: React.FC = () => {
 
   const renderDashboard = () => {
     if (currentUser?.role === 'AGENT') {
-      return <AgentDashboard currentUser={currentUser} accounts={accounts} onUpdateUser={handleUpdateUser} siteConfig={siteConfig} tradeOrders={tradeOrders} />;
+      return <AgentDashboard currentUser={currentUser} accounts={accounts} onUpdateUser={handleUpdateUser} siteConfig={siteConfig} tradeOrders={tradeOrders} onLogout={handleLogout} />;
     }
     switch (currentUser?.role) {
       case 'DEVELOPER': 
