@@ -199,6 +199,7 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
                 {[
                   { r: 'DEVELOPER', label: t('executive_management'), icon: '⚡', color: 'from-sky-600 to-indigo-600', desc: t('network_management_desc') },
                   { r: 'DISTRIBUTOR', label: t('distributor_platform'), icon: '💼', color: 'from-amber-500 to-orange-600', desc: t('distributor_ops_desc') },
+                  { r: 'AGENT', label: 'Agent Portal', icon: '🕵️', color: 'from-purple-500 to-pink-600', desc: 'Agent secure access portal' },
                   { r: 'MERCHANT', label: t('merchant_suite'), icon: '🏪', color: 'from-teal-500 to-emerald-600', desc: t('merchant_deals_desc') },
                   { r: 'USER', label: t('digital_wallet'), icon: '👤', color: 'from-emerald-500 to-teal-600', desc: t('personal_payments_desc') }
                 ].map((item) => (

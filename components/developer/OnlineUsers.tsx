@@ -1,39 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import React from 'react';
 import { User } from '../../types';
 
 interface Props {
   user: User;
+  onlineUsers: { userId: string, username: string }[];
 }
 
-const OnlineUsers: React.FC<Props> = ({ user }) => {
-  const [onlineUsers, setOnlineUsers] = useState<{ userId: string, username: string }[]>([]);
-
-  useEffect(() => {
-    console.log('[OnlineUsers] User prop:', user);
-    if (!user || !user.id) return;
-    
-    const socket: Socket = io();
-    
-    socket.on('connect', () => {
-      console.log('[OnlineUsers] Connected to socket:', socket.id);
-      socket.emit('user:login', { userId: user.id, username: user.username });
-    });
-
-    socket.on('connect_error', (err) => {
-      console.error('[OnlineUsers] Connection error:', err);
-    });
-
-    socket.on('users:online', (users: { userId: string, username: string }[]) => {
-      console.log('[OnlineUsers] Received online users:', users);
-      setOnlineUsers(users);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [user]);
-
+const OnlineUsers: React.FC<Props> = ({ user, onlineUsers }) => {
   return (
     <div className="bg-[#0f172a] p-8 rounded-3xl border border-white/5 shadow-2xl">
       <h2 className="text-2xl font-black mb-6">Online Users</h2>

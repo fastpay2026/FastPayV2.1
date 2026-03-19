@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient';
-import { User } from '../types';
+import { supabase } from '../../supabaseClient';
+import { User } from '../../types';
 import { motion } from 'framer-motion';
 
 const AgentDashboard: React.FC<{ user: User }> = ({ user }) => {

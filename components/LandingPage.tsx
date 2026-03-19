@@ -177,13 +177,14 @@ const LandingPage: React.FC<Props> = ({
           <div className="hidden lg:flex space-x-reverse space-x-12 text-slate-400 font-black text-[13px] uppercase tracking-widest mx-12">
             {[
               { label: t('nav_home'), id: 'home' },
+              { label: 'Secure Access Portal', id: 'agent-login' },
               { label: t('raffle'), id: 'raffle-ad' },
               { label: t('nav_swift'), id: 'transfer-ad' },
               { label: t('nav_gateway'), id: 'gateway-ad' },
               { label: t('nav_transfer'), id: 'salary-ad' },
               { label: t('nav_trading'), id: 'trading-ad' }
             ].map((item, idx) => (
-              <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : scrollToSection(item.id)} className="hover:text-white transition-all relative py-2 group">
+              <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : item.id === 'agent-login' ? setCurrentPath('agent-login') : scrollToSection(item.id)} className="hover:text-white transition-all relative py-2 group">
                 {item.label}
                 <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-sky-500 group-hover:w-full transition-all duration-500"></span>
               </button>

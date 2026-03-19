@@ -69,15 +69,23 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
 
     // @ts-ignore
     if ((navigator as any).usb) {
-      (navigator as any).usb.addEventListener('connect', handleUsbConnect);
-      (navigator as any).usb.addEventListener('disconnect', handleUsbDisconnect);
+      try {
+        (navigator as any).usb.addEventListener('connect', handleUsbConnect);
+        (navigator as any).usb.addEventListener('disconnect', handleUsbDisconnect);
+      } catch (e) {
+        // Ignore errors if USB is blocked
+      }
     }
 
     return () => {
       // @ts-ignore
       if ((navigator as any).usb) {
-        (navigator as any).usb.removeEventListener('connect', handleUsbConnect);
-        (navigator as any).usb.removeEventListener('disconnect', handleUsbDisconnect);
+        try {
+          (navigator as any).usb.removeEventListener('connect', handleUsbConnect);
+          (navigator as any).usb.removeEventListener('disconnect', handleUsbDisconnect);
+        } catch (e) {
+          // Ignore errors
+        }
       }
     };
   }, []);
@@ -137,8 +145,12 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
         setConnectedDevice(null);
         addNotification('Verification Failed', 'This USB key is not registered for your account.', 'error');
       }
-    } catch (error) {
-      console.error("Manual USB Verify Error:", error);
+    } catch (error: any) {
+      if (error.name === 'SecurityError' || error.message?.includes('permissions policy')) {
+        addNotification('USB Blocked', "WebUSB is blocked by browser security policy. Please open the app in a new tab.", 'error');
+      } else if (error.name !== 'NotFoundError') {
+        console.error("Manual USB Verify Error:", error);
+      }
     } finally {
       setIsCheckingKey(false);
     }
@@ -180,8 +192,12 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
         setIsKeyVerified(false);
         setConnectedDevice(null);
       }
-    } catch (error) {
-      console.error("USB Check Error:", error);
+    } catch (error: any) {
+      if (error.name === 'SecurityError' || error.message?.includes('permissions policy')) {
+        // Suppress SecurityError as it's expected in iframe without usb permission
+      } else {
+        console.error("USB Check Error:", error);
+      }
     } finally {
       setIsCheckingKey(false);
     }

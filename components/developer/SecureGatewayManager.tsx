@@ -80,11 +80,10 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
       try {
         await navigator.usb.getDevices();
       } catch (e: any) {
-        if (e.name === 'SecurityError') {
+        if (e.name === 'SecurityError' || e.message?.includes('permissions policy')) {
           throw new Error("WebUSB access is blocked by the browser's security policy (often due to iframe restrictions). Please open the app in a new tab to use this feature.");
         }
         // If it's another error, we might still be able to proceed, or it might be a real error.
-        console.warn("WebUSB getDevices check failed, but proceeding:", e);
       }
 
       const device = await navigator.usb.requestDevice({ filters: [] });

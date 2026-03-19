@@ -67,6 +67,7 @@ interface Props {
   setAdExchangeItems: React.Dispatch<React.SetStateAction<AdExchangeItem[]>>;
   adNegotiations: AdNegotiation[];
   setAdNegotiations: React.Dispatch<React.SetStateAction<AdNegotiation[]>>;
+  onlineUsers: { userId: string, username: string }[];
 }
 
 const DeveloperDashboard: React.FC<Props> = ({ 
@@ -77,7 +78,8 @@ const DeveloperDashboard: React.FC<Props> = ({
   tradeOrders, setTradeOrders, rechargeCards, setRechargeCards, raffleEntries, setRaffleEntries,
   raffleWinners, setRaffleWinners, fixedDeposits, setFixedDeposits,
   verificationRequests, setVerificationRequests,
-  adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
+  adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations,
+  onlineUsers
 }) => {
   console.log('[DeveloperDashboard] User prop:', user);
   const { t } = useI18n();
@@ -264,7 +266,7 @@ const handleManualSync = async () => {
             <LogoUploader onLogoUploaded={(url) => onUpdateConfig({ ...siteConfig, logoUrl: url })} />
           </div>
         )}
-        {activeTab === 'online_users' && <OnlineUsers user={user} />}
+        {activeTab === 'online_users' && <OnlineUsers user={user} onlineUsers={onlineUsers} />}
         {activeTab === 'spread_manager' && <SpreadManager tradeAssets={tradeAssets} />}
         {activeTab === 'platform_profits' && <PlatformEarnings />}
         {activeTab === 'activity_log' && <ActivityLog />}

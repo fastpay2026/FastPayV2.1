@@ -1,5 +1,5 @@
 
-export type Role = 'DEVELOPER' | 'ADMIN' | 'MERCHANT' | 'USER' | 'ACCOUNTANT' | 'DISTRIBUTOR' | 'GUEST';
+export type Role = 'DEVELOPER' | 'ADMIN' | 'MERCHANT' | 'USER' | 'ACCOUNTANT' | 'DISTRIBUTOR' | 'GUEST' | 'AGENT';
 
 export interface BankCard {
   id: string;

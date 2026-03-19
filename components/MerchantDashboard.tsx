@@ -11,7 +11,6 @@ import DistributorGatewayManager from './merchant/DistributorGatewayManager';
 import UnderDevelopment from './UnderDevelopment';
 import LanguageSwitcher from './LanguageSwitcher';
 import Logo from '../src/components/Logo';
-import LogoGenerator from '../src/components/LogoGenerator';
 
 interface Props {
   user: User;
@@ -347,226 +346,128 @@ header('Location: ' . $payment->checkout_url);`
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex flex-col bg-[#0a0a0a] text-white font-sans overflow-hidden" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="fixed inset-0 z-[150] flex bg-[#0a0a0a] text-white font-sans overflow-hidden" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="absolute inset-0 bg-mesh opacity-20 pointer-events-none"></div>
 
-      {/* Currency Ticker */}
-      <div className="h-12 bg-black/40 backdrop-blur-md border-b border-white/5 overflow-hidden flex items-center z-20">
-         <div className="flex animate-marquee whitespace-nowrap gap-12 px-6">
-            {Array(3).fill(currencies).flat().map((c, i) => (
-              <div key={i} className="flex items-center gap-3">
-                 <span className="text-[10px] font-black text-slate-500 uppercase">{c.pair}</span>
-                 <span className="text-sm font-black text-white">{c.rate}</span>
-                 <span className={`text-[10px] font-bold ${c.color}`}>{c.trend}</span>
-              </div>
-            ))}
-         </div>
-      </div>
-
-      <header className="h-20 md:h-28 bg-[#161a1e]/50 backdrop-blur-2xl border-b border-white/5 px-4 md:px-12 flex justify-between items-center z-[200]">
-         <div className="flex items-center gap-4 md:gap-8">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-white text-2xl p-2">
-               {isMobileMenuOpen ? '✕' : '☰'}
-            </button>
-            {siteConfig.logoUrl && (
-              <div className="p-2 md:p-3 rounded-xl md:rounded-2xl cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveView('main')}>
-                 <Logo siteConfig={siteConfig} className="h-6 md:h-10" />
-              </div>
-            )}
-            <div className="space-y-1 hidden md:block">
-               <h1 className="text-xl md:text-2xl font-black tracking-tighter">{t('merchant_dashboard')}</h1>
-               <nav className="flex gap-4 md:gap-6">
-                  {[
-                    { id: 'main', l: t('home') },
-                    { id: 'usdt_gateway', l: t('usdt_gateway_status') },
-                    { id: 'gateway', l: t('developer_portal_title') },
-                    { id: 'ads', l: t('ad_exchange') },
-                    { id: 'verification', l: t('account_verification') },
-                    { id: 'settings', l: t('account_settings') }
-                 ].map((view) => (
-                   <button 
-                     key={view.id}
-                     onClick={() => setActiveView(view.id as any)} 
-                     className={`text-[9px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all pb-1 border-b-2 ${activeView === view.id ? 'text-sky-400 border-sky-400' : 'text-slate-500 border-transparent hover:text-white'}`}
-                   >
-                     {view.l}
-                   </button>
-                 ))}
-               </nav>
-            </div>
-         </div>
-         <div className="flex items-center gap-3 md:gap-6">
-            <div className="text-left hidden lg:block border-l border-white/10 pl-6 mr-6">
-               <p className="font-black text-white text-lg flex items-center gap-2">
-                 {user.fullName}
-                 {user.isVerified && <BadgeCheck className="w-5 h-5 fill-[#1877F2] text-white" />}
-               </p>
-               <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">{t('distributor_level')}</p>
-            </div>
-            <button onClick={onLogout} className="px-4 md:px-8 py-2 md:py-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl md:rounded-2xl font-black text-xs md:text-base hover:bg-red-600 hover:text-white transition-all active:scale-95 shadow-lg">{t('logout')}</button>
-         </div>
-      </header>
-
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-[190] bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="absolute top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
-            {[
-              { id: 'main', l: t('home'), i: '🏠' },
-              { id: 'usdt_gateway', l: t('usdt_gateway_status'), i: '🛡️' },
-              { id: 'gateway', l: t('developer_portal_title'), i: '🔌' },
-              { id: 'ads', l: t('ad_exchange'), i: '📢' },
-              { id: 'verification', l: t('account_verification'), i: '🛡️' },
-              { id: 'settings', l: t('account_settings'), i: '⚙️' }
-            ].map(v => (
-              <button 
-                key={v.id} 
-                onClick={() => { setActiveView(v.id as any); setIsMobileMenuOpen(false); }} 
-                className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black transition-all ${activeView === v.id ? 'bg-sky-600 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
-              >
-                <span className="text-2xl">{v.i}</span>
-                <span className="text-base">{v.l}</span>
-              </button>
-            ))}
-          </div>
+      {/* Sidebar Navigation */}
+      <aside className="w-64 bg-[#161a1e]/80 border-r border-white/5 flex flex-col z-[200]">
+        <div className="p-8">
+           <h1 className="text-2xl font-black tracking-tighter text-center text-white">FASTPAY</h1>
         </div>
-      )}
+        <nav className="flex-1 px-4 space-y-2">
+          {[
+            { id: 'main', l: t('home'), i: '🏠' },
+            { id: 'usdt_gateway', l: t('usdt_gateway_status'), i: '🛡️' },
+            { id: 'gateway', l: t('developer_portal_title'), i: '🔌' },
+            { id: 'ads', l: t('ad_exchange'), i: '📢' },
+            { id: 'verification', l: t('account_verification'), i: '🛡️' },
+            { id: 'settings', l: t('account_settings'), i: '⚙️' }
+          ].map((view) => (
+            <button 
+              key={view.id}
+              onClick={() => setActiveView(view.id as any)} 
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-black transition-all ${activeView === view.id ? 'bg-sky-600 text-white' : 'text-slate-500 hover:bg-white/5 hover:text-white'}`}
+            >
+              <span className="text-xl">{view.i}</span>
+              {view.l}
+            </button>
+          ))}
+        </nav>
+        <div className="p-6 border-t border-white/5">
+           <button onClick={onLogout} className="w-full px-6 py-4 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl font-black hover:bg-red-600 hover:text-white transition-all">{t('logout')}</button>
+        </div>
+      </aside>
 
-      <main className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar z-10 relative space-y-8 md:space-y-12 pb-40">
-         {activeView === 'main' && (
-            isServiceDisabled('cards') ? <UnderDevelopment /> : (
-           <div className="max-w-[1600px] mx-auto space-y-12">
-               <div className="bg-[#111827] p-8 rounded-3xl border border-white/10">
-                 <h3 className="text-2xl font-black mb-6">{t('logo_management')}</h3>
-                 <LogoGenerator />
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="h-20 bg-[#161a1e]/50 backdrop-blur-2xl border-b border-white/5 px-12 flex justify-between items-center z-[200]">
+           <div className="flex items-center gap-4">
+             <h2 className="text-2xl font-black tracking-tighter">{t('merchant_dashboard')}</h2>
+           </div>
+           <div className="flex items-center gap-8">
+             <div className="text-right">
+                <p className="font-black text-white text-lg flex items-center gap-2">
+                  {user.fullName}
+                  {user.isVerified && <BadgeCheck className="w-5 h-5 fill-[#1877F2] text-white" />}
+                </p>
+                <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">{t('distributor_level')}</p>
+             </div>
+             {siteConfig.logoUrl && (
+               <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity border-white/10 rtl:border-r rtl:pr-8 ltr:border-l ltr:pl-8" onClick={() => setActiveView('main')}>
+                 <Logo siteConfig={siteConfig} className="h-12 w-12 object-contain" />
                </div>
-               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
-                  <div className="lg:col-span-2 bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/10 rounded-3xl md:rounded-[4rem] p-8 md:p-16 shadow-2xl relative overflow-hidden group">
-                     <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
-                     <div className="relative z-10 space-y-8 md:space-y-12">
-                        <div>
-                           <p className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-4">{t('available_liquidity_usdt')}</p>
-                           <h2 className="text-5xl md:text-8xl font-black tracking-tighter">${user.balance.toLocaleString()}</h2>
+             )}
+           </div>
+        </header>
+
+        <div className="flex-1 p-12 overflow-y-auto custom-scrollbar z-10 relative space-y-12 pb-40">
+           {/* Financial Cards */}
+           {activeView === 'main' && (
+             <div className="space-y-8 animate-in slide-in-from-bottom duration-500">
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Main Balance Card */}
+                  <div className="lg:col-span-2 bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/10 rounded-[2rem] p-10 shadow-2xl relative overflow-hidden flex flex-col justify-between">
+                     <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                     <div>
+                       <p className="text-sky-400 font-black text-sm uppercase tracking-[0.2em] mb-2">{t('available_liquidity_usdt')}</p>
+                       <h2 className="text-6xl md:text-7xl font-black tracking-tighter text-white">${user.balance.toLocaleString()}</h2>
+                     </div>
+                     <div className="flex flex-col sm:flex-row gap-4 mt-10 relative z-10">
+                        <button onClick={() => setModalType('cards')} className="flex-1 py-4 bg-emerald-600 text-white rounded-xl font-black text-lg shadow-lg hover:bg-emerald-500 transition-all active:scale-95 flex items-center justify-center gap-3">
+                           <span className="text-2xl">💳</span> {t('issue_cards')}
+                        </button>
+                        <button onClick={() => setModalType('send')} className="flex-1 py-4 bg-white/5 border border-white/10 text-white rounded-xl font-black text-lg hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-3">
+                           <span className="text-2xl">💸</span> {t('direct_transfer')}
+                        </button>
+                     </div>
+                  </div>
+                  
+                  {/* Quick Stats Summary */}
+                  <div className="bg-[#0f172a]/80 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8 shadow-xl flex flex-col justify-center gap-6 relative overflow-hidden">
+                     <div className="absolute bottom-0 left-0 w-40 h-40 bg-emerald-500/5 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
+                     <div className="flex items-center justify-between border-b border-white/5 pb-6 relative z-10">
+                        <div className="flex items-center gap-5">
+                           <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-2xl shadow-inner">✅</div>
+                           <div>
+                              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('successful_operations')}</p>
+                              <p className="text-3xl font-black text-emerald-400">{myGeneratedCards.filter(c=>c.isUsed).length}</p>
+                           </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row flex-wrap gap-4 md:gap-6">
-                           <button onClick={() => setModalType('cards')} className="flex-1 py-6 md:py-8 bg-emerald-600 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl shadow-2xl shadow-emerald-900/40 hover:bg-emerald-500 transition-all flex items-center justify-center gap-4 active:scale-95 group">
-                              <span>{t('issue_cards')}</span>
-                              <span className="text-2xl md:text-3xl group-hover:rotate-12 transition-transform">🎫</span>
-                           </button>
-                           <button onClick={() => setModalType('send')} className="flex-1 py-6 md:py-8 bg-white/5 border border-white/10 text-white rounded-2xl md:rounded-[2.5rem] font-black text-xl md:text-2xl backdrop-blur-xl hover:bg-white/10 transition-all flex items-center justify-center gap-4 active:scale-95 group">
-                              <span>{t('direct_transfer')}</span>
-                              <span className="text-2xl md:text-3xl group-hover:translate-x-[-10px] transition-transform">📤</span>
-                           </button>
+                     </div>
+                     <div className="flex items-center justify-between pt-2 relative z-10">
+                        <div className="flex items-center gap-5">
+                           <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl shadow-inner">💰</div>
+                           <div>
+                              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('sales_revenue')}</p>
+                              <p className="text-3xl font-black text-amber-400">${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}</p>
+                           </div>
                         </div>
                      </div>
                   </div>
-                  <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                     {[
-                        { l: t('total_cards'), v: myGeneratedCards.length, i: '📦', c: 'text-white' },
-                        { l: t('active_stock'), v: myGeneratedCards.filter(c=>!c.isUsed).length, i: '⚡', c: 'text-sky-400' },
-                        { l: t('successful_operations'), v: myGeneratedCards.filter(c=>c.isUsed).length, i: '✅', c: 'text-emerald-500' },
-                        { l: t('sales_revenue'), v: `$${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}`, i: '💰', c: 'text-amber-500' }
-                     ].map((stat, idx) => (
-                       <div key={idx} className="p-6 md:p-10 bg-[#0f172a]/60 backdrop-blur-xl border border-white/5 rounded-2xl md:rounded-[3rem] shadow-xl hover:border-sky-500/30 transition-all group">
-                          <div className="flex justify-between items-start mb-4 md:mb-6">
-                             <span className="text-3xl md:text-4xl group-hover:scale-110 transition-transform">{stat.i}</span>
-                             <p className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{stat.l}</p>
-                          </div>
-                          <p className={`text-3xl md:text-4xl font-black ${stat.c}`}>{stat.v}</p>
+               </div>
+
+               {/* Secondary Stats Row */}
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {[
+                     { l: t('total_cards'), v: myGeneratedCards.length, i: '📦', c: 'text-white' },
+                     { l: t('active_stock'), v: myGeneratedCards.filter(c=>!c.isUsed).length, i: '⚡', c: 'text-sky-400' },
+                     { l: t('successful_operations'), v: myGeneratedCards.filter(c=>c.isUsed).length, i: '✅', c: 'text-emerald-500' },
+                     { l: t('sales_revenue'), v: `$${myGeneratedCards.filter(c=>c.isUsed).reduce((a,b)=>a+b.amount, 0).toLocaleString()}`, i: '💰', c: 'text-amber-500' }
+                  ].map((stat, idx) => (
+                    <div key={idx} className="p-6 bg-[#0f172a]/60 backdrop-blur-xl border border-white/5 rounded-2xl shadow-lg hover:border-sky-500/30 transition-all flex items-center gap-5 group">
+                       <div className="w-14 h-14 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">{stat.i}</div>
+                       <div>
+                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{stat.l}</p>
+                          <p className={`text-2xl font-black ${stat.c}`}>{stat.v}</p>
                        </div>
-                     ))}
-                  </div>
+                    </div>
+                  ))}
                </div>
+             </div>
+           )}
 
-               <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
-                  <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                     <h3 className="text-2xl md:text-4xl font-black tracking-tighter flex items-center gap-4">
-                        <span>📊</span> {t('card_sales_log')}
-                     </h3>
-                     <div className="w-full md:w-96 relative">
-                        <input 
-                          type="text"
-                          placeholder={t('search_placeholder_card_user')}
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-full p-4 md:p-5 pl-14 bg-white/5 border border-white/10 rounded-2xl font-bold text-white outline-none focus:border-sky-500 transition-all shadow-inner"
-                        />
-                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-xl opacity-40">🔍</span>
-                     </div>
-                  </div>
-
-                  <div className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 rounded-2xl md:rounded-[4rem] overflow-hidden shadow-2xl overflow-x-auto custom-scrollbar">
-                     <table className="w-full text-right min-w-[1000px]">
-                        <thead className="bg-white/5 text-[10px] md:text-[11px] font-black uppercase text-slate-500 tracking-[0.2em] border-b border-white/5">
-                           <tr>
-                              <th className="p-6 md:p-10">{t('card_code')}</th>
-                              <th className="p-6 md:p-10">{t('value')}</th>
-                              <th className="p-6 md:p-10">{t('status')}</th>
-                              <th className="p-6 md:p-10">{t('beneficiary')}</th>
-                              <th className="p-6 md:p-10">{t('creation_time')}</th>
-                              <th className="p-6 md:p-10">{t('usage_time')}</th>
-                              <th className="p-6 md:p-10 text-center">{t('control')}</th>
-                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5 font-bold">
-                           {myGeneratedCards.length > 0 ? (
-                             myGeneratedCards.slice().reverse().map((c) => (
-                                <tr key={c.code} className="group hover:bg-white/5 transition-all">
-                                   <td className="p-6 md:p-10">
-                                      <div className="flex items-center gap-4">
-                                         <code className="bg-black/60 px-4 md:px-6 py-2 md:py-3 rounded-xl text-sky-400 font-black tracking-[0.1em] md:tracking-[0.2em] text-xs md:text-sm border border-white/5 shadow-inner group-hover:text-white group-hover:bg-sky-600 transition-all">{c.code}</code>
-                                         <button onClick={() => copyToClipboard(c.code)} className="p-2 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all text-xs" title={t('copy_code')}>📋</button>
-                                      </div>
-                                   </td>
-                                   <td className="p-6 md:p-10 text-2xl md:text-3xl font-black text-white">${c.amount.toLocaleString()}</td>
-                                   <td className="p-6 md:p-10">
-                                      <span className={`px-4 md:px-6 py-1.5 md:py-2.5 rounded-full text-[9px] md:text-[10px] font-black border transition-colors ${c.isUsed ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}`}>
-                                         {c.isUsed ? t('used') : t('available_for_sale')}
-                                      </span>
-                                   </td>
-                                   <td className="p-6 md:p-10">
-                                      {c.isUsed ? (
-                                        <div className="flex flex-col gap-1">
-                                          <span className="text-white text-lg md:text-xl">@{c.usedBy}</span>
-                                        </div>
-                                      ) : (
-                                        <span className="text-slate-700 italic text-sm">— {t('not_used')} —</span>
-                                      )}
-                                   </td>
-                                   <td className="p-6 md:p-10 text-[10px] md:text-xs text-slate-500 font-mono">
-                                      {new Date(c.createdAt).toLocaleString(language === 'ar' ? 'ar-SA' : language === 'fr' ? 'fr-FR' : 'en-US')}
-                                   </td>
-                                   <td className="p-6 md:p-10 text-[10px] md:text-xs font-mono">
-                                      {c.isUsed && c.usedAt ? <span className="text-emerald-400">{new Date(c.usedAt).toLocaleString(language === 'ar' ? 'ar-SA' : language === 'fr' ? 'fr-FR' : 'en-US')}</span> : <span className="text-slate-600">...</span>}
-                                   </td>
-                                   <td className="p-6 md:p-10 text-center">
-                                      {!c.isUsed && (
-                                        <button 
-                                          onClick={() => handleCancelCard(c)}
-                                          className="px-3 md:px-4 py-1.5 md:py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg md:rounded-xl font-black text-[9px] md:text-[10px] hover:bg-red-600 hover:text-white transition-all active:scale-95"
-                                          title={t('cancel_card_desc')}
-                                        >
-                                          {t('cancel')}
-                                        </button>
-                                      )}
-                                   </td>
-                                </tr>
-                             ))
-                           ) : (
-                             <tr>
-                                <td colSpan={7} className="p-20 md:p-40 text-center opacity-30">
-                                   <div className="text-6xl md:text-[8rem]">📋</div>
-                                   <p className="font-black text-xl md:text-2xl">{t('no_cards_yet')}</p>
-                                </td>
-                             </tr>
-                           )}
-                        </tbody>
-                     </table>
-                  </div>
-               </div>
-            </div>
-            )
-         )}
+           {/* Other Views... */}
 
          {activeView === 'gateway' && (
             isServiceDisabled('cards') ? <UnderDevelopment /> : (
@@ -759,6 +660,7 @@ header('Location: ' . $payment->checkout_url);`
               </div>
            </div>
          )}
+         </div>
       </main>
 
       {modalType === 'send' && (

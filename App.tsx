@@ -8,6 +8,8 @@ import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
 import DeveloperDashboard from './components/DeveloperDashboard';
 import MerchantDashboard from './components/MerchantDashboard';
+import AgentDashboard from './components/AgentDashboard';
+import AgentLoginPortal from './components/AgentLoginPortal';
 import MerchantDealCreator from './components/MerchantDealCreator';
 import UserDashboard from './components/UserDashboard';
 import { NotificationProvider } from './components/NotificationContext';
@@ -123,6 +125,8 @@ const App: React.FC = () => {
   ]);
   const accountsRef = useRef<User[]>(accounts);
 
+  const [onlineUsers, setOnlineUsers] = useState<{ userId: string, username: string }[]>([]);
+
   useEffect(() => {
     if (currentUserId) {
       const socket = io();
@@ -130,6 +134,11 @@ const App: React.FC = () => {
       if (user) {
         socket.emit('user:login', { userId: user.id, username: user.username });
       }
+      
+      socket.on('users:online', (users: { userId: string, username: string }[]) => {
+        setOnlineUsers(users);
+      });
+
       return () => {
         socket.disconnect();
       };
@@ -493,10 +502,14 @@ const App: React.FC = () => {
     withdrawalRequests, setWithdrawalRequests,
     rechargeCards, setRechargeCards, raffleEntries, setRaffleEntries, raffleWinners, setRaffleWinners,
     fixedDeposits, setFixedDeposits, verificationRequests, setVerificationRequests,
-    adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
+    adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations,
+    onlineUsers
   };
 
   const renderDashboard = () => {
+    if (currentUser?.role === 'AGENT') {
+      return <AgentDashboard user={currentUser} />;
+    }
     switch (currentUser?.role) {
       case 'DEVELOPER': 
       case 'ADMIN': return <DeveloperDashboard {...commonProps} />;
@@ -534,6 +547,12 @@ const App: React.FC = () => {
 
         {currentUser ? (
           renderDashboard()
+        ) : currentPath === 'agent-login' ? (
+          <AgentLoginPortal 
+            onLogin={(u) => { setCurrentUserId(u.id); }} 
+            accounts={accounts} 
+            siteConfig={siteConfig} 
+          />
         ) : (
           <>
             <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
