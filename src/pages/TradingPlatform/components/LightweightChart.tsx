@@ -6,12 +6,15 @@ interface LightweightChartProps {
   livePrice: number;
   digits?: number;
   chartType?: 'candlestick' | 'line';
+  spread?: number;
 }
 
-const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, digits = 2, chartType = 'candlestick' }) => {
+const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, digits = 2, chartType = 'candlestick', spread = 0 }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick" | "Area"> | null>(null);
+  const bidLineRef = useRef<any>(null);
+  const askLineRef = useRef<any>(null);
   const [lastCandle, setLastCandle] = useState<any>(null);
   const lastCandleRef = useRef<any>(null);
   const [timeframe, setTimeframe] = useState('1m');
@@ -192,6 +195,36 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
       });
     }
   }, [livePrice, symbol, chartType]);
+
+  // Update Bid/Ask lines
+  useEffect(() => {
+    if (!seriesRef.current || !livePrice) return;
+
+    const spreadValue = (spread || 0) * Math.pow(10, -digits);
+    const bid = livePrice - spreadValue;
+    const ask = livePrice + spreadValue;
+
+    if (bidLineRef.current) seriesRef.current.removePriceLine(bidLineRef.current);
+    if (askLineRef.current) seriesRef.current.removePriceLine(askLineRef.current);
+
+    bidLineRef.current = seriesRef.current.createPriceLine({
+      price: bid,
+      color: '#ef5350',
+      lineWidth: 1,
+      lineStyle: 2,
+      axisLabelVisible: true,
+      title: 'Bid',
+    });
+
+    askLineRef.current = seriesRef.current.createPriceLine({
+      price: ask,
+      color: '#26a69a',
+      lineWidth: 1,
+      lineStyle: 2,
+      axisLabelVisible: true,
+      title: 'Ask',
+    });
+  }, [livePrice, spread, digits]);
 
   // Tick simulation for smoothness
   useEffect(() => {

@@ -28,10 +28,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   const [isConnected, setIsConnected] = useState(true);
   const [assetsLoading, setAssetsLoading] = useState(true);
   const [orderBook, setOrderBook] = useState<{ bids: [number, number][], asks: [number, number][] }>({ bids: [], asks: [] });
+  const [spreads, setSpreads] = useState<Record<string, number>>({});
   const { showNotification } = useNotification();
 
   const currentAsset = assets.find(a => a.symbol === symbol);
   const currentPrice = Number(currentAsset?.price || 0);
+  const currentSpread = spreads[symbol] || currentAsset?.spread || 0;
 
   // Initial data fetch
   useEffect(() => {
@@ -42,12 +44,19 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         fetchWallet(),
         fetchInitialPositions(),
         fetchAssets(),
-        fetchInitialTrades()
+        fetchInitialTrades(),
+        fetchSpreads()
       ]);
     };
     
     init();
   }, [user?.id]);
+
+  const fetchSpreads = async () => {
+    const { getSpreads } = await import('../../services/spreadService');
+    const data = await getSpreads();
+    setSpreads(data);
+  };
 
   // Real-time synchronization
   useEffect(() => {
@@ -134,7 +143,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     const price = currentPrice;
     if (!currentAsset) return;
     
-    const spreadValue = (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2));
+    const spreadValue = (currentSpread || 0) * Math.pow(10, -(currentAsset.digits || 2));
     const executionPrice = type === 'Buy' ? price + spreadValue : price - spreadValue;
 
     // إضافة فحص للتأكد من وجود user.id
@@ -350,6 +359,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                     livePrice={currentPrice}
                     digits={currentAsset?.digits || 2}
                     chartType={chartType}
+                    spread={currentSpread}
                   />
                 </>
               )}
@@ -357,8 +367,15 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
             <LiveMarketFeed trades={trades} />
           </div>
           <div className="w-64 bg-[#161a1e] border-l border-white/10 p-4 flex flex-col gap-4">
-            <div className={`text-3xl font-mono font-bold ${priceColor}`}>
-              {Number(currentPrice || 0).toFixed(currentAsset?.digits || 2)}
+            <div className="flex flex-col gap-1">
+              <div className="text-xs text-slate-400 font-bold uppercase">Bid</div>
+              <div className={`text-2xl font-mono font-bold text-red-400`}>
+                {(currentPrice - (currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2))).toFixed(currentAsset?.digits || 2)}
+              </div>
+              <div className="text-xs text-slate-400 font-bold uppercase mt-2">Ask</div>
+              <div className={`text-2xl font-mono font-bold text-emerald-400`}>
+                {(currentPrice + (currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2))).toFixed(currentAsset?.digits || 2)}
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] text-slate-400 font-bold uppercase">Lot Size</label>

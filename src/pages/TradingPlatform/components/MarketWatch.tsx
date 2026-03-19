@@ -138,10 +138,11 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex flex-col items-end">
-                        <span className={`text-xs font-mono font-bold transition-all duration-300 ${
-                          isSelected ? 'text-sky-400' : 'text-white'
-                        }`}>
-                          {Number(asset.price || 0).toFixed(asset.type === 'forex' ? 5 : 2)}
+                        <span className={`text-[9px] font-mono font-bold text-red-400`}>
+                          {(Number(asset.price || 0) - (asset.spread || 0) * Math.pow(10, -(asset.type === 'forex' ? 5 : 2))).toFixed(asset.type === 'forex' ? 5 : 2)}
+                        </span>
+                        <span className={`text-[9px] font-mono font-bold text-emerald-400`}>
+                          {(Number(asset.price || 0) + (asset.spread || 0) * Math.pow(10, -(asset.type === 'forex' ? 5 : 2))).toFixed(asset.type === 'forex' ? 5 : 2)}
                         </span>
                       </div>
                     </td>
