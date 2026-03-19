@@ -76,7 +76,7 @@ export const supabaseService = {
       if (user.assets !== undefined) userData.assets = Array.isArray(user.assets) ? user.assets : [];
       if (user.apiKeys !== undefined) userData.api_keys = Array.isArray(user.apiKeys) ? user.apiKeys : [];
       if (user.isActive !== undefined) userData.status = user.isActive ? 'active' : 'disabled';
-      if (user.referred_by !== undefined) userData.referred_by = String(user.referred_by);
+      if (user.referred_by !== undefined && user.referred_by !== null && user.referred_by !== 'null') userData.referred_by = String(user.referred_by);
 
       console.log('supabaseService: Upserting userData:', userData);
 
