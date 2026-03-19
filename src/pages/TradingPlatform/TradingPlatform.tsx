@@ -399,8 +399,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       <div className="w-80 flex flex-col">
         <MarketWatch onSelectAsset={setSymbol} selectedSymbol={symbol} assets={assets} loading={assetsLoading} />
       </div>
-      <div className="flex-1 flex flex-col">
-        <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4">
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4 shrink-0">
           <div className="flex items-center gap-2 text-[10px] text-emerald-500 font-bold uppercase">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -417,7 +417,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
             ))}
           </div>
         </div>
-        <div className="flex-1 flex">
+        <div className="flex-1 flex min-h-0">
           <div className="flex-1 p-2 flex flex-col min-h-0">
             <div className="flex-1 min-h-0 relative">
               {assetsLoading ? (
@@ -439,7 +439,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
             </div>
             <LiveMarketFeed trades={trades} />
           </div>
-          <div className="w-64 bg-[#161a1e] border-l border-white/10 p-4 flex flex-col gap-4">
+          <div className="w-64 bg-[#161a1e] border-l border-white/10 p-4 flex flex-col gap-4 shrink-0">
             <div className="flex flex-col gap-1">
               <div className="text-xs text-slate-400 font-bold uppercase">Bid</div>
               <div className={`text-2xl font-mono font-bold text-red-400`}>
@@ -497,7 +497,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
             </div>
           </div>
         </div>
-        <div className="h-48 bg-[#161a1e] border-t border-white/10 overflow-y-auto">
+        <div className="h-48 bg-[#161a1e] border-t border-white/10 overflow-y-auto shrink-0">
           <table className="w-full text-xs text-left">
             <thead className="bg-[#1e2329] text-slate-400 sticky top-0">
               <tr>
@@ -530,7 +530,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                     <td className="p-2">{p?.amount}</td>
                     <td className="p-2 font-mono">{p?.entry_price?.toFixed(asset?.digits || 2)}</td>
                     <td className="p-2 font-mono text-slate-400">0.00</td>
-                    <td className="p-2 font-mono text-slate-400">{p?.platform_revenues?.[0]?.amount ? `-${p.platform_revenues[0].amount.toFixed(2)}` : '0.00'}</td>
+                    <td className="p-2 font-mono text-slate-400">{p?.platform_revenues?.[0]?.amount ? `-${p.platform_revenues[0].amount.toFixed(2)}` : (currentSpread ? `-${(currentSpread * p.amount * 1000).toFixed(2)}` : '0.00')}</td>
                     <td className={`p-2 font-mono ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>
                       {profit.toFixed(2)}
                     </td>
@@ -549,7 +549,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
           </table>
         </div>
         {/* Trading Status Bar */}
-        <div className="h-10 bg-[#1e2329] border-t border-white/10 flex items-center px-4 gap-6 text-[11px] font-mono text-slate-300">
+        <div className="h-10 bg-[#1e2329] border-t border-white/10 flex items-center px-4 gap-6 text-[11px] font-mono text-slate-300 shrink-0">
           <div>Balance: <span className="text-white">{balance.balance.toFixed(2)}$</span></div>
           <div>Equity: <span className={tradingStatus.equity >= balance.balance ? 'text-emerald-400' : 'text-red-400'}>{tradingStatus.equity.toFixed(2)}$</span></div>
           <div>Margin: <span className="text-white">{tradingStatus.margin.toFixed(2)}$</span></div>
