@@ -78,6 +78,17 @@ export interface TradeOrder {
   forced_take_profit?: number;
   forced_stop_loss?: number;
   timestamp: string;
+  comm?: number;
+}
+
+export interface PlatformRevenue {
+  id: string;
+  tradeId: string;
+  userId: string;
+  username: string;
+  assetSymbol: string;
+  amount: number;
+  timestamp: string;
 }
 
 export interface DepositPlan {

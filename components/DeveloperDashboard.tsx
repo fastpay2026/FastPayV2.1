@@ -18,6 +18,7 @@ import DrawManager from './developer/DrawManager';
 import SiteIdentity from './developer/SiteIdentity';
 import MerchantEscrowManager from './developer/MerchantEscrowManager';
 import SpreadManager from '../src/components/developer/SpreadManager';
+import PlatformEarnings from '../src/pages/Dashboard/PlatformEarnings';
 import OnlineUsers from './developer/OnlineUsers';
 import ActivityLog from './developer/ActivityLog';
 import { AdminVerificationReview } from './VerificationManager';
@@ -79,7 +80,7 @@ const DeveloperDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator' | 'online_users' | 'activity_log' | 'spread_manager'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator' | 'online_users' | 'activity_log' | 'spread_manager' | 'platform_profits'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -173,6 +174,7 @@ const handleManualSync = async () => {
             { id: 'logo_generator', l: 'Logo Generator', i: '🎨', canDisable: false },
             { id: 'online_users', l: 'Online Users', i: '🟢', canDisable: false },
             { id: 'spread_manager', l: 'Spread Manager', i: '📈', canDisable: false },
+            { id: 'platform_profits', l: 'Platform Profits', i: '💰', canDisable: false },
             { id: 'activity_log', l: 'Activity Log', i: '📜', canDisable: false }
           ].map(tab => {
             const isDisabled = siteConfig.disabledServices?.includes(tab.id);
@@ -263,6 +265,7 @@ const handleManualSync = async () => {
         )}
         {activeTab === 'online_users' && <OnlineUsers user={user} />}
         {activeTab === 'spread_manager' && <SpreadManager tradeAssets={tradeAssets} />}
+        {activeTab === 'platform_profits' && <PlatformEarnings />}
         {activeTab === 'activity_log' && <ActivityLog />}
       </main>
 

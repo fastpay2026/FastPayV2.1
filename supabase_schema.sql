@@ -205,7 +205,8 @@ CREATE TABLE IF NOT EXISTS trade_orders (
     forced_take_profit DECIMAL(20, 8),
     forced_stop_loss DECIMAL(20, 8),
     closed_at TIMESTAMP WITH TIME ZONE,
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    comm DECIMAL(20, 2) DEFAULT 0
 );
 
 -- Ensure columns exist if table was created before
@@ -214,6 +215,20 @@ ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS is_bot_enabled BOOLEAN DEFAULT
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS bot_config JSONB DEFAULT '{}';
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS bot_category TEXT;
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS target_close_time TIMESTAMP WITH TIME ZONE;
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS comm DECIMAL(20, 2) DEFAULT 0;
+
+-- 16. Platform Revenues
+CREATE TABLE IF NOT EXISTS platform_revenues (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    trade_id UUID REFERENCES trade_orders(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    username TEXT NOT NULL,
+    asset_symbol TEXT NOT NULL,
+    amount DECIMAL(20, 2) NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE platform_revenues ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations on platform_revenues" ON platform_revenues FOR ALL USING (true) WITH CHECK (true);
 
 -- 16. Landing Services
 CREATE TABLE IF NOT EXISTS landing_services (

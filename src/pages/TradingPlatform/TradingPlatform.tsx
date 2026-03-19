@@ -157,6 +157,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     }
 
     const tradeAmount = volume * executionPrice;
+    const spreadAmount = 0.50; // 50 points * 0.01 = 0.50 (example)
+    const totalDeduction = tradeAmount + spreadAmount;
     
     // إضافة فحص للتأكد من أن حجم التداول أكبر من صفر
     if (volume <= 0) {
@@ -167,19 +169,19 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     
     // استخدام الرصيد الحالي من الـ props مباشرة
     const currentBalance = user.balance || 0;
-    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, tradeAmount, userBalance: currentBalance, user_id: user.id });
+    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, tradeAmount, spreadAmount, totalDeduction, userBalance: currentBalance, user_id: user.id });
     
-    if (currentBalance < tradeAmount) {
+    if (currentBalance < totalDeduction) {
       console.log('[TradingPlatform] Insufficient balance!');
-      alert("الرصيد غير كافٍ!");
+      alert("الرصيد غير كافٍ لتغطية الصفقة والسبريد!");
       return;
     }
 
     // 2. Deduct amount
-    console.log('[TradingPlatform] Deducting balance:', { oldBalance: currentBalance, tradeAmount, newBalance: currentBalance - tradeAmount });
+    console.log('[TradingPlatform] Deducting balance:', { oldBalance: currentBalance, totalDeduction, newBalance: currentBalance - totalDeduction });
     const { error: updateError } = await supabase
       .from('users')
-      .update({ balance: currentBalance - tradeAmount })
+      .update({ balance: currentBalance - totalDeduction })
       .eq('id', user.id);
       
     if (updateError) {
@@ -188,7 +190,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       return;
     }
     console.log('[TradingPlatform] Balance deducted successfully.');
-    updateUserBalance(user.id, currentBalance - tradeAmount);
+    updateUserBalance(user.id, currentBalance - totalDeduction);
     await fetchWallet();
 
     console.log('[TradingPlatform] Attempting trade:', { user_id: user.id, symbol, type, volume, executionPrice });
@@ -201,7 +203,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       amount: volume, 
       entry_price: executionPrice, 
       status: 'open',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      comm: spreadAmount
     }).select().single();
 
     if (error) {
@@ -213,6 +216,15 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       alert(`فشل تنفيذ الصفقة: ${error.message} (كود: ${error.code})`);
     } else {
       console.log('[TradingPlatform] Trade inserted successfully:', data);
+      
+      // Insert into platform_revenues
+      await supabase.from('platform_revenues').insert({
+        trade_id: data.id,
+        user_id: user.id,
+        username: user.username || 'User',
+        asset_symbol: symbol,
+        amount: spreadAmount
+      });
       
       // Play sound on success
       const tradeSound = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
@@ -445,7 +457,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                     <td className="p-2">{p?.amount}</td>
                     <td className="p-2 font-mono">{p?.entry_price?.toFixed(assets?.find(a => a.symbol === p?.asset_symbol)?.digits || 2)}</td>
                     <td className="p-2 font-mono text-slate-400">0.00</td>
-                    <td className="p-2 font-mono text-slate-400">0.00</td>
+                    <td className="p-2 font-mono text-slate-400">{p?.comm?.toFixed(2) || '0.00'}</td>
                     <td className={`p-2 font-mono ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>
                       {profit.toFixed(2)}
                     </td>
