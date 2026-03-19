@@ -197,9 +197,10 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       }
     }
 
-    // Margin Calculation (1:100 Leverage)
+    // Margin Calculation (Leverage)
+    const leverage = 100; // يمكن جلبها من قاعدة البيانات لاحقاً
     const contractSize = 100000;
-    const requiredMargin = (volume * contractSize) / 100;
+    const requiredMargin = (volume * contractSize) / leverage;
 
     // Safety Lock: Check Free Margin
     const totalPnL = positions.reduce((acc, p) => {
@@ -208,13 +209,15 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       const pnl = (price - p.entry_price) * p.amount * (p.type === 'buy' ? 1 : -1);
       return acc + pnl;
     }, 0);
+    
     const equity = (user.balance || 0) + totalPnL;
-    const totalMargin = positions.reduce((acc, p) => acc + (p.required_margin || 0), 0);
+    const totalMargin = positions.reduce((acc, p) => acc + (Number(p.required_margin) || 0), 0);
     const freeMargin = equity - totalMargin;
 
+    // التحقق من الهامش المتاح قبل فتح الصفقة
     if (freeMargin < requiredMargin) {
-      console.log('[TradingPlatform] Not enough money (Margin)!');
-      alert('Not enough money (Margin)');
+      console.log('[TradingPlatform] Not enough Free Margin!');
+      alert('الهامش المتاح غير كافٍ لفتح هذه الصفقة');
       return;
     }
     
@@ -227,11 +230,15 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     
     // استخدام الرصيد الحالي من الـ props مباشرة
     const currentBalance = user.balance || 0;
+    
+    // السبريد يُخصم فور فتح الصفقة
+    const totalDeduction = spreadAmount; 
+    
     console.log('[TradingPlatform] Trade check:', { volume, executionPrice, tradeAmount, spreadAmount, totalDeduction, userBalance: currentBalance, user_id: user.id });
     
     if (currentBalance < totalDeduction) {
-      console.log('[TradingPlatform] Insufficient balance!');
-      alert("الرصيد غير كافٍ لتغطية الصفقة والسبريد!");
+      console.log('[TradingPlatform] Insufficient balance for spread!');
+      alert("الرصيد غير كافٍ لتغطية السبريد!");
       return;
     }
 
