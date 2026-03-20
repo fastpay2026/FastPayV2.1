@@ -11,6 +11,7 @@ import { supabaseService } from '../../../supabaseService';
 import { User, TradeAsset } from '../../../types';
 import { useNotification } from '../../../components/NotificationContext';
 import { useDynamicSpread } from '../../hooks/useDynamicSpread';
+import { calculateAgentCommission } from '../../../services/commissionService';
 
 interface TradingPlatformProps {
   user: User;
@@ -229,7 +230,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
 
       if (agent && agent.agent_percentage > 0) {
         agentId = user.referred_by;
-        agentProfit = (commission * agent.agent_percentage) / 100;
+        agentProfit = calculateAgentCommission(agent.agent_percentage, commission);
         adminProfit = commission - agentProfit;
       }
     }

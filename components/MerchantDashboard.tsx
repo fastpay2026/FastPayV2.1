@@ -42,7 +42,7 @@ const MerchantDashboard: React.FC<Props> = ({
   console.log('[MerchantDashboard] User:', user);
   console.log('[MerchantDashboard] User verificationStatus:', user.verificationStatus);
   const { t, language } = useI18n();
-  const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'usdt_gateway' | 'verification' | 'ads' | 'agent_lottery'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'usdt_gateway' | 'verification' | 'ads'>('main');
   const [modalType, setModalType] = useState<'send' | 'cards' | 'new_key' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
@@ -364,7 +364,6 @@ header('Location: ' . $payment->checkout_url);`
             { id: 'gateway', l: t('developer_portal_title'), i: '🔌' },
             { id: 'ads', l: t('ad_exchange'), i: '📢' },
             { id: 'verification', l: t('account_verification'), i: '🛡️' },
-            { id: 'agent_lottery', l: 'قرعة الوكيل', i: '🎟️' },
             { id: 'settings', l: t('account_settings'), i: '⚙️' }
           ].map((view) => (
             <button 
@@ -615,10 +614,7 @@ header('Location: ' . $payment->checkout_url);`
            )
          )}
 
-         {activeView === 'agent_lottery' && (
-          <AgentLotteryDashboard user={user} />
-        )}
-        {activeView === 'settings' && (
+         {activeView === 'settings' && (
            <div className="max-w-4xl mx-auto animate-in slide-in-from-bottom duration-500 space-y-8 md:space-y-12">
               <h2 className="text-4xl md:text-6xl font-black tracking-tighter">{t('merchant_settings_title')}</h2>
               
