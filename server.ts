@@ -224,7 +224,7 @@ async function startServer() {
         for (const asset of yahooAssets) {
           try {
             const yahooSymbol = symbolMap[asset.symbol] || asset.symbol;
-            const quote = await yahooFinance.quote(yahooSymbol);
+            const quote = await yahooFinance.quote(yahooSymbol) as any;
             
             if (quote && quote.regularMarketPrice) {
               let currentPrice = quote.regularMarketPrice;

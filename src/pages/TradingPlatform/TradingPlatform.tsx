@@ -18,6 +18,12 @@ interface TradingPlatformProps {
 }
 
 const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalance }) => {
+  const getPrecision = (s: string): number => {
+    if (s.includes('USD')) return 5;
+    if (['XAUUSD', 'WTI', 'XAGUSD'].includes(s)) return 2;
+    return 2;
+  };
+
   const [symbol, setSymbol] = useState('EURUSD');
   const [chartType, setChartType] = useState<'candlestick' | 'line'>('candlestick');
   const [volume, setVolume] = useState(0.1);
@@ -161,11 +167,40 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   };
 
   const handleTrade = async (type: 'Buy' | 'Sell') => {
-    const price = currentPrice;
-    if (!currentAsset) return;
+    console.log('[TradingPlatform] handleTrade started:', { type, symbol, volume, currentPrice, currentSpread });
+
+    if (!symbol) {
+      console.error('[TradingPlatform] Symbol is missing!');
+      alert("رمز الأصل غير محدد.");
+      return;
+    }
+
+    if (!volume || volume <= 0) {
+      console.error('[TradingPlatform] Invalid volume:', volume);
+      alert("يرجى تحديد حجم صفقة صحيح.");
+      return;
+    }
+
+    const { data: assetData, error: assetError } = await supabase
+      .from('trade_assets')
+      .select('price')
+      .eq('symbol', symbol)
+      .single();
+
+    if (assetError || !assetData) {
+      console.error('[TradingPlatform] Failed to fetch precise asset price:', assetError);
+      alert("فشل جلب سعر الأصل. يرجى المحاولة مرة أخرى.");
+      return;
+    }
+
+    const precision = getPrecision(symbol);
+    const price = Number(assetData.price);
     
-    const spreadValue = (currentSpread || 0) * Math.pow(10, -(currentAsset.digits || 2));
+    // استخدام السبريد من الحالة المحلية بدلاً من قاعدة البيانات
+    const spreadValue = (currentSpread || 0) * Math.pow(10, -precision);
     const executionPrice = type === 'Buy' ? price + spreadValue : price - spreadValue;
+
+    console.log('[TradingPlatform] Execution details:', { price, spreadValue, executionPrice });
 
     // إضافة فحص للتأكد من وجود user.id
     if (!user || !user.id) {
@@ -432,7 +467,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                     <LightweightChart 
                       symbol={symbol} 
                       livePrice={currentPrice}
-                      digits={currentAsset?.digits || 2}
+                      digits={getPrecision(symbol)}
                       chartType={chartType}
                       setChartType={setChartType}
                       spread={currentSpread}
@@ -473,7 +508,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                             <td className="p-2 font-bold text-white">{p?.asset_symbol}</td>
                             <td className={`p-2 font-bold uppercase ${(p?.type || 'buy') === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p?.type}</td>
                             <td className="p-2">{p?.amount}</td>
-                            <td className="p-2 font-mono">{p?.entry_price?.toFixed(asset?.digits || 2)}</td>
+                            <td className="p-2 font-mono">{p?.entry_price?.toFixed(getPrecision(p.asset_symbol))}</td>
                             <td className="p-2 font-mono text-slate-400">0.00</td>
                             <td className="p-2 font-mono text-slate-400">{p?.bot_config?.commission ? `-${Number(p.bot_config.commission).toFixed(2)}` : '0.00'}</td>
                             <td className={`p-2 font-mono ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>
@@ -508,11 +543,11 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
               <div className="flex flex-col gap-1">
                 <div className="text-xs text-slate-400 font-bold uppercase">Bid</div>
                 <div className={`text-2xl font-mono font-bold text-red-400`}>
-                  {(currentPrice).toFixed(currentAsset?.digits || 2)}
+                  {(currentPrice).toFixed(getPrecision(symbol))}
                 </div>
                 <div className="text-xs text-slate-400 font-bold uppercase mt-2">Ask</div>
                 <div className={`text-2xl font-mono font-bold text-emerald-400`}>
-                  {(currentPrice + ((currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2)))).toFixed(currentAsset?.digits || 2)}
+                  {(currentPrice + (currentSpread || 0)).toFixed(getPrecision(symbol))}
                 </div>
               </div>
               <div className="space-y-2">
@@ -546,7 +581,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                 >
                   BUY
                   <span className="text-[10px] opacity-80 font-normal">
-                    {currentAsset ? (currentPrice + ((currentSpread || 0) * Math.pow(10, -(currentAsset.digits || 2)))).toFixed(currentAsset.digits || 2) : '---'}
+                    {currentAsset 
+                      ? (currentPrice + (currentSpread || 0)).toFixed(getPrecision(symbol))
+                      : '---'}
                   </span>
                 </button>
                 <button 
@@ -556,7 +593,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                 >
                   SELL
                   <span className="text-[10px] opacity-80 font-normal">
-                    {currentAsset ? (currentPrice).toFixed(currentAsset.digits || 2) : '---'}
+                    {currentAsset ? (currentPrice).toFixed(getPrecision(symbol)) : '---'}
                   </span>
                 </button>
               </div>
