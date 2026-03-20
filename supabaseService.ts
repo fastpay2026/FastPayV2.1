@@ -350,11 +350,19 @@ export const supabaseService = {
   async uploadDocument(file: File, userId: string): Promise<string> {
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
+    
+    console.log('[Supabase Storage] Attempting to upload to verification_documents:', fileName);
+    
     const { data, error } = await supabase.storage
       .from('verification_documents')
       .upload(fileName, file);
 
-    if (error) throw error;
+    if (error) {
+      console.error('[Supabase Storage] Upload Error Details:', error);
+      throw error;
+    }
+    
+    console.log('[Supabase Storage] Upload successful:', data.path);
     return data.path;
   },
 
