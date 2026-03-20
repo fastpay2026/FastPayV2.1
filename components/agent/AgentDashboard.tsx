@@ -148,7 +148,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
           <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl">
             <h3 className="text-xl font-black mb-6">Verification</h3>
             <p className="text-slate-400 mb-6">Upload your documents to verify your account.</p>
-            <button className="flex items-center justify-center gap-2 w-full py-4 bg-sky-600 rounded-2xl font-black hover:bg-sky-500 transition-all">
+            <button onClick={() => alert('Feature coming soon: Document upload functionality is currently being implemented.')} className="flex items-center justify-center gap-2 w-full py-4 bg-sky-600 rounded-2xl font-black hover:bg-sky-500 transition-all">
               <Upload className="w-5 h-5" /> Upload Documents
             </button>
           </div>
