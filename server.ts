@@ -7,6 +7,9 @@ import cors from 'cors';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { createServer } from 'http';
+import YahooFinance from 'yahoo-finance2';
+const yahooFinance = new YahooFinance();
+import ccxt from 'ccxt';
 
 console.log('Server: Process starting...');
 if (!pkg) {
@@ -164,9 +167,11 @@ async function startServer() {
   const runPriceFeed = async () => {
     console.log('[Price Feed] Master Sync started with Dual-Routing (Binance + Yahoo Finance).');
     
-    const syncBinancePrices = async () => {
+    const binance = new ccxt.binance();
+
+    const syncCryptoPrices = async () => {
       try {
-        lastPriceUpdate.status = 'syncing_binance';
+        lastPriceUpdate.status = 'syncing_crypto';
         const { data: assets, error: assetsError } = await supabase.from('trade_assets').select('*');
         if (assetsError) throw assetsError;
         if (!assets || assets.length === 0) return;
@@ -175,33 +180,13 @@ async function startServer() {
 
         for (const asset of cryptoAssets) {
           try {
-            const binanceSymbol = asset.symbol.toUpperCase().replace('USD', 'USDT');
-            const response = await fetchWithRetry(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`);
+            const symbol = asset.symbol.toUpperCase().replace('USD', '/USDT');
+            const ticker = await binance.fetchTicker(symbol);
             
-            if (!response.ok) {
-              console.warn(`[Binance] Request failed for ${asset.symbol}: ${response.status} ${response.statusText}`);
-              continue;
-            }
-
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-              console.warn(`[Binance] Expected JSON but got ${contentType} for ${asset.symbol}`);
-              continue;
-            }
-
-            const data = await response.json();
-            
-            if (data && data.lastPrice) {
-              const currentPrice = parseFloat(data.lastPrice);
-              const change24h = parseFloat(data.priceChangePercent);
-              
-              // تطبيق تذبذب وهمي لضمان حركة السعر
-              const jitter = (Math.random() - 0.5) * (currentPrice * 0.00005);
-              const noisyPrice = currentPrice + jitter;
-              
+            if (ticker && ticker.last) {
               await supabase.from('trade_assets').update({
-                price: noisyPrice,
-                change_24h: change24h,
+                price: ticker.last,
+                change_24h: ticker.percentage,
                 is_frozen: false
               }).eq('id', asset.id);
             }
@@ -236,45 +221,13 @@ async function startServer() {
           'WTI': 'CL=F'
         };
 
-        const GOLD_ADJUSTMENT = 5.0; // معامل تصحيح سعر الذهب
-
         for (const asset of yahooAssets) {
           try {
-            let yahooSymbol = symbolMap[asset.symbol] || asset.symbol;
-            console.log(`[Yahoo] Fetching ${asset.symbol} as ${yahooSymbol}...`);
+            const yahooSymbol = symbolMap[asset.symbol] || asset.symbol;
+            const quote = await yahooFinance.quote(yahooSymbol);
             
-            // إضافة محاولة ثانية مع تأخير بسيط في حال فشل الطلب الأول
-            let response = await fetchWithRetry(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}`);
-
-            if (!response.ok) {
-              console.error(`[Yahoo] Failed to fetch ${asset.symbol} (${yahooSymbol}): ${response.statusText}`);
-              continue;
-            }
-
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-              console.warn(`[Yahoo] Expected JSON but got ${contentType} for ${asset.symbol}`);
-              continue;
-            }
-
-            const data = await response.json();
-            
-            if (data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta && data.chart.result[0].meta.regularMarketPrice) {
-              let currentPrice = data.chart.result[0].meta.regularMarketPrice;
-              console.log(`[Yahoo] Successfully fetched ${asset.symbol}: ${currentPrice}`);
-              
-              // 2. إضافة معامل التصحيح للذهب
-              if (asset.symbol === 'XAUUSD') {
-                currentPrice += GOLD_ADJUSTMENT;
-              }
-
-              // 4. نظام التذبذب الوهمي (Jittering)
-              const jitter = (Math.random() - 0.5) * (currentPrice * 0.00005);
-              currentPrice += jitter;
-
-              // 3. معالجة الكسور (Precision)
-              const precision = asset.symbol === 'XAUUSD' ? 2 : 5;
-              currentPrice = parseFloat(currentPrice.toFixed(precision));
+            if (quote && quote.regularMarketPrice) {
+              let currentPrice = quote.regularMarketPrice;
               
               await supabase.from('trade_assets').update({
                 price: currentPrice,
@@ -292,9 +245,9 @@ async function startServer() {
       }
     };
 
-    // Run Binance immediately then every 1s
-    syncBinancePrices();
-    setInterval(syncBinancePrices, 1000);
+    // Run Crypto immediately then every 1s
+    syncCryptoPrices();
+    setInterval(syncCryptoPrices, 1000);
 
     // Run Yahoo Finance immediately then every 3s
     syncYahooFinancePrices();

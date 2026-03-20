@@ -15,6 +15,7 @@
     "@supabase/supabase-js": "^2.97.0",
     "axios": "^1.13.5",
     "binance-connector-node": "^0.0.1-security",
+    "ccxt": "^4.5.44",
     "clsx": "^2.1.1",
     "cors": "^2.8.6",
     "crypto-js": "^4.2.0",
