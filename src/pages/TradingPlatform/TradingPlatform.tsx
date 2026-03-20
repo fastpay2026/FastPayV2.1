@@ -96,12 +96,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       })
       .subscribe();
 
-    // 4. Fallback Polling (Ensures UI is ALWAYS up-to-date every 3 seconds)
+    // 4. Fallback Polling (Ensures UI is ALWAYS up-to-date every 200ms)
     const pollingInterval = setInterval(() => {
         console.log('[Polling] Syncing trades and positions...');
         fetchInitialTrades();
         fetchInitialPositions();
-    }, 3000);
+    }, 200);
 
     // 2. Wallet Subscription
     const walletChannel = supabase
@@ -508,11 +508,11 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
               <div className="flex flex-col gap-1">
                 <div className="text-xs text-slate-400 font-bold uppercase">Bid</div>
                 <div className={`text-2xl font-mono font-bold text-red-400`}>
-                  {(currentPrice - (currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2))).toFixed(currentAsset?.digits || 2)}
+                  {(currentPrice - ((currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2))) / 2).toFixed(currentAsset?.digits || 2)}
                 </div>
                 <div className="text-xs text-slate-400 font-bold uppercase mt-2">Ask</div>
                 <div className={`text-2xl font-mono font-bold text-emerald-400`}>
-                  {(currentPrice + (currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2))).toFixed(currentAsset?.digits || 2)}
+                  {(currentPrice + ((currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2))) / 2).toFixed(currentAsset?.digits || 2)}
                 </div>
               </div>
               <div className="space-y-2">
@@ -546,7 +546,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                 >
                   BUY
                   <span className="text-[10px] opacity-80 font-normal">
-                    {currentAsset ? (currentPrice + (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2))).toFixed(currentAsset.digits || 2) : '---'}
+                    {currentAsset ? (currentPrice + ((currentSpread || 0) * Math.pow(10, -(currentAsset.digits || 2))) / 2).toFixed(currentAsset.digits || 2) : '---'}
                   </span>
                 </button>
                 <button 
@@ -556,7 +556,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                 >
                   SELL
                   <span className="text-[10px] opacity-80 font-normal">
-                    {currentAsset ? (currentPrice - (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2))).toFixed(currentAsset.digits || 2) : '---'}
+                    {currentAsset ? (currentPrice - ((currentSpread || 0) * Math.pow(10, -(currentAsset.digits || 2))) / 2).toFixed(currentAsset.digits || 2) : '---'}
                   </span>
                 </button>
               </div>
