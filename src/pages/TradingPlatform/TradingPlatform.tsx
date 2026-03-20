@@ -331,7 +331,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         agent_id: agentId,
         agent_profit: agentProfit,
         admin_profit: adminProfit,
-        type: 'Trade Commission'
+        type: 'Trade Commission',
+        timestamp: new Date().toISOString() // Ensure timestamp is included
       }).then(async ({ error }) => {
         if (error) {
           console.error('[TradingPlatform] Revenue Log Error:', error);
@@ -454,7 +455,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[#0b0e11] text-slate-300 font-sans overflow-hidden">
+    <div className="flex flex-col md:flex-row h-[100dvh] bg-[#0b0e11] text-slate-300 font-sans overflow-hidden">
         <div className="flex-1 flex flex-col min-h-0">
           {/* Compact Header */}
           <div className="h-10 bg-[#161a1e] border-b border-white/10 flex items-center px-2 gap-2 shrink-0">
