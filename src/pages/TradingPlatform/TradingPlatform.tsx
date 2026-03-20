@@ -11,7 +11,7 @@ import { supabaseService } from '../../../supabaseService';
 import { User, TradeAsset } from '../../../types';
 import { useNotification } from '../../../components/NotificationContext';
 import { useDynamicSpread } from '../../hooks/useDynamicSpread';
-import { calculateAgentCommission } from '../../../services/commissionService';
+import { calculateAgentCommission } from '../../services/commissionService';
 
 interface TradingPlatformProps {
   user: User;
