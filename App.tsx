@@ -130,11 +130,13 @@ const App: React.FC = () => {
   useEffect(() => {
     if (currentUserId) {
       console.log('[App] Connecting socket for user:', currentUserId);
-      const socket = io(window.location.origin, {
+      const socketUrl = window.location.origin.replace(/^http/, 'ws');
+      const socket = io(socketUrl, {
         transports: ['websocket', 'polling'],
         reconnectionAttempts: 10,
         reconnectionDelay: 1000,
-        withCredentials: true
+        withCredentials: true,
+        secure: true
       });
       
       socket.on('connect', () => {
