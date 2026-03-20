@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { User, DollarSign, Users, Activity, ShieldAlert, Send, FileCheck, Upload, QrCode, X } from 'lucide-react';
 import { User as UserType, TradeOrder, Transaction } from '../../types';
+import { supabaseService } from '../../supabaseService';
 
 interface AgentDashboardProps {
   currentUser: UserType | null;
