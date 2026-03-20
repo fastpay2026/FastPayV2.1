@@ -331,7 +331,6 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         agent_id: agentId,
         agent_profit: agentProfit,
         admin_profit: adminProfit,
-        type: 'Trade Commission',
         timestamp: new Date().toISOString() // Ensure timestamp is included
       }).then(async ({ error }) => {
         if (error) {
