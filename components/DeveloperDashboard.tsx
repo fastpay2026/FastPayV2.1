@@ -212,7 +212,7 @@ const handleManualSync = async () => {
         <div className="lg:hidden fixed inset-0 z-[170] bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
       )}
 
-      <main className="flex-1 flex flex-col overflow-y-auto p-6 md:p-12 custom-scrollbar relative">
+      <main className="flex-1 flex flex-col overflow-y-auto p-6 md:p-12 custom-scrollbar relative w-full max-w-full overflow-x-hidden">
         {activeTab === 'home' && <StatsOverview accounts={accounts} withdrawalRequests={withdrawalRequests} tradeOrders={tradeOrders} siteConfig={siteConfig} onManualSync={handleManualSync} isSyncing={isSyncing} />}
         {activeTab === 'users' && <UserManagement accounts={accounts} setAccounts={setAccounts} onAddUser={onAddUser} onUpdateUser={onUpdateUser} />}
         {activeTab === 'withdrawals' && <SwiftManager withdrawalRequests={withdrawalRequests} setWithdrawalRequests={setWithdrawalRequests} accounts={accounts} setAccounts={setAccounts} onUpdateUser={onUpdateUser} addNotification={addNotification} setTransactions={setTransactions} />}
