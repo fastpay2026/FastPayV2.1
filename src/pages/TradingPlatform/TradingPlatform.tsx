@@ -340,15 +340,17 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
           // Update agent balance
           if (agentId && agentProfit > 0) {
             console.log('[TradingPlatform] Attempting to update agent balance via RPC:', { agentId, agentProfit });
+            
+            // استدعاء دالة SQL المباشرة لتحديث الرصيد
             const { error: rpcError } = await supabase.rpc('increment_agent_balance', {
-              p_user_id: agentId,
+              p_agent_id: agentId,
               p_amount: agentProfit
             });
             
             if (rpcError) {
               console.error('[TradingPlatform] FAILED to update agent balance via RPC:', rpcError);
             } else {
-              console.log('[TradingPlatform] Agent balance updated successfully via RPC.');
+              console.log('[TradingPlatform] Agent balance updated successfully via RPC for Agent:', agentId);
             }
           }
 
