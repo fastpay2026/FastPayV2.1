@@ -34,6 +34,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   const [trades, setTrades] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(true);
   const [assetsLoading, setAssetsLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Add sidebar state
   const [orderBook, setOrderBook] = useState<{ bids: [number, number][], asks: [number, number][] }>({ bids: [], asks: [] });
   const [spreads, setSpreads] = useState<Record<string, { value: number, mode: 'manual' | 'auto' }>>({});
   const { showNotification } = useNotification();
@@ -453,50 +454,49 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   };
 
   return (
-    <div className="flex h-screen bg-[#0b0e11] text-slate-300 font-sans overflow-hidden">
-        <div className="w-80 flex flex-col">
-          <MarketWatch onSelectAsset={setSymbol} selectedSymbol={symbol} assets={assets} loading={assetsLoading} />
-        </div>
+    <div className="flex flex-col md:flex-row h-screen bg-[#0b0e11] text-slate-300 font-sans overflow-hidden">
         <div className="flex-1 flex flex-col min-h-0">
-          <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4 shrink-0">
-            <div className="flex items-center gap-2 text-[10px] text-emerald-500 font-bold uppercase">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              Server: FastPay-London (Connected)
-            </div>
-            <LayoutDashboard size={20} className="text-sky-400" />
-            <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
-              {(assets || []).slice(0, 5).map(a => (
-                <span key={a.id} className="mx-4">
+          {/* Compact Header */}
+          <div className="h-10 bg-[#161a1e] border-b border-white/10 flex items-center px-2 gap-2 shrink-0">
+            <button className="md:hidden p-1" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              <LayoutDashboard size={18} className="text-white" />
+            </button>
+            <div className="flex-1 text-[10px] font-mono overflow-hidden whitespace-nowrap">
+              {(assets || []).slice(0, 3).map(a => (
+                <span key={a.id} className="mx-2">
                   {a.symbol}: <span className={(a.change_24h || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}>{Number(a.price || 0).toFixed(a.type === 'forex' ? 5 : 2)}</span>
                 </span>
               ))}
             </div>
           </div>
-          <div className="flex-1 flex min-h-0">
-            <div className="flex-1 p-2 flex flex-col min-h-0">
+          
+          <div className="flex-1 flex flex-col md:flex-row min-h-0 relative">
+            <div className={`${isSidebarOpen ? 'flex' : 'hidden'} md:flex w-80 flex-col absolute md:relative z-20 h-full bg-[#0b0e11] border-r border-white/10`}>
+              <MarketWatch onSelectAsset={setSymbol} selectedSymbol={symbol} assets={assets} loading={assetsLoading} />
+            </div>
+            
+            {/* Chart Area */}
+            <div className="flex-1 p-1 flex flex-col min-h-0">
               <div className="flex-1 min-h-0 relative">
                 {assetsLoading ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-[#161a1e] text-slate-400">
                     Loading Chart...
                   </div>
                 ) : (
-                  <>
-                    <LightweightChart 
-                      symbol={symbol} 
-                      livePrice={currentPrice}
-                      digits={getPrecision(symbol)}
-                      chartType={chartType}
-                      setChartType={setChartType}
-                      spread={currentSpread}
-                    />
-                  </>
+                  <LightweightChart 
+                    symbol={symbol} 
+                    livePrice={currentPrice}
+                    digits={getPrecision(symbol)}
+                    chartType={chartType}
+                    setChartType={setChartType}
+                    spread={currentSpread}
+                  />
                 )}
               </div>
-              <LiveMarketFeed trades={trades} />
-              <div className="flex-1 bg-[#161a1e] border-t border-white/10 flex flex-col mt-2">
+              <div className="hidden md:block">
+                <LiveMarketFeed trades={trades} />
+              </div>
+              <div className="hidden md:flex flex-1 bg-[#161a1e] border-t border-white/10 flex-col mt-2">
                 <div className="flex-1 overflow-y-auto">
                   <table className="w-full text-xs text-left">
                     <thead className="bg-[#1e2329] text-slate-400 sticky top-0">
@@ -559,69 +559,42 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                 </div>
               </div>
             </div>
-            <div className="w-64 bg-[#161a1e] border-l border-white/10 p-4 flex flex-col gap-4 shrink-0">
+
+            {/* Desktop Controls */}
+            <div className="hidden md:flex w-64 bg-[#161a1e] border-l border-white/10 p-4 flex-col gap-4 shrink-0">
+              {/* ... (Keep desktop controls) ... */}
               <div className="flex flex-col gap-1">
                 <div className="text-xs text-slate-400 font-bold uppercase">Bid</div>
-                <div className={`text-2xl font-mono font-bold text-red-400`}>
-                  {(currentPrice).toFixed(getPrecision(symbol))}
-                </div>
+                <div className={`text-2xl font-mono font-bold text-red-400`}>{(currentPrice).toFixed(getPrecision(symbol))}</div>
                 <div className="text-xs text-slate-400 font-bold uppercase mt-2">Ask</div>
-                <div className={`text-2xl font-mono font-bold text-emerald-400`}>
-                  {(currentPrice + (currentSpread || 0)).toFixed(getPrecision(symbol))}
-                </div>
+                <div className={`text-2xl font-mono font-bold text-emerald-400`}>{(currentPrice + (currentSpread || 0)).toFixed(getPrecision(symbol))}</div>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] text-slate-400 font-bold uppercase">Lot Size</label>
-                <input 
-                  type="number" 
-                  step="0.01"
-                  value={volume} 
-                  onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} 
-                  className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 focus:border-sky-500 outline-none" 
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase">TP</label>
-                  <input type="number" className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 outline-none" placeholder="0.00" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase">SL</label>
-                  <input type="number" className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 outline-none" placeholder="0.00" />
-                </div>
-              </div>
-              <div className="text-[10px] text-slate-400 font-mono">
-                Pip Value: {(volume * 10 * (currentAsset?.type === 'forex' ? 0.0001 : 1)).toFixed(2)}
+                <input type="number" step="0.01" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 focus:border-sky-500 outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-2 mt-2">
-                <button 
-                  onClick={() => handleTrade('Buy')} 
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded text-sm font-bold flex flex-col items-center transition-colors"
-                  disabled={!currentAsset}
-                >
-                  BUY
-                  <span className="text-[10px] opacity-80 font-normal">
-                    {currentAsset 
-                      ? (currentPrice + (currentSpread || 0)).toFixed(getPrecision(symbol))
-                      : '---'}
-                  </span>
-                </button>
-                <button 
-                  onClick={() => handleTrade('Sell')} 
-                  className="bg-red-600 hover:bg-red-500 text-white py-3 rounded text-sm font-bold flex flex-col items-center transition-colors"
-                  disabled={!currentAsset}
-                >
-                  SELL
-                  <span className="text-[10px] opacity-80 font-normal">
-                    {currentAsset ? (currentPrice).toFixed(getPrecision(symbol)) : '---'}
-                  </span>
-                </button>
+                <button onClick={() => handleTrade('Buy')} className="bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded text-sm font-bold transition-colors" disabled={!currentAsset}>BUY</button>
+                <button onClick={() => handleTrade('Sell')} className="bg-red-600 hover:bg-red-500 text-white py-3 rounded text-sm font-bold transition-colors" disabled={!currentAsset}>SELL</button>
               </div>
             </div>
           </div>
         </div>
+        
+        {/* Mobile Sticky Controls */}
+        <div className="md:hidden h-24 bg-[#161a1e] border-t border-white/10 p-2 flex flex-col gap-2 shrink-0">
+            <div className="flex items-center gap-2">
+                <label className="text-[10px] text-slate-400 font-bold uppercase shrink-0">Lot</label>
+                <input type="number" step="0.01" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 outline-none" />
+            </div>
+            <div className="grid grid-cols-2 gap-2 h-full">
+                <button onClick={() => handleTrade('Buy')} className="bg-emerald-600 text-white rounded text-lg font-bold transition-colors" disabled={!currentAsset}>BUY</button>
+                <button onClick={() => handleTrade('Sell')} className="bg-red-600 text-white rounded text-lg font-bold transition-colors" disabled={!currentAsset}>SELL</button>
+            </div>
+        </div>
       </div>
   );
+
 };
 
 export default TradingPlatform;

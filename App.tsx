@@ -138,7 +138,7 @@ const App: React.FC = () => {
         if (user) {
           console.log('[App] Emitting user:login:', { userId: user.id, username: user.username });
           socket.emit('user:login', { userId: user.id, username: user.username });
-        } else {
+        } else if (!isInitialLoad.current) {
           console.error('[App] User not found in accounts for login');
         }
       });
