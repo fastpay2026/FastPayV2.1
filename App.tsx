@@ -131,8 +131,10 @@ const App: React.FC = () => {
     if (currentUserId) {
       console.log('[App] Connecting socket for user:', currentUserId);
       const socket = io(window.location.origin, {
-        transports: ['polling'],
-        reconnectionAttempts: 5
+        transports: ['websocket', 'polling'],
+        reconnectionAttempts: 10,
+        reconnectionDelay: 1000,
+        withCredentials: true
       });
       
       socket.on('connect', () => {
