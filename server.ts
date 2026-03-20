@@ -43,6 +43,7 @@ async function startServer() {
 
   io.on('connection', (socket) => {
     console.log(`[Socket] User connected: ${socket.id}`);
+    console.log(`[Socket] Handshake headers:`, socket.handshake.headers);
     
     socket.on('error', (err) => {
       console.error(`[Socket] Socket error on ${socket.id}:`, err);
