@@ -129,17 +129,31 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (currentUserId) {
+      console.log('[App] Connecting socket for user:', currentUserId);
       const socket = io();
-      const user = accounts.find(a => a.id === currentUserId);
-      if (user) {
-        socket.emit('user:login', { userId: user.id, username: user.username });
-      }
+      
+      socket.on('connect', () => {
+        console.log('[App] Socket connected:', socket.id);
+        const user = accounts.find(a => a.id === currentUserId);
+        if (user) {
+          console.log('[App] Emitting user:login:', { userId: user.id, username: user.username });
+          socket.emit('user:login', { userId: user.id, username: user.username });
+        } else {
+          console.error('[App] User not found in accounts for login');
+        }
+      });
       
       socket.on('users:online', (users: { userId: string, username: string }[]) => {
+        console.log('[App] Received users:online:', users);
         setOnlineUsers(users);
       });
 
+      socket.on('connect_error', (err) => {
+        console.error('[App] Socket connection error:', err);
+      });
+
       return () => {
+        console.log('[App] Disconnecting socket');
         socket.disconnect();
       };
     }

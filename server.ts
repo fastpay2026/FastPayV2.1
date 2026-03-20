@@ -46,14 +46,16 @@ async function startServer() {
     console.log(`[Socket] User connected: ${socket.id}`);
 
     socket.on('user:login', (data: { userId: string, username: string }) => {
+      console.log(`[Socket] User login: ${data.username} (${data.userId})`);
       onlineUsers.set(socket.id, data);
       io.emit('users:online', Array.from(onlineUsers.values()));
     });
 
     socket.on('disconnect', () => {
+      const user = onlineUsers.get(socket.id);
+      console.log(`[Socket] User disconnected: ${socket.id}`, user ? `(${user.username})` : '');
       onlineUsers.delete(socket.id);
       io.emit('users:online', Array.from(onlineUsers.values()));
-      console.log(`[Socket] User disconnected: ${socket.id}`);
     });
   });
 
