@@ -230,6 +230,18 @@ CREATE TABLE IF NOT EXISTS platform_revenues (
 ALTER TABLE platform_revenues ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all operations on platform_revenues" ON platform_revenues FOR ALL USING (true) WITH CHECK (true);
 
+-- 17. Platform Stats (Cumulative Profits)
+CREATE TABLE IF NOT EXISTS platform_stats (
+    id INTEGER PRIMARY KEY DEFAULT 1,
+    total_profits DECIMAL(20, 2) DEFAULT 0,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE platform_stats ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations on platform_stats" ON platform_stats FOR ALL USING (true) WITH CHECK (true);
+
+-- Initialize platform_stats if empty
+INSERT INTO platform_stats (id, total_profits) VALUES (1, 0) ON CONFLICT (id) DO NOTHING;
+
 -- 16. Landing Services
 CREATE TABLE IF NOT EXISTS landing_services (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

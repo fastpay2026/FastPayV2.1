@@ -13,10 +13,12 @@ interface PlatformRevenue {
 
 const PlatformEarnings: React.FC = () => {
   const [earnings, setEarnings] = useState<PlatformRevenue[]>([]);
+  const [totalProfits, setTotalProfits] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchEarnings();
+    fetchTotalProfits();
   }, []);
 
   const fetchEarnings = async () => {
@@ -35,11 +37,27 @@ const PlatformEarnings: React.FC = () => {
     setLoading(false);
   };
 
+  const fetchTotalProfits = async () => {
+    const { data, error } = await supabase
+      .from('platform_stats')
+      .select('total_profits')
+      .eq('id', 1)
+      .single();
+    
+    if (data) {
+      setTotalProfits(Number(data.total_profits));
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Platform Profits</h2>
+      <div className="bg-emerald-900/20 p-4 rounded-lg mb-6 border border-emerald-500/20">
+        <h3 className="text-sm text-emerald-400 font-bold uppercase">Cumulative Platform Profits</h3>
+        <p className="text-3xl font-mono text-white mt-1">${totalProfits.toFixed(2)}</p>
+      </div>
+      <h2 className="text-xl font-bold mb-4">Recent Trade Commissions</h2>
       <table className="w-full text-left border-collapse">
         <thead>
           <tr>

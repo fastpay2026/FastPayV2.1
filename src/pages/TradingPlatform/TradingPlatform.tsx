@@ -331,8 +331,28 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         agent_profit: agentProfit,
         admin_profit: adminProfit,
         type: 'Trade Commission'
-      }).then(({ error }) => {
-        if (error) console.error('[TradingPlatform] Revenue Log Error:', error);
+      }).then(async ({ error }) => {
+        if (error) {
+          console.error('[TradingPlatform] Revenue Log Error:', error);
+        } else {
+          // Update cumulative profits
+          const { data: stats, error: statsFetchError } = await supabase
+            .from('platform_stats')
+            .select('total_profits')
+            .eq('id', 1)
+            .single();
+
+          if (stats) {
+            await supabase
+              .from('platform_stats')
+              .update({ total_profits: Number(stats.total_profits) + commission, updated_at: new Date().toISOString() })
+              .eq('id', 1);
+          } else {
+            await supabase
+              .from('platform_stats')
+              .insert({ id: 1, total_profits: commission, updated_at: new Date().toISOString() });
+          }
+        }
       });
       
       // Play sound on success
