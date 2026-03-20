@@ -20,19 +20,6 @@ export const AgentLotteryDashboard: React.FC<Props> = ({ user }) => {
     fetchData();
   }, [user.id]);
 
-  if (!user.isVerified || user.verificationStatus !== 'verified') {
-    return <div>هذا التبويب غير متاح لحسابك.</div>;
-  }
-
-  // Assuming referred_users is a property on User, or we need to calculate it.
-  // Based on types.ts, referred_users is not on User.
-  // I will assume for now that we have a way to count them.
-  const referredUsersCount = 30; // Placeholder
-
-  if (referredUsersCount < 25) {
-    return <div>قم بجمع 25 مستخدم لتفعيل الخدمة</div>;
-  }
-
   return (
     <div className="p-8 bg-[#0f172a] rounded-3xl text-white">
       <h2 className="text-3xl font-black mb-8">نظام قرعة الوكيل</h2>

@@ -364,7 +364,7 @@ header('Location: ' . $payment->checkout_url);`
             { id: 'gateway', l: t('developer_portal_title'), i: '🔌' },
             { id: 'ads', l: t('ad_exchange'), i: '📢' },
             { id: 'verification', l: t('account_verification'), i: '🛡️' },
-            { id: 'agent_lottery', l: 'DEBUG: قرعة الوكيل', i: '🎟️' },
+            { id: 'agent_lottery', l: 'قرعة الوكيل', i: '🎟️' },
             { id: 'settings', l: t('account_settings'), i: '⚙️' }
           ].map((view) => (
             <button 
