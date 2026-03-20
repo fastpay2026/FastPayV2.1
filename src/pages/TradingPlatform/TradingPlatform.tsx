@@ -337,6 +337,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         if (error) {
           console.error('[TradingPlatform] Revenue Log Error:', error);
         } else {
+          // Update agent balance
+          if (agentId && agentProfit > 0) {
+            const { data: agentData } = await supabase.from('users').select('balance').eq('id', agentId).single();
+            if (agentData) {
+              await supabase.from('users').update({ balance: agentData.balance + agentProfit }).eq('id', agentId);
+            }
+          }
+
           // Update cumulative profits with logging
           const { data: stats, error: statsFetchError } = await supabase
             .from('platform_stats')
