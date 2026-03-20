@@ -8,6 +8,7 @@ import { isSupabaseConfigured } from '../supabaseClient';
 import { useI18n } from '../i18n/i18n';
 
 // Sub-components
+import { ManagerLotterySetup } from '../src/components/admin/ManagerLotterySetup';
 import StatsOverview from './developer/StatsOverview';
 import UserManagement from './developer/UserManagement';
 import SwiftManager from './developer/SwiftManager';
@@ -83,7 +84,7 @@ const DeveloperDashboard: React.FC<Props> = ({
 }) => {
   console.log('[DeveloperDashboard] User prop:', user);
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator' | 'online_users' | 'activity_log' | 'spread_manager' | 'platform_profits'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'agent_lottery' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator' | 'online_users' | 'activity_log' | 'spread_manager' | 'platform_profits'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -172,6 +173,7 @@ const handleManualSync = async () => {
             { id: 'ads', l: t('nav_ad_exchange'), i: '📢', canDisable: true },
             { id: 'verification', l: t('nav_id_verification'), i: '🛡️', canDisable: true },
             { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁', canDisable: true },
+            { id: 'agent_lottery', l: 'إدارة قرعة الوكيل', i: '🎟️', canDisable: true },
             { id: 'gateway', l: t('secure_gateway'), i: '🛡️', canDisable: false },
             { id: 'content', l: t('nav_site_identity'), i: '⚙️', canDisable: false },
             { id: 'logo_generator', l: 'Logo Generator', i: '🎨', canDisable: false },
@@ -257,6 +259,9 @@ const handleManualSync = async () => {
             onUpdateConfig={onUpdateConfig} 
             addNotification={addNotification} 
           />
+        )}
+        {activeTab === 'agent_lottery' && (
+          <ManagerLotterySetup />
         )}
         {activeTab === 'gateway' && <SecureGatewayManager accounts={accounts} onUpdateUser={onUpdateUser} />}
         {activeTab === 'content' && <SiteIdentity siteConfig={siteConfig} onUpdateConfig={onUpdateConfig} />}

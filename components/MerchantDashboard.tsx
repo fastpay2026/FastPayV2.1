@@ -4,6 +4,7 @@ import { BadgeCheck } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, APIKey, VerificationRequest, AdExchangeItem, AdNegotiation } from '../types';
 import { useI18n } from '../i18n/i18n';
+import { AgentLotteryDashboard } from '../src/components/agent/AgentLotteryDashboard';
 import MerchantDealCreator from './MerchantDealCreator';
 import { MerchantVerification } from './VerificationManager';
 import { AdExchange } from './AdExchange';
@@ -39,7 +40,7 @@ const MerchantDashboard: React.FC<Props> = ({
   addNotification, onUpdateUser
 }) => {
   const { t, language } = useI18n();
-  const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'usdt_gateway' | 'verification' | 'ads'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'usdt_gateway' | 'verification' | 'ads' | 'agent_lottery'>('main');
   const [modalType, setModalType] = useState<'send' | 'cards' | 'new_key' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
@@ -361,6 +362,7 @@ header('Location: ' . $payment->checkout_url);`
             { id: 'gateway', l: t('developer_portal_title'), i: '🔌' },
             { id: 'ads', l: t('ad_exchange'), i: '📢' },
             { id: 'verification', l: t('account_verification'), i: '🛡️' },
+            ...(user.verificationStatus === 'verified' ? [{ id: 'agent_lottery', l: 'قرعة الوكيل', i: '🎟️' }] : []),
             { id: 'settings', l: t('account_settings'), i: '⚙️' }
           ].map((view) => (
             <button 
@@ -611,7 +613,10 @@ header('Location: ' . $payment->checkout_url);`
            )
          )}
 
-         {activeView === 'settings' && (
+         {activeView === 'agent_lottery' && (
+          <AgentLotteryDashboard user={user} />
+        )}
+        {activeView === 'settings' && (
            <div className="max-w-4xl mx-auto animate-in slide-in-from-bottom duration-500 space-y-8 md:space-y-12">
               <h2 className="text-4xl md:text-6xl font-black tracking-tighter">{t('merchant_settings_title')}</h2>
               
