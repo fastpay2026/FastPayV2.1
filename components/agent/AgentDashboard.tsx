@@ -44,9 +44,9 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
       });
       alert('تم رفع المستند بنجاح');
       setFile(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('حدث خطأ أثناء رفع المستند');
+      alert('حدث خطأ أثناء رفع المستند: ' + (error.message || error));
     }
   };
   

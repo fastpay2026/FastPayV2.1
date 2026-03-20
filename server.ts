@@ -33,11 +33,9 @@ async function startServer() {
   const httpServer = createServer(app);
   const io = new Server(httpServer, {
     cors: {
-      origin: "*", // السماح بجميع النطاقات مؤقتاً لحل مشكلة الاتصال
-      methods: ["GET", "POST"],
-      credentials: true
-    },
-    allowEIO3: true // دعم إصدارات أقدم من Socket.io
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
   });
 
   // Track online users
