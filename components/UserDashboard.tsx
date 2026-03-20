@@ -9,7 +9,9 @@ import { useI18n } from '../i18n/i18n';
 import UnderDevelopment from './UnderDevelopment';
 import { supabaseService } from '../supabaseService';
 import LanguageSwitcher from './LanguageSwitcher';
+import { agentLotteryService } from '../src/services/agentLotteryService';
 import Logo from '../src/components/Logo';
+import { AgentLotteryDashboard } from '../src/components/agent/AgentLotteryDashboard';
 
 const TradingPlatform = React.lazy(() => import('../src/pages/TradingPlatform/TradingPlatform'));
 
@@ -118,7 +120,7 @@ const UserDashboard: React.FC<Props> = ({
   salaryPlans, setSalaryPlans, adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations
 }) => {
   const { t, language } = useI18n();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads' | 'trading_platform'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'investment' | 'raffle' | 'salary' | 'profile' | 'ads' | 'trading_platform' | 'agent_lottery'>('dashboard');
   const [modalType, setModalType] = useState<'coupon' | 'invest_form' | 'raffle_join' | 'add_card' | 'withdraw' | 'transfer' | 'salary_apply' | 'withdraw_warning' | 'usdt_gateway' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -183,6 +185,14 @@ const UserDashboard: React.FC<Props> = ({
     idBack: null,
     commercialRegister: null
   });
+  
+  const [referredCount, setReferredCount] = useState(0);
+
+  useEffect(() => {
+    if (user.is_agent) {
+      agentLotteryService.getReferredUsersCount(user.id).then(setReferredCount).catch(console.error);
+    }
+  }, [user.id, user.is_agent]);
 
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -636,14 +646,25 @@ const UserDashboard: React.FC<Props> = ({
              <nav className="hidden xl:flex items-center h-full">
                 {[
                   { id: 'dashboard', l: t('nav_overview') },
+                  ...(user.is_agent && user.verificationStatus === 'verified' ? [{ id: 'agent_lottery', l: 'قرعة الوكيل' }] : []),
                   { id: 'trading_platform', l: t('nav_trading_engine') },
                   { id: 'investment', l: t('nav_invest_plans') },
                   { id: 'raffle', l: t('nav_raffle_mgmt') },
                   { id: 'ads', l: t('nav_ad_exchange') },
                   { id: 'salary', l: t('nav_salary_funding') },
-                  { id: 'profile', l: t('nav_profile') }
+                  { id: 'profile', l: t('nav_profile') },
+                  ...(user.is_agent && user.verificationStatus === 'verified' ? [{ id: 'agent_lottery', l: 'قرعة الوكيل' }] : [])
                 ].map(t => (
-                  <button key={t.id} onClick={() => setActiveTab(t.id as any)} className={`flex items-center gap-2 font-bold px-6 h-16 md:h-20 border-b-2 transition-all duration-300 ${activeTab === t.id ? 'text-sky-400 border-sky-400 bg-sky-400/5' : 'text-slate-500 border-transparent hover:text-white'}`}>
+                  <button 
+                    key={t.id} 
+                    onClick={() => {
+                      if (t.id === 'agent_lottery' && referredCount < 25) {
+                        alert('قم بجمع 25 مستخدم لتفعيل الخدمة');
+                        return;
+                      }
+                      setActiveTab(t.id as any);
+                    }} 
+                    className={`flex items-center gap-2 font-bold px-6 h-16 md:h-20 border-b-2 transition-all duration-300 ${activeTab === t.id ? 'text-sky-400 border-sky-400 bg-sky-400/5' : 'text-slate-500 border-transparent hover:text-white'} ${t.id === 'agent_lottery' && referredCount < 25 ? 'opacity-50 cursor-not-allowed' : ''}`}>
                     <span className="text-sm">{t.l}</span>
                   </button>
                 ))}
