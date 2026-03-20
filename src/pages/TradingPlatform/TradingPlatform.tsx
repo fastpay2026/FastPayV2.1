@@ -337,7 +337,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         if (error) {
           console.error('[TradingPlatform] Revenue Log Error:', error);
         } else {
-          // Update cumulative profits
+          // Update cumulative profits with logging
           const { data: stats, error: statsFetchError } = await supabase
             .from('platform_stats')
             .select('total_profits')
@@ -350,18 +350,24 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
 
           const currentTotal = stats ? Number(stats.total_profits) : 0;
           const newTotal = currentTotal + commission;
-          
-          console.log('[TradingPlatform] Updating stats:', { currentTotal, commission, newTotal });
 
-          if (stats) {
-            await supabase
-              .from('platform_stats')
-              .update({ total_profits: newTotal, updated_at: new Date().toISOString() })
-              .eq('id', 1);
+          console.log('--- تتبع الأرباح ---');
+          console.log('القيمة القديمة:', currentTotal);
+          console.log('العمولة الجديدة:', commission);
+          console.log('المجموع الجديد:', newTotal);
+
+          const { error: upsertError } = await supabase
+            .from('platform_stats')
+            .upsert({ 
+              id: 1, 
+              total_profits: newTotal, 
+              updated_at: new Date().toISOString() 
+            }, { onConflict: 'id' });
+
+          if (upsertError) {
+            console.error('[TradingPlatform] Critical Update Error:', upsertError);
           } else {
-            await supabase
-              .from('platform_stats')
-              .insert({ id: 1, total_profits: newTotal, updated_at: new Date().toISOString() });
+            console.log('[TradingPlatform] Stats updated successfully to:', newTotal);
           }
         }
       });
