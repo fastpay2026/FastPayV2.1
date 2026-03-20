@@ -33,9 +33,8 @@ async function startServer() {
   const httpServer = createServer(app);
   const io = new Server(httpServer, {
     cors: {
-      origin: ["https://trade.fastpay-network.com", "https://fastpay-network.com", "*"],
-      methods: ["GET", "POST"],
-      credentials: true
+      origin: "*",
+      methods: ["GET", "POST"]
     }
   });
 
