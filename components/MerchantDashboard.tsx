@@ -39,6 +39,8 @@ const MerchantDashboard: React.FC<Props> = ({
   adExchangeItems, setAdExchangeItems, adNegotiations, setAdNegotiations,
   addNotification, onUpdateUser
 }) => {
+  console.log('[MerchantDashboard] User:', user);
+  console.log('[MerchantDashboard] User verificationStatus:', user.verificationStatus);
   const { t, language } = useI18n();
   const [activeView, setActiveView] = useState<'main' | 'settings' | 'gateway' | 'usdt_gateway' | 'verification' | 'ads' | 'agent_lottery'>('main');
   const [modalType, setModalType] = useState<'send' | 'cards' | 'new_key' | null>(null);
@@ -362,7 +364,7 @@ header('Location: ' . $payment->checkout_url);`
             { id: 'gateway', l: t('developer_portal_title'), i: '🔌' },
             { id: 'ads', l: t('ad_exchange'), i: '📢' },
             { id: 'verification', l: t('account_verification'), i: '🛡️' },
-            ...(user.verificationStatus === 'verified' ? [{ id: 'agent_lottery', l: 'قرعة الوكيل', i: '🎟️' }] : []),
+            { id: 'agent_lottery', l: 'DEBUG: قرعة الوكيل', i: '🎟️' },
             { id: 'settings', l: t('account_settings'), i: '⚙️' }
           ].map((view) => (
             <button 

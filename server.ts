@@ -33,8 +33,9 @@ async function startServer() {
   const httpServer = createServer(app);
   const io = new Server(httpServer, {
     cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
+      origin: ["https://trade.fastpay-network.com", "https://fastpay-network.com", "*"],
+      methods: ["GET", "POST"],
+      credentials: true
     }
   });
 
@@ -43,6 +44,10 @@ async function startServer() {
 
   io.on('connection', (socket) => {
     console.log(`[Socket] User connected: ${socket.id}`);
+    
+    socket.on('error', (err) => {
+      console.error(`[Socket] Socket error on ${socket.id}:`, err);
+    });
 
     socket.on('user:login', (data: { userId: string, username: string }) => {
       console.log(`[Socket] User login received: ${data.username} (${data.userId})`);
