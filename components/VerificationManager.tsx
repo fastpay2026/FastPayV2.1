@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, VerificationRequest } from '../types';
 import { useI18n } from '../i18n/i18n';
+import { supabaseService } from '../supabaseService';
 
 // AES-256 Simulation (Frontend only)
 // In a real app, this would be handled server-side or via Web Crypto API
@@ -30,55 +31,63 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
   user, onUpdateUser, verificationRequests, setVerificationRequests, addNotification 
 }) => {
   const { t } = useI18n();
-  const [files, setFiles] = useState<{ idFront: string; idBack: string; commercialRegister: string }>({
-    idFront: '',
-    idBack: '',
-    commercialRegister: ''
+  const [docType, setDocType] = useState<'passport' | 'id_card'>('passport');
+  const [files, setFiles] = useState<{ idFront: File | null; idBack: File | null; commercialRegister: File | null }>({
+    idFront: null,
+    idBack: null,
+    commercialRegister: null
   });
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof files) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFiles(prev => ({ ...prev, [key]: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      setFiles(prev => ({ ...prev, [key]: file }));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!files.idFront || !files.idBack || !files.commercialRegister) {
-      return alert(t('all_docs_required'));
+    
+    // Validation
+    if (docType === 'passport') {
+      if (!files.idFront || !files.commercialRegister) return alert(t('all_docs_required'));
+    } else {
+      if (!files.idFront || !files.idBack || !files.commercialRegister) return alert(t('all_docs_required'));
     }
 
     setIsUploading(true);
     
-    // Simulate Encryption and Upload to Riyadh-Node-01
-    setTimeout(() => {
+    try {
+      const upload = async (file: File) => await supabaseService.uploadDocument(file, user.id);
+      
+      const idFrontPath = await upload(files.idFront!);
+      const idBackPath = docType === 'id_card' ? await upload(files.idBack!) : '';
+      const commRegPath = await upload(files.commercialRegister!);
+
       const newRequest: VerificationRequest = {
         id: uuidv4(),
         userId: user.id,
         username: user.username,
         fullName: user.fullName,
-        idFront: encryptData(files.idFront),
-        idBack: encryptData(files.idBack),
-        commercialRegister: encryptData(files.commercialRegister),
+        idFront: idFrontPath,
+        idBack: idBackPath,
+        commercialRegister: commRegPath,
         submittedAt: new Date().toISOString(),
-        status: 'pending'
+        status: 'pending',
+        rejectionReason: ''
       };
 
-      setVerificationRequests(prev => {
-        const updated = [...prev, newRequest];
-        console.log("Updated verification requests state:", updated);
-        return updated;
-      });
+      await supabaseService.upsertVerification(newRequest);
+      setVerificationRequests(prev => [...prev, newRequest]);
       onUpdateUser({ ...user, verificationStatus: 'pending' });
       addNotification(t('account_verification'), t('verification_request_sent'), 'security');
+    } catch (error: any) {
+      console.error(error);
+      alert('حدث خطأ أثناء رفع المستندات: ' + (error.message || error));
+    } finally {
       setIsUploading(false);
-    }, 2000);
+    }
   };
 
   if (user.verificationStatus === 'verified') {
@@ -131,12 +140,17 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="bg-[#0f172a] border border-white/5 rounded-[4rem] p-16 space-y-12 shadow-2xl">
+        <div className="flex gap-4 p-2 bg-black/40 rounded-3xl border border-white/5">
+          <button type="button" onClick={() => setDocType('passport')} className={`flex-1 py-4 rounded-2xl font-black ${docType === 'passport' ? 'bg-sky-600' : 'hover:bg-white/5'}`}>جواز سفر</button>
+          <button type="button" onClick={() => setDocType('id_card')} className={`flex-1 py-4 rounded-2xl font-black ${docType === 'id_card' ? 'bg-sky-600' : 'hover:bg-white/5'}`}>بطاقة شخصية</button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
-            <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">{t('id_front')}</label>
+            <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">{docType === 'passport' ? 'جواز السفر' : 'الهوية (وجه)'}</label>
             <div className="relative h-64 bg-black/40 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center overflow-hidden group hover:border-sky-500 transition-all">
               {files.idFront ? (
-                <img src={files.idFront} className="w-full h-full object-cover" alt="ID Front" />
+                <p className="text-sky-400 font-bold">{files.idFront.name}</p>
               ) : (
                 <div className="text-center space-y-2">
                   <span className="text-4xl">🪪</span>
@@ -147,26 +161,28 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
             </div>
           </div>
 
-          <div className="space-y-4">
-            <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">{t('id_back')}</label>
-            <div className="relative h-64 bg-black/40 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center overflow-hidden group hover:border-sky-500 transition-all">
-              {files.idBack ? (
-                <img src={files.idBack} className="w-full h-full object-cover" alt="ID Back" />
-              ) : (
-                <div className="text-center space-y-2">
-                  <span className="text-4xl">🪪</span>
-                  <p className="text-xs font-bold text-slate-500">{t('click_to_upload')}</p>
-                </div>
-              )}
-              <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'idBack')} className="absolute inset-0 opacity-0 cursor-pointer" />
+          {docType === 'id_card' && (
+            <div className="space-y-4">
+              <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">الهوية (ظهر)</label>
+              <div className="relative h-64 bg-black/40 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center overflow-hidden group hover:border-sky-500 transition-all">
+                {files.idBack ? (
+                  <p className="text-sky-400 font-bold">{files.idBack.name}</p>
+                ) : (
+                  <div className="text-center space-y-2">
+                    <span className="text-4xl">🪪</span>
+                    <p className="text-xs font-bold text-slate-500">{t('click_to_upload')}</p>
+                  </div>
+                )}
+                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'idBack')} className="absolute inset-0 opacity-0 cursor-pointer" />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="md:col-span-2 space-y-4">
             <label className="text-xs text-slate-500 font-black uppercase tracking-widest mr-4">{t('commercial_registry')}</label>
             <div className="relative h-64 bg-black/40 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center overflow-hidden group hover:border-sky-500 transition-all">
               {files.commercialRegister ? (
-                <img src={files.commercialRegister} className="w-full h-full object-cover" alt="Commercial Register" />
+                <p className="text-sky-400 font-bold">{files.commercialRegister.name}</p>
               ) : (
                 <div className="text-center space-y-2">
                   <span className="text-4xl">📜</span>
@@ -175,14 +191,6 @@ export const MerchantVerification: React.FC<MerchantProps> = ({
               )}
               <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'commercialRegister')} className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
-          </div>
-        </div>
-
-        <div className="bg-sky-500/5 border border-sky-500/10 p-8 rounded-3xl flex items-start gap-4">
-          <span className="text-2xl">🔒</span>
-          <div className="space-y-1">
-            <p className="text-sky-400 font-black text-sm">تشفير سيادي Riyadh-Node-01</p>
-            <p className="text-slate-500 text-xs font-bold">يتم تشفير وثائقك ببروتوكول AES-256 وتخزينها في خوادم معزولة. لا يمكن لأي طرف ثالث الوصول إليها.</p>
           </div>
         </div>
 
@@ -222,13 +230,41 @@ export const AdminVerificationReview: React.FC<AdminProps> = ({
 }) => {
   const { t } = useI18n();
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
+  const [docUrls, setDocUrls] = useState<{ idFront: string; idBack: string; commercialRegister: string }>({
+    idFront: '',
+    idBack: '',
+    commercialRegister: ''
+  });
   const [zoom, setZoom] = useState(1);
   const [rotate, setRotate] = useState(0);
   const [rejectionReason, setRejectionReason] = useState('');
 
-  const handleDecision = (status: 'approved' | 'rejected') => {
+  React.useEffect(() => {
+    if (selectedRequest) {
+      Promise.all([
+        supabaseService.getPublicUrl(selectedRequest.idFront),
+        supabaseService.getPublicUrl(selectedRequest.idBack),
+        supabaseService.getPublicUrl(selectedRequest.commercialRegister)
+      ]).then(([idFront, idBack, commercialRegister]) => {
+        setDocUrls({ idFront, idBack, commercialRegister });
+      });
+    }
+  }, [selectedRequest]);
+
+  const handleDecision = async (status: 'approved' | 'rejected') => {
     if (!selectedRequest) return;
     if (status === 'rejected' && !rejectionReason) return alert('يرجى كتابة سبب الرفض');
+
+    try {
+      const filesToDelete = [selectedRequest.idFront, selectedRequest.idBack, selectedRequest.commercialRegister].filter(Boolean);
+      for (const path of filesToDelete) {
+        await supabaseService.deleteDocument(path);
+      }
+    } catch (error) {
+      console.error("Error deleting documents:", error);
+      alert("حدث خطأ أثناء حذف المستندات. يرجى المحاولة مرة أخرى.");
+      return;
+    }
 
     const userId = selectedRequest.userId;
     const user = accounts.find(u => u.id === userId);
@@ -257,9 +293,9 @@ export const AdminVerificationReview: React.FC<AdminProps> = ({
     setRejectionReason('');
   };
 
-  const downloadDocument = (data: string, name: string) => {
+  const downloadDocument = (url: string, name: string) => {
     const link = document.createElement('a');
-    link.href = decryptData(data);
+    link.href = url;
     link.download = `${name}.png`;
     link.click();
   };
@@ -340,22 +376,22 @@ export const AdminVerificationReview: React.FC<AdminProps> = ({
             <div className="flex justify-between items-start">
               <div className="space-y-2">
                 <h3 className="text-4xl font-black tracking-tighter">ملف توثيق: {selectedRequest.fullName}</h3>
-                <p className="text-sky-400 font-mono text-sm">ID: {selectedRequest.id} | Riyadh-Node-01 Encrypted</p>
+                <p className="text-sky-400 font-mono text-sm">ID: {selectedRequest.id}</p>
               </div>
               <button onClick={() => setSelectedRequest(null)} className="text-4xl opacity-50 hover:opacity-100 transition-all">✕</button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {[
-                { label: 'الهوية (وجه)', data: selectedRequest.idFront, name: 'id_front' },
-                { label: 'الهوية (ظهر)', data: selectedRequest.idBack, name: 'id_back' },
-                { label: 'السجل التجاري', data: selectedRequest.commercialRegister, name: 'comm_reg' }
+                { label: 'الهوية (وجه)', url: docUrls.idFront, name: 'id_front' },
+                { label: 'الهوية (ظهر)', url: docUrls.idBack, name: 'id_back' },
+                { label: 'السجل التجاري', url: docUrls.commercialRegister, name: 'comm_reg' }
               ].map((doc, idx) => (
                 <div key={idx} className="space-y-4">
                   <div className="flex justify-between items-center px-4">
                     <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{doc.label}</span>
                     <button 
-                      onClick={() => downloadDocument(doc.data, `${selectedRequest.username}_${doc.name}`)}
+                      onClick={() => downloadDocument(doc.url, `${selectedRequest.username}_${doc.name}`)}
                       className="text-sky-400 hover:text-white transition-colors text-xs font-bold"
                     >
                       تحميل الوثيقة 📥
@@ -363,7 +399,7 @@ export const AdminVerificationReview: React.FC<AdminProps> = ({
                   </div>
                   <div className="relative h-[400px] bg-black/60 rounded-[2rem] border border-white/5 overflow-hidden group">
                     <img 
-                      src={decryptData(doc.data)} 
+                      src={doc.url} 
                       style={{ transform: `scale(${zoom}) rotate(${rotate}deg)`, transition: 'transform 0.3s ease' }}
                       className="w-full h-full object-contain cursor-move" 
                       alt={doc.label} 

@@ -176,11 +176,53 @@ const UserDashboard: React.FC<Props> = ({
     return siteConfig.disabledServices?.includes(serviceId);
   };
   
-  // Logic States
-  const [isTransferring, setIsTransferring] = useState(false);
+  // Verification States
+  const [docType, setDocType] = useState<'passport' | 'id_card'>('passport');
+  const [files, setFiles] = useState<{ idFront: File | null; idBack: File | null; commercialRegister: File | null }>({
+    idFront: null,
+    idBack: null,
+    commercialRegister: null
+  });
+
+  const handleVerificationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (docType === 'passport') {
+      if (!files.idFront || !files.commercialRegister) return alert('يرجى اختيار جواز السفر والسجل التجاري');
+    } else {
+      if (!files.idFront || !files.idBack || !files.commercialRegister) return alert('يرجى اختيار وجهي الهوية والسجل التجاري');
+    }
+
+    try {
+      const upload = async (file: File) => await supabaseService.uploadDocument(file, user.id);
+      
+      const idFrontPath = await upload(files.idFront!);
+      const idBackPath = docType === 'id_card' ? await upload(files.idBack!) : '';
+      const commRegPath = await upload(files.commercialRegister!);
+
+      await supabaseService.upsertVerification({
+        id: uuidv4(),
+        userId: user.id,
+        username: user.username,
+        fullName: user.fullName,
+        idFront: idFrontPath,
+        idBack: idBackPath,
+        commercialRegister: commRegPath,
+        submittedAt: new Date().toISOString(),
+        status: 'pending',
+        rejectionReason: ''
+      });
+      alert('تم رفع المستندات بنجاح');
+      setFiles({ idFront: null, idBack: null, commercialRegister: null });
+    } catch (error: any) {
+      console.error(error);
+      alert('حدث خطأ أثناء رفع المستندات: ' + (error.message || error));
+    }
+  };
+
   const [transferProgress, setTransferProgress] = useState(0);
   const [transferStep, setTransferStep] = useState(0);
   const [transferSuccess, setTransferSuccess] = useState(false);
+  const [isTransferring, setIsTransferring] = useState(false);
 
   const [isLinkingCard, setIsLinkingCard] = useState(false);
   const [linkingProgress, setLinkingProgress] = useState(0);

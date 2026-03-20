@@ -22,39 +22,54 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
   const [activeTab, setActiveTab] = useState<'dashboard' | 'profile'>('dashboard');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [speedLines, setSpeedLines] = useState<number[]>([]);
   
-  const [file, setFile] = useState<File | null>(null);
+  const [docType, setDocType] = useState<'passport' | 'id_card'>('passport');
+  const [files, setFiles] = useState<{ idFront: File | null; idBack: File | null; commercialRegister: File | null }>({
+    idFront: null,
+    idBack: null,
+    commercialRegister: null
+  });
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    setSpeedLines(Array.from({ length: 15 }, () => Math.random() * 100));
+  }, []);
+
   const handleFileUpload = async () => {
-    if (!file) return;
+    if (docType === 'passport') {
+      if (!files.idFront || !files.commercialRegister) return alert('Please select passport and commercial register');
+    } else {
+      if (!files.idFront || !files.idBack || !files.commercialRegister) return alert('Please select both sides of ID and commercial register');
+    }
+
     try {
-      const path = await supabaseService.uploadDocument(file, currentUser.id);
-      // Create a verification request record
+      const upload = async (file: File) => await supabaseService.uploadDocument(file, currentUser.id);
+      
+      const idFrontPath = await upload(files.idFront!);
+      const idBackPath = docType === 'id_card' ? await upload(files.idBack!) : '';
+      const commRegPath = await upload(files.commercialRegister!);
+
       await supabaseService.upsertVerification({
         id: crypto.randomUUID(),
         userId: currentUser.id,
         username: currentUser.username,
         fullName: currentUser.fullName,
-        idFront: path,
-        idBack: '',
-        commercialRegister: '',
+        idFront: idFrontPath,
+        idBack: idBackPath,
+        commercialRegister: commRegPath,
         submittedAt: new Date().toISOString(),
         status: 'pending',
         rejectionReason: ''
       });
-      alert('تم رفع المستند بنجاح');
-      setFile(null);
+      alert('Documents uploaded successfully');
+      setFiles({ idFront: null, idBack: null, commercialRegister: null });
     } catch (error: any) {
       console.error(error);
-      alert('حدث خطأ أثناء رفع المستند: ' + (error.message || error));
+      alert('Error uploading documents: ' + (error.message || error));
     }
   };
   
-  useEffect(() => {
-    if (file) handleFileUpload();
-  }, [file]);
-
   useEffect(() => {
     if (currentUser) {
       const link = `${window.location.origin}/?ref=${currentUser.id}`;
@@ -81,19 +96,19 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
     console.log('[AgentDashboard] handleTransfer - Target User Found:', targetUser);
     
     if (!targetUser) {
-      alert('اسم المستخدم غير موجود في النظام');
+      alert('User not found in system');
       return;
     }
     
     // التحقق من أن معرف المستخدم صالح
     if (!targetUser.id || targetUser.id === 'null' || targetUser.id === null) {
       console.error('[AgentDashboard] handleTransfer - Invalid target user ID:', targetUser);
-      alert('خطأ: بيانات المستخدم المستهدف غير صالحة (معرف مفقود). يرجى التواصل مع الدعم.');
+      alert('Error: Target user data is invalid (missing ID). Please contact support.');
       return;
     }
 
     if (amount <= 0 || amount > currentUser.balance) {
-      alert('المبلغ غير صالح أو الرصيد غير كافٍ');
+      alert('Invalid amount or insufficient balance');
       return;
     }
 
@@ -102,12 +117,12 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
       await onUpdateUser({ ...currentUser, balance: currentUser.balance - amount });
       await onUpdateUser({ ...targetUser, balance: targetUser.balance + amount });
       
-      alert('تمت عملية التحويل بنجاح');
+      alert('Transfer completed successfully');
       setTransferAmount('');
       setTransferUser('');
     } catch (error) {
       console.error('[AgentDashboard] handleTransfer - Error during update:', error);
-      alert('حدث خطأ أثناء عملية التحويل. يرجى المحاولة مرة أخرى.');
+      alert('Error during transfer. Please try again.');
     }
   };
 
@@ -131,13 +146,23 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1d] text-white p-8 animate-in fade-in duration-500">
+    <div className="min-h-screen bg-[#0a0f1d] text-white p-8 animate-in fade-in duration-500 relative overflow-hidden">
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        {speedLines.map((top, idx) => (
+          <div key={idx} className="speed-line" style={{ top: `${top}%`, left: '-10%', width: '30%', animationDelay: `${idx * 0.2}s` }}></div>
+        ))}
+      </div>
       {/* Header with Centered Logo and Logout Button */}
       <div className="relative flex justify-center items-center mb-8 mt-4">
         <div className="relative">
           <img src={siteConfig.logoUrl} alt="Logo" className="h-40 md:h-64 drop-shadow-2xl" />
           <div className="absolute -top-2 -right-2 w-4 h-4 bg-sky-500 rounded-full animate-pulse shadow-[0_0_15px_#0ea5e9]" />
         </div>
+        {currentUser.verificationStatus === 'verified' && (
+          <div className="absolute top-0 left-0 bg-emerald-500 text-white px-4 py-2 rounded-full font-black flex items-center gap-2">
+            <FileCheck className="w-5 h-5" /> Verified
+          </div>
+        )}
         <div className="absolute top-0 right-0">
           <button onClick={onLogout} className="flex items-center gap-2 px-6 py-3 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-2xl font-black transition-all border border-red-500/20">
             <X className="w-5 h-5" /> Logout
@@ -178,14 +203,23 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
           </div>
 
           {/* Verification Card */}
-          <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl">
-            <h3 className="text-xl font-black mb-6">Verification</h3>
-            <p className="text-slate-400 mb-6">Upload your documents to verify your account.</p>
-            <input type="file" ref={fileInputRef} onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" />
-            <button onClick={() => fileInputRef.current?.click()} className="flex items-center justify-center gap-2 w-full py-4 bg-sky-600 rounded-2xl font-black hover:bg-sky-500 transition-all">
-              <Upload className="w-5 h-5" /> Upload Documents
-            </button>
-          </div>
+          {currentUser.verificationStatus !== 'verified' && (
+            <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl md:col-span-2">
+              <h3 className="text-xl font-black mb-6">Verification</h3>
+              <div className="flex gap-4 mb-6">
+                <button onClick={() => setDocType('passport')} className={`flex-1 py-3 rounded-xl font-black ${docType === 'passport' ? 'bg-sky-600' : 'bg-black/40'}`}>Passport</button>
+                <button onClick={() => setDocType('id_card')} className={`flex-1 py-3 rounded-xl font-black ${docType === 'id_card' ? 'bg-sky-600' : 'bg-black/40'}`}>ID Card</button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <input type="file" onChange={(e) => setFiles(prev => ({ ...prev, idFront: e.target.files?.[0] || null }))} className="p-2 bg-black/40 rounded-xl border border-white/10" placeholder="ID/Passport Front" />
+                {docType === 'id_card' && <input type="file" onChange={(e) => setFiles(prev => ({ ...prev, idBack: e.target.files?.[0] || null }))} className="p-2 bg-black/40 rounded-xl border border-white/10" placeholder="ID Back" />}
+                <input type="file" onChange={(e) => setFiles(prev => ({ ...prev, commercialRegister: e.target.files?.[0] || null }))} className="p-2 bg-black/40 rounded-xl border border-white/10" placeholder="Commercial Register" />
+              </div>
+              <button onClick={handleFileUpload} className="flex items-center justify-center gap-2 w-full py-4 bg-sky-600 rounded-2xl font-black hover:bg-sky-500 transition-all">
+                <Upload className="w-5 h-5" /> Request Verification
+              </button>
+            </div>
+          )}
 
           {/* QR Card */}
           <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center">

@@ -366,6 +366,26 @@ export const supabaseService = {
     return data.path;
   },
 
+  async deleteDocument(path: string): Promise<void> {
+    console.log('[Supabase Storage] Attempting to delete:', path);
+    const { error } = await supabase.storage
+      .from('verification_documents')
+      .remove([path]);
+
+    if (error) {
+      console.error('[Supabase Storage] Delete Error Details:', error);
+      throw error;
+    }
+    console.log('[Supabase Storage] Delete successful:', path);
+  },
+
+  async getPublicUrl(path: string): Promise<string> {
+    const { data } = supabase.storage
+      .from('verification_documents')
+      .getPublicUrl(path);
+    return data.publicUrl;
+  },
+
   // Verification Requests
   async getVerifications(): Promise<VerificationRequest[]> {
     console.log("Fetching verification requests...");
