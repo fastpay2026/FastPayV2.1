@@ -344,15 +344,24 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
             .eq('id', 1)
             .single();
 
+          if (statsFetchError) {
+            console.error('[TradingPlatform] Error fetching stats:', statsFetchError);
+          }
+
+          const currentTotal = stats ? Number(stats.total_profits) : 0;
+          const newTotal = currentTotal + commission;
+          
+          console.log('[TradingPlatform] Updating stats:', { currentTotal, commission, newTotal });
+
           if (stats) {
             await supabase
               .from('platform_stats')
-              .update({ total_profits: Number(stats.total_profits) + commission, updated_at: new Date().toISOString() })
+              .update({ total_profits: newTotal, updated_at: new Date().toISOString() })
               .eq('id', 1);
           } else {
             await supabase
               .from('platform_stats')
-              .insert({ id: 1, total_profits: commission, updated_at: new Date().toISOString() });
+              .insert({ id: 1, total_profits: newTotal, updated_at: new Date().toISOString() });
           }
         }
       });
