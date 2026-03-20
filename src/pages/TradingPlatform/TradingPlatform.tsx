@@ -339,18 +339,16 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         } else {
           // Update agent balance
           if (agentId && agentProfit > 0) {
-            console.log('[TradingPlatform] Updating agent balance:', { agentId, agentProfit });
-            const { data: agentData, error: fetchError } = await supabase.from('users').select('balance').eq('id', agentId).single();
+            console.log('[TradingPlatform] Atomically updating agent balance:', { agentId, agentProfit });
+            const { error: rpcError } = await supabase.rpc('increment_balance', {
+              user_id: agentId,
+              amount: agentProfit
+            });
             
-            if (fetchError) {
-              console.error('[TradingPlatform] Error fetching agent balance:', fetchError);
-            } else if (agentData) {
-              const { error: updateError } = await supabase.from('users').update({ balance: agentData.balance + agentProfit }).eq('id', agentId);
-              if (updateError) {
-                console.error('[TradingPlatform] Error updating agent balance:', updateError);
-              } else {
-                console.log('[TradingPlatform] Agent balance updated successfully.');
-              }
+            if (rpcError) {
+              console.error('[TradingPlatform] Error updating agent balance via RPC:', rpcError);
+            } else {
+              console.log('[TradingPlatform] Agent balance updated successfully via RPC.');
             }
           }
 
