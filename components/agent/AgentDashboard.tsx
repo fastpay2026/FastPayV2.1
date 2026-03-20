@@ -22,6 +22,38 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async () => {
+    if (!file) return;
+    try {
+      const path = await supabaseService.uploadDocument(file, currentUser.id);
+      // Create a verification request record
+      await supabaseService.upsertVerification({
+        id: crypto.randomUUID(),
+        userId: currentUser.id,
+        username: currentUser.username,
+        fullName: currentUser.fullName,
+        idFront: path,
+        idBack: '',
+        commercialRegister: '',
+        submittedAt: new Date().toISOString(),
+        status: 'pending',
+        rejectionReason: ''
+      });
+      alert('تم رفع المستند بنجاح');
+      setFile(null);
+    } catch (error) {
+      console.error(error);
+      alert('حدث خطأ أثناء رفع المستند');
+    }
+  };
+  
+  useEffect(() => {
+    if (file) handleFileUpload();
+  }, [file]);
+
   useEffect(() => {
     if (currentUser) {
       const link = `${window.location.origin}/?ref=${currentUser.id}`;
@@ -148,7 +180,8 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
           <div className="bg-[#111827] p-8 rounded-3xl border border-white/10 shadow-2xl">
             <h3 className="text-xl font-black mb-6">Verification</h3>
             <p className="text-slate-400 mb-6">Upload your documents to verify your account.</p>
-            <button onClick={() => alert('Feature coming soon: Document upload functionality is currently being implemented.')} className="flex items-center justify-center gap-2 w-full py-4 bg-sky-600 rounded-2xl font-black hover:bg-sky-500 transition-all">
+            <input type="file" ref={fileInputRef} onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" />
+            <button onClick={() => fileInputRef.current?.click()} className="flex items-center justify-center gap-2 w-full py-4 bg-sky-600 rounded-2xl font-black hover:bg-sky-500 transition-all">
               <Upload className="w-5 h-5" /> Upload Documents
             </button>
           </div>

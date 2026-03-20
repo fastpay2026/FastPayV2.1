@@ -347,6 +347,17 @@ export const supabaseService = {
     if (error) throw error;
   },
 
+  async uploadDocument(file: File, userId: string): Promise<string> {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}/${Date.now()}.${fileExt}`;
+    const { data, error } = await supabase.storage
+      .from('verification_documents')
+      .upload(fileName, file);
+
+    if (error) throw error;
+    return data.path;
+  },
+
   // Verification Requests
   async getVerifications(): Promise<VerificationRequest[]> {
     console.log("Fetching verification requests...");

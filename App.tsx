@@ -130,7 +130,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (currentUserId) {
       console.log('[App] Connecting socket for user:', currentUserId);
-      const socket = io();
+      const socket = io(window.location.origin);
       
       socket.on('connect', () => {
         console.log('[App] Socket connected:', socket.id);
