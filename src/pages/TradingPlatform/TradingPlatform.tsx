@@ -175,11 +175,13 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     }
 
     const tradeAmount = volume * executionPrice;
-    const spreadAmount = 0.50; // 50 points * 0.01 = 0.50 (example)
-    
+    const spreadConfig = spreads[symbol] || { value: currentAsset?.spread || 0, mode: 'manual' };
+    const commission = spreadConfig.value; // Assuming this is the value from Spread Manager
+    const spread = currentSpread || 0;
+
     // 1. جلب بيانات الوكيل (إذا وجد)
     let agentProfit = 0;
-    let adminProfit = spreadAmount; // الافتراضي أن كل الربح للمنصة
+    let adminProfit = commission; // الافتراضي أن كل الربح للمنصة
     let agentId = null;
 
     if (user.referred_by) {
@@ -191,8 +193,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
 
       if (agent && agent.agent_percentage > 0) {
         agentId = user.referred_by;
-        agentProfit = (spreadAmount * agent.agent_percentage) / 100;
-        adminProfit = spreadAmount - agentProfit;
+        agentProfit = (commission * agent.agent_percentage) / 100;
+        adminProfit = commission - agentProfit;
       }
     }
 
@@ -232,9 +234,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     
     // السبريد يُخصم فور فتح الصفقة
     // استخدام السبريد الفعلي من الأصل إذا كان متاحاً، وإلا نستخدم القيمة الافتراضية
-    const totalDeduction = (currentSpread || 0) * volume * 1000; // مثال لحساب تكلفة السبريد
+    const totalDeduction = spread * volume * 1000; // مثال لحساب تكلفة السبريد
     
-    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, currentSpread, totalDeduction, userBalance: currentBalance, user_id: user.id });
+    console.log('[TradingPlatform] Trade check:', { volume, executionPrice, spread, totalDeduction, userBalance: currentBalance, user_id: user.id });
     
     if (currentBalance < totalDeduction) {
       console.log('[TradingPlatform] Insufficient balance for spread!');
@@ -270,6 +272,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       status: 'open',
       timestamp: new Date().toISOString(),
       required_margin: requiredMargin,
+      bot_config: { commission, spread },
     }).select().single();
 
     if (error) {
@@ -288,7 +291,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         user_id: user.id,
         username: user.username || 'User',
         asset_symbol: symbol,
-        amount: spreadAmount,
+        amount: commission, // Use persistent commission
         agent_id: agentId,
         agent_profit: agentProfit,
         admin_profit: adminProfit,
@@ -396,168 +399,171 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
 
   return (
     <div className="flex h-screen bg-[#0b0e11] text-slate-300 font-sans overflow-hidden">
-      <div className="w-80 flex flex-col">
-        <MarketWatch onSelectAsset={setSymbol} selectedSymbol={symbol} assets={assets} loading={assetsLoading} />
-      </div>
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4 shrink-0">
-          <div className="flex items-center gap-2 text-[10px] text-emerald-500 font-bold uppercase">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Server: FastPay-London (Connected)
-          </div>
-          <LayoutDashboard size={20} className="text-sky-400" />
-          <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
-            {(assets || []).slice(0, 5).map(a => (
-              <span key={a.id} className="mx-4">
-                {a.symbol}: <span className={(a.change_24h || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}>{Number(a.price || 0).toFixed(a.type === 'forex' ? 5 : 2)}</span>
+        <div className="w-80 flex flex-col">
+          <MarketWatch onSelectAsset={setSymbol} selectedSymbol={symbol} assets={assets} loading={assetsLoading} />
+        </div>
+        <div className="flex-1 flex flex-col min-h-0">
+          <div className="h-12 bg-[#161a1e] border-b border-white/10 flex items-center px-4 gap-4 shrink-0">
+            <div className="flex items-center gap-2 text-[10px] text-emerald-500 font-bold uppercase">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-            ))}
+              Server: FastPay-London (Connected)
+            </div>
+            <LayoutDashboard size={20} className="text-sky-400" />
+            <div className="flex-1 text-xs font-mono overflow-hidden whitespace-nowrap">
+              {(assets || []).slice(0, 5).map(a => (
+                <span key={a.id} className="mx-4">
+                  {a.symbol}: <span className={(a.change_24h || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}>{Number(a.price || 0).toFixed(a.type === 'forex' ? 5 : 2)}</span>
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="flex-1 flex min-h-0">
-          <div className="flex-1 p-2 flex flex-col min-h-0">
-            <div className="flex-1 min-h-0 relative">
-              {assetsLoading ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#161a1e] text-slate-400">
-                  Loading Chart...
+          <div className="flex-1 flex min-h-0">
+            <div className="flex-1 p-2 flex flex-col min-h-0">
+              <div className="flex-1 min-h-0 relative">
+                {assetsLoading ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#161a1e] text-slate-400">
+                    Loading Chart...
+                  </div>
+                ) : (
+                  <>
+                    <LightweightChart 
+                      symbol={symbol} 
+                      livePrice={currentPrice}
+                      digits={currentAsset?.digits || 2}
+                      chartType={chartType}
+                      setChartType={setChartType}
+                      spread={currentSpread}
+                    />
+                  </>
+                )}
+              </div>
+              <LiveMarketFeed trades={trades} />
+              <div className="flex-1 bg-[#161a1e] border-t border-white/10 flex flex-col mt-2">
+                <div className="flex-1 overflow-y-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-[#1e2329] text-slate-400 sticky top-0">
+                      <tr>
+                        <th className="p-2">Symbol</th>
+                        <th className="p-2">Type</th>
+                        <th className="p-2">Volume</th>
+                        <th className="p-2">Entry</th>
+                        <th className="p-2">Swap</th>
+                        <th className="p-2">Comm</th>
+                        <th className="p-2">Profit</th>
+                        <th className="p-2">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="relative">
+                      <AnimatePresence>
+                        {(positions || []).map(p => {
+                          const asset = assets.find(a => a.symbol === p.asset_symbol);
+                          const price = Number(asset?.price || 0);
+                          const profit = ((price - (p?.entry_price || 0)) * (p?.amount || 0) * ((p?.type || 'buy') === 'buy' ? 1 : -1));
+                          return (
+                          <motion.tr 
+                            key={p?.id} 
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                          >
+                            <td className="p-2 font-bold text-white">{p?.asset_symbol}</td>
+                            <td className={`p-2 font-bold uppercase ${(p?.type || 'buy') === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p?.type}</td>
+                            <td className="p-2">{p?.amount}</td>
+                            <td className="p-2 font-mono">{p?.entry_price?.toFixed(asset?.digits || 2)}</td>
+                            <td className="p-2 font-mono text-slate-400">0.00</td>
+                            <td className="p-2 font-mono text-slate-400">{p?.bot_config?.commission ? `-${Number(p.bot_config.commission).toFixed(2)}` : '0.00'}</td>
+                            <td className={`p-2 font-mono ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>
+                              {profit.toFixed(2)}
+                            </td>
+                            <td className="p-2">
+                              <button onClick={() => {
+                                closePosition(p, profit > 0, profit);
+                              }} className="bg-red-900/30 hover:bg-red-900/50 text-red-400 px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors">
+                                Close
+                              </button>
+                            </td>
+                          </motion.tr>
+                          );
+                        })}
+                      </AnimatePresence>
+                      <tr className="bg-[#1e2329] text-slate-200 font-bold border-t-2 border-white/10">
+                        <td className="p-2" colSpan={2}>Account Summary</td>
+                        <td className="p-2">Bal: {balance.balance.toFixed(2)}$</td>
+                        <td className="p-2">Eq: {tradingStatus.equity.toFixed(2)}$</td>
+                        <td className="p-2">Mar: {tradingStatus.margin.toFixed(2)}$</td>
+                        <td className="p-2">Free: {tradingStatus.freeMargin.toFixed(2)}$</td>
+                        <td className="p-2">Lev: {tradingStatus.marginLevel.toFixed(2)}%</td>
+                        <td className="p-2"></td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-              ) : (
-                <>
-                  <LightweightChart 
-                    symbol={symbol} 
-                    livePrice={currentPrice}
-                    digits={currentAsset?.digits || 2}
-                    chartType={chartType}
-                    setChartType={setChartType}
-                    spread={currentSpread}
-                  />
-                </>
-              )}
-            </div>
-            <LiveMarketFeed trades={trades} />
-          </div>
-          <div className="w-64 bg-[#161a1e] border-l border-white/10 p-4 flex flex-col gap-4 shrink-0">
-            <div className="flex flex-col gap-1">
-              <div className="text-xs text-slate-400 font-bold uppercase">Bid</div>
-              <div className={`text-2xl font-mono font-bold text-red-400`}>
-                {(currentPrice - (currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2))).toFixed(currentAsset?.digits || 2)}
-              </div>
-              <div className="text-xs text-slate-400 font-bold uppercase mt-2">Ask</div>
-              <div className={`text-2xl font-mono font-bold text-emerald-400`}>
-                {(currentPrice + (currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2))).toFixed(currentAsset?.digits || 2)}
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] text-slate-400 font-bold uppercase">Lot Size</label>
-              <input 
-                type="number" 
-                step="0.01"
-                value={volume} 
-                onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} 
-                className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 focus:border-sky-500 outline-none" 
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase">TP</label>
-                <input type="number" className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 outline-none" placeholder="0.00" />
+            <div className="w-64 bg-[#161a1e] border-l border-white/10 p-4 flex flex-col gap-4 shrink-0">
+              <div className="flex flex-col gap-1">
+                <div className="text-xs text-slate-400 font-bold uppercase">Bid</div>
+                <div className={`text-2xl font-mono font-bold text-red-400`}>
+                  {(currentPrice - (currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2))).toFixed(currentAsset?.digits || 2)}
+                </div>
+                <div className="text-xs text-slate-400 font-bold uppercase mt-2">Ask</div>
+                <div className={`text-2xl font-mono font-bold text-emerald-400`}>
+                  {(currentPrice + (currentSpread || 0) * Math.pow(10, -(currentAsset?.digits || 2))).toFixed(currentAsset?.digits || 2)}
+                </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase">SL</label>
-                <input type="number" className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 outline-none" placeholder="0.00" />
+              <div className="space-y-2">
+                <label className="text-[10px] text-slate-400 font-bold uppercase">Lot Size</label>
+                <input 
+                  type="number" 
+                  step="0.01"
+                  value={volume} 
+                  onChange={(e) => setVolume(parseFloat(e.target.value) || 0)} 
+                  className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 focus:border-sky-500 outline-none" 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">TP</label>
+                  <input type="number" className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 outline-none" placeholder="0.00" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">SL</label>
+                  <input type="number" className="bg-[#1e2329] text-white p-2 rounded text-sm w-full border border-white/5 outline-none" placeholder="0.00" />
+                </div>
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono">
+                Pip Value: {(volume * 10 * (currentAsset?.type === 'forex' ? 0.0001 : 1)).toFixed(2)}
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <button 
+                  onClick={() => handleTrade('Buy')} 
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded text-sm font-bold flex flex-col items-center transition-colors"
+                  disabled={!currentAsset}
+                >
+                  BUY
+                  <span className="text-[10px] opacity-80 font-normal">
+                    {currentAsset ? (currentPrice + (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2))).toFixed(currentAsset.digits || 2) : '---'}
+                  </span>
+                </button>
+                <button 
+                  onClick={() => handleTrade('Sell')} 
+                  className="bg-red-600 hover:bg-red-500 text-white py-3 rounded text-sm font-bold flex flex-col items-center transition-colors"
+                  disabled={!currentAsset}
+                >
+                  SELL
+                  <span className="text-[10px] opacity-80 font-normal">
+                    {currentAsset ? (currentPrice - (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2))).toFixed(currentAsset.digits || 2) : '---'}
+                  </span>
+                </button>
               </div>
             </div>
-            <div className="text-[10px] text-slate-400 font-mono">
-              Pip Value: {(volume * 10 * (currentAsset?.type === 'forex' ? 0.0001 : 1)).toFixed(2)}
-            </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <button 
-                onClick={() => handleTrade('Buy')} 
-                className="bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded text-sm font-bold flex flex-col items-center transition-colors"
-                disabled={!currentAsset}
-              >
-                BUY
-                <span className="text-[10px] opacity-80 font-normal">
-                  {currentAsset ? (currentPrice + (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2))).toFixed(currentAsset.digits || 2) : '---'}
-                </span>
-              </button>
-              <button 
-                onClick={() => handleTrade('Sell')} 
-                className="bg-red-600 hover:bg-red-500 text-white py-3 rounded text-sm font-bold flex flex-col items-center transition-colors"
-                disabled={!currentAsset}
-              >
-                SELL
-                <span className="text-[10px] opacity-80 font-normal">
-                  {currentAsset ? (currentPrice - (currentAsset.spread || 0) * Math.pow(10, -(currentAsset.digits || 2))).toFixed(currentAsset.digits || 2) : '---'}
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="h-48 bg-[#161a1e] border-t border-white/10 overflow-y-auto shrink-0 flex flex-col">
-          <table className="w-full text-xs text-left">
-            <thead className="bg-[#1e2329] text-slate-400 sticky top-0">
-              <tr>
-                <th className="p-2">Symbol</th>
-                <th className="p-2">Type</th>
-                <th className="p-2">Volume</th>
-                <th className="p-2">Entry</th>
-                <th className="p-2">Swap</th>
-                <th className="p-2">Comm</th>
-                <th className="p-2">Profit</th>
-                <th className="p-2">Action</th>
-              </tr>
-            </thead>
-            <tbody className="relative">
-              <AnimatePresence>
-                {(positions || []).map(p => {
-                  const asset = assets.find(a => a.symbol === p.asset_symbol);
-                  const price = Number(asset?.price || 0);
-                  const profit = ((price - (p?.entry_price || 0)) * (p?.amount || 0) * ((p?.type || 'buy') === 'buy' ? 1 : -1));
-                  return (
-                  <motion.tr 
-                    key={p?.id} 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="border-b border-white/5 hover:bg-white/5 transition-colors"
-                  >
-                    <td className="p-2 font-bold text-white">{p?.asset_symbol}</td>
-                    <td className={`p-2 font-bold uppercase ${(p?.type || 'buy') === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{p?.type}</td>
-                    <td className="p-2">{p?.amount}</td>
-                    <td className="p-2 font-mono">{p?.entry_price?.toFixed(asset?.digits || 2)}</td>
-                    <td className="p-2 font-mono text-slate-400">0.00</td>
-                    <td className="p-2 font-mono text-slate-400">{p?.platform_revenues?.[0]?.amount ? `-${p.platform_revenues[0].amount.toFixed(2)}` : (currentSpread ? `-${(currentSpread * p.amount * 1000).toFixed(2)}` : '0.00')}</td>
-                    <td className={`p-2 font-mono ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>
-                      {profit.toFixed(2)}
-                    </td>
-                    <td className="p-2">
-                      <button onClick={() => {
-                        closePosition(p, profit > 0, profit);
-                      }} className="bg-red-900/30 hover:bg-red-900/50 text-red-400 px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors">
-                        Close
-                      </button>
-                    </td>
-                  </motion.tr>
-                  );
-                })}
-              </AnimatePresence>
-            </tbody>
-          </table>
-          {/* Trading Status Bar */}
-          <div className="bg-[#111418] border-t border-white/10 flex items-center px-4 py-2 gap-6 text-[11px] font-mono text-slate-300 mt-auto sticky bottom-0">
-            <div>Balance: <span className="text-white">{balance.balance.toFixed(2)}$</span></div>
-            <div>Equity: <span className={tradingStatus.equity >= balance.balance ? 'text-emerald-400' : 'text-red-400'}>{tradingStatus.equity.toFixed(2)}$</span></div>
-            <div>Margin: <span className="text-white">{tradingStatus.margin.toFixed(2)}$</span></div>
-            <div>Free Margin: <span className="text-emerald-400 font-bold">{tradingStatus.freeMargin.toFixed(2)}$</span></div>
-            <div>Margin Level: <span className="text-white">{tradingStatus.marginLevel.toFixed(2)}%</span></div>
           </div>
         </div>
       </div>
-    </div>
   );
 };
 
