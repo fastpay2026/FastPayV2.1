@@ -50,20 +50,28 @@ async function startServer() {
     });
 
     socket.on('user:login', (data: { userId: string, username: string }) => {
-      console.log(`[Socket] User login received: ${data.username} (${data.userId})`);
-      onlineUsers.set(socket.id, data);
-      const currentOnlineUsers = Array.from(onlineUsers.values());
-      console.log(`[Socket] Current online users:`, currentOnlineUsers);
-      io.emit('users:online', currentOnlineUsers);
+      try {
+        console.log(`[Socket] User login received: ${data.username} (${data.userId})`);
+        onlineUsers.set(socket.id, data);
+        const currentOnlineUsers = Array.from(onlineUsers.values());
+        console.log(`[Socket] Current online users:`, currentOnlineUsers);
+        io.emit('users:online', currentOnlineUsers);
+      } catch (err) {
+        console.error(`[Socket] Error in user:login handler:`, err);
+      }
     });
 
     socket.on('disconnect', () => {
-      const user = onlineUsers.get(socket.id);
-      console.log(`[Socket] User disconnected: ${socket.id}`, user ? `(${user.username})` : '');
-      onlineUsers.delete(socket.id);
-      const currentOnlineUsers = Array.from(onlineUsers.values());
-      console.log(`[Socket] Current online users after disconnect:`, currentOnlineUsers);
-      io.emit('users:online', currentOnlineUsers);
+      try {
+        const user = onlineUsers.get(socket.id);
+        console.log(`[Socket] User disconnected: ${socket.id}`, user ? `(${user.username})` : '');
+        onlineUsers.delete(socket.id);
+        const currentOnlineUsers = Array.from(onlineUsers.values());
+        console.log(`[Socket] Current online users after disconnect:`, currentOnlineUsers);
+        io.emit('users:online', currentOnlineUsers);
+      } catch (err) {
+        console.error(`[Socket] Error in disconnect handler:`, err);
+      }
     });
   });
 
