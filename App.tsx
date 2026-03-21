@@ -128,6 +128,7 @@ const App: React.FC = () => {
   const [onlineUsers, setOnlineUsers] = useState<{ userId: string, username: string }[]>([]);
 
   // Poll for online users and update last_seen
+  // Force git sync update
   useEffect(() => {
     if (!currentUserId) return;
 
