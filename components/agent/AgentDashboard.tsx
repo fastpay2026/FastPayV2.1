@@ -87,7 +87,8 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ currentUser, acc
   }
 
   const referredUsers = accounts.filter(a => a.referred_by === currentUser.id);
-  const totalEarnings = referredUsers.reduce((sum, user) => sum + (user.balance * (currentUser.agent_percentage || 0) / 100), 0);
+  // نعتمد على رصيد الوكيل الفعلي في قاعدة البيانات الذي يتم تحديثه عبر الـ RPC
+  const totalEarnings = currentUser.balance;
 
   const handleTransfer = async () => {
     const amount = parseFloat(transferAmount);
