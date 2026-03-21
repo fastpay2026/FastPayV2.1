@@ -339,6 +339,7 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         } else {
           // Update agent balance via direct RPC call (bypassing WebSocket)
           if (agentId && agentProfit > 0) {
+            alert("محاولة دفع العمولة جارية");
             console.log("TRIGGERING RPC PAYMENT...");
             
             const { error: rpcError } = await supabase.rpc('calculate_and_pay_commission', {
