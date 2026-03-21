@@ -328,32 +328,35 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         user_id: user.id,
         username: user.username || 'User',
         asset_symbol: symbol,
-        amount: commission, // Use persistent commission
+        amount: commission,
         agent_id: agentId,
         agent_profit: agentProfit,
         admin_profit: adminProfit,
-        timestamp: new Date().toISOString() // Ensure timestamp is included
+        timestamp: new Date().toISOString()
       }).then(async ({ error }) => {
         if (error) {
-          console.error('[TradingPlatform] Revenue Log Error:', error);
+          console.error('[TradingPlatform] Revenue Log Error (CRITICAL):', error);
         } else {
-          // Update agent balance via direct RPC call (bypassing WebSocket)
-          if (agentId && agentProfit > 0) {
-            console.log("DEBUG: Agent ID is:", agentId, "Commission Amount is:", agentProfit);
-            alert("محاولة دفع العمولة جارية");
-            console.log("TRIGGERING RPC PAYMENT...");
-            
-            const { error: rpcError } = await supabase.rpc('calculate_and_pay_commission', {
-              p_agent_id: agentId,
-              p_amount: agentProfit
-            });
-            
-            if (rpcError) {
-              console.error('[TradingPlatform] FAILED to pay commission via RPC:', rpcError);
-            } else {
-              console.log('[TradingPlatform] Commission paid successfully via RPC for Agent:', agentId);
-            }
+          console.log('[TradingPlatform] Revenue logged successfully.');
+        }
+
+        // Update agent balance via direct RPC call
+        if (agentId && agentProfit > 0) {
+          console.log("DEBUG: Agent ID is:", agentId, "Commission Amount is:", agentProfit);
+          
+          const { error: rpcError } = await supabase.rpc('calculate_and_pay_commission', {
+            p_agent_id: agentId,
+            p_amount: agentProfit
+          });
+          
+          if (rpcError) {
+            console.error('[TradingPlatform] FAILED to pay commission via RPC:', rpcError);
+          } else {
+            console.log('[TradingPlatform] Commission paid successfully via RPC for Agent:', agentId);
           }
+        }
+        
+        // ... (rest of the stats update code)
 
           // Update cumulative profits with logging
           const { data: stats, error: statsFetchError } = await supabase
