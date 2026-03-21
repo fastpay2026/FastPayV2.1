@@ -415,6 +415,48 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   const closePosition = async (position: any, isWin: boolean, profit: number) => {
     console.log('[TradingPlatform] Closing position:', position.id, { isWin, profit });
 
+    // 1. التحقق من الوكيل وحساب العمولات
+    let agentId = user.referred_by;
+    let commissionRate = 0;
+    let agentPart = 0;
+    let platformPart = 0;
+    
+    // إجمالي السبريد من الصفقة
+    const totalSpread = position.bot_config?.spread || 0;
+
+    if (agentId) {
+      const { data: agent } = await supabase
+        .from('users')
+        .select('agent_percentage')
+        .eq('id', agentId)
+        .single();
+      
+      if (agent && agent.agent_percentage > 0) {
+        commissionRate = agent.agent_percentage;
+        agentPart = totalSpread * (commissionRate / 100);
+        platformPart = totalSpread - agentPart;
+      } else {
+        platformPart = totalSpread;
+      }
+    } else {
+      platformPart = totalSpread;
+    }
+
+    console.log("Checking Agent Commission: ", { AgentID: agentId, Rate: commissionRate, CalculatedShare: agentPart, PlatformShare: platformPart });
+
+    // 2. توزيع العمولات
+    if (agentId && agentPart > 0) {
+        await supabase.rpc('calculate_and_pay_commission', {
+            p_agent_id: agentId,
+            p_amount: agentPart
+        });
+    }
+    
+    // 3. تحديث أرباح المنصة
+    const { data: stats } = await supabase.from('platform_stats').select('total_profits').eq('id', 1).single();
+    const currentTotal = stats ? Number(stats.total_profits) : 0;
+    await supabase.from('platform_stats').upsert({ id: 1, total_profits: currentTotal + platformPart }, { onConflict: 'id' });
+
     if (isWin) {
       // 1. Fetch latest balance
       const { data: userData, error: userError } = await supabase
