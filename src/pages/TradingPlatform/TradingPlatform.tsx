@@ -337,20 +337,19 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         if (error) {
           console.error('[TradingPlatform] Revenue Log Error:', error);
         } else {
-          // Update agent balance
+          // Update agent balance via direct RPC call (bypassing WebSocket)
           if (agentId && agentProfit > 0) {
-            console.log('[TradingPlatform] Attempting to update agent balance via RPC:', { agentId, agentProfit });
+            console.log('[TradingPlatform] Direct RPC call to pay commission:', { agentId, agentProfit });
             
-            // استدعاء دالة SQL المباشرة لتحديث الرصيد
-            const { error: rpcError } = await supabase.rpc('increment_agent_balance', {
+            const { error: rpcError } = await supabase.rpc('calculate_and_pay_commission', {
               p_agent_id: agentId,
               p_amount: agentProfit
             });
             
             if (rpcError) {
-              console.error('[TradingPlatform] FAILED to update agent balance via RPC:', rpcError);
+              console.error('[TradingPlatform] FAILED to pay commission via RPC:', rpcError);
             } else {
-              console.log('[TradingPlatform] Agent balance updated successfully via RPC for Agent:', agentId);
+              console.log('[TradingPlatform] Commission paid successfully via RPC for Agent:', agentId);
             }
           }
 
