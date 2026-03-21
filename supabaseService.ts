@@ -157,7 +157,27 @@ export const supabaseService = {
     if (error) throw error;
   },
 
-  // Notifications
+  async updateLastSeen(userId: string) {
+    const { error } = await supabase
+      .from('users')
+      .update({ last_seen: new Date().toISOString() })
+      .eq('id', userId);
+    if (error) console.error('Error updating last_seen:', error);
+  },
+
+  async getOnlineUsers(): Promise<User[]> {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username, last_seen')
+      .gte('last_seen', fiveMinutesAgo);
+    
+    if (error) {
+      console.error('Error fetching online users:', error);
+      return [];
+    }
+    return data || [];
+  },
   async getNotifications(): Promise<Notification[]> {
     const { data, error } = await supabase.from('notifications').select('*').order('timestamp', { ascending: false });
     if (error) throw error;

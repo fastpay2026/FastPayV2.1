@@ -127,45 +127,30 @@ const App: React.FC = () => {
 
   const [onlineUsers, setOnlineUsers] = useState<{ userId: string, username: string }[]>([]);
 
+  // Poll for online users and update last_seen
   useEffect(() => {
-    if (currentUserId) {
-      console.log('[App] Connecting socket for user:', currentUserId);
-      const socketUrl = window.location.origin.replace(/^http/, 'ws');
-      const socket = io(socketUrl, {
-        transports: ['websocket', 'polling'],
-        reconnectionAttempts: 10,
-        reconnectionDelay: 1000,
-        withCredentials: true,
-        secure: true
-      });
-      
-      socket.on('connect', () => {
-        console.log('[App] Socket connected:', socket.id);
-        const user = accounts.find(a => a.id === currentUserId);
-        if (user) {
-          console.log('[App] Emitting user:login:', { userId: user.id, username: user.username });
-          socket.emit('user:login', { userId: user.id, username: user.username });
-        } else {
-          console.warn('[App] User not found in accounts, disconnecting socket');
-          socket.disconnect();
-        }
-      });
-      
-      socket.on('users:online', (users: { userId: string, username: string }[]) => {
-        console.log('[App] Received users:online:', users);
-        setOnlineUsers(users);
-      });
+    if (!currentUserId) return;
 
-      socket.on('connect_error', (err) => {
-        console.error('[App] Socket connection error:', err);
-      });
+    // Update last_seen every 2 minutes
+    const updateActivity = async () => {
+      await supabaseService.updateLastSeen(currentUserId);
+    };
+    updateActivity();
+    const activityInterval = setInterval(updateActivity, 2 * 60 * 1000);
 
-      return () => {
-        console.log('[App] Disconnecting socket');
-        socket.disconnect();
-      };
-    }
-  }, [currentUserId, accounts]);
+    // Fetch online users every 30 seconds
+    const fetchOnline = async () => {
+      const users = await supabaseService.getOnlineUsers();
+      setOnlineUsers(users.map(u => ({ userId: u.id, username: u.username })));
+    };
+    fetchOnline();
+    const fetchInterval = setInterval(fetchOnline, 30 * 1000);
+
+    return () => {
+      clearInterval(activityInterval);
+      clearInterval(fetchInterval);
+    };
+  }, [currentUserId]);
 
   useEffect(() => {
     accountsRef.current = accounts;
