@@ -442,14 +442,21 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
       platformPart = totalSpread;
     }
 
-    console.log("Checking Agent Commission: ", { AgentID: agentId, Rate: commissionRate, CalculatedShare: agentPart, PlatformShare: platformPart });
+    console.log("Checking Agent Commission: ", { AgentID: agentId, Rate: commissionRate, CalculatedShare: agentPart, PlatformShare: platformPart, TotalSpread: totalSpread });
 
     // 2. توزيع العمولات
     if (agentId && agentPart > 0) {
-        await supabase.rpc('calculate_and_pay_commission', {
+        console.log("TRIGGERING RPC PAYMENT in closePosition...");
+        const { error: rpcError } = await supabase.rpc('calculate_and_pay_commission', {
             p_agent_id: agentId,
             p_amount: agentPart
         });
+        
+        if (rpcError) {
+            console.error('[TradingPlatform] FAILED to pay commission via RPC in closePosition:', rpcError);
+        } else {
+            console.log('[TradingPlatform] Commission paid successfully via RPC for Agent in closePosition:', agentId);
+        }
     }
     
     // 3. تحديث أرباح المنصة
