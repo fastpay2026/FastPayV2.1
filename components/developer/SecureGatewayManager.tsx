@@ -503,7 +503,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
                 <div key={item.id} className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-black">${item.total_amount.toLocaleString()}</p>
+                      <p className="text-sm font-black">${item.total_amount?.toLocaleString()}</p>
                       <p className="text-[10px] text-slate-500 font-bold">{new Date(item.created_at).toLocaleTimeString()}</p>
                     </div>
                     <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${

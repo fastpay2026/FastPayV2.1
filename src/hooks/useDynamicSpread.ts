@@ -13,8 +13,12 @@ export const useDynamicSpread = (
 
   useEffect(() => {
     if (mode === 'manual') {
-      setEffectiveSpread(manualSpread);
-      setIsVolatile(false);
+      if (effectiveSpread !== manualSpread) {
+        setEffectiveSpread(manualSpread);
+      }
+      if (isVolatile) {
+        setIsVolatile(false);
+      }
       return;
     }
 

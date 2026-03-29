@@ -2,18 +2,48 @@ import React, { useState, useEffect } from 'react';
 import { Search, Star, TrendingUp, TrendingDown } from 'lucide-react';
 import { supabase } from '../../../../supabaseClient';
 import { TradeAsset } from '../../../../types';
+import { getPrecision, calculateBidAsk, formatPrice } from '../../../utils/marketUtils';
+import { usePriceStore } from '../store/usePriceStore';
 
 interface MarketWatchProps {
   onSelectAsset: (symbol: string) => void;
   selectedSymbol: string;
   assets: TradeAsset[];
   loading?: boolean;
+  spreads?: Record<string, { value: number, mode: 'manual' | 'auto', commission?: number }>;
 }
 
-const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol, assets, loading = false }) => {
+const MarketWatch = React.memo(({ onSelectAsset, selectedSymbol, assets, loading = false, spreads = {} }: MarketWatchProps) => {
   const [category, setCategory] = useState<string>('All');
   const [search, setSearch] = useState('');
   const [lastUpdatedId, setLastUpdatedId] = useState<string | null>(null);
+  const [priceFlash, setPriceFlash] = useState<Record<string, 'up' | 'down' | null>>({});
+  const prevPricesRef = React.useRef<Record<string, number>>({});
+  const prices = usePriceStore((state) => state.prices);
+
+  useEffect(() => {
+    // Track price changes for visual flash effect
+    const newFlash: Record<string, 'up' | 'down' | null> = {};
+    let hasChanges = false;
+
+    assets.forEach(asset => {
+      const currentPrice = prices[asset.symbol] || asset.price;
+      const prevPrice = prevPricesRef.current[asset.symbol];
+      if (prevPrice !== undefined && prevPrice !== currentPrice) {
+        newFlash[asset.symbol] = currentPrice > prevPrice ? 'up' : 'down';
+        hasChanges = true;
+      }
+      prevPricesRef.current[asset.symbol] = currentPrice;
+    });
+
+    if (hasChanges) {
+      setPriceFlash(prev => ({ ...prev, ...newFlash }));
+      const timer = setTimeout(() => {
+        setPriceFlash({});
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [assets, prices]);
 
   const categories = ['All', 'Forex Major', 'Forex Crosses', 'Metals', 'Indices', 'Energies', 'Crypto'];
 
@@ -118,17 +148,35 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
                 const isSelected = selectedSymbol === asset.symbol;
                 const isPositive = (asset.change_24h || 0) >= 0;
                 
+                const spreadConfig = spreads[asset.symbol] || { value: asset.spread || 0 };
+                const currentPrice = prices[asset.symbol] || asset.price || 0;
+                const { bid, ask } = calculateBidAsk(Number(currentPrice), spreadConfig.value, asset.symbol, asset.type, asset.digits);
+                
+                const formattedBid = formatPrice(Number(bid), asset.symbol, asset.digits);
+                const formattedAsk = formatPrice(Number(ask), asset.symbol, asset.digits);
+                
+                // Format spread for display: show the direct value from the database
+                const displaySpread = spreadConfig.value.toString();
+                
                 return (
                   <tr
                     key={asset.id}
                     onClick={() => onSelectAsset(asset.symbol)}
                     className={`group cursor-pointer border-b border-white/5 transition-all duration-500 ${
-                      isSelected ? 'bg-sky-500/10' : lastUpdatedId === asset.id ? 'bg-emerald-500/10' : 'hover:bg-white/5'
+                      isSelected ? 'bg-sky-500/10' : 
+                      priceFlash[asset.symbol] === 'up' ? 'bg-emerald-500/5' :
+                      priceFlash[asset.symbol] === 'down' ? 'bg-red-500/5' :
+                      lastUpdatedId === asset.id ? 'bg-emerald-500/10' : 'hover:bg-white/5'
                     }`}
                   >
                     <td className="p-3">
                       <div className="flex flex-col">
-                        <span className={`text-xs font-bold transition-colors ${isSelected ? 'text-sky-400' : 'text-slate-200 group-hover:text-white'}`}>
+                        <span className={`text-xs font-bold transition-colors ${
+                          isSelected ? 'text-sky-400' : 
+                          priceFlash[asset.symbol] === 'up' ? 'text-emerald-400' :
+                          priceFlash[asset.symbol] === 'down' ? 'text-red-400' :
+                          'text-slate-200 group-hover:text-white'
+                        }`}>
                           {asset.symbol}
                         </span>
                         <span className="text-[9px] text-slate-500 truncate max-w-[80px]">
@@ -138,17 +186,25 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex flex-col items-end">
-                        <span className={`text-[9px] font-mono font-bold text-red-400`}>
-                          {(Number(asset.price || 0) - (asset.spread || 0) * Math.pow(10, -(asset.type === 'forex' ? 5 : 2))).toFixed(asset.type === 'forex' ? 5 : 2)}
+                        <span className={`font-mono font-bold transition-colors duration-300 ${
+                          priceFlash[asset.symbol] === 'up' ? 'text-emerald-400' :
+                          priceFlash[asset.symbol] === 'down' ? 'text-red-400' :
+                          'text-red-400'
+                        }`}>
+                          {formattedBid}
                         </span>
-                        <span className={`text-[9px] font-mono font-bold text-emerald-400`}>
-                          {(Number(asset.price || 0) + (asset.spread || 0) * Math.pow(10, -(asset.type === 'forex' ? 5 : 2))).toFixed(asset.type === 'forex' ? 5 : 2)}
+                        <span className={`font-mono font-bold transition-colors duration-300 ${
+                          priceFlash[asset.symbol] === 'up' ? 'text-emerald-400' :
+                          priceFlash[asset.symbol] === 'down' ? 'text-red-400' :
+                          'text-emerald-400'
+                        }`}>
+                          {formattedAsk}
                         </span>
                       </div>
                     </td>
                     <td className="p-3 text-right">
                       <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded">
-                        {asset.spread}
+                        {displaySpread}
                       </span>
                     </td>
                     <td className={`p-3 text-right text-[10px] font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -175,6 +231,6 @@ const MarketWatch: React.FC<MarketWatchProps> = ({ onSelectAsset, selectedSymbol
       </div>
     </div>
   );
-};
+});
 
 export default MarketWatch;

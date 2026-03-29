@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Role, User, SiteConfig } from '../types';
 import { useI18n } from '../i18n/i18n';
 import { supabase, isSupabaseConfigured } from '../supabaseClient';
-import Logo from '../src/components/Logo';
+import Logo from './Logo';
 
 interface Props {
   onClose: () => void;
@@ -136,7 +136,12 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
         setIsAuthenticating(true);
       }
     } else {
-      setError('اسم المستخدم أو كلمة المرور غير صحيحة');
+      const usernameMatch = accounts.find(acc => acc.username.toLowerCase() === trimmedUsername.toLowerCase());
+      if (usernameMatch && usernameMatch.password === trimmedPassword) {
+        setError('يرجى اختيار نوع الحساب الصحيح لهذا المستخدم');
+      } else {
+        setError('اسم المستخدم أو كلمة المرور غير صحيحة');
+      }
     }
     setIsLoading(false);
   };

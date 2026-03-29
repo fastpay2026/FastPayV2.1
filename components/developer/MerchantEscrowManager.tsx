@@ -63,7 +63,7 @@ const MerchantEscrowManager: React.FC<Props> = ({ transactions, setTransactions,
                       </div>
                     </td>
                     <td className="p-8 text-white">{t.relatedUser}</td>
-                    <td className="p-8 text-teal-400 font-mono">${t.amount.toLocaleString()}</td>
+                    <td className="p-8 text-teal-400 font-mono">${t.amount?.toLocaleString()}</td>
                     <td className="p-8">
                       <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border ${
                         t.status === 'shipped' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :

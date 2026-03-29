@@ -49,7 +49,7 @@ const SalaryFunding: React.FC<Props> = ({ salaryPlans, setSalaryPlans, accounts,
           <div key={p.id} className="bg-slate-900/40 p-6 md:p-10 rounded-3xl md:rounded-[3rem] border border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-xl hover:border-indigo-500/30 transition-all">
             <div>
               <p className="font-black text-xl md:text-2xl text-white">{p.beneficiaryName} <span className="text-xs text-slate-500">@{p.username}</span></p>
-              <p className="text-indigo-400 font-black text-3xl md:text-4xl font-mono">${p.amount.toLocaleString()}</p>
+              <p className="text-indigo-400 font-black text-3xl md:text-4xl font-mono">${p.amount?.toLocaleString()}</p>
               <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest mt-2">{p.requestedAt}</p>
             </div>
             <div className="flex gap-4 w-full sm:w-auto">

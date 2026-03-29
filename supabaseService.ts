@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { User, SiteConfig, Transaction, Notification, AdExchangeItem, AdNegotiation, RechargeCard, WithdrawalRequest, SalaryFinancing, FixedDeposit, VerificationRequest, RaffleEntry, RaffleWinner, TradeAsset, TradeOrder, LandingService, CustomPage, FXExchangeSettings, SecurityKey, FXGatewayQueue, FXDistributorStatus, SecurityConfig } from './types';
 
 let currentSupabaseUser: any = null;
@@ -16,32 +16,41 @@ export const supabaseService = {
   // Users
   async getUsers(): Promise<User[]> {
     console.log('supabaseService: Fetching users...');
-    const { data, error } = await supabase.from('users').select('id, username, full_name, phone_number, password, role, balance, status, status_reason, is_verified, verification_status, verification_reason, linked_cards, assets, api_keys, email, created_at, referred_by');
-    if (error) {
-      console.error('supabaseService: Error fetching users:', error);
-      throw error;
-    }
-    console.log(`supabaseService: Fetched ${data?.length || 0} users`);
     
-    if (!data || data.length === 0) {
-        console.warn('supabaseService: Fetched 0 users from Supabase!');
-    }
-    
-    return (data || []).map(u => {
-      if (!u.password) {
-        console.warn(`supabaseService: User ${u.username} has no password in DB!`);
+    let dbUsers: any[] = [];
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.from('users').select('id, username, full_name, phone_number, password, role, balance, status, status_reason, is_verified, verification_status, verification_reason, linked_cards, assets, api_keys, email, created_at, referred_by');
+      if (error) {
+        console.error('supabaseService: Error fetching users from Supabase:', error);
+      } else {
+        dbUsers = data || [];
       }
+    }
+
+    // Fallback to localStorage if Supabase is not configured or returned no users
+    const localUsersRaw = localStorage.getItem('fp_v21_local_users');
+    const localUsers: User[] = localUsersRaw ? JSON.parse(localUsersRaw) : [];
+    
+    // Merge users, preferring DB users if there's a conflict
+    const mergedUsersMap = new Map<string, any>();
+    localUsers.forEach(u => mergedUsersMap.set(u.id, u));
+    dbUsers.forEach(u => mergedUsersMap.set(u.id, u));
+    
+    const finalUsers = Array.from(mergedUsersMap.values());
+    console.log(`supabaseService: Fetched ${finalUsers.length} users (DB: ${dbUsers.length}, Local: ${localUsers.length})`);
+    
+    return finalUsers.map(u => {
       return {
         ...u,
-        fullName: u.full_name,
-        phoneNumber: u.phone_number,
-        verificationStatus: u.verification_status,
-        verificationReason: u.verification_reason,
-        createdAt: u.created_at,
-        linkedCards: u.linked_cards,
-        assets: u.assets,
-        apiKeys: u.api_keys,
-        isActive: u.status === 'active'
+        fullName: u.full_name || u.fullName,
+        phoneNumber: u.phone_number || u.phoneNumber,
+        verificationStatus: u.verification_status || u.verificationStatus,
+        verificationReason: u.verification_reason || u.verificationReason,
+        createdAt: u.created_at || u.createdAt,
+        linkedCards: u.linked_cards || u.linkedCards || [],
+        assets: u.assets || [],
+        apiKeys: u.api_keys || u.apiKeys || [],
+        isActive: (u.status === 'active' || u.isActive === true)
       };
     });
   },
@@ -49,14 +58,32 @@ export const supabaseService = {
   async updateUser(user: User) {
     console.log('supabaseService: Updating user:', user.username, 'ID:', user.id);
     
-    // فحص أمان: التأكد من وجود ID صالح
     if (!user.id) {
       console.error('supabaseService: Critical Error: Attempted to update user without ID!', user);
       throw new Error('Cannot update user: Missing ID');
     }
 
+    // Always save to localStorage as a fallback/cache
     try {
-      // تنظيف البيانات لضمان عدم إرسال أي حقل غير موجود في SQL
+      const localUsersRaw = localStorage.getItem('fp_v21_local_users');
+      const localUsers: User[] = localUsersRaw ? JSON.parse(localUsersRaw) : [];
+      const index = localUsers.findIndex(u => u.id === user.id);
+      if (index >= 0) {
+        localUsers[index] = user;
+      } else {
+        localUsers.push(user);
+      }
+      localStorage.setItem('fp_v21_local_users', JSON.stringify(localUsers));
+    } catch (e) {
+      console.error('supabaseService: Error saving to localStorage:', e);
+    }
+
+    if (!isSupabaseConfigured) {
+      console.log('supabaseService: Supabase not configured, saved to localStorage only.');
+      return true;
+    }
+
+    try {
       const userData: any = {
         id: user.id
       };
@@ -77,22 +104,18 @@ export const supabaseService = {
       if (user.apiKeys !== undefined) userData.api_keys = Array.isArray(user.apiKeys) ? user.apiKeys : [];
       if (user.isActive !== undefined) userData.status = user.isActive ? 'active' : 'disabled';
       
-      // Fix: Ensure referred_by is only included if it is a valid, non-empty, non-"null" string.
       if (user.referred_by !== undefined && user.referred_by !== null && user.referred_by !== 'null' && user.referred_by !== '') {
         userData.referred_by = String(user.referred_by);
       } else {
-        // If it's null/empty, we explicitly set it to null so Supabase treats it as a NULL database value.
         userData.referred_by = null;
       }
-
-      console.log('supabaseService: Upserting userData:', userData);
 
       const { error } = await supabase.from('users').upsert(userData, { onConflict: 'id' });
       if (error) {
         console.error("Supabase Error Details:", error);
         throw new Error(error.message);
       }
-      console.log('supabaseService: Successfully updated user:', user.username);
+      console.log('supabaseService: Successfully updated user in Supabase:', user.username);
       return true;
     } catch (err: any) {
       console.error("Critical Sync Error:", err);
@@ -117,7 +140,7 @@ export const supabaseService = {
       // إرسال الإعدادات ككائن JSON نظيف
       const { error } = await supabase.from('site_config').upsert({ 
         id: 1, 
-        config: JSON.parse(JSON.stringify(config)), // ضمان كونه JSON صالح
+        config: config ? JSON.parse(JSON.stringify(config)) : {}, // ضمان كونه JSON صالح
         updated_at: new Date().toISOString() 
       }, { onConflict: 'id' });
       
@@ -165,7 +188,7 @@ export const supabaseService = {
     if (error) console.error('Error updating last_seen:', error);
   },
 
-  async getOnlineUsers(): Promise<User[]> {
+  async getOnlineUsers(): Promise<any[]> {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from('users')
@@ -176,7 +199,7 @@ export const supabaseService = {
       console.error('Error fetching online users:', error);
       return [];
     }
-    return data || [];
+    return (data || []) as any[];
   },
   async getNotifications(): Promise<Notification[]> {
     const { data, error } = await supabase.from('notifications').select('*').order('timestamp', { ascending: false });
@@ -555,6 +578,7 @@ export const supabaseService = {
       price: a.price,
       change_24h: a.change24h,
       type: a.type,
+      category: a.category,
       icon: a.icon,
       is_frozen: a.isFrozen,
       trend_bias: a.trendBias

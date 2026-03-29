@@ -51,7 +51,7 @@ const SwiftManager: React.FC<Props> = ({ withdrawalRequests, setWithdrawalReques
               {withdrawalRequests.map(r => (
                 <tr key={r.id} className="hover:bg-white/5">
                   <td className="p-8">@{r.username}</td>
-                  <td className="p-8 text-emerald-400 font-mono">${r.amount.toLocaleString()}</td>
+                  <td className="p-8 text-emerald-400 font-mono">${r.amount?.toLocaleString()}</td>
                   <td className="p-8 text-[10px] font-mono">{r.bankName}<br />{r.iban}</td>
                   <td className="p-8">
                     <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase ${r.status === 'pending' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>

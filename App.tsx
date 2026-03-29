@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useCallback, useMemo, Suspense, useRef } from 'react';
-import { io } from 'socket.io-client';
 import { useI18n } from './i18n/i18n.tsx';
 import { v4 as uuidv4 } from 'uuid';
 import LandingPage from './components/LandingPage';
@@ -18,15 +17,48 @@ import { supabaseService } from './supabaseService';
 import { isSupabaseConfigured, supabase } from './supabaseClient';
 
 
-const TradingPlatform = React.lazy(() => import('./src/pages/TradingPlatform/TradingPlatform'));
+import { Toaster } from 'sonner';
+
+const TradingPlatform = React.lazy(() => import('@/pages/TradingPlatform/TradingPlatform'));
 
 const App: React.FC = () => {
-  const [currentUserId, setCurrentUserId] = useState<string | null>(() => localStorage.getItem('fp_v21_current_user_id'));
+  const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
+    return localStorage.getItem('fp_v21_current_user_id');
+  });
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState('home');
   const { t, language } = useI18n();
   
+  // Server health check with retry
+  useEffect(() => {
+    const checkServerHealth = async (attempts = 0) => {
+      const maxAttempts = 5;
+      const delay = 2000;
+
+      try {
+        console.log(`[Health Check] Pinging server (Attempt ${attempts + 1})...`);
+        const response = await fetch('/api/health');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('[Health Check] Server is healthy:', data);
+        } else {
+          console.error('[Health Check] Server returned error:', response.status);
+          if (attempts < maxAttempts) {
+            setTimeout(() => checkServerHealth(attempts + 1), delay);
+          }
+        }
+      } catch (err) {
+        console.error('[Health Check] Failed to reach server:', err);
+        if (attempts < maxAttempts) {
+          console.log(`[Health Check] Retrying in ${delay}ms...`);
+          setTimeout(() => checkServerHealth(attempts + 1), delay);
+        }
+      }
+    };
+    checkServerHealth();
+  }, []);
+
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = language === 'ar' || language === 'ku' ? 'rtl' : 'ltr';
@@ -192,8 +224,16 @@ const App: React.FC = () => {
           supabaseService.getUsers(),
         ]);
 
-        if (dbConfig) setSiteConfig(dbConfig);
-        if (dbUsers.length > 0) setAccounts(dbUsers);
+        if (dbConfig) {
+          setSiteConfig(prev => ({ ...prev, ...dbConfig }));
+        }
+        if (dbUsers.length > 0) {
+          setAccounts(prev => {
+            const admin = prev.find(u => u.username === 'admin');
+            const otherUsers = dbUsers.filter(u => u.username !== 'admin');
+            return admin ? [admin, ...otherUsers] : dbUsers;
+          });
+        }
 
         if (!currentUserId) {
           isInitialLoad.current = false;
@@ -530,6 +570,7 @@ const App: React.FC = () => {
 
   return (
     <NotificationProvider>
+      <Toaster position="top-right" theme="dark" richColors />
       <div className="min-h-screen relative">
         {!isSupabaseConfigured && (
           <div className="fixed bottom-6 right-6 z-[2000] bg-red-600/90 backdrop-blur-xl text-white p-6 rounded-2xl shadow-2xl border border-white/10 max-w-sm animate-in slide-in-from-right duration-500">

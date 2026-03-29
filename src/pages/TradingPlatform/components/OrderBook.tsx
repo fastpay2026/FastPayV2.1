@@ -1,4 +1,5 @@
 import React from 'react';
+import { getPrecision } from '../../../utils/marketUtils';
 
 interface OrderBookProps {
   symbol: string;
@@ -13,7 +14,7 @@ const OrderBook: React.FC<OrderBookProps> = ({ symbol, bids, asks }) => {
       <div className="flex flex-col-reverse">
         {asks.map((ask, i) => (
           <div key={i} className="flex justify-between text-red-400">
-            <span>{ask[0].toFixed(2)}</span>
+            <span>{ask[0].toFixed(getPrecision(symbol))}</span>
             <span>{ask[1].toFixed(4)}</span>
           </div>
         ))}
@@ -22,7 +23,7 @@ const OrderBook: React.FC<OrderBookProps> = ({ symbol, bids, asks }) => {
       <div className="flex flex-col">
         {bids.map((bid, i) => (
           <div key={i} className="flex justify-between text-emerald-400">
-            <span>{bid[0].toFixed(2)}</span>
+            <span>{bid[0].toFixed(getPrecision(symbol))}</span>
             <span>{bid[1].toFixed(4)}</span>
           </div>
         ))}

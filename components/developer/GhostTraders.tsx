@@ -102,7 +102,7 @@ const GhostTraders: React.FC = () => {
     if (window.confirm('⚠️ تحذير نهائي: سيتم مسح كل شيء الآن. هل أنت متأكد؟')) {
       setLoading(true);
       try {
-        const response = await fetch('/api/admin/purge-bots', { method: 'POST' });
+        const response = await fetch('/api/debug/admin/purge-bots', { method: 'POST' });
         if (!response.ok) throw new Error('Server failed to purge data');
         
         await fetchBots();

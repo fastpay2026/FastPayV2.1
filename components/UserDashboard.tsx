@@ -9,11 +9,11 @@ import { useI18n } from '../i18n/i18n';
 import UnderDevelopment from './UnderDevelopment';
 import { supabaseService } from '../supabaseService';
 import LanguageSwitcher from './LanguageSwitcher';
-import { agentLotteryService } from '../src/services/agentLotteryService';
-import Logo from '../src/components/Logo';
-import { AgentLotteryDashboard } from '../src/components/agent/AgentLotteryDashboard';
+import { agentLotteryService } from '@/services/agentLotteryService';
+import Logo from './Logo';
+import { AgentLotteryDashboard } from '@/components/agent/AgentLotteryDashboard';
 
-const TradingPlatform = React.lazy(() => import('../src/pages/TradingPlatform/TradingPlatform'));
+const TradingPlatform = React.lazy(() => import('@/pages/TradingPlatform/TradingPlatform'));
 
 interface Props {
   user: User;

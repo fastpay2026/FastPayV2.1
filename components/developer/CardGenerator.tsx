@@ -43,7 +43,7 @@ const CardGenerator: React.FC<Props> = ({ rechargeCards, setRechargeCards, user 
             {rechargeCards.slice().reverse().slice(0, 50).map((c, i) => (
               <tr key={i} className="hover:bg-white/5 group transition-all">
                 <td className="p-8 text-sky-400 tracking-widest group-hover:text-white transition-colors">{c.code}</td>
-                <td className="p-8 text-center text-white font-mono">${c.amount.toLocaleString()}</td>
+              <td className="p-8 text-center text-white font-mono">${c.amount?.toLocaleString()}</td>
                 <td className="p-8 text-center">
                   {c.isUsed ? (
                     <span className="text-red-500 bg-red-500/10 px-4 py-1 rounded-full text-[10px] font-black uppercase">{t('used')}</span>

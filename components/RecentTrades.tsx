@@ -51,6 +51,7 @@ const RecentTrades: React.FC = () => {
     const humanChannel = supabase
       .channel('trade_orders_channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_orders' }, (payload) => {
+        console.log('Trade order change (DEBUG):', payload);
         if (payload.eventType === 'INSERT') {
           const newTrade = payload.new as TradeOrder;
           if (newTrade.status === 'open') {
@@ -58,11 +59,15 @@ const RecentTrades: React.FC = () => {
           }
         } else if (payload.eventType === 'UPDATE') {
           const updatedTrade = payload.new as TradeOrder;
+          console.log('Trade order update:', updatedTrade);
           if (updatedTrade.status !== 'open') {
             setTrades(prev => prev.filter(t => t.id !== updatedTrade.id));
           }
         } else if (payload.eventType === 'DELETE') {
-          setTrades(prev => prev.filter(t => t.id !== payload.old.id));
+          console.log('Trade order delete:', payload.old);
+          if (payload.old && payload.old.id) {
+            setTrades(prev => prev.filter(t => t.id !== payload.old.id));
+          }
         }
       })
       .subscribe();
@@ -92,7 +97,10 @@ const RecentTrades: React.FC = () => {
             setTrades(prev => prev.filter(trade => trade.id !== t.id));
           }
         } else if (payload.eventType === 'DELETE') {
-          setTrades(prev => prev.filter(trade => trade.id !== payload.old.id));
+          console.log('Bot trade delete:', payload.old);
+          if (payload.old && payload.old.id) {
+            setTrades(prev => prev.filter(trade => trade.id !== payload.old.id));
+          }
         }
       })
       .subscribe();

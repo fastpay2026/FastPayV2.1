@@ -1,6 +1,6 @@
 import { supabase } from '../../supabaseClient';
 
-export const getSpreads = async (): Promise<Record<string, { value: number, mode: 'manual' | 'auto' }>> => {
+export const getSpreads = async (): Promise<Record<string, { value: number, mode: 'manual' | 'auto', commission?: number }>> => {
   const { data, error } = await supabase
     .from('site_config')
     .select('config')
@@ -10,7 +10,7 @@ export const getSpreads = async (): Promise<Record<string, { value: number, mode
   if (error || !data) return {};
   // ضمان التوافق مع الهيكلية القديمة والجديدة
   const spreads = data.config.spreads || {};
-  const formattedSpreads: Record<string, { value: number, mode: 'manual' | 'auto' }> = {};
+  const formattedSpreads: Record<string, { value: number, mode: 'manual' | 'auto', commission?: number }> = {};
   
   Object.keys(spreads).forEach(key => {
     const val = spreads[key];
@@ -22,7 +22,7 @@ export const getSpreads = async (): Promise<Record<string, { value: number, mode
   return formattedSpreads;
 };
 
-export const updateSpread = async (symbol: string, spread: { value: number, mode: 'manual' | 'auto' }) => {
+export const updateSpread = async (symbol: string, spread: { value: number, mode: 'manual' | 'auto', commission?: number }) => {
   const { data: currentConfig, error: fetchError } = await supabase
     .from('site_config')
     .select('config')
@@ -43,4 +43,10 @@ export const updateSpread = async (symbol: string, spread: { value: number, mode
     .from('site_config')
     .update({ config: newConfig })
     .eq('id', 1);
+
+  // Update trade_assets table to keep it in sync
+  await supabase
+    .from('trade_assets')
+    .update({ spread: spread.value, commission: spread.commission })
+    .eq('symbol', symbol);
 };

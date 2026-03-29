@@ -28,7 +28,7 @@ export const AgentLotteryDashboard: React.FC<Props> = ({ user }) => {
           <div key={prize.id} className="p-6 bg-white/5 rounded-2xl border border-white/10">
             <h3 className="text-xl font-bold">{prize.prize_description}</h3>
             <p>عدد الفائزين: {prize.num_winners}</p>
-            <p>وقت القرعة: {new Date(prize.lottery_time).toLocaleString()}</p>
+            <p>وقت القرعة: {prize.lottery_time ? new Date(prize.lottery_time).toLocaleString() : 'N/A'}</p>
           </div>
         ))}
       </div>

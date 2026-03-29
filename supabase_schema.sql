@@ -182,9 +182,14 @@ CREATE TABLE IF NOT EXISTS trade_assets (
     price DECIMAL(20, 8) NOT NULL,
     change_24h DECIMAL(10, 2) DEFAULT 0,
     type TEXT NOT NULL,
+    category TEXT,
+    description TEXT,
+    digits INTEGER DEFAULT 5,
+    spread DECIMAL(10, 2) DEFAULT 0,
     icon TEXT,
     is_frozen BOOLEAN DEFAULT false,
-    trend_bias TEXT DEFAULT 'neutral'
+    trend_bias TEXT DEFAULT 'neutral',
+    commission DECIMAL(20, 2) DEFAULT 0
 );
 
 -- 15. Trade Orders
@@ -204,9 +209,15 @@ CREATE TABLE IF NOT EXISTS trade_orders (
     target_close_time TIMESTAMP WITH TIME ZONE,
     forced_take_profit DECIMAL(20, 8),
     forced_stop_loss DECIMAL(20, 8),
+    sl DECIMAL(20, 8),
+    tp DECIMAL(20, 8),
     closed_at TIMESTAMP WITH TIME ZONE,
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    required_margin DECIMAL(20, 2) DEFAULT 0
+    required_margin DECIMAL(20, 2) DEFAULT 0,
+    commission DECIMAL(20, 2) DEFAULT 0,
+    profit DECIMAL(20, 8) DEFAULT 0,
+    trigger_price DECIMAL(20, 8),
+    order_type TEXT DEFAULT 'market' -- 'market', 'buy_limit', 'sell_limit', 'buy_stop', 'sell_stop'
 );
 
 -- Ensure columns exist if table was created before
@@ -216,6 +227,12 @@ ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS bot_config JSONB DEFAULT '{}';
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS bot_category TEXT;
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS target_close_time TIMESTAMP WITH TIME ZONE;
 ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS required_margin DECIMAL(20, 2) DEFAULT 0;
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS commission DECIMAL(20, 2) DEFAULT 0;
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS profit DECIMAL(20, 8) DEFAULT 0;
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS sl DECIMAL(20, 8);
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS tp DECIMAL(20, 8);
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS trigger_price DECIMAL(20, 8);
+ALTER TABLE trade_orders ADD COLUMN IF NOT EXISTS order_type TEXT DEFAULT 'market';
 
 -- 16. Platform Revenues
 CREATE TABLE IF NOT EXISTS platform_revenues (

@@ -1,6 +1,6 @@
 
-import LogoGenerator from '../src/components/LogoGenerator';
-import LogoUploader from '../src/components/LogoUploader';
+import LogoGenerator from '@/components/LogoGenerator';
+import LogoUploader from '@/components/LogoUploader';
 import GhostTraders from './developer/GhostTraders';
 import React, { useState } from 'react';
 import { User, SiteConfig, LandingService, CustomPage, Transaction, Notification, TradeAsset, WithdrawalRequest, SalaryFinancing, TradeOrder, RechargeCard, RaffleEntry, RaffleWinner, FixedDeposit, AdExchangeItem, AdNegotiation, VerificationRequest } from '../types';
@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from '../supabaseClient';
 import { useI18n } from '../i18n/i18n';
 
 // Sub-components
-import { ManagerLotterySetup } from '../src/components/admin/ManagerLotterySetup';
+import { ManagerLotterySetup } from '@/components/admin/ManagerLotterySetup';
 import StatsOverview from './developer/StatsOverview';
 import UserManagement from './developer/UserManagement';
 import SwiftManager from './developer/SwiftManager';
@@ -18,15 +18,15 @@ import InvestmentPlans from './developer/InvestmentPlans';
 import DrawManager from './developer/DrawManager';
 import SiteIdentity from './developer/SiteIdentity';
 import MerchantEscrowManager from './developer/MerchantEscrowManager';
-import SpreadManager from '../src/components/developer/SpreadManager';
-import PlatformEarnings from '../src/pages/Dashboard/PlatformEarnings';
+import SpreadManager from '@/components/developer/SpreadManager';
+import PlatformEarnings from '@/pages/Dashboard/PlatformEarnings';
 import OnlineUsers from './developer/OnlineUsers';
 import ActivityLog from './developer/ActivityLog';
 import { AdminVerificationReview } from './VerificationManager';
 import { AdExchange } from './AdExchange';
 import SecureGatewayManager from './developer/SecureGatewayManager';
 import LanguageSwitcher from './LanguageSwitcher';
-import Logo from '../src/components/Logo';
+import Logo from '@/components/Logo';
 
 interface Props {
   user: User;

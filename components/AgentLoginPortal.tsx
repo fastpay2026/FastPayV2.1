@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { User, Role } from '../types';
 import { useI18n } from '../i18n/i18n';
-import Logo from '../src/components/Logo';
+import Logo from './Logo';
 
 interface Props {
   onLogin: (user: User) => void;

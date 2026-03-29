@@ -1,40 +1,240 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, AreaSeries } from 'lightweight-charts';
+import { fetchHistoricalData } from '../../../services/marketService';
+import { calculateBidAsk, formatPrice, getPrecision } from '../../../utils/marketUtils';
+import { IndicatorsEngine } from '../services/IndicatorsEngine';
+import { ChartInteractionService, VisualOrder } from '../services/chartInteractionService';
+import { usePriceStore } from '../store/usePriceStore';
+import { useNotification } from '../../../../components/NotificationContext';
+
 
 interface LightweightChartProps {
   symbol: string;
-  livePrice: number;
+  price?: number; // initial price
   digits?: number;
   chartType?: 'candlestick' | 'line';
   setChartType: (type: 'candlestick' | 'line') => void;
   spread?: number;
+  asset?: any;
+  assetType?: string;
+  seriesRef?: React.MutableRefObject<ISeriesApi<"Candlestick" | "Area"> | null>;
+  positions?: any[];
+  pendingOrders?: any[];
+  selectedOrderId?: string | null;
+  onUpdateOrders?: () => void;
+  onPriceChange?: (orderId: string, type: 'sl' | 'tp' | 'entry', price: number) => void;
+  onSelectOrder?: (orderId: string | null) => void;
+  draftSL?: number | '';
+  draftTP?: number | '';
+  draftType?: 'buy' | 'sell';
+  draftAmount?: number;
+  draftEntryPrice?: number;
 }
 
-const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, digits = 2, chartType = 'candlestick', setChartType, spread = 0 }) => {
+import { ErrorBoundary } from 'react-error-boundary';
+import { OrderEditModal } from './OrderEditModal';
+
+const LightweightChartContainer: React.FC<LightweightChartProps> = (props) => {
+  return (
+    <ErrorBoundary fallback={<div>Indicator Error - Please refresh.</div>}>
+      <LightweightChart {...props} />
+    </ErrorBoundary>
+  );
+};
+
+const LightweightChart: React.FC<LightweightChartProps> = ({ 
+  symbol, digits = 2, chartType = 'candlestick', setChartType, 
+  spread = 0, asset, assetType, seriesRef: externalSeriesRef,
+  positions = [], pendingOrders = [], selectedOrderId, onUpdateOrders, onPriceChange, onSelectOrder,
+  draftSL, draftTP, draftType, draftAmount, draftEntryPrice
+}) => {
+  const price = usePriceStore((state) => state.prices[symbol] || Number(asset?.price || 0));
+  const { bid, ask } = calculateBidAsk(Number(price), spread, symbol, assetType, digits);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick" | "Area"> | null>(null);
   const bidLineRef = useRef<any>(null);
-  const askLineRef = useRef<any>(null);
-  const [lastCandle, setLastCandle] = useState<any>(null);
+  const slLineRef = useRef<any>(null);
+  const tpLineRef = useRef<any>(null);
+  const isDraggingRef = useRef(false);
+  const draggedLineRef = useRef<{ orderId: string; type: 'sl' | 'tp' | 'entry'; line: any } | null>(null);
+  const { showNotification } = useNotification();
   const lastCandleRef = useRef<any>(null);
+  const lastUpdateTimeRef = useRef<number>(0);
   const [timeframe, setTimeframe] = useState('1m');
   const [showIndicators, setShowIndicators] = useState(false);
-  const [showRSI, setShowRSI] = useState(false);
-  const [showMA, setShowMA] = useState(false);
+  const [isChartReady, setIsChartReady] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<any | null>(null);
+  const activeIndicatorsRef = useRef<string[]>([]);
+  const [activeIndicatorsUI, setActiveIndicatorsUI] = useState<string[]>([]);
+  const indicatorsEngineRef = useRef<any>(null);
+  const interactionServiceRef = useRef<ChartInteractionService | null>(null);
+  const historicalDataRef = useRef<any[]>([]);
+
+  const toggleIndicator = (type: string) => {
+    const isActive = activeIndicatorsRef.current.includes(type);
+    if (isActive) {
+      activeIndicatorsRef.current = activeIndicatorsRef.current.filter(t => t !== type);
+      setActiveIndicatorsUI([...activeIndicatorsRef.current]);
+      indicatorsEngineRef.current?.clearAllIndicators();
+      activeIndicatorsRef.current.forEach(t => {
+        indicatorsEngineRef.current?.addIndicator({ type: t as any, params: {} }, historicalDataRef.current);
+      });
+    } else {
+      activeIndicatorsRef.current.push(type);
+      setActiveIndicatorsUI([...activeIndicatorsRef.current]);
+      indicatorsEngineRef.current?.addIndicator({ type: type as any, params: {} }, historicalDataRef.current);
+    }
+  };
+
+  // Sync positions and pending orders with the interaction service
+  useEffect(() => {
+    if (seriesRef.current && onUpdateOrders && isChartReady) {
+      const errorHandler = (msg: string) => showNotification(msg, 'error');
+      
+      interactionServiceRef.current = new ChartInteractionService(
+        seriesRef.current,
+        onUpdateOrders,
+        digits,
+        errorHandler,
+        onPriceChange,
+        onSelectOrder
+      );
+      
+      const visualOrders: VisualOrder[] = [
+        ...positions.map(p => ({ ...p, status: 'open' })),
+        ...pendingOrders.map(p => ({ ...p, status: 'pending' }))
+      ];
+      
+      interactionServiceRef.current.updateOrders(visualOrders, symbol, selectedOrderId || undefined);
+    }
+    
+    return () => {
+      if (interactionServiceRef.current) {
+        interactionServiceRef.current.destroy();
+        interactionServiceRef.current = null;
+      }
+    };
+  }, [symbol, isChartReady]);
+
+  // تحديث الصفقات فقط عند تغيرها
+  useEffect(() => {
+    if (interactionServiceRef.current && isChartReady) {
+      const visualOrders: VisualOrder[] = [
+        ...positions.map(p => ({ ...p, status: 'open' })),
+        ...pendingOrders.map(p => ({ ...p, status: 'pending' }))
+      ];
+      interactionServiceRef.current.updateOrders(visualOrders, symbol, selectedOrderId || undefined);
+    }
+  }, [positions, pendingOrders, selectedOrderId]);
+
+  // Sync draft lines
+  useEffect(() => {
+    if (interactionServiceRef.current && isChartReady) {
+      if (!selectedOrderId) {
+        const sl = draftSL === '' ? null : draftSL;
+        const tp = draftTP === '' ? null : draftTP;
+        interactionServiceRef.current.updateDraftLines(
+          sl, 
+          tp, 
+          draftType || 'buy', 
+          draftAmount || 0, 
+          draftEntryPrice || price, 
+          symbol
+        );
+      } else {
+        interactionServiceRef.current.clearDraftLines();
+      }
+    }
+  }, [draftSL, draftTP, draftType, draftAmount, draftEntryPrice, symbol, isChartReady, price, selectedOrderId]);
+
+  const [handles, setHandles] = useState<{orderId: string, type: 'sl' | 'tp' | 'entry', y: number}[]>([]);
 
   useEffect(() => {
-    lastCandleRef.current = lastCandle;
-  }, [lastCandle]);
+    console.log(`[LightweightChart] Handles useEffect triggered. seriesRef: ${!!seriesRef.current}, isChartReady: ${isChartReady}, selectedOrderId: ${selectedOrderId}, isDragging: ${isDraggingRef.current}`);
+    if (!seriesRef.current || !isChartReady || !selectedOrderId || isDraggingRef.current) {
+        console.log(`[LightweightChart] Handles useEffect returning early. seriesRef: ${!!seriesRef.current}, isChartReady: ${isChartReady}, selectedOrderId: ${selectedOrderId}, isDragging: ${isDraggingRef.current}`);
+        if (!isDraggingRef.current) setHandles([]);
+        return;
+    }
 
-  // Keep track of the latest livePrice without triggering re-renders in the initialization effect
-  const livePriceRef = useRef(livePrice);
+    const updateHandles = () => {
+      const newHandles = [];
+      const order = [...positions, ...pendingOrders].find(o => o.id === selectedOrderId);
+      console.log(`[LightweightChart] Updating handles. Selected Order ID: ${selectedOrderId}, Order found: ${!!order}`);
+      if (!order) {
+          setHandles([]);
+          return;
+      }
+
+      if (order.sl) {
+          const y = seriesRef.current!.priceToCoordinate(order.sl);
+          console.log(`[LightweightChart] SL handle y: ${y}`);
+          if (y !== null) newHandles.push({ orderId: order.id, type: 'sl', y });
+      }
+      if (order.tp) {
+          const y = seriesRef.current!.priceToCoordinate(order.tp);
+          console.log(`[LightweightChart] TP handle y: ${y}`);
+          if (y !== null) newHandles.push({ orderId: order.id, type: 'tp', y });
+      }
+      if (order.status === 'pending' && order.entry_price) {
+          const y = seriesRef.current!.priceToCoordinate(order.entry_price);
+          console.log(`[LightweightChart] Entry handle y: ${y}`);
+          if (y !== null) newHandles.push({ orderId: order.id, type: 'entry', y });
+      }
+
+      setHandles(newHandles);
+    };
+
+    updateHandles();
+  }, [positions, pendingOrders, selectedOrderId, isChartReady, price]);
+
+  // Handle Drag & Drop events
   useEffect(() => {
-    livePriceRef.current = livePrice;
-  }, [livePrice]);
+    const chart = chartRef.current;
+    if (!chart || !isChartReady) return;
+
+    // تعطيل حركة الشارت الافتراضية أثناء السحب
+    chart.applyOptions({ handleScroll: true, handleScale: true });
+
+    return () => {
+      // Cleanup
+    };
+  }, [symbol, isChartReady]);
+
+  // Update Bid price line
+  useEffect(() => {
+    if (!seriesRef.current || !price || !chartRef.current) return;
+
+    try {
+      if ((seriesRef.current as any)._internal_series === null) return;
+
+      // Use the calculated bid price for the red line
+      const bidPrice = Number(bid);
+      const precision = getPrecision(symbol, digits);
+
+      if (!bidLineRef.current) {
+        bidLineRef.current = seriesRef.current.createPriceLine({
+          price: bidPrice,
+          color: '#ef5350',
+          lineWidth: 1,
+          lineStyle: 2,
+          axisLabelVisible: true,
+          title: 'Bid',
+          axisLabelFormatter: (p: number) => p.toFixed(precision),
+        });
+      } else {
+        bidLineRef.current.applyOptions({ 
+          price: bidPrice,
+          axisLabelFormatter: (p: number) => p.toFixed(precision)
+        });
+      }
+    } catch (e) {
+      console.warn('[LightweightChart] Error updating price line:', e);
+    }
+  }, [bid, symbol, digits]);
 
   useEffect(() => {
-    console.log('[LightweightChart] livePrice:', livePrice, 'symbol:', symbol, 'chartType:', chartType);
     if (!chartContainerRef.current) return;
 
     const chart = createChart(chartContainerRef.current, {
@@ -46,9 +246,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
         vertLines: { color: 'rgba(42, 46, 57, 0.5)' },
         horzLines: { color: 'rgba(42, 46, 57, 0.5)' },
       },
-      crosshair: {
-        mode: 0,
-      },
+      crosshair: { mode: 0 },
       timeScale: {
         borderColor: 'rgba(197, 203, 206, 0.8)',
         timeVisible: true,
@@ -56,6 +254,10 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
       },
       rightPriceScale: {
         borderColor: 'rgba(197, 203, 206, 0.8)',
+        autoScale: true,
+      },
+      localization: {
+        priceFormatter: (price: number) => formatPrice(price, symbol, digits),
       },
     });
 
@@ -67,79 +269,92 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
         borderVisible: false,
         wickUpColor: '#26a69a',
         wickDownColor: '#ef5350',
+        lastValueVisible: false,
+        priceFormat: {
+          type: 'price',
+          precision: digits,
+          minMove: 1 / Math.pow(10, digits),
+        },
       });
     } else {
       series = chart.addSeries(AreaSeries, {
         lineColor: '#2962FF',
         topColor: '#2962FF',
         bottomColor: 'rgba(41, 98, 255, 0.28)',
+        lastValueVisible: false,
       });
     }
 
     chartRef.current = chart;
+    indicatorsEngineRef.current = new IndicatorsEngine(chart);
     seriesRef.current = series;
+    if (externalSeriesRef) {
+      externalSeriesRef.current = series;
+    }
 
-    // Generate some fake historical data leading up to the current livePrice
-    const generateHistoricalData = (basePrice: number) => {
-      const data = [];
-      let time = Math.floor(Date.now() / 1000) - 100 * 60; // 100 minutes ago
-      let currentPrice = basePrice * 0.99; // Start slightly lower
+    const errorHandler = (msg: string) => showNotification(msg, 'error');
+    interactionServiceRef.current = new ChartInteractionService(
+      series, 
+      onUpdateOrders || (() => {}), 
+      digits, 
+      errorHandler, 
+      onPriceChange, 
+      onSelectOrder
+    );
 
-      for (let i = 0; i < 100; i++) {
-        const volatility = basePrice * 0.001;
-        const open = currentPrice;
-        const close = open + (Math.random() - 0.5) * volatility;
-        const high = Math.max(open, close) + Math.random() * volatility;
-        const low = Math.min(open, close) - Math.random() * volatility;
-
-        if (chartType === 'candlestick') {
-          data.push({ time: time as any, open, high, low, close });
-        } else {
-          data.push({ time: time as any, value: close });
-        }
-
-        currentPrice = close;
-        time += 60; // 1 minute candles
-      }
-      
-      // Ensure the last candle's close is close to the livePrice
-      if (chartType === 'candlestick') {
-        const last = data[data.length - 1];
-        last.close = basePrice;
-        if (basePrice > last.high) last.high = basePrice;
-        if (basePrice < last.low) last.low = basePrice;
-      } else {
-        data.push({ time: time as any, value: basePrice });
-      }
-
-      return data;
-    };
+    setIsChartReady(true);
 
     let isMounted = true;
+    const initData = async () => {
+      const symbolToFetch = symbol === 'BTC' ? 'BTCUSD' : symbol;
+      const rawData = await fetchHistoricalData(symbolToFetch, timeframe);
+      
+      if (!isMounted || !seriesRef.current) return;
+      
+      const initialData = rawData
+      .filter((k: any) => Array.isArray(k) && k.length >= 5)
+      .map((k: any) => {
+        const rawTime = Number(k[0]);
+        const time = (rawTime > 1000000000000 ? Math.floor(rawTime / 1000) : rawTime) as any;
+        return chartType === 'candlestick' 
+          ? { time, open: Number(k[1]), high: Number(k[2]), low: Number(k[3]), close: Number(k[4]) }
+          : { time, value: Number(k[4]) };
+      })
+      .filter((d: any) => !isNaN(d.time))
+      .sort((a: any, b: any) => a.time - b.time)
+      .filter((v: any, i: number, a: any[]) => i === 0 || v.time > a[i - 1].time);
 
-    // Wait for a valid price before generating data
-    const initData = () => {
-      if (!isMounted) return;
-      const price = livePriceRef.current;
-      if (price > 0) {
-        const initialData = generateHistoricalData(price);
+      if (initialData.length > 0) {
+        historicalDataRef.current = initialData;
         series.setData(initialData);
+        lastUpdateTimeRef.current = initialData[initialData.length - 1].time;
+        
         if (chartType === 'candlestick') {
-          setLastCandle(initialData[initialData.length - 1]);
+          lastCandleRef.current = initialData[initialData.length - 1];
         }
-      } else {
-        // Retry after a short delay if price is not yet available
-        setTimeout(initData, 500);
+
+        if (indicatorsEngineRef.current && activeIndicatorsRef.current.length > 0) {
+          console.log(`[LightweightChart] Re-drawing active indicators for ${symbolToFetch}:`, activeIndicatorsRef.current);
+          activeIndicatorsRef.current.forEach(type => {
+            indicatorsEngineRef.current.addIndicator({ type: type as any, params: {} }, initialData);
+          });
+        }
       }
     };
     
     initData();
 
     const resizeObserver = new ResizeObserver(entries => {
-      if (entries.length === 0 || entries[0].target !== chartContainerRef.current) return;
+      if (!isMounted || entries.length === 0 || entries[0].target !== chartContainerRef.current) return;
       const newRect = entries[0].contentRect;
       requestAnimationFrame(() => {
-        chart.applyOptions({ height: newRect.height, width: newRect.width });
+        if (isMounted && chartRef.current) {
+          try {
+            chartRef.current.applyOptions({ height: newRect.height, width: newRect.width });
+          } catch (e) {
+            console.warn('Failed to resize chart', e);
+          }
+        }
       });
     });
 
@@ -148,138 +363,101 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
     return () => {
       isMounted = false;
       resizeObserver.disconnect();
-      chart.remove();
-      chartRef.current = null;
-      seriesRef.current = null;
+      if (interactionServiceRef.current) {
+        interactionServiceRef.current.destroy();
+        interactionServiceRef.current = null;
+      }
+      if (indicatorsEngineRef.current) {
+        indicatorsEngineRef.current.destroy();
+        indicatorsEngineRef.current = null;
+      }
+      if (chartRef.current) {
+        chartRef.current.remove();
+        chartRef.current = null;
+        seriesRef.current = null;
+        bidLineRef.current = null;
+      }
+      setIsChartReady(false);
     };
-  }, [symbol, chartType, timeframe]); // Re-create chart when symbol, chartType, or timeframe changes
+  }, [symbol, chartType, timeframe, digits]);
 
-  // Update the last candle when livePrice changes
   useEffect(() => {
-    if (!seriesRef.current || !livePrice) return;
+    if (!seriesRef.current || !price || !chartRef.current) return;
+    
+    try {
+      const numPrice = Number(price);
+      if (interactionServiceRef.current) interactionServiceRef.current.updateCurrentPrice(numPrice);
 
-    if (chartType === 'candlestick') {
-      if (!lastCandleRef.current) return;
-      const updateCandle = () => {
-        const currentLastCandle = lastCandleRef.current;
-        const newCandle = { ...currentLastCandle };
-        newCandle.close = livePrice;
-        if (livePrice > newCandle.high) newCandle.high = livePrice;
-        if (livePrice < newCandle.low) newCandle.low = livePrice;
-        
-        // If we crossed into a new minute, create a new candle
-        const currentTime = Math.floor(Date.now() / 1000);
-        const candleTime = Number(newCandle.time);
-        
-        if (currentTime - candleTime >= 60) {
-          // New candle
-          const nextCandle = {
-            time: (Math.floor(currentTime / 60) * 60) as any,
-            open: livePrice,
-            high: livePrice,
-            low: livePrice,
-            close: livePrice,
-          };
-          (seriesRef.current as ISeriesApi<"Candlestick">).update(nextCandle);
-          setLastCandle(nextCandle);
-        } else {
-          // Update current candle
-          (seriesRef.current as ISeriesApi<"Candlestick">).update(newCandle);
-          setLastCandle(newCandle);
-        }
-      };
-      updateCandle();
-    } else {
-      (seriesRef.current as ISeriesApi<"Area">).update({
-        time: Math.floor(Date.now() / 1000) as any,
-        value: livePrice,
-      });
-    }
-  }, [livePrice, symbol, chartType]);
-
-  // Update Bid/Ask lines
-  /*
-  useEffect(() => {
-    if (!seriesRef.current || !livePrice) return;
-
-    const spreadValue = (spread || 0) * Math.pow(10, -digits);
-    const bid = livePrice - spreadValue;
-    const ask = livePrice + spreadValue;
-
-    if (bidLineRef.current) seriesRef.current.removePriceLine(bidLineRef.current);
-    if (askLineRef.current) seriesRef.current.removePriceLine(askLineRef.current);
-
-    bidLineRef.current = seriesRef.current.createPriceLine({
-      price: bid,
-      color: '#ef5350',
-      lineWidth: 1,
-      lineStyle: 2,
-      axisLabelVisible: true,
-      title: 'Bid',
-    });
-
-    askLineRef.current = seriesRef.current.createPriceLine({
-      price: ask,
-      color: '#26a69a',
-      lineWidth: 1,
-      lineStyle: 2,
-      axisLabelVisible: true,
-      title: 'Ask',
-    });
-  }, [livePrice, spread, digits]);
-  */
-
-  // Tick simulation for smoothness
-  useEffect(() => {
-    if (!seriesRef.current || !livePrice) return;
-
-    const interval = setInterval(() => {
-      const tickVolatility = livePrice * 0.00002; // Smaller tick for smoother movement
-      const simulatedPrice = livePrice + (Math.random() - 0.5) * tickVolatility;
-      
       if (chartType === 'candlestick') {
-        const currentLastCandle = lastCandleRef.current;
-        if (!currentLastCandle) return;
-        const newCandle = { ...currentLastCandle };
-        newCandle.close = simulatedPrice;
-        if (simulatedPrice > newCandle.high) newCandle.high = simulatedPrice;
-        if (simulatedPrice < newCandle.low) newCandle.low = simulatedPrice;
-        (seriesRef.current as ISeriesApi<"Candlestick">).update(newCandle);
-      } else {
+        if (!lastCandleRef.current) return;
+        
+        const now = Math.floor(Date.now() / 1000);
+        let candleDurationSeconds = 60; // Default 1m
+        if (timeframe === '5m') candleDurationSeconds = 300;
+        else if (timeframe === '15m') candleDurationSeconds = 900;
+        else if (timeframe === '1H') candleDurationSeconds = 3600;
+        else if (timeframe === '4H') candleDurationSeconds = 14400;
+        else if (timeframe === '1D') candleDurationSeconds = 86400;
+        
+        const currentCandleTime = Math.floor(now / candleDurationSeconds) * candleDurationSeconds;
+        
+        let updatedCandle;
+        if (currentCandleTime > lastCandleRef.current.time) {
+          // Create new candle
+          updatedCandle = {
+            time: currentCandleTime as any,
+            open: numPrice,
+            high: numPrice,
+            low: numPrice,
+            close: numPrice,
+          };
+        } else {
+          // Update existing candle
+          updatedCandle = {
+            ...lastCandleRef.current,
+            high: Math.max(lastCandleRef.current.high, numPrice),
+            low: Math.min(lastCandleRef.current.low, numPrice),
+            close: numPrice,
+          };
+        }
+        
+        (seriesRef.current as ISeriesApi<"Candlestick">).update(updatedCandle);
+        lastCandleRef.current = updatedCandle;
+      } else if (chartType === 'line') {
         (seriesRef.current as ISeriesApi<"Area">).update({
           time: Math.floor(Date.now() / 1000) as any,
-          value: simulatedPrice,
+          value: numPrice,
         });
       }
-    }, 100); // Update every 100ms for smoother pulsing
-
-    return () => clearInterval(interval);
-  }, [livePrice, chartType]); // Only restart if livePrice changes (to reset the base price)
+    } catch (e) {
+      console.warn('Error updating candle', e);
+    }
+  }, [price, symbol, chartType, timeframe]);
 
   return (
-    <div className="w-full h-full bg-[#161a1e] rounded-lg overflow-hidden border border-white/10 relative">
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
+    <div 
+      className="w-full h-full bg-[#161a1e] rounded-lg overflow-visible border border-white/10 relative"
+      onMouseDown={() => console.log("PARENT CLICKED")}
+    >
+      <div className="absolute top-4 left-4 z-20 flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="text-white font-bold text-lg">{symbol}</span>
-          <span className={`font-mono text-lg ${chartType === 'candlestick' ? (lastCandle?.close >= lastCandle?.open ? 'text-emerald-400' : 'text-red-400') : 'text-sky-400'}`}>
-            {livePrice?.toFixed(digits) || '0.00'}
-          </span>
+          {selectedOrderId && (
+            <button 
+              onClick={() => {
+                const order = [...positions, ...pendingOrders].find(o => o.id === selectedOrderId);
+                if (order) setEditingOrder(order);
+              }}
+              className="bg-sky-600 text-white text-[10px] rounded px-2 py-1 font-bold"
+            >
+              EDIT
+            </button>
+          )}
         </div>
         
-        {/* أزرار نوع الشارت */}
         <div className="flex bg-[#1e2329] rounded border border-white/5 w-fit">
-          <button 
-            onClick={() => setChartType('candlestick')}
-            className={`px-3 py-1 text-[10px] uppercase font-bold ${chartType === 'candlestick' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-          >
-            Candles
-          </button>
-          <button 
-            onClick={() => setChartType('line')}
-            className={`px-3 py-1 text-[10px] uppercase font-bold ${chartType === 'line' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
-          >
-            Line
-          </button>
+          <button onClick={() => setChartType('candlestick')} className={`px-3 py-1 text-[10px] uppercase font-bold ${chartType === 'candlestick' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}>Candles</button>
+          <button onClick={() => setChartType('line')} className={`px-3 py-1 text-[10px] uppercase font-bold ${chartType === 'line' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}>Line</button>
         </div>
         <div className="flex gap-1">
           {['1m', '5m', '15m', '1h', '1d'].map(tf => (
@@ -289,16 +467,106 @@ const LightweightChart: React.FC<LightweightChartProps> = ({ symbol, livePrice, 
         <div className="relative">
           <button onClick={() => setShowIndicators(!showIndicators)} className="bg-[#2a2e39] text-white text-xs rounded px-2 py-1">Indicators</button>
           {showIndicators && (
-            <div className="absolute top-full left-0 bg-[#2a2e39] p-2 rounded mt-1 z-20">
-              <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={showRSI} onChange={() => setShowRSI(!showRSI)} /> RSI</label>
-              <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={showMA} onChange={() => setShowMA(!showMA)} /> MA</label>
+            <div className="absolute top-full left-0 bg-[#2a2e39] p-2 rounded mt-1 z-20 flex flex-col gap-1">
+              <button className={`text-xs hover:text-sky-400 ${activeIndicatorsUI.includes('EMA') ? 'text-sky-400 font-bold' : 'text-white'}`} onClick={() => toggleIndicator('EMA')}>
+                EMA
+              </button>
+              <button className={`text-xs hover:text-sky-400 ${activeIndicatorsUI.includes('RSI') ? 'text-sky-400 font-bold' : 'text-white'}`} onClick={() => toggleIndicator('RSI')}>
+                RSI
+              </button>
+              <button className={`text-xs hover:text-sky-400 ${activeIndicatorsUI.includes('MACD') ? 'text-sky-400 font-bold' : 'text-white'}`} onClick={() => toggleIndicator('MACD')}>
+                MACD
+              </button>
             </div>
           )}
         </div>
       </div>
-      <div ref={chartContainerRef} className="w-full h-full" />
+      {/* الطبقة التفاعلية للسحب */}
+      <div className="absolute inset-0 z-50 pointer-events-none">
+        {handles.map((handle, index) => {
+          const colors = {
+            sl: 'border-red-500 text-red-500',
+            tp: 'border-emerald-500 text-emerald-500',
+            entry: 'border-sky-500 text-sky-500'
+          };
+          const colorClass = colors[handle.type] || 'border-gray-500 text-gray-500';
+          
+          return (
+            <div
+              key={`${handle.orderId}-${handle.type}-${index}`}
+              className={`absolute w-full h-8 -mt-4 cursor-ns-resize pointer-events-auto flex items-center justify-end`}
+              style={{ top: `${handle.y}px` }}
+              onMouseDown={(e) => {
+                console.log("[DEBUG] Handle MouseDown", handle);
+                e.stopPropagation();
+                e.preventDefault();
+                
+                // إيقاف حركة الشارت
+                chartRef.current?.applyOptions({ handleScroll: false, handleScale: false });
+                
+                // إخبار الخدمة ببدء السحب
+                interactionServiceRef.current?.startDrag(handle.orderId, handle.type);
+                
+                const startY = e.clientY;
+                const startYCoordinate = handle.y;
+
+                const onMouseMove = (moveEvent: MouseEvent) => {
+                  const deltaY = moveEvent.clientY - startY;
+                  const newY = startYCoordinate + deltaY;
+                  const newPrice = seriesRef.current!.coordinateToPrice(newY);
+                  
+                  if (newPrice !== null) {
+                    // تحديث الخط في الخدمة
+                    interactionServiceRef.current?.handleMouseMove(newPrice);
+                    
+                    // تحديث موقع المقبض محلياً في المكون ليتحرك بصرياً
+                    setHandles(prev => prev.map(h => 
+                      (h.orderId === handle.orderId && h.type === handle.type) 
+                        ? { ...h, y: newY } 
+                        : h
+                    ));
+                  }
+                };
+
+                const onMouseUp = async () => {
+                  window.removeEventListener('mousemove', onMouseMove);
+                  window.removeEventListener('mouseup', onMouseUp);
+                  
+                  // إعادة تفعيل حركة الشارت
+                  chartRef.current?.applyOptions({ handleScroll: true, handleScale: true });
+                  
+                  // إنهاء السحب وتحديث الخلفية
+                  await interactionServiceRef.current?.handleMouseUp();
+                  onUpdateOrders?.();
+                };
+
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+              }}
+            >
+              <div className={`w-full h-0 border-t-2 border-dashed ${colorClass.split(' ')[0]}`}></div>
+              <span className={`text-[10px] font-bold bg-black/80 px-2 py-0.5 rounded-l-md ml-2 uppercase tracking-wider ${colorClass.split(' ')[1]}`}>
+                {handle.type}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {editingOrder && (
+        <OrderEditModal 
+          order={editingOrder} 
+          onClose={() => setEditingOrder(null)} 
+          onUpdate={() => onUpdateOrders?.()} 
+        />
+      )}
+      <div 
+        ref={chartContainerRef} 
+        className="w-full h-full relative z-10" 
+        style={{ pointerEvents: 'auto', cursor: 'crosshair', position: 'relative' }}
+      />
     </div>
   );
 };
 
-export default LightweightChart;
+export default LightweightChartContainer;

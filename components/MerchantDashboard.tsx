@@ -4,7 +4,7 @@ import { BadgeCheck } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, APIKey, VerificationRequest, AdExchangeItem, AdNegotiation } from '../types';
 import { useI18n } from '../i18n/i18n';
-import { AgentLotteryDashboard } from '../src/components/agent/AgentLotteryDashboard';
+import { AgentLotteryDashboard } from '@/components/agent/AgentLotteryDashboard';
 import MerchantDealCreator from './MerchantDealCreator';
 import { MerchantVerification } from './VerificationManager';
 import { AdExchange } from './AdExchange';

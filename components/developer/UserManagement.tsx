@@ -147,7 +147,7 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
                       </div>
                     </div>
                   </td>
-                  <td className="p-8 text-emerald-400 font-mono text-xl">${u.balance.toLocaleString()}</td>
+                  <td className="p-8 text-emerald-400 font-mono text-xl">${u.balance?.toLocaleString()}</td>
                   <td className="p-8 text-xs text-slate-500 font-black uppercase tracking-widest">{u.role}</td>
                   <td className="p-8">
                     <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase ${u.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-400'}`}>

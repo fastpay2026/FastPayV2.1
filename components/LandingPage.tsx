@@ -4,7 +4,7 @@ import { SiteConfig, LandingService, CustomPage, User } from '../types';
 import { useI18n } from '../i18n/i18n';
 import { BadgeCheck } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
-import Logo from '../src/components/Logo';
+import Logo from './Logo';
 
 interface Props {
   siteConfig: SiteConfig;

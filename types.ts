@@ -56,7 +56,7 @@ export interface TradeAsset {
   symbol: string;
   price: number;
   change24h: number;
-  type: 'crypto' | 'commodity' | 'stock';
+  type: 'crypto' | 'commodity' | 'stock' | 'forex' | 'metal' | 'index' | 'energy';
   icon: string;
   isFrozen?: boolean;
   trendBias?: 'up' | 'down' | 'neutral';
@@ -65,6 +65,7 @@ export interface TradeAsset {
   spread?: number;
   description?: string;
   change_24h?: number; // Adding this for consistency with DB column name if needed
+  commission?: number;
 }
 
 export interface TradeOrder {
@@ -80,6 +81,8 @@ export interface TradeOrder {
   target_close_time?: string;
   forced_take_profit?: number;
   forced_stop_loss?: number;
+  sl?: number;
+  tp?: number;
   timestamp: string;
   comm?: number;
 }

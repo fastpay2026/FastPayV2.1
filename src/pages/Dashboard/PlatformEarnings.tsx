@@ -39,13 +39,14 @@ const PlatformEarnings: React.FC = () => {
 
   const fetchTotalProfits = async () => {
     const { data, error } = await supabase
-      .from('platform_stats')
-      .select('total_profits')
-      .eq('id', 1)
-      .single();
+      .from('trade_orders')
+      .select('commission');
     
-    if (data) {
-      setTotalProfits(Number(data.total_profits));
+    if (error) {
+      console.error('PlatformEarnings: Error fetching total profits:', error);
+    } else if (data) {
+      const sum = data.reduce((acc, trade) => acc + (Number(trade.commission) || 0), 0);
+      setTotalProfits(sum);
     }
   };
 
@@ -75,7 +76,7 @@ const PlatformEarnings: React.FC = () => {
               <td className="border p-2">{earning.username}</td>
               <td className="border p-2">{earning.assetSymbol}</td>
               <td className="border p-2">{earning.amount.toFixed(2)}</td>
-              <td className="border p-2">{new Date(earning.timestamp).toLocaleString()}</td>
+              <td className="border p-2">{earning.timestamp ? new Date(earning.timestamp).toLocaleString() : 'N/A'}</td>
             </tr>
           ))}
         </tbody>
