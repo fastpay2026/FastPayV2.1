@@ -14,7 +14,7 @@ export const runPriceFeed = async (priceChannel: any, latestPrices: Record<strin
   const cryptoTickers = ['BTCUSD', 'ETHUSD', 'SOLUSD'];
   
   const lastPublishTime: Record<string, number> = {};
-  const throttleTime = 5000; // Increased to 5 seconds to reduce message volume
+  const throttleTime = 10000; // Increased to 10 seconds to reduce message volume
   let isChannelActive = false;
 
   // Check presence periodically
@@ -38,7 +38,7 @@ export const runPriceFeed = async (priceChannel: any, latestPrices: Record<strin
     }
   };
   checkPresence();
-  setInterval(checkPresence, 10000); // Reduced frequency to every 10 seconds
+  setInterval(checkPresence, 30000); // Reduced frequency to every 30 seconds
 
   const publishUpdate = async (symbol: string, price: number) => {
     if (!isChannelActive) return;

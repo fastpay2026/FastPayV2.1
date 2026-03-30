@@ -75,7 +75,12 @@ async function setupVite(app: express.Application) {
     console.log('[Server] Vite middleware attached');
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, {
+      setHeaders: (res, path) => {
+        if (path.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
+        if (path.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
+      }
+    }));
     app.get('*all', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
