@@ -13,6 +13,47 @@ export const runPriceFeed = async (priceChannel: any, latestPrices: Record<strin
   const fxTickers = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'EURJPY', 'GBPJPY', 'EURGBP', 'XAUUSD', 'XAGUSD'];
   const cryptoTickers = ['BTCUSD', 'ETHUSD', 'SOLUSD'];
   
+  const lastPublishTime: Record<string, number> = {};
+  const throttleTime = 5000; // Increased to 5 seconds to reduce message volume
+  let isChannelActive = false;
+
+  // Check presence periodically
+  const checkPresence = async () => {
+    try {
+      // If channel is failed, try to re-attach
+      if (priceChannel.state === 'failed' || priceChannel.state === 'suspended') {
+        console.warn('[Price Engine] Channel in bad state, attempting to re-attach...');
+        await priceChannel.attach();
+      }
+      
+      if (priceChannel.state === 'attached') {
+        const members = await priceChannel.presence.get();
+        isChannelActive = members.length > 0;
+      } else {
+        isChannelActive = false;
+      }
+    } catch (err) {
+      console.error('[Price Engine] Presence check error:', err);
+      isChannelActive = false;
+    }
+  };
+  checkPresence();
+  setInterval(checkPresence, 10000); // Reduced frequency to every 10 seconds
+
+  const publishUpdate = async (symbol: string, price: number) => {
+    if (!isChannelActive) return;
+    
+    const now = Date.now();
+    if (lastPublishTime[symbol] && now - lastPublishTime[symbol] < throttleTime) {
+      return;
+    }
+    lastPublishTime[symbol] = now;
+
+    priceChannel.publish('update', { symbol, price }).catch((err: any) => {
+      console.error(`[Price Engine] Publish error for ${symbol}:`, err);
+    });
+  };
+
   const connectWS = (endpoint: string, tickers: string[], isCrypto: boolean) => {
     const ws = new WebSocket(`wss://api.tiingo.com/${endpoint}`);
 
@@ -40,11 +81,8 @@ export const runPriceFeed = async (priceChannel: any, latestPrices: Record<strin
           
           let price = 0;
           if (isCrypto) {
-            // Crypto format: ['T', 'btcusd', 'date', 'exchange', size, price]
             price = Number(d[5]);
           } else {
-            // FX format: ['Q', 'eurusd', 'date', bidSize, bidPrice, midPrice, askSize, askPrice]
-            // Use midPrice (d[5]) or bidPrice (d[4])
             price = Number(d[5] || d[4]);
           }
           
@@ -52,13 +90,7 @@ export const runPriceFeed = async (priceChannel: any, latestPrices: Record<strin
             latestPrices[symbol] = price;
             
             console.log(`[Price Engine] Publishing update for ${symbol}: ${price}`);
-            
-            priceChannel.publish('update', {
-              symbol: symbol,
-              price: price
-            }).catch((err: any) => {
-              console.error(`[Price Engine] Publish error for ${symbol}:`, err);
-            });
+            publishUpdate(symbol, price);
           }
         }
       } catch (err) {
@@ -115,7 +147,7 @@ export const runPriceFeed = async (priceChannel: any, latestPrices: Record<strin
             if (price > 0) {
               latestPrices[symbol] = price;
               // console.log(`[Ably] Publishing update for ${symbol}: ${price}`);
-              priceChannel.publish('update', { symbol, price });
+              publishUpdate(symbol, price);
             } else {
               console.warn(`[REST] Price for ${symbol} is 0 or invalid.`);
             }
@@ -166,12 +198,7 @@ export const runPriceFeed = async (priceChannel: any, latestPrices: Record<strin
       
       latestPrices[symbol] = currentPrice;
 
-      priceChannel.publish('update', {
-        symbol: symbol,
-        price: currentPrice
-      }).catch((err: any) => {
-        console.error(`[Price Engine] Publish error for simulated ${symbol}:`, err);
-      });
+      publishUpdate(symbol, currentPrice);
     });
   }, 2000); // Update every 2 seconds
 };
