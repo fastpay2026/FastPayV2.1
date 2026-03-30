@@ -90,7 +90,7 @@ const startServer = async () => {
     // Setup Vite/Static first so the server is ready to serve
     await setupVite(app);
 
-    const PORT = 3000;
+    const PORT = Number(process.env.PORT) || 3000;
     httpServer.listen(PORT, "0.0.0.0", async () => {
       console.log(`[Server] ✅ Express server listening on http://0.0.0.0:${PORT}`);
       console.log(`[Server] Health check: http://localhost:${PORT}/api/health`);
@@ -119,7 +119,7 @@ const startServer = async () => {
   } catch (err) {
     console.error('[Server] Critical startup error:', err);
     // Even if background tasks fail, try to start the server
-    const PORT = 3000;
+    const PORT = Number(process.env.PORT) || 3000;
     if (!httpServer.listening) {
       httpServer.listen(PORT, "0.0.0.0", () => {
         console.log(`[Server] ⚠️ Started in emergency mode on http://0.0.0.0:${PORT}`);
