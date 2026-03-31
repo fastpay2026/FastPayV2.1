@@ -14,7 +14,7 @@ import { runGhostEngine } from './services/ghost-trader-engine';
 import { runStopOutEngine } from './services/stop-out-engine';
 
 const app = express();
-const distPath = path.resolve(process.cwd(), 'build');
+const distPath = path.resolve(process.cwd(), 'dist');
 
 // Supabase Setup
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
