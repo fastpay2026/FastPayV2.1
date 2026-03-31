@@ -24,9 +24,16 @@ export const runPriceFeed = async (priceChannel: any, latestPrices: Record<strin
       const members = await priceChannel.presence.get();
       isChannelActive = members.length > 0;
       console.log(`[Price Engine] Presence check: ${members.length} users active. Channel active: ${isChannelActive}`);
-    } catch (err) {
-      console.error('[Price Engine] Presence check error:', err);
-      isChannelActive = false;
+    } catch (err: any) {
+      if (err.code === 40112) {
+        console.warn('[Price Engine] Ably message limits exceeded (40112). Disabling presence checks.');
+        // Optionally, stop the interval or just set isChannelActive to false
+        // For now, just log and keep it disabled.
+        isChannelActive = false;
+      } else {
+        console.error('[Price Engine] Presence check error:', err);
+        isChannelActive = false;
+      }
     }
   }, 5000);
 

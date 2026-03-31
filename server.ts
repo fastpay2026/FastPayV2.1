@@ -44,11 +44,20 @@ app.use(['/api/trading', '/api/trading/'], tradingRouter(supabase));
 app.use(['/api/debug', '/api/debug/'], diagnosticRouter(supabase, isSupabaseConfigured, { timestamp: Date.now() }));
 
 // Static files and SPA
-app.use(express.static(distPath, { index: false }));
-app.use((req, res, next) => {
-  if (req.url.startsWith('/api/') || req.url.startsWith('/assets/')) return next();
-  res.sendFile(path.join(distPath, 'index.html'));
-});
+if (process.env.NODE_ENV !== 'production') {
+  const { createServer: createViteServer } = await import('vite');
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: 'spa',
+  });
+  app.use(vite.middlewares);
+} else {
+  app.use(express.static(distPath, { index: false }));
+  app.get('*', (req, res) => {
+    if (req.url.startsWith('/api/')) return;
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 const PORT = process.env.PORT || 3000;
 const httpServer = createServer(app);

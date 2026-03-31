@@ -866,16 +866,17 @@ export const supabaseService = {
     return data || [];
   },
 
-  async upsertDistributorSecurityKey(r: SecurityKey) {
+  async upsertDistributorSecurityKey(r: SecurityKey, adminUserId?: string) {
     const { data: { user } } = await supabase.auth.getUser();
 
     console.log("=== API CALL INFO (Security Key) ===");
     console.log("Supabase API URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Logged In User ID:", user?.id);
+    console.log("Logged In User ID (Auth):", user?.id);
+    console.log("Admin User ID (Passed):", adminUserId);
     console.log("Target Distributor ID:", r.distributor_id);
     console.log("====================================");
 
-    let currentUserId = user?.id;
+    let currentUserId = user?.id || adminUserId;
     let isAdmin = false;
 
     if (user) {
@@ -885,6 +886,13 @@ export const supabaseService = {
         if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
           isAdmin = true;
         }
+      }
+    } else if (adminUserId) {
+      // Fallback for when auth session is lost but we have the adminUserId
+      const { data: userData } = await supabase.from('users').select('role').eq('id', adminUserId).maybeSingle();
+      if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
+        isAdmin = true;
+        currentUserId = adminUserId;
       }
     } else {
       // Fallback for local dev/admin without proper auth session
@@ -974,16 +982,17 @@ export const supabaseService = {
     return data.security_pin === pin;
   },
 
-  async upsertDistributorSecurityConfig(c: SecurityConfig) {
+  async upsertDistributorSecurityConfig(c: SecurityConfig, adminUserId?: string) {
     const { data: { user } } = await supabase.auth.getUser();
 
     console.log("=== API CALL INFO (Security Config) ===");
     console.log("Supabase API URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Logged In User ID:", user?.id);
+    console.log("Logged In User ID (Auth):", user?.id);
+    console.log("Admin User ID (Passed):", adminUserId);
     console.log("Target Distributor ID:", c.distributor_id);
     console.log("=======================================");
 
-    let currentUserId = user?.id;
+    let currentUserId = user?.id || adminUserId;
     let isAdmin = false;
 
     if (user) {
@@ -993,6 +1002,13 @@ export const supabaseService = {
         if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
           isAdmin = true;
         }
+      }
+    } else if (adminUserId) {
+      // Fallback for when auth session is lost but we have the adminUserId
+      const { data: userData } = await supabase.from('users').select('role').eq('id', adminUserId).maybeSingle();
+      if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
+        isAdmin = true;
+        currentUserId = adminUserId;
       }
     } else {
       // Fallback for local dev/admin without proper auth session

@@ -15,11 +15,12 @@ declare global {
 }
 
 interface Props {
+  user: User;
   accounts: User[];
   onUpdateUser: (user: User) => void;
 }
 
-const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
+const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser }) => {
   const { t } = useI18n();
   const [settings, setSettings] = useState<FXExchangeSettings | null>(null);
   const [registry, setRegistry] = useState<SecurityKey[]>([]);
@@ -139,7 +140,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
         status: 'active',
         created_at: new Date().toISOString()
       };
-      await supabaseService.upsertDistributorSecurityKey(newKey);
+      await supabaseService.upsertDistributorSecurityKey(newKey, user.id);
       setRegistry([...registry, newKey]);
       setUsbData(null);
       setSelectedDistributor('');
@@ -211,7 +212,7 @@ const SecureGatewayManager: React.FC<Props> = ({ accounts, onUpdateUser }) => {
         security_pin: securityPin,
         updated_at: new Date().toISOString()
       };
-      await supabaseService.upsertDistributorSecurityConfig(config);
+      await supabaseService.upsertDistributorSecurityConfig(config, user.id);
       setSecurityConfigs(prev => {
         const existing = prev.find(c => c.distributor_id === selectedDistributor);
         if (existing) {

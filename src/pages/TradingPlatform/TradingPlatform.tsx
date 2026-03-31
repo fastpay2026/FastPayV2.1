@@ -188,17 +188,23 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     console.log('[TradingPlatform] Attempting to subscribe to market-data channel');
     console.log('[TradingPlatform] Ably connection state:', ablyService.ably.connection.state);
     
+    let cleanup: (() => void) | undefined;
+
     if (ablyService.ably.connection.state !== 'connected') {
       console.log('[TradingPlatform] Ably not connected, waiting...');
       const onConnected = () => {
         console.log('[TradingPlatform] Ably connected, subscribing...');
-        subscribe();
+        cleanup = subscribe();
         ablyService.ably.connection.off('connected', onConnected);
       };
       ablyService.ably.connection.on('connected', onConnected);
-      return () => ablyService.ably.connection.off('connected', onConnected);
+      return () => {
+        ablyService.ably.connection.off('connected', onConnected);
+        if (cleanup) cleanup();
+      };
     } else {
-      subscribe();
+      cleanup = subscribe();
+      return cleanup;
     }
 
     function subscribe() {
