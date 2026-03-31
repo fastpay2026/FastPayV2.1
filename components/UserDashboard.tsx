@@ -310,10 +310,10 @@ const UserDashboard: React.FC<Props> = ({
   const handleStartUSDTGateway = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(usdtAmount);
-    if (!fxSettings || !fxSettings.isGatewayActive) return alert(t('service_under_development'));
-    if (amount < fxSettings.minTransferAmount) return alert(t('min_invest_amount', { amount: fxSettings.minTransferAmount }));
+    if (!fxSettings || !fxSettings.is_gateway_active) return alert(t('service_under_development'));
+    if (amount < fxSettings.min_transfer_amount) return alert(t('min_invest_amount', { amount: fxSettings.min_transfer_amount }));
     
-    const fee = (amount * fxSettings.gatewayFeePercent) / 100;
+    const fee = (amount * fxSettings.gateway_fee_percent) / 100;
     const total = amount + fee;
     
     if (total > user.balance) return alert(t('usdt_balance_shield') || 'Insufficient balance to cover amount plus gateway fees.');
@@ -713,7 +713,7 @@ const UserDashboard: React.FC<Props> = ({
                       <h2 className="text-4xl sm:text-5xl md:text-8xl font-black font-mono tracking-tighter mb-8 md:mb-12 relative z-10">${user.balance.toLocaleString()}</h2>
                       <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 md:gap-6 relative z-10">
                          <button onClick={() => setModalType('transfer')} className="bg-sky-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-sky-500 shadow-2xl transition-all">{t('instant_transfer')}</button>
-                         {fxSettings?.isGatewayActive && (
+                         {fxSettings?.is_gateway_active && (
                            <button onClick={() => setModalType('usdt_gateway')} className="bg-indigo-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-indigo-500 shadow-2xl transition-all"> {t('usdt_gateway_status') || 'USDT Gateway'} </button>
                          )}
                          <button onClick={() => setModalType('coupon')} className="bg-emerald-600 px-6 md:px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-base md:text-xl hover:bg-emerald-500 transition-all shadow-2xl">{t('deposit_coupon')}</button>
@@ -1150,12 +1150,12 @@ const UserDashboard: React.FC<Props> = ({
                     {fxSettings && usdtAmount && (
                       <div className="bg-white/5 p-6 rounded-2xl border border-white/5 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500 font-bold">{t('gateway_fee')} ({fxSettings.gatewayFeePercent}%)</span>
-                          <span className="text-white font-mono">${((parseFloat(usdtAmount) * fxSettings.gatewayFeePercent) / 100).toFixed(2)}</span>
+                          <span className="text-slate-500 font-bold">{t('gateway_fee')} ({fxSettings.gateway_fee_percent}%)</span>
+                          <span className="text-white font-mono">${((parseFloat(usdtAmount) * fxSettings.gateway_fee_percent) / 100).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-lg font-black border-t border-white/10 pt-2">
                           <span className="text-slate-300">{t('total_to_deduct')}</span>
-                          <span className="text-emerald-400 font-mono">${(parseFloat(usdtAmount) + (parseFloat(usdtAmount) * fxSettings.gatewayFeePercent) / 100).toFixed(2)}</span>
+                          <span className="text-emerald-400 font-mono">${(parseFloat(usdtAmount) + (parseFloat(usdtAmount) * fxSettings.gateway_fee_percent) / 100).toFixed(2)}</span>
                         </div>
                       </div>
                     )}
