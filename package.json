@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "start": "node dist/server.js",
-    "build": "vite build && npx esbuild server.ts --platform=node --format=esm --outfile=dist/server.js --bundle --external:ably --external:express --external:ws --external:dotenv --external:@supabase/supabase-js --external:vite --external:lightningcss",
+    "start": "node --import tsx/register server.ts",
+    "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },
@@ -36,6 +36,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "technicalindicators": "^3.1.0",
+    "tsx": "^4.21.0",
     "uuid": "^13.0.0",
     "ws": "^8.20.0",
     "yahoo-finance2": "^3.13.2",
@@ -50,7 +51,6 @@
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.0.0",
     "tailwindcss": "^4.2.1",
-    "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
