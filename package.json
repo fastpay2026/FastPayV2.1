@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "start": "node dist/server.js",
-    "build": "vite build && npx esbuild server.ts --platform=node --outfile=dist/server.js --bundle --external:ably --external:express --external:ws --external:dotenv --external:@supabase/supabase-js",
+    "build": "vite build && npx esbuild server.ts --platform=node --format=esm --outfile=dist/server.js --bundle --external:ably --external:express --external:ws --external:dotenv --external:@supabase/supabase-js --external:vite --external:lightningcss",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },
