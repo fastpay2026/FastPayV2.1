@@ -53,7 +53,7 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(vite.middlewares);
 } else {
   app.use(express.static(distPath, { index: false }));
-  app.get('/*', (req, res) => {
+  app.get('*all', (req, res) => {
     if (req.url.startsWith('/api/')) return;
     res.sendFile(path.join(distPath, 'index.html'));
   });
