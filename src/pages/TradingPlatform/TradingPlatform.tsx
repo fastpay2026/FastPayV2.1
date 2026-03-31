@@ -204,6 +204,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     function subscribe() {
       const channel = ablyService.getChannel('market-data');
       
+      // Enter presence
+      channel.presence.enter();
+      
       const listenerCallback = (message: any) => {
         console.log('[TradingPlatform] Received message on market-data:', message);
         listener(message);
@@ -214,7 +217,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
         .catch((err) => console.error('[TradingPlatform] Failed to subscribe to market-data:update', err));
 
       return () => {
-        console.log('[TradingPlatform] Unsubscribing from market-data channel');
+        console.log('[TradingPlatform] Unsubscribing and leaving presence');
+        channel.presence.leave();
         channel.unsubscribe('update', listenerCallback);
       };
     }
