@@ -555,7 +555,7 @@ const App: React.FC = () => {
   };
 
   const renderDashboard = () => {
-    if (currentUser?.role === 'AGENT') {
+    if (currentUser?.role?.toUpperCase() === 'AGENT') {
       return <AgentDashboard currentUser={currentUser} accounts={accounts} onUpdateUser={handleUpdateUser} siteConfig={siteConfig} tradeOrders={tradeOrders} transactions={transactions} onLogout={handleLogout} />;
     }
     switch (currentUser?.role) {

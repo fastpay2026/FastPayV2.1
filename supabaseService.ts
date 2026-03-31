@@ -880,19 +880,26 @@ export const supabaseService = {
     let isAdmin = false;
 
     if (user) {
-      isAdmin = user.user_metadata?.role === 'ADMIN' || user.app_metadata?.role === 'ADMIN' || user.user_metadata?.role === 'DEVELOPER';
+      const userRole = (user.user_metadata?.role || user.app_metadata?.role || '').toUpperCase();
+      isAdmin = userRole === 'ADMIN' || userRole === 'DEVELOPER';
       if (!isAdmin) {
         const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
-        if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
-          isAdmin = true;
+        if (userData) {
+          const dbRole = (userData.role || '').toUpperCase();
+          if (dbRole === 'ADMIN' || dbRole === 'DEVELOPER') {
+            isAdmin = true;
+          }
         }
       }
     } else if (adminUserId) {
       // Fallback for when auth session is lost but we have the adminUserId
       const { data: userData } = await supabase.from('users').select('role').eq('id', adminUserId).maybeSingle();
-      if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
-        isAdmin = true;
-        currentUserId = adminUserId;
+      if (userData) {
+        const dbRole = (userData.role || '').toUpperCase();
+        if (dbRole === 'ADMIN' || dbRole === 'DEVELOPER') {
+          isAdmin = true;
+          currentUserId = adminUserId;
+        }
       }
     } else {
       // Fallback for local dev/admin without proper auth session
@@ -900,8 +907,11 @@ export const supabaseService = {
       if (localUserId) {
         currentUserId = localUserId;
         const { data: userData } = await supabase.from('users').select('role').eq('id', localUserId).maybeSingle();
-        if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
-          isAdmin = true;
+        if (userData) {
+          const dbRole = (userData.role || '').toUpperCase();
+          if (dbRole === 'ADMIN' || dbRole === 'DEVELOPER') {
+            isAdmin = true;
+          }
         }
       }
     }
@@ -996,19 +1006,26 @@ export const supabaseService = {
     let isAdmin = false;
 
     if (user) {
-      isAdmin = user.user_metadata?.role === 'ADMIN' || user.app_metadata?.role === 'ADMIN' || user.user_metadata?.role === 'DEVELOPER';
+      const userRole = (user.user_metadata?.role || user.app_metadata?.role || '').toUpperCase();
+      isAdmin = userRole === 'ADMIN' || userRole === 'DEVELOPER';
       if (!isAdmin) {
         const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).maybeSingle();
-        if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
-          isAdmin = true;
+        if (userData) {
+          const dbRole = (userData.role || '').toUpperCase();
+          if (dbRole === 'ADMIN' || dbRole === 'DEVELOPER') {
+            isAdmin = true;
+          }
         }
       }
     } else if (adminUserId) {
       // Fallback for when auth session is lost but we have the adminUserId
       const { data: userData } = await supabase.from('users').select('role').eq('id', adminUserId).maybeSingle();
-      if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
-        isAdmin = true;
-        currentUserId = adminUserId;
+      if (userData) {
+        const dbRole = (userData.role || '').toUpperCase();
+        if (dbRole === 'ADMIN' || dbRole === 'DEVELOPER') {
+          isAdmin = true;
+          currentUserId = adminUserId;
+        }
       }
     } else {
       // Fallback for local dev/admin without proper auth session
@@ -1016,8 +1033,11 @@ export const supabaseService = {
       if (localUserId) {
         currentUserId = localUserId;
         const { data: userData } = await supabase.from('users').select('role').eq('id', localUserId).maybeSingle();
-        if (userData && (userData.role === 'ADMIN' || userData.role === 'DEVELOPER')) {
-          isAdmin = true;
+        if (userData) {
+          const dbRole = (userData.role || '').toUpperCase();
+          if (dbRole === 'ADMIN' || dbRole === 'DEVELOPER') {
+            isAdmin = true;
+          }
         }
       }
     }

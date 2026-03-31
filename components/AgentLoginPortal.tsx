@@ -21,7 +21,7 @@ const AgentLoginPortal: React.FC<Props> = ({ onLogin, accounts, siteConfig }) =>
     const user = accounts.find(
       (acc) => acc.username.toLowerCase() === username.toLowerCase() && 
                acc.password === password && 
-               acc.role === 'AGENT'
+               acc.role?.toUpperCase() === 'AGENT'
     );
 
     if (user) {

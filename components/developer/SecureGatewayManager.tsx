@@ -35,7 +35,7 @@ const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser })
   const [usbData, setUsbData] = useState<{ vendorId: number; productId: number; serialNumber: string } | null>(null);
   const [securityPin, setSecurityPin] = useState<string>('');
 
-  const distributors = accounts.filter(a => a.role === 'DISTRIBUTOR');
+  const distributors = accounts.filter(a => a.role?.toUpperCase() === 'DISTRIBUTOR');
 
   useEffect(() => {
     fetchData();

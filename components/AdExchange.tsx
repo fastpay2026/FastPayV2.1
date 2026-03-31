@@ -168,7 +168,7 @@ export const AdExchange: React.FC<Props> = ({
     setAccounts(prev => prev.map(acc => acc.id === ad.merchantId ? { ...acc, balance: acc.balance + merchantNet } : acc));
 
     // Update Admin (Commission)
-    setAccounts(prev => prev.map(acc => acc.role === 'DEVELOPER' ? { ...acc, balance: acc.balance + commission } : acc));
+    setAccounts(prev => prev.map(acc => acc.role?.toUpperCase() === 'DEVELOPER' ? { ...acc, balance: acc.balance + commission } : acc));
 
     // Create Transaction
     const newTrans: Transaction = {
@@ -245,13 +245,13 @@ export const AdExchange: React.FC<Props> = ({
         </div>
         <div className="flex flex-wrap gap-3 md:gap-4 w-full md:w-auto">
           <button onClick={() => setView('browse')} className={`flex-1 md:flex-none px-4 md:px-8 py-3 rounded-xl md:rounded-2xl font-black text-sm md:text-base transition-all ${view === 'browse' ? 'bg-sky-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>{t('browse_market')}</button>
-          {user.role === 'MERCHANT' && (
+          {user.role?.toUpperCase() === 'MERCHANT' && (
             <>
               <button onClick={() => setView('my_ads')} className={`flex-1 md:flex-none px-4 md:px-8 py-3 rounded-xl md:rounded-2xl font-black text-sm md:text-base transition-all ${view === 'my_ads' ? 'bg-sky-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>{t('my_ads')}</button>
               <button onClick={() => setIsCreateModalOpen(true)} className="w-full md:w-auto px-6 md:px-8 py-3 bg-emerald-600 text-white rounded-xl md:rounded-2xl font-black text-sm md:text-base hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20">{t('post_new_ad')}</button>
             </>
           )}
-          {user.role === 'DEVELOPER' && (
+          {user.role?.toUpperCase() === 'DEVELOPER' && (
             <button onClick={() => setView('admin_review')} className={`flex-1 md:flex-none px-4 md:px-8 py-3 rounded-xl md:rounded-2xl font-black text-sm md:text-base transition-all ${view === 'admin_review' ? 'bg-red-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}>{t('review_ads')}</button>
           )}
         </div>

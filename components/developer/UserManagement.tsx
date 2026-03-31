@@ -57,8 +57,8 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
       isActive: true,
       email: `${userForm.username}@fastpay.com`,
       createdAt: new Date().toLocaleDateString(),
-      is_agent: userForm.role === 'AGENT',
-      agent_percentage: userForm.role === 'AGENT' ? userForm.agent_percentage : 0
+      is_agent: userForm.role.toUpperCase() === 'AGENT',
+      agent_percentage: userForm.role.toUpperCase() === 'AGENT' ? userForm.agent_percentage : 0
     };
     onAddUser(newUser);
     setIsModalOpen(false);
@@ -224,7 +224,7 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
                 <input type="text" value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white font-mono" placeholder="FastPay123" />
               </div>
             </div>
-            {userForm.role === 'AGENT' && (
+            {userForm.role.toUpperCase() === 'AGENT' && (
               <div className="space-y-2 text-right">
                 <label className="text-xs text-slate-500 mr-6 font-black uppercase">نسبة أرباح الوكيل (%)</label>
                 <input type="number" value={userForm.agent_percentage} onChange={e => setUserForm({ ...userForm, agent_percentage: parseFloat(e.target.value) })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black text-emerald-400 outline-none text-2xl text-center" placeholder="0%" />
@@ -347,7 +347,7 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
               <h4 className="text-sm font-black mb-4 text-slate-400">Referred Users</h4>
               
               {/* Add User to Agent */}
-              {currentUser?.role === 'DEVELOPER' && (
+              {currentUser?.role?.toUpperCase() === 'DEVELOPER' && (
                 <div className="flex gap-2 mb-4">
                   <select id="userToAdd" className="flex-1 p-3 bg-black/40 border border-white/10 rounded-xl text-sm outline-none">
                     <option value="">Select user to add...</option>
@@ -376,7 +376,7 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
                   accounts.filter(a => a.referred_by === editingAgentUser.id).map(u => (
                     <div key={u.id} className="flex justify-between items-center bg-black/40 p-3 rounded-xl">
                       <span className="text-sm">{u.fullName}</span>
-                      {currentUser?.role === 'DEVELOPER' && (
+                      {currentUser?.role?.toUpperCase() === 'DEVELOPER' && (
                         <button onClick={() => onUpdateUser({...u, referred_by: ''})} className="text-red-400 text-xs font-black hover:text-red-300">Remove</button>
                       )}
                     </div>
@@ -388,7 +388,7 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
             </div>
 
             <div className="flex gap-4 pt-4">
-              {currentUser?.role === 'DEVELOPER' && (
+              {currentUser?.role?.toUpperCase() === 'DEVELOPER' && (
                 <button onClick={handleSaveAgentSettings} className="flex-1 py-4 bg-emerald-600 rounded-2xl font-black text-lg shadow-xl hover:bg-emerald-500 transition-all">Save</button>
               )}
               <button onClick={() => { setIsAgentModalOpen(false); setEditingAgentUser(null); }} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-lg hover:bg-white/10 transition-all">Close</button>

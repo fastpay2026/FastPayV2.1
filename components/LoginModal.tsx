@@ -92,9 +92,21 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
     });
 
     const user = accounts.find(
-      (acc) => acc.username.toLowerCase() === trimmedUsername.toLowerCase() && 
-               acc.password === trimmedPassword && 
-               (selectedRole === 'DEVELOPER' ? (acc.role === 'DEVELOPER' || acc.role === 'ADMIN') : acc.role === selectedRole)
+      (acc) => {
+        const accRole = (acc.role || '').toUpperCase();
+        const selRole = (selectedRole || '').toUpperCase();
+        const isPasswordMatch = acc.password === trimmedPassword;
+        const isUsernameMatch = acc.username.toLowerCase() === trimmedUsername.toLowerCase();
+        
+        let isRoleMatch = false;
+        if (selRole === 'DEVELOPER') {
+          isRoleMatch = accRole === 'DEVELOPER' || accRole === 'ADMIN';
+        } else {
+          isRoleMatch = accRole === selRole;
+        }
+        
+        return isUsernameMatch && isPasswordMatch && isRoleMatch;
+      }
     );
 
     if (!user) {
