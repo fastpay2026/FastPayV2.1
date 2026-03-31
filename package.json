@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "start": "npx tsx server.ts",
-    "build": "vite build",
+    "start": "node dist/server.js",
+    "build": "vite build && npx esbuild server.ts --platform=node --outfile=dist/server.js --bundle --external:ably --external:express --external:ws --external:dotenv --external:@supabase/supabase-js",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },
@@ -20,6 +20,7 @@
     "cors": "^2.8.6",
     "crypto-js": "^4.2.0",
     "dotenv": "^17.3.1",
+    "esbuild": "^0.25.0",
     "express": "^5.2.1",
     "framer-motion": "^12.36.0",
     "lightweight-charts": "^5.1.0",
