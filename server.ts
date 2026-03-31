@@ -76,6 +76,15 @@ async function setupVite(app: express.Application) {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     console.log(`[Server] Serving static files from: ${distPath}`);
+    
+    // التحقق من وجود الملفات
+    import fs from 'fs';
+    if (fs.existsSync(distPath)) {
+      console.log(`[Server] dist directory exists. Contents:`, fs.readdirSync(distPath));
+    } else {
+      console.error(`[Server] ERROR: dist directory does not exist at ${distPath}`);
+    }
+
     app.use((req, res, next) => {
       if (req.url.startsWith('/assets/')) {
         console.log(`[Server] Request for asset: ${req.url}`);
