@@ -249,9 +249,9 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
       await supabaseService.upsertFXDistributorStatus(updated);
       setStatus(updated);
       addNotification(t('status_updated') || 'Status Updated', `${t('gateway_status_is')} ${newStatus}`, 'security');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Status Update Error:", error);
-      addNotification('Error', 'Failed to update gateway status. Please try again.', 'error');
+      addNotification('Error', 'Failed to update gateway status: ' + (error?.message || String(error)), 'error');
     } finally {
       setIsUpdatingStatus(false);
     }

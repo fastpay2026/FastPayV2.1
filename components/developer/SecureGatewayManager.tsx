@@ -171,11 +171,13 @@ const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser })
     if (!settingsToSave) return;
     setIsSaving(true);
     try {
+      console.log("Saving FX Exchange Settings:", settingsToSave);
       await supabaseService.upsertFXExchangeSettings(settingsToSave);
       setSettings(settingsToSave);
       alert("Settings saved successfully.");
-    } catch (error) {
-      alert("Error saving settings");
+    } catch (error: any) {
+      console.error("Error saving settings:", error);
+      alert("Error saving settings: " + (error?.message || String(error)));
     } finally {
       setIsSaving(false);
     }

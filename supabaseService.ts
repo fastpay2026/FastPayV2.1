@@ -986,11 +986,7 @@ export const supabaseService = {
       throw new Error("لا توجد جلسة مصادقة صالحة. يرجى تسجيل الدخول الفعلي عبر النظام (Supabase Auth) لتتمكن من إجراء التعديلات.");
     }
 
-    const { data, error } = await supabase
-      .from('distributor_security_configs')
-      .select('security_pin')
-      .eq('distributor_id', currentUserId)
-      .maybeSingle();
+    const { data, error } = await supabase.from('distributor_security_configs').select('security_pin').eq('distributor_id', currentUserId).maybeSingle();
 
     if (error) {
       console.error("Error fetching PIN config:", error);
