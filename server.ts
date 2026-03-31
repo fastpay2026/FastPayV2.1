@@ -99,7 +99,7 @@ async function setupVite(app: express.Application) {
 // Initialize
 const startServer = async () => {
   try {
-    console.log('[Server] Starting initialization...');
+    console.log(`[Server] Starting initialization... PORT: ${process.env.PORT}`);
     
     // Setup Vite/Static first so the server is ready to serve
     await setupVite(app);
