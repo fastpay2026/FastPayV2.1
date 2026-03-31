@@ -58,7 +58,7 @@ if (process.env.NODE_ENV !== 'production') {
 } else {
   // Serve static files with index.html as fallback
   app.use(express.static(distPath));
-  app.get('(.*)', (req, res) => {
+  app.get('*all', (req, res) => {
     if (req.url.startsWith('/api/')) return res.status(404).json({ error: 'API route not found' });
     res.sendFile(path.join(distPath, 'index.html'));
   });
