@@ -348,7 +348,7 @@ export interface SiteConfig {
 }
 
 export interface FXExchangeSettings {
-  id: string;
+  id: string | number;
   usdt_buy_rate: number;
   usdt_sell_rate: number;
   gateway_fee_percent: number;

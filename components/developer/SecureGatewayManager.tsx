@@ -53,7 +53,7 @@ const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser, a
         supabaseService.getDistributorSecurityConfigs()
       ]);
       setSettings(s || {
-        id: uuidv4(),
+        id: 1,
         usdt_buy_rate: 1.0,
         usdt_sell_rate: 1.0,
         gateway_fee_percent: 1.0,
