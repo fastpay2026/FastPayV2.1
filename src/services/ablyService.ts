@@ -16,7 +16,7 @@ const ablyOptions = {
     try {
       console.log('[Ably Auth] Requesting token from server...');
       const clientId = getClientId();
-      const authUrl = `${window.location.origin}/api/ably/auth?clientId=${encodeURIComponent(clientId)}`;
+      const authUrl = `/api/ably/auth?clientId=${encodeURIComponent(clientId)}`;
       console.log('[Ably Auth] Fetching from:', authUrl);
       
       let attempts = 0;

@@ -1,4 +1,4 @@
-import Ably from 'ably';
+import * as Ably from 'ably';
 import { Request, Response } from 'express';
 
 let ablyRest: Ably.Rest | null = null;
