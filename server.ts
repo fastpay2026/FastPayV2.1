@@ -19,7 +19,9 @@ import { runStopOutEngine } from './services/stop-out-engine';
 
 const app = express();
 console.log('[Server] express app created.');
-const distPath = path.resolve(process.cwd(), 'dist');
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const distPath = path.resolve(__dirname, 'dist');
 console.log('[Server] distPath:', distPath);
 
 // Supabase Setup
