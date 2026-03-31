@@ -16,6 +16,10 @@ import { runStopOutEngine } from './services/stop-out-engine';
 const app = express();
 const distPath = path.resolve(process.cwd(), 'dist');
 
+console.log(`[Server] 📂 Current Directory: ${process.cwd()}`);
+console.log(`[Server] 📂 Dist Path: ${distPath}`);
+console.log(`[Server] 🌍 NODE_ENV: ${process.env.NODE_ENV}`);
+
 // Supabase Setup
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
@@ -52,9 +56,10 @@ if (process.env.NODE_ENV !== 'production') {
   });
   app.use(vite.middlewares);
 } else {
-  app.use(express.static(distPath, { index: false }));
-  app.get('*all', (req, res) => {
-    if (req.url.startsWith('/api/')) return;
+  // Serve static files with index.html as fallback
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    if (req.url.startsWith('/api/')) return res.status(404).json({ error: 'API route not found' });
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }
@@ -62,8 +67,11 @@ if (process.env.NODE_ENV !== 'production') {
 const PORT = process.env.PORT || 3000;
 const httpServer = createServer(app);
 
+console.log(`[Server] 🚀 Starting server on port ${PORT}...`);
+
 httpServer.listen(Number(PORT), "0.0.0.0", async () => {
   console.log(`[Server] ✅ Listening on http://0.0.0.0:${PORT}`);
+  console.log(`[Server] 🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   
   // Background engines
   if (isSupabaseConfigured) {
