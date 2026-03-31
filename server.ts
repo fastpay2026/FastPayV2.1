@@ -104,8 +104,10 @@ const startServer = async () => {
     // Setup Vite/Static first so the server is ready to serve
     await setupVite(app);
 
-    const PORT = Number(process.env.PORT) || 3000;
-    httpServer.listen(PORT, "0.0.0.0", async () => {
+    const PORT = process.env.PORT || 3000;
+    console.log(`[Server] Attempting to listen on port: ${PORT}`);
+    
+    httpServer.listen(Number(PORT), "0.0.0.0", async () => {
       console.log(`[Server] ✅ Express server listening on http://0.0.0.0:${PORT}`);
       console.log(`[Server] Health check: http://localhost:${PORT}/api/health`);
       
