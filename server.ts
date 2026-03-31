@@ -91,7 +91,7 @@ async function setupVite(app: express.Application) {
         if (path.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
       }
     }));
-    app.get('/*', (req, res, next) => {
+    app.use((req, res, next) => {
       if (req.url.startsWith('/assets/')) {
         return next();
       }
