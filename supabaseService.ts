@@ -855,8 +855,13 @@ export const supabaseService = {
   },
 
   async upsertFXExchangeSettings(s: FXExchangeSettings) {
-    const { error } = await supabase.from('fx_exchange_settings').upsert(s, { onConflict: 'id' });
-    if (error) throw error;
+    console.log("SupabaseService: Upserting FX Exchange Settings:", s);
+    const payload = { ...s, updated_at: new Date().toISOString() };
+    const { error } = await supabase.from('fx_exchange_settings').upsert(payload, { onConflict: 'id' });
+    if (error) {
+      console.error("SupabaseService: Error upserting FX Exchange Settings:", error);
+      throw error;
+    }
   },
 
   // Distributor Security Keys
@@ -1119,15 +1124,20 @@ export const supabaseService = {
   },
 
   async upsertFXDistributorStatus(s: FXDistributorStatus) {
+    console.log("SupabaseService: Upserting FX Distributor Status:", s);
     // Only send columns that are known to exist in the database
     const payload = {
       distributor_id: s.distributor_id,
       usdt_capacity: s.usdt_capacity,
       availability_status: s.availability_status,
-      delay_info: s.delay_info
+      delay_info: s.delay_info,
+      updated_at: new Date().toISOString()
     };
 
     const { error } = await supabase.from('fx_distributor_status').upsert(payload, { onConflict: 'distributor_id' });
-    if (error) throw error;
+    if (error) {
+      console.error("SupabaseService: Error upserting FX Distributor Status:", error);
+      throw error;
+    }
   }
 };

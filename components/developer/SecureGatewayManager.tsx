@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { User, FXExchangeSettings, SecurityKey, FXGatewayQueue, SecurityConfig } from '../../types';
 import { supabaseService } from '../../supabaseService';
 import { useI18n } from '../../i18n/i18n';
@@ -18,9 +19,10 @@ interface Props {
   user: User;
   accounts: User[];
   onUpdateUser: (user: User) => void;
+  addNotification?: (title: string, message: string, type: any) => void;
 }
 
-const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser }) => {
+const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser, addNotification }) => {
   const { t } = useI18n();
   const [settings, setSettings] = useState<FXExchangeSettings | null>(null);
   const [registry, setRegistry] = useState<SecurityKey[]>([]);
@@ -51,7 +53,7 @@ const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser })
         supabaseService.getDistributorSecurityConfigs()
       ]);
       setSettings(s || {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         usdt_buy_rate: 1.0,
         usdt_sell_rate: 1.0,
         gateway_fee_percent: 1.0,
@@ -132,7 +134,7 @@ const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser })
       await onUpdateUser(distributorExists);
       
       const newKey: SecurityKey = {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         distributor_id: selectedDistributor,
         vendor_id: usbData.vendorId,
         product_id: usbData.productId,
@@ -170,14 +172,22 @@ const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser })
     const settingsToSave = updatedSettings || settings;
     if (!settingsToSave) return;
     setIsSaving(true);
+    console.log("SecureGatewayManager: Saving settings...", settingsToSave);
     try {
-      console.log("Saving FX Exchange Settings:", settingsToSave);
       await supabaseService.upsertFXExchangeSettings(settingsToSave);
       setSettings(settingsToSave);
-      alert("Settings saved successfully.");
+      if (addNotification) {
+        addNotification("تم الحفظ", "تم حفظ إعدادات البوابة بنجاح", "success");
+      } else {
+        alert("تم حفظ إعدادات البوابة بنجاح");
+      }
     } catch (error: any) {
-      console.error("Error saving settings:", error);
-      alert("Error saving settings: " + (error?.message || String(error)));
+      console.error("SecureGatewayManager: Error saving settings:", error);
+      if (addNotification) {
+        addNotification("خطأ في الحفظ", error.message || "حدث خطأ أثناء حفظ الإعدادات", "error");
+      } else {
+        alert("خطأ في حفظ الإعدادات: " + (error.message || String(error)));
+      }
     } finally {
       setIsSaving(false);
     }

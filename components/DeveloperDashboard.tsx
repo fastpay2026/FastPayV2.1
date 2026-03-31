@@ -263,7 +263,7 @@ const handleManualSync = async () => {
         {activeTab === 'agent_lottery' && (
           <ManagerLotterySetup />
         )}
-        {activeTab === 'gateway' && <SecureGatewayManager user={user} accounts={accounts} onUpdateUser={onUpdateUser} />}
+        {activeTab === 'gateway' && <SecureGatewayManager user={user} accounts={accounts} onUpdateUser={onUpdateUser} addNotification={addNotification} />}
         {activeTab === 'content' && <SiteIdentity siteConfig={siteConfig} onUpdateConfig={onUpdateConfig} />}
         {activeTab === 'logo_generator' && (
           <div className="space-y-8">
