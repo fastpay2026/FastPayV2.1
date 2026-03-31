@@ -10,19 +10,24 @@ export const listener = (message: any) => {
     console.warn('[Listener] Received empty data');
     return;
   }
-  
-  // محاولة استخراج السعر والرمز
-  const price = data.price || data.ask || data.bid;
-  const dataSymbol = data.symbol;
 
-  if (!dataSymbol || price === undefined || price === null) {
-    console.warn('[Listener] Could not find symbol or price in data:', data);
-    return;
-  }
+  // التعامل مع التحديثات المجمعة (Batch) أو الفردية
+  const updates = Array.isArray(data) ? data : [data];
 
-  console.log(`[Listener] Updating price for ${dataSymbol}: ${price}`);
+  updates.forEach(update => {
+    // محاولة استخراج السعر والرمز
+    const price = update.price || update.ask || update.bid;
+    const dataSymbol = update.symbol;
 
-  // تحديث المجرى المركزي للأسعار فقط
-  usePriceStore.getState().setPrice(dataSymbol, Number(price));
+    if (!dataSymbol || price === undefined || price === null) {
+      console.warn('[Listener] Could not find symbol or price in data:', update);
+      return;
+    }
+
+    console.log(`[Listener] Updating price for ${dataSymbol}: ${price}`);
+
+    // تحديث المجرى المركزي للأسعار فقط
+    usePriceStore.getState().setPrice(dataSymbol, Number(price));
+  });
 };
 

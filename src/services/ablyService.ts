@@ -12,6 +12,7 @@ const getClientId = () => {
 
 const ablyOptions = {
   clientId: getClientId(),
+  log: { level: 4 },
   authCallback: async (tokenParams: any, callback: any) => {
     try {
       console.log('[Ably Auth] Requesting token from server...');
@@ -71,6 +72,10 @@ ably.connection.on('connecting', () => {
 
 ably.connection.on('disconnected', () => {
   console.log('[Ably] Disconnected');
+});
+
+ably.connection.on('suspended', () => {
+  console.log('[Ably] Suspended');
 });
 
 ably.connection.on('failed', (err) => {

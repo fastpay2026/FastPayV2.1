@@ -14,44 +14,38 @@ export const runPriceFeed = async (priceChannel: any, latestPrices: Record<strin
   const cryptoTickers = ['BTCUSD', 'ETHUSD', 'SOLUSD'];
   
   const lastPublishTime: Record<string, number> = {};
-  const throttleTime = 10000; // Increased to 10 seconds to reduce message volume
+  const throttleTime = 2000; // 2 seconds
   let isChannelActive = false;
+  let priceBatch: Record<string, number> = {};
 
   // Check presence periodically
-  const checkPresence = async () => {
+  setInterval(async () => {
     try {
-      // If channel is failed, try to re-attach
-      if (priceChannel.state === 'failed' || priceChannel.state === 'suspended') {
-        console.warn('[Price Engine] Channel in bad state, attempting to re-attach...');
-        await priceChannel.attach();
-      }
-      
-      if (priceChannel.state === 'attached') {
-        const members = await priceChannel.presence.get();
-        isChannelActive = members.length > 0;
-      } else {
-        isChannelActive = false;
-      }
+      const members = await priceChannel.presence.get();
+      isChannelActive = members.length > 0;
+      console.log(`[Price Engine] Presence check: ${members.length} users active. Channel active: ${isChannelActive}`);
     } catch (err) {
       console.error('[Price Engine] Presence check error:', err);
       isChannelActive = false;
     }
-  };
-  checkPresence();
-  setInterval(checkPresence, 30000); // Reduced frequency to every 30 seconds
+  }, 5000);
+
+  // Publish batch every 2 seconds
+  setInterval(() => {
+    if (isChannelActive && Object.keys(priceBatch).length > 0) {
+      const batchToPublish = Object.entries(priceBatch).map(([symbol, price]) => ({ symbol, price }));
+      priceChannel.publish('update', batchToPublish).catch((err: any) => {
+        console.error(`[Price Engine] Publish error for batch:`, err);
+      });
+      priceBatch = {};
+    }
+  }, 2000);
 
   const publishUpdate = async (symbol: string, price: number) => {
     if (!isChannelActive) return;
     
-    const now = Date.now();
-    if (lastPublishTime[symbol] && now - lastPublishTime[symbol] < throttleTime) {
-      return;
-    }
-    lastPublishTime[symbol] = now;
-
-    priceChannel.publish('update', { symbol, price }).catch((err: any) => {
-      console.error(`[Price Engine] Publish error for ${symbol}:`, err);
-    });
+    // Buffer the update
+    priceBatch[symbol] = price;
   };
 
   const connectWS = (endpoint: string, tickers: string[], isCrypto: boolean) => {

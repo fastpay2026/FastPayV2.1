@@ -186,21 +186,38 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   // 2. الاتصال بـ Ably لتحديثات الأسعار
   useEffect(() => {
     console.log('[TradingPlatform] Attempting to subscribe to market-data channel');
-    const channel = ablyService.getChannel('market-data');
+    console.log('[TradingPlatform] Ably connection state:', ablyService.ably.connection.state);
     
-    const listenerCallback = (message: any) => {
-      console.log('[TradingPlatform] Received message on market-data:', message);
-      listener(message);
-    };
+    if (ablyService.ably.connection.state !== 'connected') {
+      console.log('[TradingPlatform] Ably not connected, waiting...');
+      const onConnected = () => {
+        console.log('[TradingPlatform] Ably connected, subscribing...');
+        subscribe();
+        ablyService.ably.connection.off('connected', onConnected);
+      };
+      ablyService.ably.connection.on('connected', onConnected);
+      return () => ablyService.ably.connection.off('connected', onConnected);
+    } else {
+      subscribe();
+    }
 
-    channel.subscribe('update', listenerCallback)
-      .then(() => console.log('[TradingPlatform] Successfully subscribed to market-data:update'))
-      .catch((err) => console.error('[TradingPlatform] Failed to subscribe to market-data:update', err));
+    function subscribe() {
+      const channel = ablyService.getChannel('market-data');
+      
+      const listenerCallback = (message: any) => {
+        console.log('[TradingPlatform] Received message on market-data:', message);
+        listener(message);
+      };
 
-    return () => {
-      console.log('[TradingPlatform] Unsubscribing from market-data channel');
-      channel.unsubscribe('update', listenerCallback);
-    };
+      channel.subscribe('update', listenerCallback)
+        .then(() => console.log('[TradingPlatform] Successfully subscribed to market-data:update'))
+        .catch((err) => console.error('[TradingPlatform] Failed to subscribe to market-data:update', err));
+
+      return () => {
+        console.log('[TradingPlatform] Unsubscribing from market-data channel');
+        channel.unsubscribe('update', listenerCallback);
+      };
+    }
   }, []);
 
 
