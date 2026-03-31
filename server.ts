@@ -1,10 +1,14 @@
+console.log('[Server] Starting...');
 import 'dotenv/config';
+console.log('[Server] dotenv loaded.');
 import express from 'express';
+console.log('[Server] express imported.');
 import path from 'path';
 import { createServer } from 'http';
 import { createClient } from '@supabase/supabase-js';
 import Ably from 'ably';
 import { handleAblyAuth } from './services/ably-auth-service';
+console.log('[Server] services imported.');
 import { marketRouter } from './routes/market-api';
 import { tradingRouter } from './routes/trading-api';
 import { diagnosticRouter } from './routes/diagnostic-api';
@@ -14,7 +18,9 @@ import { runGhostEngine } from './services/ghost-trader-engine';
 import { runStopOutEngine } from './services/stop-out-engine';
 
 const app = express();
+console.log('[Server] express app created.');
 const distPath = path.resolve(process.cwd(), 'dist');
+console.log('[Server] distPath:', distPath);
 
 // Supabase Setup
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
