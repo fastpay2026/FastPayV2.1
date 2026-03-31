@@ -229,9 +229,31 @@ const App: React.FC = () => {
         }
         if (dbUsers.length > 0) {
           setAccounts(prev => {
-            const admin = prev.find(u => u.username === 'admin');
-            const otherUsers = dbUsers.filter(u => u.username !== 'admin');
-            return admin ? [admin, ...otherUsers] : dbUsers;
+            const hardcodedAdmin = prev.find(u => u.username === 'admin');
+            const dbAdmin = dbUsers.find(u => u.username === 'admin');
+            
+            if (dbAdmin) {
+              // If admin exists in DB, use it (it will have a real Supabase ID)
+              return dbUsers;
+            } else {
+              // If no admin in DB, sync the hardcoded one to DB
+              if (hardcodedAdmin && isSupabaseConfigured) {
+                console.log('App: Syncing hardcoded admin to Supabase...');
+                supabaseService.updateUser(hardcodedAdmin).catch(e => console.error("Failed to sync hardcoded admin", e));
+              }
+              const otherUsers = dbUsers.filter(u => u.username !== 'admin');
+              return hardcodedAdmin ? [hardcodedAdmin, ...otherUsers] : dbUsers;
+            }
+          });
+        } else if (isSupabaseConfigured) {
+          // If DB is empty, sync the hardcoded admin
+          setAccounts(prev => {
+            const hardcodedAdmin = prev.find(u => u.username === 'admin');
+            if (hardcodedAdmin) {
+               console.log('App: Syncing hardcoded admin to empty Supabase DB...');
+               supabaseService.updateUser(hardcodedAdmin).catch(e => console.error("Failed to sync hardcoded admin to empty DB", e));
+            }
+            return prev;
           });
         }
 

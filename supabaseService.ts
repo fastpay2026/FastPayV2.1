@@ -893,22 +893,34 @@ export const supabaseService = {
       }
     } else if (adminUserId) {
       // Fallback for when auth session is lost but we have the adminUserId
-      const { data: userData } = await supabase.from('users').select('role').eq('id', adminUserId).maybeSingle();
+      console.log("supabaseService: Checking role for adminUserId (Key):", adminUserId);
+      const { data: userData, error: userError } = await supabase.from('users').select('role').eq('id', adminUserId).maybeSingle();
+      if (userError) {
+        console.error("supabaseService: Error checking role for adminUserId (Key):", userError);
+      }
       if (userData) {
         const dbRole = (userData.role || '').toUpperCase();
+        console.log("supabaseService: Found user in DB (Key), role:", dbRole);
         if (dbRole === 'ADMIN' || dbRole === 'DEVELOPER') {
           isAdmin = true;
           currentUserId = adminUserId;
         }
+      } else {
+        console.warn("supabaseService: No user found in DB (Key) with ID:", adminUserId);
       }
     } else {
       // Fallback for local dev/admin without proper auth session
       const localUserId = localStorage.getItem('fp_v21_current_user_id');
       if (localUserId) {
         currentUserId = localUserId;
-        const { data: userData } = await supabase.from('users').select('role').eq('id', localUserId).maybeSingle();
+        console.log("supabaseService: Checking role for localUserId (Key):", localUserId);
+        const { data: userData, error: userError } = await supabase.from('users').select('role').eq('id', localUserId).maybeSingle();
+        if (userError) {
+          console.error("supabaseService: Error checking role for localUserId (Key):", userError);
+        }
         if (userData) {
           const dbRole = (userData.role || '').toUpperCase();
+          console.log("supabaseService: Found user in DB (Key, Local), role:", dbRole);
           if (dbRole === 'ADMIN' || dbRole === 'DEVELOPER') {
             isAdmin = true;
           }
@@ -1019,12 +1031,22 @@ export const supabaseService = {
       }
     } else if (adminUserId) {
       // Fallback for when auth session is lost but we have the adminUserId
-      const { data: userData } = await supabase.from('users').select('role').eq('id', adminUserId).maybeSingle();
+      console.log("supabaseService: Checking role for adminUserId (Config):", adminUserId);
+      const { data: userData, error: userError } = await supabase.from('users').select('role').eq('id', adminUserId).maybeSingle();
+      if (userError) {
+        console.error("supabaseService: Error checking role for adminUserId (Config):", userError);
+      }
       if (userData) {
         const dbRole = (userData.role || '').toUpperCase();
+        console.log("supabaseService: Found user in DB (Config), role:", dbRole);
         if (dbRole === 'ADMIN' || dbRole === 'DEVELOPER') {
           isAdmin = true;
           currentUserId = adminUserId;
+        }
+      } else {
+        console.warn("supabaseService: No user found in DB (Config) with ID:", adminUserId);
+        if (adminUserId === 'a1b2c3d4-e5f6-7890-1234-56789abcdef0') {
+          console.warn("supabaseService: This is the hardcoded admin ID. It must be synced to the 'users' table in Supabase to have admin privileges.");
         }
       }
     } else {
@@ -1032,9 +1054,14 @@ export const supabaseService = {
       const localUserId = localStorage.getItem('fp_v21_current_user_id');
       if (localUserId) {
         currentUserId = localUserId;
-        const { data: userData } = await supabase.from('users').select('role').eq('id', localUserId).maybeSingle();
+        console.log("supabaseService: Checking role for localUserId (Config):", localUserId);
+        const { data: userData, error: userError } = await supabase.from('users').select('role').eq('id', localUserId).maybeSingle();
+        if (userError) {
+          console.error("supabaseService: Error checking role for localUserId (Config):", userError);
+        }
         if (userData) {
           const dbRole = (userData.role || '').toUpperCase();
+          console.log("supabaseService: Found user in DB (Config, Local), role:", dbRole);
           if (dbRole === 'ADMIN' || dbRole === 'DEVELOPER') {
             isAdmin = true;
           }
