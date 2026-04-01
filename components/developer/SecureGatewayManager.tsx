@@ -28,6 +28,7 @@ const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser, a
   const [registry, setRegistry] = useState<SecurityKey[]>([]);
   const [securityConfigs, setSecurityConfigs] = useState<SecurityConfig[]>([]);
   const [queue, setQueue] = useState<FXGatewayQueue[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -165,6 +166,15 @@ const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser, a
       setRegistry(registry.map(r => r.id === key.id ? updatedKey : r));
     } catch (error) {
       alert("Error updating key status");
+    }
+  };
+
+  const handleViewImage = async (path: string) => {
+    try {
+      const url = await supabaseService.getPublicUrl(path);
+      setSelectedImage(url);
+    } catch (e) {
+      console.error("Failed to get image URL", e);
     }
   };
 
@@ -527,7 +537,17 @@ const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser, a
                       {item.status.replace('_', ' ')}
                     </span>
                   </div>
-                  <p className="text-[10px] font-mono text-indigo-400 truncate">{item.wallet_address}</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[10px] font-mono text-indigo-400 truncate">{item.wallet_address}</p>
+                    {item.receipt_image && (
+                      <button 
+                        onClick={() => handleViewImage(item.receipt_image!)}
+                        className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded hover:bg-indigo-500/40 transition-all font-bold"
+                      >
+                        View Image
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
               {queue.length === 0 && <p className="text-center text-slate-500 font-bold text-sm py-8">No recent activity</p>}
@@ -535,6 +555,25 @@ const SecureGatewayManager: React.FC<Props> = ({ user, accounts, onUpdateUser, a
           </div>
         </div>
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedImage(null)}>
+          <div className="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center" onClick={e => e.stopPropagation()}>
+            <button 
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-12 right-0 text-white/50 hover:text-white transition-colors"
+            >
+              <XCircle size={32} />
+            </button>
+            <img 
+              src={selectedImage} 
+              alt="Receipt" 
+              className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

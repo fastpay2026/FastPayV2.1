@@ -302,10 +302,12 @@ const DistributorGatewayManager: React.FC<Props> = ({ user, addNotification }) =
         return;
       }
 
+      const receiptPath = await supabaseService.uploadDocument(receiptFile, selectedOrder.user_id);
+
       const updatedOrder: FXGatewayQueue = {
         ...selectedOrder,
         status: 'success_pending_review',
-        receipt_image: 'mock_receipt_url_' + Date.now(), // In real app, upload to Supabase Storage
+        receipt_image: receiptPath,
         tx_id: 'TX' + Math.random().toString(36).substring(2, 10).toUpperCase(),
         updated_at: new Date().toISOString()
       };

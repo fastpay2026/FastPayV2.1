@@ -155,6 +155,16 @@ const UserDashboard: React.FC<Props> = ({
   const [usdtSuccess, setUsdtSuccess] = useState(false);
   const [assignedDistributor, setAssignedDistributor] = useState<FXDistributorStatus | null>(null);
   const [userGatewayQueue, setUserGatewayQueue] = useState<FXGatewayQueue[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const handleViewImage = async (path: string) => {
+    try {
+      const url = await supabaseService.getPublicUrl(path);
+      setSelectedImage(url);
+    } catch (e) {
+      console.error("Failed to get image URL", e);
+    }
+  };
 
   useEffect(() => {
     const fetchFXData = async () => {
