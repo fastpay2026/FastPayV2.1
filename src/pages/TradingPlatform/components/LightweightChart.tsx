@@ -545,7 +545,11 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
                   // إنهاء السحب وتحديث الخلفية
                   await interactionServiceRef.current?.handleMouseUp();
                   
-                  isDraggingRef.current = false;
+                  // تأخير بسيط للسماح للـ useEffect بتحديث البيانات من قاعدة البيانات
+                  setTimeout(() => {
+                    isDraggingRef.current = false;
+                  }, 100);
+                  
                   onUpdateOrders?.();
                 };
 
