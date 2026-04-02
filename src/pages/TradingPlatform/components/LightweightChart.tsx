@@ -151,43 +151,49 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
   const [handles, setHandles] = useState<{orderId: string, type: 'sl' | 'tp' | 'entry', y: number}[]>([]);
 
   useEffect(() => {
-    console.log(`[LightweightChart] Handles useEffect triggered. seriesRef: ${!!seriesRef.current}, isChartReady: ${isChartReady}, selectedOrderId: ${selectedOrderId}, isDragging: ${isDraggingRef.current}`);
-    if (!seriesRef.current || !isChartReady || !selectedOrderId || isDraggingRef.current) {
-        console.log(`[LightweightChart] Handles useEffect returning early. seriesRef: ${!!seriesRef.current}, isChartReady: ${isChartReady}, selectedOrderId: ${selectedOrderId}, isDragging: ${isDraggingRef.current}`);
+    if (!seriesRef.current || !isChartReady || isDraggingRef.current) {
         if (!isDraggingRef.current) setHandles([]);
         return;
     }
 
     const updateHandles = () => {
       const newHandles = [];
-      const order = [...positions, ...pendingOrders].find(o => o.id === selectedOrderId);
-      console.log(`[LightweightChart] Updating handles. Selected Order ID: ${selectedOrderId}, Order found: ${!!order}`);
-      if (!order) {
-          setHandles([]);
-          return;
-      }
-
-      if (order.sl) {
-          const y = seriesRef.current!.priceToCoordinate(order.sl);
-          console.log(`[LightweightChart] SL handle y: ${y}`);
-          if (y !== null) newHandles.push({ orderId: order.id, type: 'sl', y });
-      }
-      if (order.tp) {
-          const y = seriesRef.current!.priceToCoordinate(order.tp);
-          console.log(`[LightweightChart] TP handle y: ${y}`);
-          if (y !== null) newHandles.push({ orderId: order.id, type: 'tp', y });
-      }
-      if (order.status === 'pending' && order.entry_price) {
-          const y = seriesRef.current!.priceToCoordinate(order.entry_price);
-          console.log(`[LightweightChart] Entry handle y: ${y}`);
-          if (y !== null) newHandles.push({ orderId: order.id, type: 'entry', y });
+      
+      if (selectedOrderId) {
+        const allOrders = [...positions, ...pendingOrders];
+        const order = allOrders.find(o => o.id === selectedOrderId);
+        
+        if (order) {
+          if (order.sl != null) {
+              const y = seriesRef.current!.priceToCoordinate(Number(order.sl));
+              if (y !== null) newHandles.push({ orderId: order.id, type: 'sl', y });
+          }
+          if (order.tp != null) {
+              const y = seriesRef.current!.priceToCoordinate(Number(order.tp));
+              if (y !== null) newHandles.push({ orderId: order.id, type: 'tp', y });
+          }
+          if (order.status === 'pending' && order.entry_price != null) {
+              const y = seriesRef.current!.priceToCoordinate(Number(order.entry_price));
+              if (y !== null) newHandles.push({ orderId: order.id, type: 'entry', y });
+          }
+        }
+      } else {
+        // Draft lines
+        if (draftSL != null && draftSL !== '') {
+          const y = seriesRef.current!.priceToCoordinate(Number(draftSL));
+          if (y !== null) newHandles.push({ orderId: 'draft', type: 'sl', y });
+        }
+        if (draftTP != null && draftTP !== '') {
+          const y = seriesRef.current!.priceToCoordinate(Number(draftTP));
+          if (y !== null) newHandles.push({ orderId: 'draft', type: 'tp', y });
+        }
       }
 
       setHandles(newHandles);
     };
 
     updateHandles();
-  }, [positions, pendingOrders, selectedOrderId, isChartReady, price]);
+  }, [positions, pendingOrders, selectedOrderId, isChartReady, draftSL, draftTP]);
 
   // Handle Drag & Drop events
   useEffect(() => {
@@ -505,6 +511,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
                 chartRef.current?.applyOptions({ handleScroll: false, handleScale: false });
                 
                 // إخبار الخدمة ببدء السحب
+                isDraggingRef.current = true;
                 interactionServiceRef.current?.startDrag(handle.orderId, handle.type);
                 
                 const startY = e.clientY;
@@ -537,6 +544,8 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
                   
                   // إنهاء السحب وتحديث الخلفية
                   await interactionServiceRef.current?.handleMouseUp();
+                  
+                  isDraggingRef.current = false;
                   onUpdateOrders?.();
                 };
 

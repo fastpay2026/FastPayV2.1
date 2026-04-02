@@ -115,8 +115,8 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
                       <td className="p-2 font-mono">
                         {entryPriceFormatted}
                       </td>
-                      <td className="p-2 font-mono text-red-400/80">{p?.sl ? formatPrice(Number(p.sl), p.asset_symbol, asset?.digits) : '-'}</td>
-                      <td className="p-2 font-mono text-emerald-400/80">{p?.tp ? formatPrice(Number(p.tp), p.asset_symbol, asset?.digits) : '-'}</td>
+                      <td className="p-2 font-mono text-red-400/80">{p?.sl != null ? formatPrice(Number(p.sl), p.asset_symbol, asset?.digits) : '-'}</td>
+                      <td className="p-2 font-mono text-emerald-400/80">{p?.tp != null ? formatPrice(Number(p.tp), p.asset_symbol, asset?.digits) : '-'}</td>
                       <td className="p-2 font-mono text-slate-400">0.00</td>
                       <td className="p-2 font-mono text-slate-400">{p?.commission != null ? formatCurrency(Number(p.commission)) : '0.00'}</td>
                       <td className={`p-2 font-mono ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>

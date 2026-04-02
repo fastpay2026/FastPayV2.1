@@ -18,31 +18,41 @@ import { checkPendingOrders } from '../services/pendingOrdersService';
 
 export const useTradingLogic = (user: any, updateUserBalance: (userId: string, newBalance: number) => void) => {
   const [symbol, setSymbol] = useState('EURUSD');
-  const [marketData, setMarketData] = useState<any>({ bid: '0.00', ask: '0.00', price: '0.00' });
+  const [marketData, setMarketData] = useState<any>({ bid: '0.00', ask: '0.00', price: '0.00', symbol: '' });
   const [chartType, setChartType] = useState<'candlestick' | 'line'>('candlestick');
   const [volume, setVolume] = useState<number>(0.1);
   const [sl, setSl] = useState<number | ''>('');
   const [tp, setTp] = useState<number | ''>('');
   const isInitialLoad = useRef(true);
+  const lastCalculatedSymbol = useRef<string | null>(null);
 
-  // Reset initial load flag when symbol changes
-  useEffect(() => {
-    isInitialLoad.current = true;
-  }, [symbol]);
+  // Helper to get pip size
+  const getPipSize = (symbol: string, precision: number) => {
+    const s = symbol.toUpperCase();
+    if (['US30', 'NAS100', 'GER40', 'SPX500'].includes(s)) return 1.0;
+    if (s.includes('JPY')) return 0.01;
+    if (s === 'XAUUSD' || s === 'XAGUSD') return 0.1;
+    return 0.0001; // Default for Forex
+  };
+
+
 
   // Set default SL/TP
   useEffect(() => {
+    // 3. Strict Symbol Validation: Ensure marketData matches active symbol
+    if (marketData.symbol !== symbol) return;
+
     if (isInitialLoad.current && marketData.bid && marketData.bid !== '0.00') {
       const bid = Number(marketData.bid);
       const precision = getPrecision(symbol);
-      const pipSize = precision >= 4 ? 0.0001 : 0.01;
+      const pipSize = getPipSize(symbol, precision);
       
       setSl(Number((bid - 20 * pipSize).toFixed(precision)));
       setTp(Number((bid + 40 * pipSize).toFixed(precision)));
       
       isInitialLoad.current = false;
     }
-  }, [marketData.bid, symbol]);
+  }, [marketData.bid, symbol, marketData.symbol]);
   const [orderMode, setOrderMode] = useState<'market' | 'pending'>('market');
   const [pendingType, setPendingType] = useState<'buy_limit' | 'sell_limit' | 'buy_stop' | 'sell_stop'>('buy_limit');
   const [triggerPrice, setTriggerPrice] = useState<number | ''>('');
@@ -64,6 +74,27 @@ export const useTradingLogic = (user: any, updateUserBalance: (userId: string, n
   const closingPositionsRef = useRef<Set<string>>(new Set());
 
   const prices = usePriceStore((state) => state.prices);
+
+  // Reset and calculate SL/TP when symbol changes
+  useEffect(() => {
+    // 1. Calculate new values immediately based on current price
+    const currentPrice = prices[symbol];
+    if (currentPrice) {
+        const bid = Number(currentPrice);
+        const precision = getPrecision(symbol);
+        const pipSize = getPipSize(symbol, precision);
+        
+        setSl(Number((bid - 20 * pipSize).toFixed(precision)));
+        setTp(Number((bid + 40 * pipSize).toFixed(precision)));
+        isInitialLoad.current = false; // Only set to false if calculated
+    } else {
+        // Fallback if price not available
+        setSl('');
+        setTp('');
+        isInitialLoad.current = true; // Keep it true to try again in the other useEffect
+    }
+    lastCalculatedSymbol.current = symbol;
+  }, [symbol, prices]);
 
   // Auto-Close Engine (SL/TP Monitor)
   useEffect(() => {
@@ -329,7 +360,8 @@ export const useTradingLogic = (user: any, updateUserBalance: (userId: string, n
         price: livePrice,
         bid: Number(bid),
         ask: Number(ask),
-        lastUpdate: Date.now()
+        lastUpdate: Date.now(),
+        symbol: symbol
       });
     }
   }, [symbol, assets, spreads]);
