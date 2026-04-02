@@ -12,16 +12,37 @@ import { fetchInitialPositions as fetchInitialPositionsFn } from '../logic/fetch
 import { handleTrade } from '../logic/handleTrade';
 import { closePosition } from '../logic/closePosition';
 import { TradeAsset } from '../../../../types';
-import { calculateRequiredMargin, getContractSize, calculateBidAsk } from '../../../utils/marketUtils';
+import { calculateRequiredMargin, getContractSize, calculateBidAsk, getPrecision } from '../../../utils/marketUtils';
 import { usePriceStore } from '../store/usePriceStore';
 import { checkPendingOrders } from '../services/pendingOrdersService';
 
 export const useTradingLogic = (user: any, updateUserBalance: (userId: string, newBalance: number) => void) => {
   const [symbol, setSymbol] = useState('EURUSD');
+  const [marketData, setMarketData] = useState<any>({ bid: '0.00', ask: '0.00', price: '0.00' });
   const [chartType, setChartType] = useState<'candlestick' | 'line'>('candlestick');
   const [volume, setVolume] = useState<number>(0.1);
   const [sl, setSl] = useState<number | ''>('');
   const [tp, setTp] = useState<number | ''>('');
+  const isInitialLoad = useRef(true);
+
+  // Reset initial load flag when symbol changes
+  useEffect(() => {
+    isInitialLoad.current = true;
+  }, [symbol]);
+
+  // Set default SL/TP
+  useEffect(() => {
+    if (isInitialLoad.current && marketData.bid && marketData.bid !== '0.00') {
+      const bid = Number(marketData.bid);
+      const precision = getPrecision(symbol);
+      const pipSize = precision >= 4 ? 0.0001 : 0.01;
+      
+      setSl(Number((bid - 20 * pipSize).toFixed(precision)));
+      setTp(Number((bid + 40 * pipSize).toFixed(precision)));
+      
+      isInitialLoad.current = false;
+    }
+  }, [marketData.bid, symbol]);
   const [orderMode, setOrderMode] = useState<'market' | 'pending'>('market');
   const [pendingType, setPendingType] = useState<'buy_limit' | 'sell_limit' | 'buy_stop' | 'sell_stop'>('buy_limit');
   const [triggerPrice, setTriggerPrice] = useState<number | ''>('');
@@ -32,7 +53,6 @@ export const useTradingLogic = (user: any, updateUserBalance: (userId: string, n
     return volume * spreadVal * 10;
   }, [volume, symbol, spreads]);
   const [balance, setBalance] = useState({ balance: user?.balance || 0 });
-  const [marketData, setMarketData] = useState<any>({ bid: '0.00', ask: '0.00', price: '0.00' });
   const [positions, setPositions] = useState<any[]>([]);
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const [trades, setTrades] = useState<any[]>([]);

@@ -135,7 +135,6 @@ const LandingPage: React.FC<Props> = ({
             {[
               { label: t('nav_home'), id: 'home' },
               { label: t('raffle'), id: 'raffle-ad' },
-              { label: t('nav_swift'), id: 'transfer-ad' },
               { label: t('nav_gateway'), id: 'gateway-ad' },
               { label: t('nav_transfer'), id: 'salary-ad' },
               { label: t('nav_trading'), id: 'trading-ad' }
@@ -170,7 +169,6 @@ const LandingPage: React.FC<Props> = ({
               {[
                 { label: t('nav_home'), id: 'home' },
                 { label: t('raffle'), id: 'raffle-ad' },
-                { label: t('nav_swift'), id: 'transfer-ad' },
                 { label: t('nav_gateway'), id: 'gateway-ad' },
                 { label: t('nav_transfer'), id: 'salary-ad' },
                 { label: t('nav_trading'), id: 'trading-ad' }
@@ -227,27 +225,6 @@ const LandingPage: React.FC<Props> = ({
             </div>
           </section>
 
-           <section id="transfer-ad" className="py-20 md:py-40 px-6 md:px-24">
-            <div className="max-w-[1800px] mx-auto group bg-[#0f0f0f] rounded-[3rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-emerald-500/10 relative">
-               <div className="w-full lg:w-[50%] p-10 md:p-24 space-y-8 md:space-y-10 flex flex-col justify-center relative z-10">
-                  <div className="flex items-center gap-4 text-emerald-400 font-bold text-xs uppercase tracking-[0.3em]"><span className="w-10 h-px bg-emerald-500"></span>GLOBAL LIQUIDITY ENGINE</div>
-                  <h2 className="text-4xl md:text-7xl font-black text-white leading-tight tracking-tighter">Global Liquidity Bridge</h2>
-                  <p className="text-lg md:text-2xl text-slate-300 font-medium leading-relaxed max-w-lg">Send and receive money instantly via the global Swift system with extreme precision.</p>
-                  <div className="flex flex-wrap gap-6 items-center pt-4">
-                    <button onClick={onLoginClick} className="bg-emerald-500 px-10 py-5 rounded-full font-bold text-lg text-black hover:bg-emerald-400 transition-all shadow-[0_10px_30px_rgba(16,185,129,0.3)]">Start Global Transfer 🌐</button>
-                    <div className="flex items-center gap-4 text-slate-500 font-bold text-xs uppercase tracking-widest">
-                       <span>SWIFT SECURED</span>
-                       <span className="w-1 h-1 bg-emerald-500 rounded-full"></span>
-                       <span>INSTANT P2P</span>
-                    </div>
-                  </div>
-               </div>
-               <div className="w-full lg:w-[50%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1200&h=800&auto=format&fit=crop" className="w-full h-full object-cover opacity-80" alt="Global Transfers" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-transparent"></div>
-               </div>
-            </div>
-          </section>
 
            <section id="gateway-ad" className="py-20 md:py-40 px-6 md:px-24">
             <div className="max-w-[1800px] mx-auto group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row-reverse items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl border border-violet-500/10 hover:border-violet-500/40 transition-all duration-1000 relative">
