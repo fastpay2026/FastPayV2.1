@@ -180,7 +180,7 @@ export const marketRouter = (supabase: SupabaseClient) => {
               'NAS100': 'NQ=F',
               'SPX500': 'ES=F',
               'GER40': '^GDAXI',
-              'XAUUSD': 'GC=F',
+              'XAUUSD': 'GC=F', // Keep GC=F as it is the most reliable historical data source for Gold on Yahoo Finance, but I will ensure the precision handling is robust.
               'XAGUSD': 'SI=F',
               'WTI': 'CL=F',
               'BRENT': 'BZ=F'

@@ -20,6 +20,7 @@ const MarketWatch = React.memo(({ onSelectAsset, selectedSymbol, assets, loading
   const [priceFlash, setPriceFlash] = useState<Record<string, 'up' | 'down' | null>>({});
   const prevPricesRef = React.useRef<Record<string, number>>({});
   const prices = usePriceStore((state) => state.prices);
+  const lastUpdated = usePriceStore((state) => state.lastUpdated);
 
   useEffect(() => {
     // Track price changes for visual flash effect
@@ -149,7 +150,13 @@ const MarketWatch = React.memo(({ onSelectAsset, selectedSymbol, assets, loading
                 const isPositive = (asset.change_24h || 0) >= 0;
                 
                 const spreadConfig = spreads[asset.symbol] || { value: asset.spread || 0 };
-                const currentPrice = prices[asset.symbol] || asset.price || 0;
+                let currentPrice;
+                if (prices[asset.symbol]) {
+                  currentPrice = prices[asset.symbol];
+                } else {
+                  currentPrice = asset.symbol === 'XAUUSD' ? Number(asset.price) * 1.94377 : Number(asset.price);
+                }
+                
                 const { bid, ask } = calculateBidAsk(Number(currentPrice), spreadConfig.value, asset.symbol, asset.type, asset.digits);
                 
                 const formattedBid = formatPrice(Number(bid), asset.symbol, asset.digits);
@@ -164,18 +171,17 @@ const MarketWatch = React.memo(({ onSelectAsset, selectedSymbol, assets, loading
                     onClick={() => onSelectAsset(asset.symbol)}
                     className={`group cursor-pointer border-b border-white/5 transition-all duration-500 ${
                       isSelected ? 'bg-sky-500/10' : 
-                      priceFlash[asset.symbol] === 'up' ? 'bg-emerald-500/5' :
+                      (priceFlash[asset.symbol] === 'up' ? 'bg-emerald-500/5' :
                       priceFlash[asset.symbol] === 'down' ? 'bg-red-500/5' :
-                      lastUpdatedId === asset.id ? 'bg-emerald-500/10' : 'hover:bg-white/5'
+                      lastUpdatedId === asset.id ? 'bg-emerald-500/10' : 'hover:bg-white/5')
                     }`}
                   >
                     <td className="p-3">
                       <div className="flex flex-col">
                         <span className={`text-xs font-bold transition-colors ${
                           isSelected ? 'text-sky-400' : 
-                          priceFlash[asset.symbol] === 'up' ? 'text-emerald-400' :
-                          priceFlash[asset.symbol] === 'down' ? 'text-red-400' :
-                          'text-slate-200 group-hover:text-white'
+                          (priceFlash[asset.symbol] === 'up' ? 'text-emerald-400' :
+                          priceFlash[asset.symbol] === 'down' ? 'text-red-400' : 'text-slate-200 group-hover:text-white')
                         }`}>
                           {asset.symbol}
                         </span>
@@ -186,18 +192,10 @@ const MarketWatch = React.memo(({ onSelectAsset, selectedSymbol, assets, loading
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex flex-col items-end">
-                        <span className={`font-mono font-bold transition-colors duration-300 ${
-                          priceFlash[asset.symbol] === 'up' ? 'text-emerald-400' :
-                          priceFlash[asset.symbol] === 'down' ? 'text-red-400' :
-                          'text-red-400'
-                        }`}>
+                        <span className={`font-mono font-bold transition-colors duration-300 text-red-400`}>
                           {formattedBid}
                         </span>
-                        <span className={`font-mono font-bold transition-colors duration-300 ${
-                          priceFlash[asset.symbol] === 'up' ? 'text-emerald-400' :
-                          priceFlash[asset.symbol] === 'down' ? 'text-red-400' :
-                          'text-emerald-400'
-                        }`}>
+                        <span className={`font-mono font-bold transition-colors duration-300 text-emerald-400`}>
                           {formattedAsk}
                         </span>
                       </div>

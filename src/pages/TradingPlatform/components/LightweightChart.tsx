@@ -46,9 +46,10 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
   symbol, digits = 2, chartType = 'candlestick', setChartType, 
   spread = 0, asset, assetType, seriesRef: externalSeriesRef,
   positions = [], pendingOrders = [], selectedOrderId, onUpdateOrders, onPriceChange, onSelectOrder,
-  draftSL, draftTP, draftType, draftAmount, draftEntryPrice
+  draftSL, draftTP, draftType, draftAmount, draftEntryPrice, price: propPrice
 }) => {
-  const price = usePriceStore((state) => state.prices[symbol] || Number(asset?.price || 0));
+  const storePrice = usePriceStore((state) => state.prices[symbol] || Number(asset?.price || 0));
+  const price = propPrice !== undefined ? propPrice : storePrice;
   const { bid, ask } = calculateBidAsk(Number(price), spread, symbol, assetType, digits);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -148,11 +149,17 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
     }
   }, [draftSL, draftTP, draftType, draftAmount, draftEntryPrice, symbol, isChartReady, price, selectedOrderId]);
 
+  const lastDragFinishedTime = useRef(0);
   const [handles, setHandles] = useState<{orderId: string, type: 'sl' | 'tp' | 'entry', y: number}[]>([]);
 
   useEffect(() => {
     if (!seriesRef.current || !isChartReady || isDraggingRef.current) {
         if (!isDraggingRef.current) setHandles([]);
+        return;
+    }
+
+    // If drag just finished, skip updating handles from props for a short time
+    if (Date.now() - lastDragFinishedTime.current < 1000) {
         return;
     }
 
@@ -208,6 +215,8 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
     };
   }, [symbol, isChartReady]);
 
+  const lastUpdateRef = useRef(0);
+
   // Update Bid price line
   useEffect(() => {
     if (!seriesRef.current || !price || !chartRef.current) return;
@@ -240,27 +249,93 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
     }
   }, [bid, symbol, digits]);
 
+  // Real-time candle update
+  useEffect(() => {
+    if (!seriesRef.current || !price || !chartRef.current || chartType !== 'candlestick') return;
+
+    // Throttling
+    const nowTime = Date.now();
+    if (nowTime - lastUpdateRef.current < 200) return; // Throttle to 200ms
+    lastUpdateRef.current = nowTime;
+
+    try {
+      const now = Math.floor(nowTime / 1000);
+      const tfSeconds = timeframe.endsWith('m') ? parseInt(timeframe) * 60 : 
+                        timeframe.endsWith('h') ? parseInt(timeframe) * 3600 : 
+                        timeframe.endsWith('d') ? parseInt(timeframe) * 86400 : 60;
+      
+      const currentCandleTime = Math.floor(now / tfSeconds) * tfSeconds;
+      const newPrice = Number(price);
+
+      if (lastCandleRef.current && lastCandleRef.current.time === currentCandleTime) {
+        // Update existing candle
+        const updatedCandle = {
+          ...lastCandleRef.current,
+          high: Math.max(lastCandleRef.current.high, newPrice),
+          low: Math.min(lastCandleRef.current.low, newPrice),
+          close: newPrice,
+        };
+        seriesRef.current.update(updatedCandle);
+        lastCandleRef.current = updatedCandle;
+      } else {
+        // Start new candle
+        const newCandle = {
+          time: currentCandleTime,
+          open: newPrice,
+          high: newPrice,
+          low: newPrice,
+          close: newPrice,
+        };
+        seriesRef.current.update(newCandle);
+        lastCandleRef.current = newCandle;
+      }
+    } catch (e) {
+      console.warn('[LightweightChart] Error updating candle:', e);
+    }
+  }, [price, symbol, chartType, timeframe]);
+
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#161a1e' },
+        background: { type: ColorType.Solid, color: '#000000' },
         textColor: '#d1d4dc',
       },
       grid: {
-        vertLines: { color: 'rgba(42, 46, 57, 0.5)' },
-        horzLines: { color: 'rgba(42, 46, 57, 0.5)' },
+        vertLines: { color: 'rgba(42, 46, 57, 0.2)' },
+        horzLines: { color: 'rgba(42, 46, 57, 0.2)' },
       },
-      crosshair: { mode: 0 },
+      crosshair: { 
+        mode: 1,
+        vertLine: {
+            color: '#758696',
+            width: 1,
+            style: 1,
+            labelBackgroundColor: '#758696',
+        },
+        horzLine: {
+            color: '#758696',
+            width: 1,
+            style: 1,
+            labelBackgroundColor: '#758696',
+        },
+      },
       timeScale: {
         borderColor: 'rgba(197, 203, 206, 0.8)',
         timeVisible: true,
         secondsVisible: false,
+        barSpacing: 3,
+        minBarSpacing: 0.5,
+        rightOffset: 12,
       },
       rightPriceScale: {
         borderColor: 'rgba(197, 203, 206, 0.8)',
         autoScale: true,
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.1,
+        },
       },
       localization: {
         priceFormatter: (price: number) => formatPrice(price, symbol, digits),
@@ -500,7 +575,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
           return (
             <div
               key={`${handle.orderId}-${handle.type}-${index}`}
-              className={`absolute w-full h-8 -mt-4 cursor-ns-resize pointer-events-auto flex items-center justify-end`}
+              className={`absolute w-full h-8 -mt-4 cursor-ns-resize pointer-events-auto flex items-center justify-end transition-all duration-300 ease-out`}
               style={{ top: `${handle.y}px` }}
               onMouseDown={(e) => {
                 console.log("[DEBUG] Handle MouseDown", handle);
@@ -536,6 +611,7 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
                 };
 
                 const onMouseUp = async () => {
+                  console.log("[DEBUG] onMouseUp triggered");
                   window.removeEventListener('mousemove', onMouseMove);
                   window.removeEventListener('mouseup', onMouseUp);
                   
@@ -543,13 +619,11 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
                   chartRef.current?.applyOptions({ handleScroll: true, handleScale: true });
                   
                   // إنهاء السحب وتحديث الخلفية
+                  console.log("[DEBUG] Calling handleMouseUp");
                   await interactionServiceRef.current?.handleMouseUp();
                   
-                  // تأخير بسيط للسماح للـ useEffect بتحديث البيانات من قاعدة البيانات
-                  setTimeout(() => {
-                    isDraggingRef.current = false;
-                  }, 100);
-                  
+                  isDraggingRef.current = false;
+                  lastDragFinishedTime.current = Date.now();
                   onUpdateOrders?.();
                 };
 
@@ -558,9 +632,14 @@ const LightweightChart: React.FC<LightweightChartProps> = ({
               }}
             >
               <div className={`w-full h-0 border-t-2 border-dashed ${colorClass.split(' ')[0]}`}></div>
-              <span className={`text-[10px] font-bold bg-black/80 px-2 py-0.5 rounded-l-md ml-2 uppercase tracking-wider ${colorClass.split(' ')[1]}`}>
-                {handle.type}
-              </span>
+              {/* النتوء (Knob) للتحكم */}
+              <div className={`w-5 h-5 rounded-full border-2 bg-white shadow-md flex-shrink-0 ${colorClass.split(' ')[0]}`}></div>
+              {/* ملصق السعر مع تنسيق محسّن */}
+              <div className={`relative z-[60] bg-slate-900/90 border border-slate-700 px-2 py-1 rounded shadow-lg ml-2`}>
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${colorClass.split(' ')[1]}`}>
+                  {handle.type}
+                </span>
+              </div>
             </div>
           );
         })}

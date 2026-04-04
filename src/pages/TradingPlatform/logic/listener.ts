@@ -16,7 +16,7 @@ export const listener = (message: any) => {
 
   updates.forEach(update => {
     // محاولة استخراج السعر والرمز
-    const price = update.price || update.ask || update.bid;
+    let price = update.price || update.ask || update.bid;
     const dataSymbol = update.symbol;
 
     if (!dataSymbol || price === undefined || price === null) {

@@ -1,6 +1,7 @@
 import React from 'react';
 import LightweightChart from './LightweightChart';
 import { getPrecision } from '../../../utils/marketUtils';
+import { usePriceStore } from '../store/usePriceStore';
 
 interface ChartConfig {
   id: string;
@@ -30,6 +31,8 @@ const MultiChartLayout: React.FC<MultiChartLayoutProps> = ({
   onUpdateOrders, onSelectOrder, onPriceChange,
   assets, spreads, ...props
 }) => {
+  const prices = usePriceStore((state) => state.prices);
+
   const getGridClass = () => {
     switch (layout) {
       case '2v': return 'grid-cols-2';
@@ -45,6 +48,7 @@ const MultiChartLayout: React.FC<MultiChartLayoutProps> = ({
         const asset = assets.find(a => a.symbol === chart.symbol);
         const spreadConfig = spreads[chart.symbol] || { value: asset?.spread || 0 };
         const digits = asset?.digits !== undefined ? asset.digits : getPrecision(chart.symbol);
+        const price = prices[chart.symbol] || Number(asset?.price || 0);
         
         return (
           <div 
@@ -55,6 +59,7 @@ const MultiChartLayout: React.FC<MultiChartLayoutProps> = ({
             <LightweightChart 
               {...props}
               symbol={chart.symbol}
+              price={price}
               digits={digits}
               positions={positions}
               pendingOrders={pendingOrders}

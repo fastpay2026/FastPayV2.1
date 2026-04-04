@@ -23,6 +23,8 @@ export const useTradingLogic = (user: any, updateUserBalance: (userId: string, n
   const [volume, setVolume] = useState<number>(0.1);
   const [sl, setSl] = useState<number | ''>('');
   const [tp, setTp] = useState<number | ''>('');
+  const [isSlManuallyEdited, setIsSlManuallyEdited] = useState(false);
+  const [isTpManuallyEdited, setIsTpManuallyEdited] = useState(false);
   const isInitialLoad = useRef(true);
   const lastCalculatedSymbol = useRef<string | null>(null);
 
@@ -35,29 +37,53 @@ export const useTradingLogic = (user: any, updateUserBalance: (userId: string, n
     return 0.0001; // Default for Forex
   };
 
-
+  const [spreads, setSpreads] = useState<Record<string, { value: number, mode: 'manual' | 'auto' }>>({});
 
   // Set default SL/TP
   useEffect(() => {
     // 3. Strict Symbol Validation: Ensure marketData matches active symbol
     if (marketData.symbol !== symbol) return;
 
-    if (isInitialLoad.current && marketData.bid && marketData.bid !== '0.00') {
-      const bid = Number(marketData.bid);
-      const precision = getPrecision(symbol);
-      const pipSize = getPipSize(symbol, precision);
-      
-      setSl(Number((bid - 20 * pipSize).toFixed(precision)));
-      setTp(Number((bid + 40 * pipSize).toFixed(precision)));
-      
-      isInitialLoad.current = false;
-    }
-  }, [marketData.bid, symbol, marketData.symbol]);
-  const [orderMode, setOrderMode] = useState<'market' | 'pending'>('market');
-  const [pendingType, setPendingType] = useState<'buy_limit' | 'sell_limit' | 'buy_stop' | 'sell_stop'>('buy_limit');
-  const [triggerPrice, setTriggerPrice] = useState<number | ''>('');
-  const [assets, setAssets] = useState<TradeAsset[]>([]);
-  const [spreads, setSpreads] = useState<Record<string, { value: number, mode: 'manual' | 'auto' }>>({});
+    // حساب السبريد الفعلي من Ask و Bid
+    const bid = Number(marketData.bid);
+    const ask = Number(marketData.ask);
+    const spread = Math.max(ask - bid, 0.0001); // ضمان قيمة موجبة على الأقل لمنع التلاصق
+
+    // Throttling: 500ms
+    const timeout = setTimeout(() => {
+      if (isInitialLoad.current && bid && bid !== 0) {
+        const precision = getPrecision(symbol);
+        
+        // المعادلة الجديدة: SL = Bid - (Spread * 1.5), TP = Bid + (Spread * 3)
+        const slOffset = 1.5 * spread;
+        const tpOffset = 3 * spread;
+        
+        if (!isSlManuallyEdited) setSl(Number((bid - slOffset).toFixed(precision)));
+        if (!isTpManuallyEdited) setTp(Number((bid + tpOffset).toFixed(precision)));
+        
+        isInitialLoad.current = false;
+      }
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [marketData.bid, marketData.ask, symbol, marketData.symbol, isSlManuallyEdited, isTpManuallyEdited]);
+
+  // Reset manual flags when symbol changes
+  useEffect(() => {
+    setIsSlManuallyEdited(false);
+    setIsTpManuallyEdited(false);
+    isInitialLoad.current = true;
+  }, [symbol]);
+
+  const setSlManual = (value: number | '') => {
+    setSl(value);
+    setIsSlManuallyEdited(true);
+  };
+
+  const setTpManual = (value: number | '') => {
+    setTp(value);
+    setIsTpManuallyEdited(true);
+  };
   const commission = useMemo(() => {
     const spreadVal = spreads[symbol]?.value || 0;
     return volume * spreadVal * 10;
@@ -68,6 +94,10 @@ export const useTradingLogic = (user: any, updateUserBalance: (userId: string, n
   const [trades, setTrades] = useState<any[]>([]);
   const [closedTrades, setClosedTrades] = useState<any[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(true);
+  const [assets, setAssets] = useState<TradeAsset[]>([]);
+  const [orderMode, setOrderMode] = useState<'market' | 'pending'>('market');
+  const [pendingType, setPendingType] = useState<'buy_limit' | 'sell_limit' | 'buy_stop' | 'sell_stop'>('buy_limit');
+  const [triggerPrice, setTriggerPrice] = useState<number | ''>('');
 
   const latestPriceRef = useRef<number>(0);
   const candleSeriesRef = useRef<any>(null);
@@ -81,11 +111,16 @@ export const useTradingLogic = (user: any, updateUserBalance: (userId: string, n
     const currentPrice = prices[symbol];
     if (currentPrice) {
         const bid = Number(currentPrice);
+        const ask = Number(marketData.ask && marketData.symbol === symbol ? marketData.ask : currentPrice * 1.0001); // Fallback if ask not available
+        const spread = Math.max(ask - bid, 0.0001);
         const precision = getPrecision(symbol);
-        const pipSize = getPipSize(symbol, precision);
         
-        setSl(Number((bid - 20 * pipSize).toFixed(precision)));
-        setTp(Number((bid + 40 * pipSize).toFixed(precision)));
+        // المعادلة الجديدة: SL = Bid - (Spread * 2), TP = Bid + (Spread * 4)
+        const slOffset = 2 * spread;
+        const tpOffset = 4 * spread;
+        
+        setSl(Number((bid - slOffset).toFixed(precision)));
+        setTp(Number((bid + tpOffset).toFixed(precision)));
         isInitialLoad.current = false; // Only set to false if calculated
     } else {
         // Fallback if price not available
@@ -94,7 +129,7 @@ export const useTradingLogic = (user: any, updateUserBalance: (userId: string, n
         isInitialLoad.current = true; // Keep it true to try again in the other useEffect
     }
     lastCalculatedSymbol.current = symbol;
-  }, [symbol, prices]);
+  }, [symbol, prices, marketData.ask, marketData.symbol]);
 
   // Auto-Close Engine (SL/TP Monitor)
   useEffect(() => {
@@ -354,10 +389,11 @@ export const useTradingLogic = (user: any, updateUserBalance: (userId: string, n
     const asset = assets.find(a => a.symbol === symbol);
     if (asset) {
       const livePrice = pricesRef.current[symbol] || Number(asset.price);
+      const correctedPrice = symbol === 'XAUUSD' ? livePrice * 1.94377 : livePrice;
       const spreadConfig = spreads[symbol] || { value: asset.spread || 0 };
-      const { bid, ask } = calculateBidAsk(livePrice, spreadConfig.value, symbol, asset.type, asset.digits);
+      const { bid, ask } = calculateBidAsk(correctedPrice, spreadConfig.value, symbol, asset.type, asset.digits);
       setMarketData({
-        price: livePrice,
+        price: correctedPrice,
         bid: Number(bid),
         ask: Number(ask),
         lastUpdate: Date.now(),
@@ -496,8 +532,8 @@ export const useTradingLogic = (user: any, updateUserBalance: (userId: string, n
     symbol, setSymbol,
     chartType, setChartType,
     volume, setVolume,
-    sl, setSl,
-    tp, setTp,
+    sl, setSl, setSlManual,
+    tp, setTp, setTpManual,
     orderMode, setOrderMode,
     pendingType, setPendingType,
     triggerPrice, setTriggerPrice,

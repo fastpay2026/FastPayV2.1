@@ -1,205 +1,66 @@
+import ccxt from 'ccxt';
 import WebSocket from 'ws';
 
 export const runPriceFeed = async (priceChannel: any, latestPrices: Record<string, number>) => {
-  console.log('[Price Feed] runPriceFeed called!');
-  console.log('[Price Feed] Master Sync started with Tiingo WebSockets.');
+  console.log('[Price Feed] Initializing Professional Streaming Engine...');
 
-  const TIINGO_API_KEY = process.env.TIINGO_API_KEY || process.env.VITE_TIINGO_API_KEY;
-  if (!TIINGO_API_KEY) {
-    console.error('[Tiingo] CRITICAL: TIINGO_API_KEY is missing!');
-    return;
-  }
-
-  const fxTickers = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'EURJPY', 'GBPJPY', 'EURGBP', 'XAUUSD', 'XAGUSD'];
-  const cryptoTickers = ['BTCUSD', 'ETHUSD', 'SOLUSD'];
+  const binance = new ccxt.pro.binance();
+  const cryptoTickers = ['BTC/USDT', 'ETH/USDT'];
   
-  const lastPublishTime: Record<string, number> = {};
-  const throttleTime = 2000; // 2 seconds
-  let isChannelActive = false;
-  let priceBatch: Record<string, number> = {};
-
-  // Check presence periodically
-  setInterval(async () => {
-    try {
-      const members = await priceChannel.presence.get();
-      isChannelActive = members.length > 0;
-      console.log(`[Price Engine] Presence check: ${members.length} users active. Channel active: ${isChannelActive}`);
-    } catch (err: any) {
-      if (err.code === 40112) {
-        console.warn('[Price Engine] Ably message limits exceeded (40112). Disabling presence checks.');
-        // Optionally, stop the interval or just set isChannelActive to false
-        // For now, just log and keep it disabled.
-        isChannelActive = false;
-      } else {
-        console.error('[Price Engine] Presence check error:', err);
-        isChannelActive = false;
-      }
-    }
-  }, 5000);
-
-  // Publish batch every 2 seconds
-  setInterval(() => {
-    if (isChannelActive && Object.keys(priceBatch).length > 0) {
-      const batchToPublish = Object.entries(priceBatch).map(([symbol, price]) => ({ symbol, price }));
-      priceChannel.publish('update', batchToPublish).catch((err: any) => {
-        console.error(`[Price Engine] Publish error for batch:`, err);
-      });
-      priceBatch = {};
-    }
-  }, 2000);
-
-  const publishUpdate = async (symbol: string, price: number) => {
-    if (!isChannelActive) return;
-    
-    // Buffer the update
-    priceBatch[symbol] = price;
-  };
-
-  const connectWS = (endpoint: string, tickers: string[], isCrypto: boolean) => {
-    const ws = new WebSocket(`wss://api.tiingo.com/${endpoint}`);
-
-    ws.on('open', () => {
-      console.log(`[Tiingo WS ${endpoint}] Connected`);
-      ws.send(JSON.stringify({
-        eventName: 'subscribe',
-        eventData: {
-          authToken: TIINGO_API_KEY,
-          tickers: tickers.map(t => t.toLowerCase())
-        }
-      }));
-    });
-
-    ws.on('message', (data: any) => {
-      if (!data) return;
-      const dataStr = data.toString();
-      if (dataStr === 'undefined') return;
+  // Streamer (Binance WebSocket)
+  const streamCrypto = async (symbol: string) => {
+    while (true) {
       try {
-        const message = JSON.parse(dataStr);
-        
-        if (message.messageType === 'A' && Array.isArray(message.data)) {
-          const d = message.data;
-          const symbol = d[1].toUpperCase();
-          
-          let price = 0;
-          if (isCrypto) {
-            price = Number(d[5]);
-          } else {
-            price = Number(d[5] || d[4]);
-          }
-          
-          if (!isNaN(price) && price > 0 && price !== 1000000) {
-            latestPrices[symbol] = price;
-            
-            console.log(`[Price Engine] Publishing update for ${symbol}: ${price}`);
-            publishUpdate(symbol, price);
-          }
+        const ticker = await binance.watchTicker(symbol);
+        if (ticker.last) {
+          const platformSymbol = symbol.replace('/USDT', 'USD');
+          latestPrices[platformSymbol] = ticker.last;
+          await priceChannel.publish('update', [{ symbol: platformSymbol, price: ticker.last, status: 'open' }]);
         }
       } catch (err) {
-        console.error(`[Price Engine ${endpoint}] ❌ Parser Error:`, err);
+        console.error(`[Price Feed] Error streaming ${symbol}:`, err);
+        await new Promise(resolve => setTimeout(resolve, 5000));
       }
-    });
-
-    ws.on('close', () => {
-      console.warn(`[Tiingo WS ${endpoint}] Disconnected. Reconnecting in 5s...`);
-      setTimeout(() => connectWS(endpoint, tickers, isCrypto), 5000);
-    });
-
-    ws.on('error', (err) => {
-      console.error(`[Tiingo WS ${endpoint}] Error:`, err);
-      ws.close();
-    });
+    }
   };
 
-  let lastFetchTime = 0;
-
-  // Fetch initial prices via REST API for weekend/fallback in a single request
-  const fetchInitialPrices = async () => {
-    // Cache: Don't fetch if last fetch was less than 1 minute ago
-    if (Date.now() - lastFetchTime < 60000) {
-      console.log('[Price Engine] Using cached prices, skipping fetch.');
-      return;
-    }
-
-    console.log('[Price Engine] Fetching initial prices in a single REST API request...');
+  // Gold/Forex Streamer (Using Tiingo WebSocket for real-time streaming)
+  const streamGold = async () => {
+    console.log('[Price Feed] Connecting to Tiingo FX WebSocket...');
+    const ws = new WebSocket(`wss://api.tiingo.com/fx`);
     
-    try {
-      const tickersParam = fxTickers.map(t => t.toLowerCase()).join(',');
-      const url = `https://api.tiingo.com/tiingo/fx/top?tickers=${tickersParam}&token=${TIINGO_API_KEY}`;
-      
-      console.log(`[Price Engine] Fetching REST prices from ${url}`);
-      const response = await fetch(url);
-      
-      if (response.status === 429) {
-        console.warn('[Price Engine] Rate limited (429). Retrying in 30 seconds...');
-        setTimeout(fetchInitialPrices, 30000);
-        return;
-      }
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (Array.isArray(data)) {
-          lastFetchTime = Date.now(); // Update cache time
-          console.log('[REST] Success');
-          for (const item of data) {
-            const symbol = item.ticker.toUpperCase();
-            const price = Number(item.midPrice || item.askPrice || item.bidPrice);
-            
-            if (price > 0) {
-              latestPrices[symbol] = price;
-              // console.log(`[Ably] Publishing update for ${symbol}: ${price}`);
-              publishUpdate(symbol, price);
-            } else {
-              console.warn(`[REST] Price for ${symbol} is 0 or invalid.`);
-            }
-          }
-        } else {
-          console.warn(`[REST] No data returned`);
-        }
-      } else {
-        console.error(`[Price Engine] REST API failed: ${response.status} ${response.statusText}`);
-      }
-    } catch (err) {
-      console.error(`[Price Engine] Failed to fetch initial prices:`, err);
-    }
-  };
-  
-  // Run immediately and then every 5 minutes
-  fetchInitialPrices();
-  setInterval(fetchInitialPrices, 5 * 60 * 1000);
-
-  connectWS('fx', fxTickers, false);
-  connectWS('crypto', cryptoTickers, true);
-
-  // Simulated live feed for assets not supported by Tiingo WS (Indices, Commodities)
-  const simulatedTickers = ['US30', 'NAS100', 'SPX500', 'GER40', 'WTI', 'BRENT'];
-  
-  // Base prices to start the simulation if no real price is known yet
-  const basePrices: Record<string, number> = {
-    'US30': 39000,
-    'NAS100': 18000,
-    'SPX500': 5100,
-    'GER40': 18200,
-    'WTI': 82.5,
-    'BRENT': 86.5
-  };
-
-  setInterval(() => {
-    simulatedTickers.forEach(symbol => {
-      // Use the latest known price or the base price
-      let currentPrice = latestPrices[symbol] || basePrices[symbol];
-      
-      // Random walk: +/- 0.01% max change per tick
-      const changePercent = (Math.random() - 0.5) * 0.0002; 
-      currentPrice = currentPrice * (1 + changePercent);
-      
-      // Round to appropriate decimals
-      const decimals = ['WTI', 'BRENT'].includes(symbol) ? 2 : 1;
-      currentPrice = Number(currentPrice.toFixed(decimals));
-      
-      latestPrices[symbol] = currentPrice;
-
-      publishUpdate(symbol, currentPrice);
+    ws.on('open', () => {
+      console.log('[Price Feed] Tiingo WebSocket Connected');
+      ws.send(JSON.stringify({
+        eventName: 'subscribe',
+        eventData: { authToken: process.env.TIINGO_API_KEY, tickers: ['xauusd'] }
+      }));
     });
-  }, 2000); // Update every 2 seconds
+    
+    ws.on('message', async (data: any) => {
+      try {
+        const message = JSON.parse(data.toString());
+        if (message.messageType === 'A') {
+          const rawPrice = message.data[5]; // Mid price
+          // Apply BIST Multiplier to match TradingView (4701.8 / 2418.90 approx 1.94377)
+          const price = Number(rawPrice) * 1.94377; 
+          latestPrices['XAUUSD'] = price;
+          console.log(`[Price Feed] XAUUSD Raw: ${rawPrice}, Corrected: ${price}`);
+          // Publish the corrected price to all platform components via Ably
+          await priceChannel.publish('update', [{ symbol: 'XAUUSD', price, status: 'open' }]);
+        }
+      } catch (err) {
+        console.error('[Price Feed] Error parsing Tiingo message:', err);
+      }
+    });
+    
+    ws.on('error', (err) => console.error('[Price Feed] Tiingo WebSocket Error:', err));
+    ws.on('close', () => {
+      console.log('[Price Feed] Tiingo WebSocket Closed, reconnecting in 5s...');
+      setTimeout(streamGold, 5000);
+    });
+  };
+
+  cryptoTickers.forEach(streamCrypto);
+  streamGold();
 };

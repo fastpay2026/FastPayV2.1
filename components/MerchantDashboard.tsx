@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BadgeCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, APIKey, VerificationRequest, AdExchangeItem, AdNegotiation } from '../types';
 import { useI18n } from '../i18n/i18n';
@@ -71,6 +72,7 @@ const MerchantDashboard: React.FC<Props> = ({
   const [newKeyName, setNewKeyName] = useState('');
   const [isKeyVisibleId, setIsKeyVisibleId] = useState<string | null>(null);
   const [activeLang, setActiveLang] = useState<'nodejs' | 'python' | 'php'>('nodejs');
+  const [cardToCancel, setCardToCancel] = useState<RechargeCard | null>(null);
 
   // Password change states
   const [oldPassword, setOldPassword] = useState('');
@@ -244,14 +246,17 @@ const MerchantDashboard: React.FC<Props> = ({
 
   const handleCancelCard = (card: RechargeCard) => {
     if (!card || card.isUsed) {
-      alert(t('card_cancel_error'));
+      addNotification(t('error'), t('card_cancel_error'), 'error');
       return;
     }
-    
-    if (!confirm(t('card_cancel_confirm').replace('${code}', card.code).replace('${amount}', `$${card.amount}`))) return;
+    setCardToCancel(card);
+  };
 
-    const refundAmount = card.amount;
-    const cardCode = card.code;
+  const confirmCancelCard = () => {
+    if (!cardToCancel) return;
+
+    const refundAmount = cardToCancel.amount;
+    const cardCode = cardToCancel.code;
     const ts = new Date().toISOString();
 
     // 1. Remove the card from the global list
@@ -272,6 +277,7 @@ const MerchantDashboard: React.FC<Props> = ({
     }, ...prev]);
 
     addNotification(t('card_cancelled'), t('card_cancelled_msg').replace('${amount}', `$${refundAmount}`), 'money');
+    setCardToCancel(null);
   };
 
   const handleChangePassword = (e: React.FormEvent) => {
@@ -466,6 +472,52 @@ header('Location: ' . $payment->checkout_url);`
                        </div>
                     </div>
                   ))}
+               </div>
+               
+               {/* Cards List Section */}
+               <div className="bg-[#111827] border border-white/5 rounded-[2rem] p-8 shadow-2xl">
+                 <div className="flex justify-between items-center mb-6">
+                   <h3 className="text-xl font-black">{t('generated_cards')}</h3>
+                   <input
+                     type="text"
+                     placeholder={t('search_cards')}
+                     value={searchTerm}
+                     onChange={(e) => setSearchTerm(e.target.value)}
+                     className="bg-black/40 border border-white/10 rounded-2xl p-3 text-sm outline-none focus:border-sky-500 w-64"
+                   />
+                 </div>
+                 <div className="overflow-x-auto">
+                   <table className="w-full text-right">
+                     <thead>
+                       <tr className="bg-black/20 text-slate-500 text-[10px] font-black uppercase tracking-widest">
+                         <th className="p-4">{t('card_code')}</th>
+                         <th className="p-4">{t('amount')}</th>
+                         <th className="p-4">{t('status')}</th>
+                         <th className="p-4">{t('date')}</th>
+                         <th className="p-4">{t('control')}</th>
+                       </tr>
+                     </thead>
+                     <tbody className="divide-y divide-white/5">
+                       {myGeneratedCards.map(card => (
+                         <tr key={card.code}>
+                           <td className="p-4 font-mono text-sky-400">{card.code}</td>
+                           <td className="p-4 font-black">${card.amount}</td>
+                           <td className="p-4">
+                             <span className={`px-2 py-1 rounded-full text-[10px] font-black ${card.isUsed ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                               {card.isUsed ? t('used') : t('active')}
+                             </span>
+                           </td>
+                           <td className="p-4 text-xs text-slate-500">{new Date(card.createdAt).toLocaleDateString()}</td>
+                           <td className="p-4">
+                             {!card.isUsed && (
+                               <button onClick={() => handleCancelCard(card)} className="text-red-500 hover:text-red-400 text-xs font-black">{t('cancel')}</button>
+                             )}
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
                </div>
              </div>
            )}
@@ -791,6 +843,45 @@ header('Location: ' . $payment->checkout_url);`
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(14, 165, 233, 0.2); border-radius: 10px; }
         .shadow-3xl { box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.8); }
       `}</style>
+      {/* Cancellation Modal */}
+      <AnimatePresence>
+        {cardToCancel && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCardToCancel(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-md bg-slate-900 rounded-[2rem] border border-white/10 p-8 shadow-2xl"
+            >
+              <h3 className="text-xl font-black mb-4">{t('confirm_cancel')}</h3>
+              <p className="text-slate-400 font-bold mb-8">
+                {t('card_cancel_confirm').replace('${code}', cardToCancel.code).replace('${amount}', `$${cardToCancel.amount}`)}
+              </p>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setCardToCancel(null)}
+                  className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white font-black rounded-xl transition-all"
+                >
+                  {t('cancel')}
+                </button>
+                <button 
+                  onClick={confirmCancelCard}
+                  className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-black rounded-xl transition-all"
+                >
+                  {t('confirm')}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

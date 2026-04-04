@@ -33,8 +33,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
     symbol, setSymbol,
     chartType, setChartType,
     volume, setVolume,
-    sl, setSl,
-    tp, setTp,
+    sl, setSl, setSlManual,
+    tp, setTp, setTpManual,
     orderMode, setOrderMode,
     pendingType, setPendingType,
     triggerPrice, setTriggerPrice,
@@ -162,7 +162,14 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
   };
 
   const currentAsset = assets.find(a => a.symbol === symbol);
-  const rawPrice = usePriceStore((state) => state.prices[symbol] || Number(currentAsset?.price || 0));
+  const priceFromStore = usePriceStore((state) => state.prices[symbol]);
+  const rawPrice = useMemo(() => {
+    if (priceFromStore) {
+      return priceFromStore;
+    }
+    const initialPrice = Number(currentAsset?.price || 0);
+    return symbol === 'XAUUSD' ? initialPrice * 1.94377 : initialPrice;
+  }, [symbol, currentAsset?.price, priceFromStore]);
   const digits = currentAsset?.digits !== undefined ? currentAsset.digits : getPrecision(symbol);
   const spreadValue = spreads[symbol]?.value || currentAsset?.spread || 0;
   
@@ -297,8 +304,8 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                     onPriceChange={useCallback((orderId: string, type: 'sl' | 'tp' | 'entry', price: number) => {
                       console.log(`[TradingPlatform] onPriceChange: ${orderId}, ${type}, ${price}`);
                       if (orderId === 'draft') {
-                        if (type === 'sl') setSl(price);
-                        if (type === 'tp') setTp(price);
+                        if (type === 'sl') setSlManual(price);
+                        if (type === 'tp') setTpManual(price);
                         if (type === 'entry') setTriggerPrice(price);
                       } else {
                         const field = type === 'entry' ? 'entry_price' : type;
@@ -307,12 +314,12 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                         
                         // Direct sync if this is the selected order to ensure sidebar inputs move in real-time
                         if (orderId === selectedOrderId) {
-                          if (type === 'sl') setSl(price);
-                          if (type === 'tp') setTp(price);
+                          if (type === 'sl') setSlManual(price);
+                          if (type === 'tp') setTpManual(price);
                           if (type === 'entry') setTriggerPrice(price);
                         }
                       }
-                    }, [selectedOrderId, setPositions, setPendingOrders, setSl, setTp, setTriggerPrice])}
+                    }, [selectedOrderId, setPositions, setPendingOrders, setSlManual, setTpManual, setTriggerPrice])}
                     draftSL={sl}
                     draftTP={tp}
                     draftType={orderMode === 'pending' ? (pendingType.startsWith('buy') ? 'buy' : 'sell') : 'buy'}
@@ -351,9 +358,9 @@ const TradingPlatform: React.FC<TradingPlatformProps> = ({ user, updateUserBalan
                     volume={volume} 
                     setVolume={setVolume} 
                     sl={sl}
-                    setSl={setSl}
+                    setSl={setSlManual}
                     tp={tp}
-                    setTp={setTp}
+                    setTp={setTpManual}
                     orderMode={orderMode}
                     setOrderMode={setOrderMode}
                     pendingType={pendingType}

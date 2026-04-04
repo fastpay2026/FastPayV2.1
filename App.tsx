@@ -21,6 +21,27 @@ import { Toaster } from 'sonner';
 
 const TradingPlatform = React.lazy(() => import('@/pages/TradingPlatform/TradingPlatform'));
 
+const NotificationToast = ({ n, setNotifications }: { n: any, setNotifications: any }) => {
+  const { t } = useI18n();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setNotifications((prev: any) => prev.map((notif: any) => notif.id === n.id ? { ...notif, isRead: true } : notif));
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [n.id, setNotifications]);
+
+  return (
+    <div className="pointer-events-auto bg-[#0f172a]/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl animate-in slide-in-from-left duration-500 max-w-sm">
+      <div className="flex justify-between items-start mb-2">
+        <h4 className="font-black text-sky-400 text-sm">{n.title}</h4>
+        <button onClick={() => setNotifications((prev: any) => prev.map((notif: any) => notif.id === n.id ? { ...notif, isRead: true } : notif))} className="text-white/40 hover:text-white transition-colors">{t('closeButton')}</button>
+      </div>
+      <p className="text-xs text-white/80 font-bold leading-relaxed">{n.message}</p>
+      <p className="text-[8px] text-white/40 mt-3 font-mono">{new Date(n.timestamp).toLocaleString()}</p>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
     return localStorage.getItem('fp_v21_current_user_id');
@@ -605,14 +626,7 @@ const App: React.FC = () => {
         {/* Notification Toasts */}
         <div className="fixed top-6 left-6 z-[1000] flex flex-col gap-4 pointer-events-none">
           {notifications.filter(n => n.userId === currentUserId && !n.isRead).slice(0, 5).map((n) => (
-            <div key={n.id} className="pointer-events-auto bg-[#0f172a]/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl animate-in slide-in-from-left duration-500 max-w-sm">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-black text-sky-400 text-sm">{n.title}</h4>
-                <button onClick={() => setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, isRead: true } : notif))} className="text-white/40 hover:text-white transition-colors">{t('closeButton')}</button>
-              </div>
-              <p className="text-xs text-white/80 font-bold leading-relaxed">{n.message}</p>
-              <p className="text-[8px] text-white/40 mt-3 font-mono">{new Date(n.timestamp).toLocaleString(currentUser?.language || 'en-US')}</p>
-            </div>
+            <NotificationToast key={n.id} n={n} setNotifications={setNotifications} />
           ))}
         </div>
 

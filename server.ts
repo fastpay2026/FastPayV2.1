@@ -4,14 +4,14 @@ import path from 'path';
 import { createServer } from 'http';
 import { createClient } from '@supabase/supabase-js';
 import Ably from 'ably';
-import { handleAblyAuth } from './services/ably-auth-service';
-import { marketRouter } from './routes/market-api';
-import { tradingRouter } from './routes/trading-api';
-import { diagnosticRouter } from './routes/diagnostic-api';
-import { seedAssets } from './services/database-seeder';
-import { runPriceFeed } from './services/price-feed-engine';
-import { runGhostEngine } from './services/ghost-trader-engine';
-import { runStopOutEngine } from './services/stop-out-engine';
+import { handleAblyAuth } from './services/ably-auth-service.js';
+import { marketRouter } from './routes/market-api.js';
+import { tradingRouter } from './routes/trading-api.js';
+import { diagnosticRouter } from './routes/diagnostic-api.js';
+import { seedAssets } from './services/database-seeder.js';
+import { runPriceFeed } from './services/price-feed-engine.js';
+import { runGhostEngine } from './services/ghost-trader-engine.js';
+import { runStopOutEngine } from './services/stop-out-engine.js';
 
 const app = express();
 const distPath = path.resolve(process.cwd(), 'dist');
@@ -41,8 +41,15 @@ const getAbly = () => {
 
 // API Routes
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`[Server] Received request: ${req.method} ${req.url}`);
+  next();
+});
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-app.get('/api/ably/auth', handleAblyAuth);
+app.get('/api/ably/auth', (req, res) => {
+  console.log('[Server] Received request for /api/ably/auth');
+  handleAblyAuth(req, res);
+});
 app.use(['/api/market', '/api/market/'], marketRouter(supabase));
 app.use(['/api/trading', '/api/trading/'], tradingRouter(supabase));
 app.use(['/api/debug', '/api/debug/'], diagnosticRouter(supabase, isSupabaseConfigured, { timestamp: Date.now() }));
