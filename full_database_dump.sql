@@ -1,4 +1,4 @@
--- Full SQL Schema Dump for FastPay Global 2026
+-- Full SQL Schema Dump for FastFlow Global 2026
 -- Includes all tables, RLS policies, and seed data.
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -563,7 +563,7 @@ ALTER TABLE bot_config ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all operations on bot_config" ON bot_config FOR ALL USING (true) WITH CHECK (true);
 
 -- Initial Seed Data
-INSERT INTO site_config (id, config) VALUES (1, '{"site_name": "FastPay Global", "maintenance_mode": false}') ON CONFLICT (id) DO NOTHING;
+INSERT INTO site_config (id, config) VALUES (1, '{"site_name": "FastFlow Global", "maintenance_mode": false}') ON CONFLICT (id) DO NOTHING;
 INSERT INTO trade_assets (name, symbol, price, type, spread, commission) VALUES 
 ('Bitcoin', 'BTCUSD', 60000, 'crypto', 0.01, 0.05),
 ('Ethereum', 'ETHUSD', 3000, 'crypto', 0.02, 0.05),

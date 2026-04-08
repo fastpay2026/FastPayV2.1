@@ -23,7 +23,7 @@ const UnderDevelopment: React.FC = () => {
         <span>•</span>
         <span>System Update</span>
         <span>•</span>
-        <span>FastPay Network</span>
+        <span>FastFlow Network</span>
       </div>
     </div>
   );

@@ -50,7 +50,7 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
       username: userForm.username.trim(),
       fullName: userForm.fullName,
       phoneNumber: userForm.phoneNumber,
-      password: (userForm.password || 'FastPay123').trim(), // Default temporary password if empty
+      password: (userForm.password || 'FastFlow123').trim(), // Default temporary password if empty
       role: userForm.role,
       balance: userForm.balance,
       status: 'active',
@@ -221,7 +221,7 @@ const UserManagement: React.FC<Props> = ({ accounts, currentUser, setAccounts, o
               <input value={userForm.phoneNumber} onChange={e => setUserForm({ ...userForm, phoneNumber: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white" placeholder={t('phone_number_placeholder')} />
               <div className="space-y-1 text-right">
                 <label className="text-[10px] text-slate-500 mr-6 font-black uppercase">{t('temporary_password_optional')}</label>
-                <input type="text" value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white font-mono" placeholder="FastPay123" />
+                <input type="text" value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} className="w-full p-5 bg-black/40 border border-white/10 rounded-2xl font-black outline-none focus:border-sky-500 transition-all text-white font-mono" placeholder="FastFlow123" />
               </div>
             </div>
             {userForm.role.toUpperCase() === 'AGENT' && (

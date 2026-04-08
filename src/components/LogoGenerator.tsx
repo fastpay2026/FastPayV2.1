@@ -27,7 +27,7 @@ const LogoGenerator: React.FC<Props> = ({ onLogoGenerated }) => {
         model: 'gemini-3.1-flash-image-preview',
         contents: {
           parts: [{
-            text: 'A luxurious, professional logo for a financial network called "FastPay Network". The design features a minimalist, elegant emblem that combines a stylized hawk or eagle head merged with a subtle credit card or digital circuit pattern, representing speed, security, and financial agility. Color palette: vibrant sky blue (hex #0ea5e9) and metallic silver/white to contrast against a deep black background (#0a0a0a). The design should be clean, sophisticated, and isolated on a solid black background (#0a0a0a) to seamlessly blend with the website\'s dark theme. Vector art style, high-end branding.',
+            text: 'A luxurious, professional logo for a financial network called "FastFlow Group". The design features a minimalist, elegant emblem that combines a stylized hawk or eagle head merged with a subtle credit card or digital circuit pattern, representing speed, security, and financial agility. Color palette: vibrant sky blue (hex #0ea5e9) and metallic silver/white to contrast against a deep black background (#0a0a0a). The design should be clean, sophisticated, and isolated on a solid black background (#0a0a0a) to seamlessly blend with the website\'s dark theme. Vector art style, high-end branding.',
           }],
         },
         config: {

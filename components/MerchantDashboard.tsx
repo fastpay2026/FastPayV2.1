@@ -319,8 +319,8 @@ const MerchantDashboard: React.FC<Props> = ({
   const activeKeyForSnippet = user.apiKeys?.find(k => k.status === 'active')?.key || 'pk_live_YOUR_KEY_HERE';
 
   const snippets = {
-    nodejs: `const FastPay = require('@fastpay/node-sdk');
-const client = new FastPay.Client('${activeKeyForSnippet}');
+    nodejs: `const FastFlow = require('@fastflow/node-sdk');
+const client = new FastFlow.Client('${activeKeyForSnippet}');
 
 client.payments.create({
   amount: 49.99,
@@ -329,8 +329,8 @@ client.payments.create({
 }).then(payment => {
   console.log('Payment URL:', payment.checkout_url);
 });`,
-    python: `import fastpay
-client = fastpay.Client(api_key='${activeKeyForSnippet}')
+    python: `import fastflow
+client = fastflow.Client(api_key='${activeKeyForSnippet}')
 
 payment = client.payments.create(
     amount=49.99,
@@ -338,7 +338,7 @@ payment = client.payments.create(
     description='Order #1042'
 )
 print(f"Checkout at: {payment.checkout_url}")`,
-    php: `$fastpay = new \\FastPay\\Client('${activeKeyForSnippet}');
+    php: `$fastflow = new \\FastFlow\\Client('${activeKeyForSnippet}');
 
 $payment = $fastpay->payments->create([
   'amount' => 49.99,

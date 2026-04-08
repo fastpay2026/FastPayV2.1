@@ -1,4 +1,5 @@
 
+import ContentManagement from './developer/ContentManagement';
 import LogoGenerator from '@/components/LogoGenerator';
 import LogoUploader from '@/components/LogoUploader';
 import GhostTraders from './developer/GhostTraders';

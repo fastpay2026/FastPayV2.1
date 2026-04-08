@@ -28,7 +28,7 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
   const [authenticatedUser, setAuthenticatedUser] = useState<User | null>(null);
 
   const authPhrases = [
-    t('auth_phrase_1') || "بدء التحقق من الهوية الرقمية عبر بروتوكول FastPay-Secure...",
+    t('auth_phrase_1') || "بدء التحقق من الهوية الرقمية عبر بروتوكول FastFlow-Secure...",
     t('auth_phrase_2') || "فحص البصمة الرقمية ومطابقتها مع قاعدة بيانات النخبة...",
     t('auth_phrase_3') || "تشفير جلسة الاتصال بنظام AES-256 GCM العالمي...",
     t('auth_phrase_4') || "التحقق من صلاحيات الوصول إلى الخادم المركزي (Riyadh-Node-01)...",

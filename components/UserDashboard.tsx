@@ -694,7 +694,7 @@ const UserDashboard: React.FC<Props> = ({
            <div className="absolute top-16 md:top-20 right-0 w-64 h-full bg-[#0f172a] border-l border-white/5 p-6 space-y-4 animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
              {[
                { id: 'dashboard', l: t('nav_overview') },
-               { id: 'trading_platform', l: 'FastPay Trader' },
+               { id: 'trading_platform', l: 'FastFlow Trader' },
                { id: 'investment', l: t('nav_invest_plans') },
                { id: 'raffle', l: t('nav_raffle_mgmt') },
                { id: 'ads', l: t('nav_ad_exchange') },

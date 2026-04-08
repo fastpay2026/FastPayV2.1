@@ -35,7 +35,7 @@ const SplashScreen: React.FC<Props> = ({ siteConfig, onComplete }) => {
       <div className="w-48 h-4 bg-black/40 rounded-full overflow-hidden border border-white/10">
         <div className="h-full bg-sky-500 transition-all duration-75" style={{ width: `${progress}%` }}></div>
       </div>
-      {showText && <h1 className="text-4xl font-black text-white mt-8 animate-pulse">FastPay Trader</h1>}
+      {showText && <h1 className="text-4xl font-black text-white mt-8 animate-pulse">FastFlow Trader</h1>}
     </div>
   );
 };

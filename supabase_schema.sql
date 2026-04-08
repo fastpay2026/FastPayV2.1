@@ -1,4 +1,4 @@
--- Supabase SQL Schema for FastPay Global 2026
+-- Supabase SQL Schema for FastFlow Global 2026
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. Users Table

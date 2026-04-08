@@ -6,6 +6,8 @@ interface Props {
 
 const LogoUploader: React.FC<Props> = ({ onLogoUploaded }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [bgColor, setBgColor] = useState('#ffffff');
+  const [tolerance, setTolerance] = useState(30);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,6 +23,13 @@ const LogoUploader: React.FC<Props> = ({ onLogoUploaded }) => {
     reader.readAsDataURL(file);
   };
 
+  const hexToRgb = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return { r, g, b };
+  };
+
   const processImage = (img: HTMLImageElement) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -34,15 +43,20 @@ const LogoUploader: React.FC<Props> = ({ onLogoUploaded }) => {
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
+    const { r: targetR, g: targetG, b: targetB } = hexToRgb(bgColor);
 
-    // Simple algorithm: make white/near-white pixels transparent
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
 
-      // If pixel is very light (near white), make it transparent
-      if (r > 240 && g > 240 && b > 240) {
+      const distance = Math.sqrt(
+        Math.pow(r - targetR, 2) + 
+        Math.pow(g - targetG, 2) + 
+        Math.pow(b - targetB, 2)
+      );
+
+      if (distance < tolerance) {
         data[i + 3] = 0; // Set alpha to 0
       }
     }
@@ -68,6 +82,14 @@ const LogoUploader: React.FC<Props> = ({ onLogoUploaded }) => {
         onChange={handleFileChange}
         className="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sky-600 file:text-white hover:file:bg-sky-700"
       />
+      
+      <div className="mt-4 flex gap-4 items-center">
+        <label className="text-sm text-slate-400">لون الخلفية:</label>
+        <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} className="w-10 h-10 rounded cursor-pointer" />
+        <label className="text-sm text-slate-400">السماحية (Tolerance):</label>
+        <input type="range" min="0" max="255" value={tolerance} onChange={(e) => setTolerance(Number(e.target.value))} className="w-32" />
+      </div>
+
       <canvas ref={canvasRef} className="hidden" />
       
       {previewUrl && (
