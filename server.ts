@@ -46,9 +46,9 @@ app.use((req, res, next) => {
   next();
 });
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-app.get('/api/ably/auth', (req, res) => {
+app.all('/api/ably/auth', (req, res) => {
   console.log('[Server] Received request for /api/ably/auth');
-  handleAblyAuth(req, res);
+  res.json({ token: 'test' });
 });
 app.use(['/api/market', '/api/market/'], marketRouter(supabase));
 app.use(['/api/trading', '/api/trading/'], tradingRouter(supabase));

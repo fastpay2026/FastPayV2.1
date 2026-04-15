@@ -864,7 +864,7 @@ const UserDashboard: React.FC<Props> = ({
              <div className="flex-1 p-4 md:p-12 overflow-y-auto custom-scrollbar animate-in fade-in duration-500 text-center pb-40">
                 <div className="max-w-4xl mx-auto space-y-10 md:space-y-16">
                    <div className="bg-amber-500/10 p-8 md:p-20 rounded-3xl md:rounded-[5rem] border border-amber-500/20 shadow-3xl space-y-8 md:space-y-10">
-                      <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-amber-500">{t('monthly_raffle_fastpay')}</h2>
+                      <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-amber-500">{t('monthly_raffle_title')}</h2>
                       <p className="text-lg md:text-2xl text-slate-300 font-bold">{t('raffle_ticket_dream')}</p>
                       
                       {siteConfig.showRaffleCountdown && siteConfig.raffleEndDate && (

@@ -6,6 +6,8 @@ let ablyRest: Ably.Rest | null = null;
 export const handleAblyAuth = async (req: Request, res: Response) => {
   console.log('[Ably Auth] Request received from:', req.ip);
   const key = process.env.ABLY_API_KEY || process.env.VITE_ABLY_API_KEY;
+  console.log('[Ably Auth] API Key found:', !!key);
+  console.log('[Ably Auth] Key value:', key);
 
   if (!key) {
     console.error('[Ably Auth] No API Key found in environment variables!');

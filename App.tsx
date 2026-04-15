@@ -626,7 +626,7 @@ const App: React.FC = () => {
         {/* Notification Toasts */}
         <div className="fixed top-6 left-6 z-[1000] flex flex-col gap-4 pointer-events-none">
           {notifications.filter(n => n.userId === currentUserId && !n.isRead).slice(0, 5).map((n) => (
-            <NotificationToast key={n.id} n={n} setNotifications={setNotifications} />
+            <NotificationToast n={n} setNotifications={setNotifications} />
           ))}
         </div>
 

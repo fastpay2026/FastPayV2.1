@@ -49,7 +49,14 @@ const ablyOptions = {
         return;
       }
 
-      const tokenRequest = await response.json();
+      const responseText = await response.text();
+      let tokenRequest;
+      try {
+        tokenRequest = JSON.parse(responseText);
+      } catch (e) {
+        console.error('[Ably Auth] Failed to parse JSON. Response body:', responseText);
+        throw new Error('Failed to parse JSON response');
+      }
       console.log('[Ably Auth] Token request received successfully');
       callback(null, tokenRequest);
     } catch (err) {
