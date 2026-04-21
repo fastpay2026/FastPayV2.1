@@ -13,6 +13,7 @@
   "dependencies": {
     "@google/genai": "^1.45.0",
     "@supabase/supabase-js": "^2.97.0",
+    "@types/leaflet": "^1.9.21",
     "ably": "^2.21.0",
     "axios": "^1.13.5",
     "ccxt": "^4.5.46",
@@ -23,6 +24,7 @@
     "esbuild": "^0.25.0",
     "express": "^5.2.1",
     "framer-motion": "^12.36.0",
+    "leaflet": "^1.9.4",
     "lightweight-charts": "^5.1.0",
     "lucide-react": "^0.575.0",
     "motion": "^12.34.3",
@@ -30,6 +32,7 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-error-boundary": "^6.1.1",
+    "react-leaflet": "^5.0.0",
     "react-ts-tradingview-widgets": "^1.2.8",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",

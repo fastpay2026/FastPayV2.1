@@ -28,6 +28,7 @@ import { AdExchange } from './AdExchange';
 import SecureGatewayManager from './developer/SecureGatewayManager';
 import LanguageSwitcher from './LanguageSwitcher';
 import Logo from '@/components/Logo';
+import { ChargingPointsPage } from '@/components/admin/ChargingPointsPage';
 
 interface Props {
   user: User;
@@ -85,7 +86,7 @@ const DeveloperDashboard: React.FC<Props> = ({
 }) => {
   console.log('[DeveloperDashboard] User prop:', user);
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'agent_lottery' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator' | 'online_users' | 'activity_log' | 'spread_manager' | 'platform_profits'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'agent_lottery' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator' | 'online_users' | 'activity_log' | 'spread_manager' | 'platform_profits' | 'charging_points'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -181,7 +182,8 @@ const handleManualSync = async () => {
             { id: 'online_users', l: 'Online Users', i: '🟢', canDisable: false },
             { id: 'spread_manager', l: 'Spread Manager', i: '📈', canDisable: false },
             { id: 'platform_profits', l: 'Platform Profits', i: '💰', canDisable: false },
-            { id: 'activity_log', l: 'Activity Log', i: '📜', canDisable: false }
+            { id: 'activity_log', l: 'Activity Log', i: '📜', canDisable: false },
+            { id: 'charging_points', l: 'نقاط الشحن', i: '⚡', canDisable: false }
           ].map(tab => {
             const isDisabled = siteConfig.disabledServices?.includes(tab.id);
             return (
@@ -276,6 +278,7 @@ const handleManualSync = async () => {
         {activeTab === 'spread_manager' && <SpreadManager tradeAssets={tradeAssets} />}
         {activeTab === 'platform_profits' && <PlatformEarnings />}
         {activeTab === 'activity_log' && <ActivityLog />}
+        {activeTab === 'charging_points' && <ChargingPointsPage />}
       </main>
 
       <style>{`
