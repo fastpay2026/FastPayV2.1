@@ -50,15 +50,23 @@ export const ChargingPointsPage: React.FC = () => {
 
   const addPoint = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.lat || !formData.lng || !formData.country) return;
-    await supabase.from('charging_points').insert({
+    if (!formData.name || !formData.lat || !formData.lng || !formData.country) {
+      alert("يرجى تعبئة كافة الحقول");
+      return;
+    }
+    const { error } = await supabase.from('charging_points').insert({
       name: formData.name,
       country: formData.country,
       latitude: parseFloat(formData.lat),
       longitude: parseFloat(formData.lng),
       address_details: formData.address
     });
-    setFormData({ name: '', country: '', lat: '', lng: '', address: '' });
+    if (error) {
+      console.error("Error inserting charging point:", error);
+      alert("خطأ أثناء الإضافة: " + error.message);
+    } else {
+      setFormData({ name: '', country: '', lat: '', lng: '', address: '' });
+    }
   };
 
   const deletePoint = async (id: string) => {
