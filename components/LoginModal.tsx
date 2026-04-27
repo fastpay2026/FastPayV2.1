@@ -131,10 +131,17 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
         // Attempt to sign in with Supabase Auth to establish a real session
         try {
           if (isSupabaseConfigured) {
-            const { error: authError } = await supabase.auth.signInWithPassword({
+            const { data, error: authError } = await supabase.auth.signInWithPassword({
               email: user.email,
               password: trimmedPassword,
             });
+            
+            if (!authError && data.user && !data.user.email_confirmed_at) {
+              setError('يرجى تفعيل حسابك عبر الرابط المرسل لإيميلك');
+              setIsLoading(false);
+              return;
+            }
+            
             if (authError) {
               console.warn("Supabase Auth Warning (ignoring):", authError.message);
             }
@@ -143,7 +150,7 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
           console.error("Supabase Auth Error (ignoring):", authErr);
         }
         
-        // Proceed with local login regardless of Supabase result
+        // Proceed with local login
         setAuthenticatedUser(user);
         setIsAuthenticating(true);
       }

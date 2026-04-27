@@ -598,16 +598,19 @@ const App: React.FC = () => {
   };
 
   const renderDashboard = () => {
-    if (currentUser?.role?.toUpperCase() === 'AGENT') {
+    const role = (currentUser?.role || '').toUpperCase();
+    if (role === 'AGENT') {
       return <AgentDashboard currentUser={currentUser} accounts={accounts} onUpdateUser={handleUpdateUser} siteConfig={siteConfig} tradeOrders={tradeOrders} transactions={transactions} onLogout={handleLogout} />;
     }
-    switch (currentUser?.role) {
+    switch (role) {
       case 'DEVELOPER': 
       case 'ADMIN': return <DeveloperDashboard {...commonProps} />;
       case 'DISTRIBUTOR': return <MerchantDashboard {...commonProps} />;
       case 'MERCHANT': return <MerchantDealCreator {...commonProps} />;
       case 'USER': return <UserDashboard {...commonProps} />;
-      default: return null;
+      default: 
+        console.error('Unknown user role:', currentUser?.role);
+        return <div className="p-10 text-red-500">حدث خطأ في عرض لوحة التحكم: دور مستخدم غير معروف ({currentUser?.role})</div>;
     }
   };
 
