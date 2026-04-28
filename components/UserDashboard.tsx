@@ -372,7 +372,7 @@ const UserDashboard: React.FC<Props> = ({
     // Try by ID first, as it's the most specific
     let { data: recipientData, error: fetchError } = await supabase
       .from('users')
-      .select('id, full_name, username')
+      .select('id, full_name')
       .eq('id', transferData.recipient)
       .single();
     
@@ -380,7 +380,7 @@ const UserDashboard: React.FC<Props> = ({
     if (fetchError) {
         const { data: usernameData, error: usernameError } = await supabase
           .from('users')
-          .select('id, full_name, username')
+          .select('id, full_name')
           .ilike('username', transferData.recipient)
           .single();
           
@@ -401,7 +401,7 @@ const UserDashboard: React.FC<Props> = ({
     try {
         // 2. Call RPC
         const { data: result, error } = await supabase.rpc('transfer_balance', {
-            recipient_username: recipientData.username,
+            recipient_username: recipientData.full_name,
             amount: amount,
         });
 
@@ -413,17 +413,10 @@ const UserDashboard: React.FC<Props> = ({
         }
 
         if (result === 'SUCCESS') {
-            // Refetch current user balance and transactions to ensure consistency
-            const [balanceRes, transactionsRes] = await Promise.all([
-                supabase.from('users').select('balance').eq('id', user.id).single(),
-                supabase.from('transactions').select('*').eq('user_id', user.id).order('timestamp', { ascending: false })
-            ]);
-
-            if (balanceRes.data) {
-                onUpdateUser({ ...user, balance: balanceRes.data.balance });
-            }
-            if (transactionsRes.data) {
-                setTransactions(transactionsRes.data as any);
+            // Refetch current user balance to ensure consistency
+            const { data: userData } = await supabase.from('users').select('balance').eq('id', user.id).single();
+            if (userData) {
+                onUpdateUser({ ...user, balance: userData.balance });
             }
             
             addNotification(t('transfer_success_title'), t('transfer_success_msg', { amount, name: transferData.recipient }), 'money');
