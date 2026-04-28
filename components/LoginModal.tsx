@@ -136,14 +136,16 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
               password: trimmedPassword,
             });
             
-            if (!authError && data.user && !data.user.email_confirmed_at) {
-              setError('يرجى تفعيل حسابك عبر الرابط المرسل لإيميلك');
+            if (authError) {
+              setError('خطأ في الاتصال بخادم المصادقة');
               setIsLoading(false);
               return;
             }
-            
-            if (authError) {
-              console.warn("Supabase Auth Warning (ignoring):", authError.message);
+
+            if (data.user && !data.user.email_confirmed_at) {
+              setError('يرجى تفعيل بريدك الإلكتروني لتتمكن من استخدام الميزات المالية');
+              setIsLoading(false);
+              return;
             }
           }
         } catch (authErr) {

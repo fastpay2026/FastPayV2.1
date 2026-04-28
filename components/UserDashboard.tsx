@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useRef, Suspense } from 'react';
 import { BadgeCheck } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import { User, SiteConfig, RechargeCard, Transaction, Notification, FixedDeposit, TradeAsset, RaffleEntry, RaffleWinner, BankCard, WithdrawalRequest, UserAsset, DepositPlan, SalaryFinancing, AdExchangeItem, AdNegotiation, FXExchangeSettings, FXDistributorStatus, FXGatewayQueue } from '../types';
 import { AdExchange } from './AdExchange';
@@ -297,6 +298,7 @@ const UserDashboard: React.FC<Props> = ({
     const target = accounts.find(a => a.username === transferData.recipient);
     
     if (!target) return alert(t('recipient_not_found'));
+    if (target.verificationStatus !== 'verified') return alert('حساب المستلم غير مؤكد ولا يمكنه استلام الأموال حالياً');
     if (amount > user.balance || amount <= 0) return alert(t('insufficient_balance'));
     
     setIsTransferring(true);
@@ -363,21 +365,49 @@ const UserDashboard: React.FC<Props> = ({
     }, 2000);
   };
 
-  const finalizeTransfer = () => {
+  const finalizeTransfer = async () => {
     const amount = parseFloat(transferData.amount);
-    const target = accounts.find(a => a.username === transferData.recipient);
+    const target = accounts.find(a => a.username === transferData.recipient || a.id === transferData.recipient);
     
-    if (target) {
-      setAccounts(prev => prev.map(acc => {
-        if (acc.id === user.id) return { ...acc, balance: acc.balance - amount };
-        if (acc.id === target.id) return { ...acc, balance: acc.balance + amount };
-        return acc;
-      }));
-      onUpdateUser({ ...user, balance: user.balance - amount });
-      setTransactions(prev => [{ id: uuidv4(), userId: user.id, type: 'send', amount: -amount, relatedUser: `${t('transfer_to')} @${target.username}`, timestamp: new Date().toISOString() }, ...prev]);
-      addNotification(t('transfer_success_title'), t('transfer_success_msg', { amount, name: target.fullName }), 'money');
-      setTransferSuccess(true);
-      setTimeout(() => { setModalType(null); setIsTransferring(false); setTransferSuccess(false); setTransferData({ recipient: '', amount: '' }); }, 3000);
+    if (!target) {
+        alert(t('recipient_not_found'));
+        setIsTransferring(false);
+        return;
+    }
+
+    try {
+        const { data: result, error } = await supabase.rpc('transfer_balance', {
+            recipient_username: transferData.recipient,
+            amount: amount,
+        });
+
+        if (error) {
+            console.error('RPC Error:', error);
+            alert('حدث خطأ أثناء تنفيذ التحويل.');
+            setIsTransferring(false);
+            return;
+        }
+
+        if (result === 'SUCCESS') {
+            onUpdateUser({ ...user, balance: user.balance - amount });
+            setAccounts(prev => prev.map(acc => {
+                if (acc.id === user.id) return { ...acc, balance: acc.balance - amount };
+                if (acc.id === target.id) return { ...acc, balance: acc.balance + amount };
+                return acc;
+            })); 
+            // In a real app we would refetch transactions from DB here as well
+            addNotification(t('transfer_success_title'), t('transfer_success_msg', { amount, name: target.fullName }), 'money');
+            setTransferSuccess(true);
+            setTimeout(() => { setModalType(null); setIsTransferring(false); setTransferSuccess(false); setTransferData({ recipient: '', amount: '' }); }, 3000);
+        } else {
+            console.error('Transfer failed with:', result);
+            alert(t(result) || result);
+            setIsTransferring(false);
+        }
+    } catch (e) {
+        console.error('Exception during transfer:', e);
+        alert('حدث خطأ غير متوقع.');
+        setIsTransferring(false);
     }
   };
 
