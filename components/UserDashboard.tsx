@@ -413,10 +413,17 @@ const UserDashboard: React.FC<Props> = ({
         }
 
         if (result === 'SUCCESS') {
-            // Refetch current user balance to ensure consistency
-            const { data: userData } = await supabase.from('users').select('balance').eq('id', user.id).single();
-            if (userData) {
-                onUpdateUser({ ...user, balance: userData.balance });
+            // Refetch current user balance and transactions to ensure consistency
+            const [balanceRes, transactionsRes] = await Promise.all([
+                supabase.from('users').select('balance').eq('id', user.id).single(),
+                supabase.from('transactions').select('*').eq('user_id', user.id).order('timestamp', { ascending: false })
+            ]);
+
+            if (balanceRes.data) {
+                onUpdateUser({ ...user, balance: balanceRes.data.balance });
+            }
+            if (transactionsRes.data) {
+                setTransactions(transactionsRes.data as any);
             }
             
             addNotification(t('transfer_success_title'), t('transfer_success_msg', { amount, name: transferData.recipient }), 'money');
