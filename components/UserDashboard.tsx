@@ -372,7 +372,7 @@ const UserDashboard: React.FC<Props> = ({
     // Try by ID first, as it's the most specific
     let { data: recipientData, error: fetchError } = await supabase
       .from('users')
-      .select('id, full_name')
+      .select('id, full_name, username')
       .eq('id', transferData.recipient)
       .single();
     
@@ -380,7 +380,7 @@ const UserDashboard: React.FC<Props> = ({
     if (fetchError) {
         const { data: usernameData, error: usernameError } = await supabase
           .from('users')
-          .select('id, full_name')
+          .select('id, full_name, username')
           .ilike('username', transferData.recipient)
           .single();
           
@@ -401,7 +401,7 @@ const UserDashboard: React.FC<Props> = ({
     try {
         // 2. Call RPC
         const { data: result, error } = await supabase.rpc('transfer_balance', {
-            recipient_username: recipientData.id,
+            recipient_username: recipientData.username,
             amount: amount,
         });
 
