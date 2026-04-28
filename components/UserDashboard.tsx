@@ -367,17 +367,30 @@ const UserDashboard: React.FC<Props> = ({
 
   const finalizeTransfer = async () => {
     const amount = parseFloat(transferData.amount);
-    const target = accounts.find(a => a.username === transferData.recipient || a.id === transferData.recipient);
     
-    if (!target) {
+    // 1. Fetch recipient data from DB to ensure existence and verified status
+    const { data: recipientData, error: fetchError } = await supabase
+      .from('users')
+      .select('id, verificationStatus')
+      .or(`username.eq.${transferData.recipient},id.eq.${transferData.recipient}`)
+      .single();
+
+    if (fetchError || !recipientData) {
         alert(t('recipient_not_found'));
         setIsTransferring(false);
         return;
     }
 
+    if (recipientData.verificationStatus !== 'verified') {
+        alert('حساب المستلم غير مؤكد ولا يمكنه استلام الأموال حالياً');
+        setIsTransferring(false);
+        return;
+    }
+
     try {
+        // 2. Call RPC with UUID (recipientData.id)
         const { data: result, error } = await supabase.rpc('transfer_balance', {
-            recipient_username: transferData.recipient,
+            recipient_username: recipientData.id,
             amount: amount,
         });
 
@@ -389,14 +402,13 @@ const UserDashboard: React.FC<Props> = ({
         }
 
         if (result === 'SUCCESS') {
-            onUpdateUser({ ...user, balance: user.balance - amount });
-            setAccounts(prev => prev.map(acc => {
-                if (acc.id === user.id) return { ...acc, balance: acc.balance - amount };
-                if (acc.id === target.id) return { ...acc, balance: acc.balance + amount };
-                return acc;
-            })); 
-            // In a real app we would refetch transactions from DB here as well
-            addNotification(t('transfer_success_title'), t('transfer_success_msg', { amount, name: target.fullName }), 'money');
+            // Refetch current user balance to ensure consistency
+            const { data: userData } = await supabase.from('users').select('balance').eq('id', user.id).single();
+            if (userData) {
+                onUpdateUser({ ...user, balance: userData.balance });
+            }
+            
+            addNotification(t('transfer_success_title'), t('transfer_success_msg', { amount, name: transferData.recipient }), 'money');
             setTransferSuccess(true);
             setTimeout(() => { setModalType(null); setIsTransferring(false); setTransferSuccess(false); setTransferData({ recipient: '', amount: '' }); }, 3000);
         } else {
