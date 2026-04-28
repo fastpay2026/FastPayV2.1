@@ -369,11 +369,28 @@ const UserDashboard: React.FC<Props> = ({
     const amount = parseFloat(transferData.amount);
     
     // 1. Fetch recipient data from DB to ensure existence
-    const { data: recipientData, error: fetchError } = await supabase
+    // Try by ID first, as it's the most specific
+    let { data: recipientData, error: fetchError } = await supabase
       .from('users')
       .select('id')
-      .or(`username.ilike.${transferData.recipient},id.eq.${transferData.recipient}`)
+      .eq('id', transferData.recipient)
       .single();
+    
+    // If not found by ID, try by username (case-insensitive)
+    if (fetchError) {
+        const { data: usernameData, error: usernameError } = await supabase
+          .from('users')
+          .select('id')
+          .ilike('username', transferData.recipient)
+          .single();
+          
+        if (!usernameError && usernameData) {
+            recipientData = usernameData;
+            fetchError = null;
+        } else {
+            fetchError = usernameError;
+        }
+    }
 
     if (fetchError || !recipientData) {
         alert(t('recipient_not_found'));
