@@ -368,21 +368,15 @@ const UserDashboard: React.FC<Props> = ({
   const finalizeTransfer = async () => {
     const amount = parseFloat(transferData.amount);
     
-    // 1. Fetch recipient data from DB to ensure existence and verified status
+    // 1. Fetch recipient data from DB to ensure existence
     const { data: recipientData, error: fetchError } = await supabase
       .from('users')
-      .select('id, verificationStatus')
-      .or(`username.eq.${transferData.recipient},id.eq.${transferData.recipient}`)
+      .select('id')
+      .or(`username.ilike.${transferData.recipient},id.eq.${transferData.recipient}`)
       .single();
 
     if (fetchError || !recipientData) {
         alert(t('recipient_not_found'));
-        setIsTransferring(false);
-        return;
-    }
-
-    if (recipientData.verificationStatus !== 'verified') {
-        alert('حساب المستلم غير مؤكد ولا يمكنه استلام الأموال حالياً');
         setIsTransferring(false);
         return;
     }
