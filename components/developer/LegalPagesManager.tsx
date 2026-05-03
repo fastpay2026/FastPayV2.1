@@ -42,14 +42,10 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
     try {
         const updatedPage = editingPage;
         await supabaseService.upsertCustomPage(updatedPage);
-        setPages(prev => {
-            const exists = prev.find(p => p.id === updatedPage.id);
-            if (exists) {
-                return prev.map(p => p.id === updatedPage.id ? updatedPage : p);
-            } else {
-                return [...prev, updatedPage];
-            }
-        });
+        
+        // Update only the existing page in state, never add new ones
+        setPages(prev => prev.map(p => p.id === updatedPage.id ? updatedPage : p));
+        
         alert('✅ تم حفظ التغييرات بنجاح في قاعدة البيانات');
     } catch (error) {
         console.error('Error saving page:', error);
