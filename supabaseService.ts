@@ -654,21 +654,29 @@ export const supabaseService = {
   },
 
   async upsertCustomPage(p: CustomPage) {
-    console.log('Upserting custom page:', p);
-    const { error } = await supabase.from('custom_pages').upsert({
-      id: p.id,
+    console.log('Upserting custom page for slug:', p.slug, 'Data:', p);
+    // Explicitly map ONLY database-compliant snake_case fields
+    // Use slug as the unique identifier via onConflict
+    const payload = {
       title: p.title,
       slug: p.slug,
       content: p.content,
       is_active: p.isActive,
       show_in_navbar: p.showInNavbar,
       show_in_footer: p.showInFooter
-    }, { onConflict: 'slug' });
+    };
+    
+    // If the page has a valid existing ID, we can optionally include it.
+    // However, to ensure SLUG is the sole identifier, we omit ID if desired.
+    // Given the requirement to use SLUG as the identifier, we omit ID.                
+
+    const { error } = await supabase.from('custom_pages').upsert(payload, { onConflict: 'slug' });
+    
     if (error) {
        console.error('Error upserting custom page:', error);
        throw error;
     }
-    console.log('Successfully upserted custom page.');
+    console.log('Successfully upserted custom page for slug:', p.slug);
   },
 
   // Bulk Operations
