@@ -40,15 +40,23 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-        const updatedPage = editingPage;
-        await supabaseService.upsertCustomPage(updatedPage);
+        console.log('Attempting to save page slug:', editingPage.slug);
+        await supabaseService.upsertCustomPage(editingPage);
         
-        // Update only the existing page in state, never add new ones
-        setPages(prev => prev.map(p => p.id === updatedPage.id ? updatedPage : p));
+        // Update only the existing page in state, locating by slug to be robust
+        setPages(prev => {
+            const index = prev.findIndex(p => p.slug === editingPage.slug);
+            if (index !== -1) {
+                const next = [...prev];
+                next[index] = editingPage;
+                return next;
+            }
+            return [...prev, editingPage];
+        });
         
         alert('✅ تم حفظ التغييرات بنجاح في قاعدة البيانات');
     } catch (error) {
-        console.error('Error saving page:', error);
+        console.error('Supabase Sync Error in LegalPagesManager:', error);
         alert('❌ فشل حفظ التغييرات. يرجى المحاولة مرة أخرى.');
     } finally {
         setIsSaving(false);
