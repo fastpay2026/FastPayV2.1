@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { CustomPage } from '../../types';
-import { v4 as uuidv4 } from 'uuid';
 import { supabaseService } from '../../supabaseService';
 
 interface Props {
@@ -19,7 +18,7 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
     const existing = pages.find(p => p.slug === slug);
     console.log('Mapping slug:', slug, 'Existing found:', !!existing);
     return existing || {
-      id: uuidv4(), // Use a new UUID for safety if no existing one
+      id: `legal-${slug}`, // Consistent ID for legal pages
       title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
       slug,
       content: { ar: '', en: '', fr: '', tr: '', zh: '', ku: '', ru: '' },
