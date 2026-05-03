@@ -43,9 +43,8 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
         console.log('Attempting to save page slug:', editingPage.slug);
         await supabaseService.upsertCustomPage(editingPage);
         
-        // Always re-fetch from database to ensure state is in sync
-        const updatedPages = await supabaseService.getCustomPages();
-        setPages(updatedPages);
+        // Only update local state if slug matches, never add new records
+        setPages(prev => prev.map(p => p.slug === editingPage.slug ? editingPage : p));
         
         alert('✅ تم حفظ التغييرات بنجاح في قاعدة البيانات');
     } catch (error) {
