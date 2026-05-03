@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { CustomPage } from '../../types';
-import { v4 as uuidv4 } from 'uuid';
 import { supabaseService } from '../../supabaseService';
 
 interface Props {
@@ -18,7 +17,7 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
   const legalPages = useMemo(() => legalSlugs.map(slug => {
     const existing = pages.find(p => p.slug === slug);
     return existing || {
-      id: uuidv4(),
+      id: `legal-${slug}`, // Consistent ID for legal pages
       title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
       slug,
       content: { ar: '', en: '', fr: '', tr: '', zh: '', ku: '', ru: '' },
@@ -42,7 +41,14 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
     try {
         const updatedPage = editingPage;
         await supabaseService.upsertCustomPage(updatedPage);
-        setPages(prev => prev.map(p => p.id === updatedPage.id ? updatedPage : p));
+        setPages(prev => {
+            const exists = prev.find(p => p.id === updatedPage.id);
+            if (exists) {
+                return prev.map(p => p.id === updatedPage.id ? updatedPage : p);
+            } else {
+                return [...prev, updatedPage];
+            }
+        });
         alert('✅ تم حفظ التغييرات بنجاح في قاعدة البيانات');
     } catch (error) {
         console.error('Error saving page:', error);
