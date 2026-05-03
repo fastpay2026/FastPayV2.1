@@ -35,10 +35,7 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
     try {
         const updatedPage = editingPage;
         await supabaseService.upsertCustomPage(updatedPage);
-        setPages(prev => {
-            const otherPages = prev.filter(p => p.id !== updatedPage.id);
-            return [...otherPages, updatedPage];
-        });
+        setPages(prev => prev.map(p => p.id === updatedPage.id ? updatedPage : p));
         alert('✅ تم حفظ التغييرات بنجاح في قاعدة البيانات');
     } catch (error) {
         console.error('Error saving page:', error);
