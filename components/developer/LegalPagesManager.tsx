@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CustomPage } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { supabaseService } from '../../supabaseService';
@@ -15,7 +15,7 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
   const [selectedLang, setSelectedLang] = useState('ar');
   const languages = ['ar', 'en', 'fr', 'tr', 'zh', 'ku', 'ru'];
 
-  const legalPages = legalSlugs.map(slug => {
+  const legalPages = useMemo(() => legalSlugs.map(slug => {
     const existing = pages.find(p => p.slug === slug);
     return existing || {
       id: uuidv4(),
@@ -26,9 +26,16 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
       showInNavbar: false,
       showInFooter: true
     };
-  });
+  }), [pages]);
 
   const [editingPage, setEditingPage] = useState<CustomPage>(legalPages[0]);
+
+  useEffect(() => {
+    const match = legalPages.find(p => p.slug === editingPage.slug);
+    if (match) {
+        setEditingPage(match);
+    }
+  }, [legalPages]);
 
   const handleSave = async () => {
     setIsSaving(true);
