@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../types';
 import { useI18n } from '../i18n/i18n';
+import { supabase } from '../supabaseClient';
 
 interface Props {
   onClose: () => void;
@@ -31,7 +32,7 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
       );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -64,11 +65,42 @@ const RegisterModal: React.FC<Props> = ({ onClose, onRegister, onSwitchToLogin, 
       return setError('كلمتا المرور غير متطابقتين');
     }
 
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password.trim(),
+      options: {
+        emailRedirectTo: 'https://fastflow-group.uk/login',
+      },
+    });
+
+    if (authError) {
+      if (authError.message.includes('already registered')) {
+        const { error: resendError } = await supabase.auth.resend({
+          type: 'signup',
+          email: formData.email,
+          options: {
+            emailRedirectTo: 'https://fastflow-group.uk/login',
+          },
+        });
+        if (resendError) {
+          setError(resendError.message);
+        } else {
+          setError('User already registered. A new verification email has been sent.');
+        }
+      } else {
+        setError(authError.message);
+      }
+      return;
+    }
+
+    // Block auto-login
+    await supabase.auth.signOut();
+
     const queryParams = new URLSearchParams(window.location.search);
     const ref = queryParams.get('ref');
 
     const newUser: User = {
-      id: uuidv4(),
+      id: authData.user?.id || uuidv4(),
       username: formData.username.trim(),
       fullName: formData.fullName,
       email: formData.email,

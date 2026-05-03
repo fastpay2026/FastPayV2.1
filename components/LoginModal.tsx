@@ -19,6 +19,7 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [resendEmail, setResendEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   // Authentication animation states
@@ -71,6 +72,45 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
       };
     }
   }, [isAuthenticating]);
+
+  const handleResend = async () => {
+    if (!resendEmail) {
+      console.error('Cannot resend verification: email is missing');
+      setError('Error: Email address is missing.');
+      return;
+    }
+    
+    console.log('Attempting to resend verification email to:', resendEmail);
+    setIsLoading(true);
+    
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: resendEmail,
+        options: {
+          emailRedirectTo: 'https://fastflow-group.uk/login',
+        },
+      });
+      
+      setIsLoading(false);
+      
+      if (resendError) {
+        console.error('Resend error:', resendError);
+        if (resendError.message.includes('rate limit')) {
+          setError('Too many requests. Please wait a minute before trying again.');
+        } else {
+          setError(resendError.message);
+        }
+      } else {
+        console.log('Verification email resent successfully');
+        setError('A new verification email has been sent.');
+      }
+    } catch (err) {
+      setIsLoading(false);
+      console.error('Unexpected error during resend:', err);
+      setError('An unexpected error occurred. Please try again later.');
+    }
+  };
 
   const handleBack = () => {
     setSelectedRole(null);
@@ -137,13 +177,16 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
             });
             
             if (authError) {
-              setError('خطأ في الاتصال بخادم المصادقة');
+              setResendEmail(user.email);
+              setError('Please Verify Your Email Address');
               setIsLoading(false);
               return;
             }
 
             if (data.user && !data.user.email_confirmed_at) {
-              setError('يرجى تفعيل بريدك الإلكتروني لتتمكن من استخدام الميزات المالية');
+              await supabase.auth.signOut();
+              setResendEmail(user.email);
+              setError('Please verify your email address before logging in.');
               setIsLoading(false);
               return;
             }
@@ -291,9 +334,19 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
               </div>
 
               {error && (
-                <div className="bg-red-500/10 text-red-400 p-4 md:p-6 rounded-2xl md:rounded-3xl text-xs md:text-sm font-black border border-red-500/20 flex items-center gap-3">
-                   <span>⚠️</span>
-                   <span>{error}</span>
+                <div className="bg-red-500/10 text-red-400 p-4 md:p-6 rounded-2xl md:rounded-3xl text-xs md:text-sm font-black border border-red-500/20 flex flex-col items-center gap-3">
+                   <div className="flex items-center gap-3">
+                     <span>⚠️</span>
+                     <span>{error}</span>
+                   </div>
+                   {resendEmail && !error.includes('sent') && (
+                     <button
+                       onClick={handleResend}
+                       className="text-sky-400 font-bold underline hover:text-sky-300"
+                     >
+                       Resend Verification Email
+                     </button>
+                   )}
                 </div>
               )}
 

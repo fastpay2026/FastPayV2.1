@@ -77,7 +77,7 @@ const LandingPage: React.FC<Props> = ({
   onRegisterClick,
   user
 }) => {
-  const { t, isRtl } = useI18n();
+  const { t, isRtl, language } = useI18n();
   
   const activeCustomPage = pages.find(p => p.slug === currentPath && p.isActive);
   const [speedLines, setSpeedLines] = useState<number[]>([]);
@@ -407,7 +407,7 @@ const LandingPage: React.FC<Props> = ({
             {activeCustomPage ? (
               <div className="space-y-24">
                 <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white border-r-[15px] border-sky-500 pr-16">{activeCustomPage.title}</h1>
-                <div className="prose prose-invert prose-2xl max-w-none text-slate-300 font-bold leading-[2.5] dynamic-content-render" dangerouslySetInnerHTML={{ __html: activeCustomPage.content }} />
+                <div className="prose prose-invert prose-2xl max-w-none text-slate-300 font-bold leading-[2.5] dynamic-content-render" dangerouslySetInnerHTML={{ __html: activeCustomPage.content[language] }} />
               </div>
             ) : (
               <div className="text-center py-40 space-y-12">

@@ -156,7 +156,7 @@ export interface CustomPage {
   id: string;
   title: string;
   slug: string;
-  content: string;
+  content: Record<string, string>;
   isActive: boolean;
   showInNavbar: boolean;
   showInFooter: boolean;
