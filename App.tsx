@@ -316,6 +316,7 @@ const App: React.FC = () => {
           supabaseService.getLandingServices(),
           supabaseService.getCustomPages()
         ]);
+        console.log('App: Loaded pages from DB:', dbPages);
 
         setTransactions(dbTrans || []);
         setNotifications(dbNotifs || []);

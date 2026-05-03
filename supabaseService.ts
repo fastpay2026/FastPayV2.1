@@ -639,7 +639,11 @@ export const supabaseService = {
   // Custom Pages
   async getCustomPages(): Promise<CustomPage[]> {
     const { data, error } = await supabase.from('custom_pages').select('*');
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching custom pages:', error);
+      throw error;
+    }
+    console.log('CustomPages fetched from Supabase:', data);
     return (data || []).map(p => ({
       ...p,
       isActive: p.is_active,
@@ -650,6 +654,7 @@ export const supabaseService = {
   },
 
   async upsertCustomPage(p: CustomPage) {
+    console.log('Upserting custom page:', p);
     const { error } = await supabase.from('custom_pages').upsert({
       id: p.id,
       title: p.title,
@@ -658,8 +663,12 @@ export const supabaseService = {
       is_active: p.isActive,
       show_in_navbar: p.showInNavbar,
       show_in_footer: p.showInFooter
-    }, { onConflict: 'id' });
-    if (error) throw error;
+    }, { onConflict: 'slug' });
+    if (error) {
+       console.error('Error upserting custom page:', error);
+       throw error;
+    }
+    console.log('Successfully upserted custom page.');
   },
 
   // Bulk Operations
