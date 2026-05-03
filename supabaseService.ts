@@ -644,7 +644,8 @@ export const supabaseService = {
       ...p,
       isActive: p.is_active,
       showInNavbar: p.show_in_navbar,
-      showInFooter: p.show_in_footer
+      showInFooter: p.show_in_footer,
+      content: typeof p.content === 'string' ? JSON.parse(p.content) : p.content
     }));
   },
 

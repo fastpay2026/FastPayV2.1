@@ -272,7 +272,7 @@ CREATE TABLE IF NOT EXISTS custom_pages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
     slug TEXT UNIQUE NOT NULL,
-    content TEXT,
+    content JSONB,
     is_active BOOLEAN DEFAULT true,
     show_in_navbar BOOLEAN DEFAULT true,
     show_in_footer BOOLEAN DEFAULT true

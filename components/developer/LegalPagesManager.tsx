@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { CustomPage } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
+import { supabaseService } from '../../supabaseService';
 
 interface Props {
   pages: CustomPage[];
@@ -29,13 +30,25 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
 
   const [editingPage, setEditingPage] = useState<CustomPage>(legalPages[0]);
 
-  const handleSave = () => {
-    setPages(prev => {
-        const otherPages = prev.filter(p => p.id !== editingPage.id);
-        return [...otherPages, editingPage];
-    });
-    alert('تم حفظ التغييرات');
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+        const updatedPage = editingPage;
+        await supabaseService.upsertCustomPage(updatedPage);
+        setPages(prev => {
+            const otherPages = prev.filter(p => p.id !== updatedPage.id);
+            return [...otherPages, updatedPage];
+        });
+        alert('✅ تم حفظ التغييرات بنجاح في قاعدة البيانات');
+    } catch (error) {
+        console.error('Error saving page:', error);
+        alert('❌ فشل حفظ التغييرات. يرجى المحاولة مرة أخرى.');
+    } finally {
+        setIsSaving(false);
+    }
   };
+
+  const [isSaving, setIsSaving] = useState(false);
 
   return (
     <div className="space-y-8 animate-in slide-in-from-right">
@@ -71,7 +84,7 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
             className="w-full h-96 p-4 bg-black/40 border border-white/10 rounded-xl outline-none focus:border-sky-500"
             placeholder={`أدخل النص لـ ${selectedLang.toUpperCase()} هنا...`}
         />
-        <button onClick={handleSave} className="w-full p-4 bg-emerald-600 rounded-xl font-black text-center">حفظ التغييرات</button>
+        <button onClick={handleSave} disabled={isSaving} className={`w-full p-4 rounded-xl font-black text-center ${isSaving ? 'bg-slate-600' : 'bg-emerald-600'}`}>{isSaving ? 'جارٍ الحفظ...' : 'حفظ التغييرات'}</button>
       </div>
     </div>
   );
