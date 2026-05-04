@@ -514,7 +514,6 @@ const App: React.FC = () => {
   useSyncEffect(raffleWinners, supabaseService.upsertRaffleWinner, 'RaffleWinner', supabaseService.bulkUpsertRaffleWinners);
   useSyncEffect(tradeOrders, supabaseService.upsertTradeOrder, 'TradeOrder', supabaseService.bulkUpsertTradeOrders);
   useSyncEffect(services, supabaseService.upsertLandingService, 'Service');
-  useSyncEffect(pages, supabaseService.upsertCustomPage, 'Page');
 
   const syncUser = useCallback(async (user: User) => {
     if (isInitialLoad.current) {

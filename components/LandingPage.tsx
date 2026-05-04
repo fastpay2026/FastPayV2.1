@@ -80,7 +80,12 @@ const LandingPage: React.FC<Props> = ({
   const { t, isRtl, language } = useI18n();
   
   const activeCustomPage = pages.find(p => p.slug === currentPath && p.isActive);
-  const uniquePages = React.useMemo(() => pages.filter((v,i,a) => a.findIndex(t=>(t.slug === v.slug)) === i), [pages]);
+  const uniquePages = React.useMemo(() => {
+    return pages.filter((v, i, a) => {
+      const vSlug = (v.slug || '').trim().toLowerCase();
+      return a.findIndex(t => (t.slug || '').trim().toLowerCase() === vSlug) === i;
+    });
+  }, [pages]);
   const [speedLines, setSpeedLines] = useState<number[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   

@@ -120,7 +120,7 @@ const RecentTrades: React.FC = () => {
             <span className="font-bold">{maskUsername(trade.username || trade.userId || 'User')}</span>
             <span className={`font-black ${trade.type === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}>{trade.type === 'buy' ? 'BUY' : 'SELL'}</span>
             <span className="font-mono">${trade.amount.toLocaleString()}</span>
-            <span className="text-slate-500">{new Date(trade.timestamp).toLocaleTimeString()}</span>
+            <span className="text-slate-500">{new Date(trade.timestamp).toLocaleDateString()}</span>
           </div>
         ))}
       </div>
