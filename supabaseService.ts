@@ -644,13 +644,15 @@ export const supabaseService = {
       throw error;
     }
     console.log('CustomPages fetched from Supabase:', data);
-    return (data || []).map(p => ({
+    const pages = (data || []).map(p => ({
       ...p,
       isActive: p.is_active,
       showInNavbar: p.show_in_navbar,
       showInFooter: p.show_in_footer,
       content: typeof p.content === 'string' ? JSON.parse(p.content) : p.content
     }));
+    console.log('Mapped CustomPages:', pages);
+    return pages;
   },
 
   async upsertCustomPage(p: CustomPage) {
