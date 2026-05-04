@@ -8,69 +8,55 @@
 
 /* Legal Documents Styling - High-End Editorial Layout */
 .rich-text-container {
-  text-align: justify;
-  line-height: 2;
-  font-size: 1.25rem;
+  text-align: right;
+  line-height: 1.8;
+  font-size: 1.15rem;
   color: #cbd5e1;
 }
 
 .rich-text-container h1 { 
-  font-size: 4rem; 
+  font-size: 3.5rem; 
   font-weight: 900; 
   color: white; 
-  margin-bottom: 3rem; 
-  margin-top: 5rem; 
+  margin-bottom: 2.5rem; 
+  margin-top: 4rem; 
   text-align: center; 
   line-height: 1.2;
-  letter-spacing: -0.02em;
 }
 
 .rich-text-container h2 { 
-  font-size: 2.75rem; 
+  font-size: 2.25rem; 
   font-weight: 900; 
   color: #0ea5e9; 
-  margin-bottom: 2rem; 
-  margin-top: 4rem; 
-  border-bottom: 2px solid rgba(14, 165, 233, 0.2); 
-  padding-bottom: 1.5rem; 
-  line-height: 1.3;
+  margin-bottom: 1.5rem; 
+  margin-top: 3.5rem; 
+  border-bottom: 1px solid rgba(14, 165, 233, 0.2); 
+  padding-bottom: 1rem;
 }
 
 .rich-text-container h3 { 
-  font-size: 2.25rem; 
+  font-size: 1.75rem; 
   font-weight: 700; 
   color: white; 
-  margin-bottom: 1.5rem; 
-  margin-top: 3.5rem; 
+  margin-bottom: 1.25rem; 
+  margin-top: 3rem; 
 }
 
 .rich-text-container p { 
-  margin-bottom: 2.5rem; 
+  margin-bottom: 1.5rem; 
 }
 
-.rich-text-container ul { 
-  list-style-type: disc; 
-  list-style-position: outside; 
+.rich-text-container ul, .rich-text-container ol { 
+  margin-bottom: 2rem; 
   padding-right: 2rem; 
-  margin-bottom: 3rem; 
   color: #94a3b8; 
 }
 
-.rich-text-container ol { 
-  list-style-type: decimal; 
-  list-style-position: outside; 
-  padding-right: 2rem; 
-  margin-bottom: 3rem; 
-  color: #94a3b8; 
-}
+.rich-text-container ul { list-style-type: disc; }
+.rich-text-container ol { list-style-type: decimal; }
 
 .rich-text-container li { 
-  margin-bottom: 1.25rem; 
-  line-height: 1.8; 
-}
-
-.rich-text-container li p {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem; 
 }
 
 .rich-text-container strong { 
@@ -79,14 +65,14 @@
 }
 
 .rich-text-container blockquote { 
-  border-right: 8px solid #0ea5e9; 
-  padding: 2.5rem; 
+  border-right: 6px solid #0ea5e9; 
+  padding: 1.5rem 2.5rem; 
   font-style: italic; 
   color: #94a3b8; 
   background: rgba(255, 255, 255, 0.03); 
-  border-radius: 1.5rem; 
-  margin-bottom: 4rem; 
-  font-size: 1.5rem; 
+  border-radius: 1rem; 
+  margin-bottom: 3rem; 
+  font-size: 1.25rem; 
 }
 
 .rich-text-container a {
