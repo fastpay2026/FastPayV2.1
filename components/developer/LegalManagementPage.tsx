@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { CustomPage } from '../../types';
 import { supabaseService } from '../../supabaseService';
 
@@ -109,13 +111,25 @@ const LegalManagementPage: React.FC<Props> = ({ pages, setPages }) => {
           </div>
 
           <div className="relative group">
-            <div className="absolute -top-4 right-8 bg-[#161a1e] px-4 py-1 rounded-lg border border-white/5 text-[10px] font-black text-sky-400 uppercase tracking-widest z-10">HTML / Markdown Editor</div>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full h-[600px] p-10 bg-black/40 text-slate-100 font-mono text-lg rounded-[2.5rem] border border-white/10 focus:border-sky-500/50 focus:outline-none transition-all leading-relaxed resize-none custom-scrollbar"
-              placeholder="أدخل محتوى الصفحة هنا... يمكنك استخدام HTML للمحتوى المتقدم."
-            />
+            <div className="absolute -top-4 right-8 bg-[#161a1e] px-4 py-1 rounded-lg border border-white/5 text-[10px] font-black text-sky-400 uppercase tracking-widest z-20">Rich Text Editor</div>
+            <div className="bg-white rounded-[2.5rem] overflow-hidden">
+              <ReactQuill 
+                theme="snow" 
+                value={content} 
+                onChange={setContent}
+                className="h-[600px] text-black"
+                modules={{
+                  toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'direction': 'rtl' }],
+                    ['clean'],
+                    ['link']
+                  ],
+                }}
+              />
+            </div>
           </div>
         </div>
       ) : (
