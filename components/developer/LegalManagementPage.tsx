@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import ReactQuill from 'react-quill-new';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+// Lazy loading ReactQuill to prevent SSR/Build errors
+const ReactQuill = lazy(() => import('react-quill-new'));
 import 'react-quill-new/dist/quill.snow.css';
 import { CustomPage } from '../../types';
 import { supabaseService } from '../../supabaseService';
@@ -12,6 +13,11 @@ interface Props {
 const LegalManagementPage: React.FC<Props> = ({ pages, setPages }) => {
   const [selectedPage, setSelectedPage] = useState<CustomPage | null>(null);
   const [content, setContent] = useState('');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const targetSlugs = ['terms-of-service', 'privacy-policy', 'security-standards', 'global-licenses'];
   const legalPages = pages.filter(p => targetSlugs.includes(p.slug));
@@ -110,28 +116,32 @@ const LegalManagementPage: React.FC<Props> = ({ pages, setPages }) => {
             </button>
           </div>
 
-          <div className="relative group">
+          <div className="relative group p-[2px] bg-gradient-to-br from-sky-500/20 to-transparent rounded-[2.5rem]">
             <div className="absolute -top-4 right-8 bg-[#161a1e] px-4 py-1 rounded-lg border border-white/5 text-[10px] font-black text-sky-400 uppercase tracking-widest z-20">Rich Text Editor</div>
-            <div className="bg-white rounded-[2.5rem] overflow-hidden">
-              <ReactQuill 
-                theme="snow" 
-                value={content} 
-                onChange={setContent}
-                className="h-[600px] text-black"
-                modules={{
-                  toolbar: [
-                    [{ 'header': [1, 2, 3, 4, false] }],
-                    [{ 'size': ['small', false, 'large', 'huge'] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'direction': 'rtl' }],
-                    [{ 'align': [] }],
-                    ['link', 'image'],
-                    ['clean']
-                  ],
-                }}
-              />
+            <div className="bg-white rounded-[2.5rem] overflow-hidden min-h-[600px]">
+              {isClient && (
+                <Suspense fallback={<div className="h-[600px] flex items-center justify-center text-slate-400 font-black">جاري تحميل المحرر...</div>}>
+                  <ReactQuill 
+                    theme="snow" 
+                    value={content} 
+                    onChange={setContent}
+                    className="h-[600px] text-black"
+                    modules={{
+                      toolbar: [
+                        [{ 'header': [1, 2, 3, 4, false] }],
+                        [{ 'size': ['small', false, 'large', 'huge'] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'direction': 'rtl' }],
+                        [{ 'align': [] }],
+                        ['link', 'image'],
+                        ['clean']
+                      ],
+                    }}
+                  />
+                </Suspense>
+              )}
             </div>
           </div>
         </div>
