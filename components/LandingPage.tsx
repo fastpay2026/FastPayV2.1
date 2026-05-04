@@ -77,7 +77,7 @@ const LandingPage: React.FC<Props> = ({
   onRegisterClick,
   user
 }) => {
-  const { t, isRtl } = useI18n();
+  const { t, isRtl, language } = useI18n();
   
   const activeCustomPage = pages.find(p => p.slug === currentPath && p.isActive);
   const [speedLines, setSpeedLines] = useState<number[]>([]);
@@ -131,15 +131,16 @@ const LandingPage: React.FC<Props> = ({
           </div>
           
           {/* Middle: Nav Links */}
-          <div className="hidden xl:flex gap-12 2xl:gap-16 text-slate-200 font-black text-[18px] 2xl:text-[20px] uppercase tracking-widest justify-center items-center flex-1 overflow-x-auto no-scrollbar px-2">
+          <div className="hidden xl:flex gap-8 2xl:gap-12 text-slate-200 font-black text-[16px] 2xl:text-[18px] uppercase tracking-widest justify-center items-center flex-1 overflow-x-auto no-scrollbar px-2">
             {[
               { label: t('nav_home'), id: 'home' },
+              ...pages.filter(p => p.isActive && p.showInNavbar).map(p => ({ label: p.title, id: p.slug, type: 'custom' })),
               { label: t('raffle'), id: 'raffle-ad' },
               { label: t('nav_gateway'), id: 'gateway-ad' },
               { label: t('nav_transfer'), id: 'salary-ad' },
               { label: t('nav_trading'), id: 'trading-ad' }
-            ].map((item, idx) => (
-              <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : scrollToSection(item.id)} className="hover:text-sky-400 transition-all relative py-3 group whitespace-nowrap flex-shrink-0">
+            ].map((item: any, idx) => (
+              <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : item.type === 'custom' ? setCurrentPath(item.id) : scrollToSection(item.id)} className="hover:text-sky-400 transition-all relative py-3 group whitespace-nowrap flex-shrink-0">
                 {item.label}
                 <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-sky-500 group-hover:w-full transition-all duration-500"></span>
               </button>
@@ -377,12 +378,18 @@ const LandingPage: React.FC<Props> = ({
               <div className="space-y-8 md:space-y-16">
                  <h4 className="text-2xl md:text-4xl font-black text-white border-r-4 md:border-r-[10px] border-sky-500 pr-6 md:pr-10 tracking-tighter uppercase">{t('footer_links_title')}</h4>
                  <ul className="space-y-6 md:space-y-10 text-slate-400 font-bold text-lg md:text-2xl">
-                    {pages.filter(p=>p.isActive && p.showInFooter).map(p=>(
-                      <li key={p.id} onClick={()=>setCurrentPath(p.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full shadow-[0_0_10px_#0ea5e9]"></span>{p.title}</li>
-                    ))}
-                    {[siteConfig.footerLink1Text, siteConfig.footerLink2Text, siteConfig.footerLink3Text, siteConfig.footerLink4Text].map((link, idx) => (
-                      <li key={idx} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{t(link)}</li>
-                    ))}
+                    {pages.length > 0 ? (
+                      pages.filter(p => p.isActive && p.showInFooter).map(p => (
+                        <li key={p.id} onClick={() => setCurrentPath(p.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6 group">
+                          <span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full shadow-[0_0_10px_#0ea5e9] group-hover:scale-125 transition-transform"></span>
+                          <span className="group-hover:translate-x-2 transition-transform">{p.title}</span>
+                        </li>
+                      ))
+                    ) : (
+                      [siteConfig.footerLink1Text, siteConfig.footerLink2Text, siteConfig.footerLink3Text, siteConfig.footerLink4Text].map((link, idx) => (
+                        <li key={idx} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{t(link)}</li>
+                      ))
+                    )}
                  </ul>
               </div>
               <div className="space-y-8 md:space-y-16">
@@ -407,7 +414,17 @@ const LandingPage: React.FC<Props> = ({
             {activeCustomPage ? (
               <div className="space-y-24">
                 <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white border-r-[15px] border-sky-500 pr-16">{activeCustomPage.title}</h1>
-                <div className="prose prose-invert prose-2xl max-w-none text-slate-300 font-bold leading-[2.5] dynamic-content-render" dangerouslySetInnerHTML={{ __html: activeCustomPage.content }} />
+                <div className="prose prose-invert prose-2xl max-w-none text-slate-300 font-bold leading-[2.5] dynamic-content-render">
+                  {(() => {
+                    try {
+                      const contentObj = JSON.parse(activeCustomPage.content);
+                      const langContent = contentObj[language] || contentObj['ar'] || contentObj['en'] || activeCustomPage.content;
+                      return <div dangerouslySetInnerHTML={{ __html: langContent }} />;
+                    } catch (e) {
+                      return <div dangerouslySetInnerHTML={{ __html: activeCustomPage.content }} />;
+                    }
+                  })()}
+                </div>
               </div>
             ) : (
               <div className="text-center py-40 space-y-12">

@@ -11,10 +11,19 @@ const LegalManagementPage: React.FC<Props> = ({ pages, setPages }) => {
   const [selectedPage, setSelectedPage] = useState<CustomPage | null>(null);
   const [content, setContent] = useState('');
 
-  const targetSlugs = ['terms-conditions', 'privacy-policy', 'security-standards', 'global-licenses'];
+  const targetSlugs = ['terms-of-service', 'privacy-policy', 'security-standards', 'global-licenses'];
   const legalPages = pages.filter(p => targetSlugs.includes(p.slug));
-  const languages = ['en', 'ar', 'fr', 'es', 'de', 'tr', 'ru', 'zh'];
-  const [selectedLang, setSelectedLang] = useState('en');
+  const languages = [
+    { code: 'ar', label: 'العربية' },
+    { code: 'en', label: 'English' },
+    { code: 'fr', label: 'Français' },
+    { code: 'es', label: 'Español' },
+    { code: 'de', label: 'Deutsch' },
+    { code: 'tr', label: 'Türkçe' },
+    { code: 'ru', label: 'Русский' },
+    { code: 'zh', label: '中文' }
+  ];
+  const [selectedLang, setSelectedLang] = useState('ar');
 
   useEffect(() => {
     if (selectedPage) {
@@ -22,7 +31,7 @@ const LegalManagementPage: React.FC<Props> = ({ pages, setPages }) => {
         const parsed = JSON.parse(selectedPage.content);
         setContent(parsed[selectedLang] || '');
       } catch (e) {
-        setContent(selectedPage.content); // Fallback
+        setContent(selectedPage.content); // Fallback if string
       }
     }
   }, [selectedPage, selectedLang]);
@@ -30,11 +39,12 @@ const LegalManagementPage: React.FC<Props> = ({ pages, setPages }) => {
   const handleSave = async () => {
     if (!selectedPage) return;
     
-    let contentObj = {};
+    let contentObj: any = {};
     try {
       contentObj = JSON.parse(selectedPage.content);
     } catch (e) {
-      contentObj = {};
+      // If it was a plain string, keep it as 'ar' or default
+      contentObj = { ar: selectedPage.content };
     }
     contentObj[selectedLang] = content;
 
@@ -42,52 +52,76 @@ const LegalManagementPage: React.FC<Props> = ({ pages, setPages }) => {
     try {
       await supabaseService.upsertCustomPage(updatedPage);
       setPages(prev => prev.map(p => p.id === updatedPage.id ? updatedPage : p));
-      alert('تم حفظ التعديلات بنجاح!');
+      alert('✅ تم حفظ التعديلات بنجاح!');
     } catch (e) {
-      alert('حدث خطأ أثناء الحفظ.');
+      alert('❌ حدث خطأ أثناء الحفظ.');
     }
   };
 
   return (
-    <div className="p-6 bg-[#161a1e] rounded-2xl border border-white/5 space-y-6">
-      <h2 className="text-xl font-black text-white">إدارة الاتفاقيات القانونية</h2>
+    <div className="p-8 bg-[#161a1e] rounded-[2.5rem] border border-white/5 space-y-10 shadow-3xl">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-black text-white flex items-center gap-4">
+          <span className="p-3 bg-sky-500/10 rounded-2xl text-sky-500 text-2xl">⚖️</span>
+          إدارة الاتفاقيات القانونية
+        </h2>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {legalPages.map(page => (
-          <button
-            key={page.id}
-            onClick={() => { setSelectedPage(page); setSelectedLang('en'); }}
-            className={`p-4 rounded-xl border ${selectedPage?.id === page.id ? 'bg-sky-600 border-sky-500' : 'bg-[#0a0c10] border-white/10 hover:border-white/20'}`}
-          >
-            {page.title}
-          </button>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {targetSlugs.map(slug => {
+          const page = legalPages.find(p => p.slug === slug);
+          if (!page) return null;
+          return (
+            <button
+              key={page.id}
+              onClick={() => { setSelectedPage(page); }}
+              className={`p-6 rounded-3xl border transition-all duration-500 flex flex-col gap-3 group ${selectedPage?.id === page.id ? 'bg-sky-600 border-sky-500 shadow-2xl scale-105' : 'bg-[#0a0c10] border-white/5 hover:border-white/20'}`}
+            >
+              <span className={`text-xs font-black uppercase tracking-widest ${selectedPage?.id === page.id ? 'text-white/60' : 'text-slate-500'}`}>Legal Doc</span>
+              <span className="font-black text-lg">{page.title}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {selectedPage && (
-        <div className="space-y-4">
-          <div className="flex gap-2 mb-4">
-            {languages.map(lang => (
-              <button
-                key={lang}
-                onClick={() => setSelectedLang(lang)}
-                className={`px-3 py-1 rounded ${selectedLang === lang ? 'bg-sky-600' : 'bg-[#0a0c10] border border-white/10'}`}
-              >
-                {lang.toUpperCase()}
-              </button>
-            ))}
+      {selectedPage ? (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 bg-[#0a0c10] p-8 md:p-12 rounded-[3.5rem] border border-white/5 shadow-2xl">
+          <div className="flex items-center justify-between flex-wrap gap-6">
+             <div className="flex gap-2 p-2 bg-white/5 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar max-w-full">
+              {languages.map(lang => (
+                <button
+                  key={lang.code}
+                  onClick={() => setSelectedLang(lang.code)}
+                  className={`px-5 py-2.5 rounded-xl font-black text-xs transition-all duration-300 ${selectedLang === lang.code ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+            
+            <button
+              onClick={handleSave}
+              className="px-10 py-4 bg-sky-600 text-white font-black rounded-2xl hover:bg-sky-500 transition-all shadow-xl hover:shadow-sky-500/25 flex items-center gap-3 active:scale-95"
+            >
+              <span>💾</span>
+              <span>حفظ المحتوى</span>
+            </button>
           </div>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full h-96 p-4 bg-[#0a0c10] text-white font-mono text-sm rounded-xl border border-white/10"
-          />
-          <button
-            onClick={handleSave}
-            className="px-6 py-3 bg-sky-600 text-white font-black rounded-xl hover:bg-sky-500 transition-all"
-          >
-            حفظ
-          </button>
+
+          <div className="relative group">
+            <div className="absolute -top-4 right-8 bg-[#161a1e] px-4 py-1 rounded-lg border border-white/5 text-[10px] font-black text-sky-400 uppercase tracking-widest z-10">HTML / Markdown Editor</div>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full h-[600px] p-10 bg-black/40 text-slate-100 font-mono text-lg rounded-[2.5rem] border border-white/10 focus:border-sky-500/50 focus:outline-none transition-all leading-relaxed resize-none custom-scrollbar"
+              placeholder="أدخل محتوى الصفحة هنا... يمكنك استخدام HTML للمحتوى المتقدم."
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="py-24 text-center space-y-6 border-2 border-dashed border-white/5 rounded-[3.5rem]">
+           <div className="text-6xl opacity-20">📜</div>
+           <p className="text-slate-500 font-black text-xl italic leading-relaxed">يرجى تحديد اتفاقية قانونية من القائمة أعلاه للبدء في تحرير المحتوى الخاص بها.</p>
         </div>
       )}
     </div>
