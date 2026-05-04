@@ -79,7 +79,12 @@ const LandingPage: React.FC<Props> = ({
 }) => {
   const { t, isRtl, language } = useI18n();
   
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPath]);
+
   const activeCustomPage = pages.find(p => p.slug === currentPath && p.isActive);
+
   const [speedLines, setSpeedLines] = useState<number[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
@@ -386,8 +391,16 @@ const LandingPage: React.FC<Props> = ({
                         </li>
                       ))
                     ) : (
-                      [siteConfig.footerLink1Text, siteConfig.footerLink2Text, siteConfig.footerLink3Text, siteConfig.footerLink4Text].map((link, idx) => (
-                        <li key={idx} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{t(link)}</li>
+                      [
+                        { key: siteConfig.footerLink1Text, slug: 'privacy-policy' },
+                        { key: siteConfig.footerLink2Text, slug: 'terms-of-service' },
+                        { key: siteConfig.footerLink3Text, slug: 'security-standards' },
+                        { key: siteConfig.footerLink4Text, slug: 'global-licenses' }
+                      ].map((item, idx) => (
+                        <li key={idx} onClick={() => setCurrentPath(item.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6 group">
+                           <span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full group-hover:bg-sky-500 group-hover:shadow-[0_0_10px_#0ea5e9] transition-all"></span>
+                           <span className="group-hover:translate-x-2 transition-transform">{t(item.key)}</span>
+                        </li>
                       ))
                     )}
                  </ul>
