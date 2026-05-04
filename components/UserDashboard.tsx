@@ -266,12 +266,6 @@ const UserDashboard: React.FC<Props> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState(false);
-  const [dateTime, setDateTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setDateTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const bankingPhrases = [
     t('transfer_phrase_1'),
@@ -778,7 +772,6 @@ const UserDashboard: React.FC<Props> = ({
                 <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
                    <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 md:p-16 rounded-3xl md:rounded-[4rem] border border-sky-500/20 shadow-3xl text-center relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
-                      <div className="text-white text-xs font-mono">{dateTime.toLocaleTimeString()}</div>
                        <p className="text-sky-400 font-black tracking-widest text-[10px] md:text-sm uppercase mb-4 md:mb-6 relative z-10">{t('available_sovereign_balance')}</p>
                       <h2 className="text-4xl sm:text-5xl md:text-8xl font-black font-mono tracking-tighter mb-8 md:mb-12 relative z-10">${user.balance.toLocaleString()}</h2>
                       <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 md:gap-6 relative z-10">
