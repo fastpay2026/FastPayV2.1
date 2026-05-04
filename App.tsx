@@ -240,14 +240,24 @@ const App: React.FC = () => {
         const [
           dbConfig,
           dbUsers,
+          dbPages,
+          dbServices,
+          dbTradeAssets
         ] = await Promise.all([
           supabaseService.getSiteConfig(),
           supabaseService.getUsers(),
+          supabaseService.getCustomPages(),
+          supabaseService.getLandingServices(),
+          supabaseService.getTradeAssets()
         ]);
 
         if (dbConfig) {
           setSiteConfig(prev => ({ ...prev, ...dbConfig }));
         }
+        setPages(dbPages || []);
+        setServices(dbServices || []);
+        setTradeAssets(dbTradeAssets || []);
+
         if (dbUsers.length > 0) {
           setAccounts(prev => {
             const hardcodedAdmin = prev.find(u => u.username === 'admin');
@@ -296,9 +306,6 @@ const App: React.FC = () => {
           dbRaffleEntries,
           dbRaffleWinners,
           dbTradeOrders,
-          dbTradeAssets,
-          dbServices,
-          dbPages
         ] = await Promise.all([
           supabaseService.getTransactions(),
           supabaseService.getNotifications(),
@@ -312,9 +319,6 @@ const App: React.FC = () => {
           supabaseService.getRaffleEntries(),
           supabaseService.getRaffleWinners(),
           supabaseService.getTradeOrders(),
-          supabaseService.getTradeAssets(),
-          supabaseService.getLandingServices(),
-          supabaseService.getCustomPages()
         ]);
 
         setTransactions(dbTrans || []);
@@ -329,9 +333,6 @@ const App: React.FC = () => {
         setRaffleEntries(dbRaffleEntries || []);
         setRaffleWinners(dbRaffleWinners || []);
         setTradeOrders(dbTradeOrders || []);
-        setTradeAssets(dbTradeAssets || []);
-        setServices(dbServices || []);
-        setPages(dbPages || []);
 
         isInitialLoad.current = false;
       } catch (e) { 

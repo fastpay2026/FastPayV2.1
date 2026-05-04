@@ -643,21 +643,26 @@ export const supabaseService = {
     return (data || []).map(p => ({
       ...p,
       isActive: p.is_active,
-      showInNavbar: p.show_in_navbar,
-      showInFooter: p.show_in_footer
+      showInNavbar: p.show_in_navbar ?? p.show_in_nav ?? true,
+      showInFooter: p.show_in_footer ?? true
     }));
   },
 
   async upsertCustomPage(p: CustomPage) {
-    const { error } = await supabase.from('custom_pages').upsert({
+    const payload: any = {
       id: p.id,
       title: p.title,
       slug: p.slug,
       content: p.content,
       is_active: p.isActive,
-      show_in_navbar: p.showInNavbar,
       show_in_footer: p.showInFooter
-    }, { onConflict: 'id' });
+    };
+    
+    // Support both naming conventions just in case
+    payload.show_in_navbar = p.showInNavbar;
+    payload.show_in_nav = p.showInNavbar;
+
+    const { error } = await supabase.from('custom_pages').upsert(payload, { onConflict: 'id' });
     if (error) throw error;
   },
 
