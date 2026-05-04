@@ -118,7 +118,7 @@ const App: React.FC = () => {
     footerLinksTitle: 'footer_links_title',
     footerLink1Text: 'footer_link_1',
     footerLink2Text: 'footer_link_2',
-    footerLink3Text: 'footer_link_3',
+    footerLink3Text: '',
     footerLink4Text: 'footer_link_4',
     contactSectionTitle: 'contact_section_title',
     galleryImages: [],
@@ -453,7 +453,6 @@ const App: React.FC = () => {
         "حوّل متجرك الإلكتروني إلى منصة دفع عالمية رائدة بعمولات تنافسية تبدأ من 0.8%.": "gateway_ad_desc",
         "سياسة الخصوصية": "footer_link_1",
         "شروط الخدمة": "footer_link_2",
-        "معايير الأمان": "footer_link_3",
         "التراخيص العالمية": "footer_link_4"
       };
 
