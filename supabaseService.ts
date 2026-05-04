@@ -655,15 +655,18 @@ export const supabaseService = {
       slug: p.slug,
       content: p.content,
       is_active: p.isActive,
-      show_in_footer: p.showInFooter
+      show_in_footer: p.showInFooter ?? true,
+      show_in_navbar: p.showInNavbar ?? true
     };
     
-    // Support both naming conventions just in case
-    payload.show_in_navbar = p.showInNavbar;
-    payload.show_in_nav = p.showInNavbar;
-
+    // We remove show_in_nav to avoid 400 error if column doesn't exist
+    // If the user wants to support show_in_nav specifically, they should run the SQL first
+    
     const { error } = await supabase.from('custom_pages').upsert(payload, { onConflict: 'id' });
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase Error in upsertCustomPage:', error);
+      throw error;
+    }
   },
 
   // Bulk Operations
