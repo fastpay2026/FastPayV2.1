@@ -393,7 +393,6 @@ const LandingPage: React.FC<Props> = ({
                       [
                         { key: siteConfig.footerLink1Text, slug: 'privacy-policy' },
                         { key: siteConfig.footerLink2Text, slug: 'terms-of-service' },
-                        { key: siteConfig.footerLink3Text, slug: 'security-standards' },
                         { key: siteConfig.footerLink4Text, slug: 'global-licenses' }
                       ].map((item, idx) => (
                         <li key={idx} onClick={() => setCurrentPath(item.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6 group">

@@ -104,7 +104,7 @@ const LegalManagementPage: React.FC<Props> = ({ pages, setPages }) => {
     { code: 'ru', label: 'Русский' }
   ];
 
-  const targetSlugs = ['terms-of-service', 'privacy-policy', 'security-standards', 'global-licenses'];
+  const targetSlugs = ['terms-of-service', 'privacy-policy', 'global-licenses'];
   const legalPages = pages.filter(p => targetSlugs.includes(p.slug));
 
   useEffect(() => {
