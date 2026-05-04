@@ -426,7 +426,7 @@ const LandingPage: React.FC<Props> = ({
             {activeCustomPage ? (
               <div className="space-y-24">
                 <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-white border-r-[15px] border-sky-500 pr-16">{activeCustomPage.title}</h1>
-                <div className="prose prose-invert prose-xl md:prose-2xl max-w-none text-slate-300 font-medium leading-relaxed dynamic-content-render page-content-rich">
+                <div className="max-w-none text-slate-300 font-medium leading-relaxed dynamic-content-render page-content-rich">
                   {(() => {
                     try {
                       const contentObj = JSON.parse(activeCustomPage.content);
