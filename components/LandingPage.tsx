@@ -377,12 +377,19 @@ const LandingPage: React.FC<Props> = ({
               <div className="space-y-8 md:space-y-16">
                  <h4 className="text-2xl md:text-4xl font-black text-white border-r-4 md:border-r-[10px] border-sky-500 pr-6 md:pr-10 tracking-tighter uppercase">{t('footer_links_title')}</h4>
                  <ul className="space-y-6 md:space-y-10 text-slate-400 font-bold text-lg md:text-2xl">
-                    {pages.filter(p=>p.isActive && p.showInFooter).map(p=>(
-                      <li key={p.id} onClick={()=>setCurrentPath(p.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full shadow-[0_0_10px_#0ea5e9]"></span>{p.title}</li>
-                    ))}
-                    {[siteConfig.footerLink1Text, siteConfig.footerLink2Text, siteConfig.footerLink3Text, siteConfig.footerLink4Text].map((link, idx) => (
-                      <li key={idx} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{t(link)}</li>
-                    ))}
+                    {pages.length > 0 ? (
+                      pages.filter(p => p.isActive && p.showInFooter).map(p => (
+                        <li key={p.id} onClick={() => { setCurrentPath(p.slug); window.scrollTo(0, 0); }} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6 group">
+                          <span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full shadow-[0_0_10px_#0ea5e9] group-hover:scale-150 transition-transform"></span>
+                          <span className="group-hover:translate-x-2 transition-transform">{p.title}</span>
+                        </li>
+                      ))
+                    ) : (
+                      // Fallback if pages not loaded
+                      [siteConfig.footerLink1Text, siteConfig.footerLink2Text, siteConfig.footerLink3Text, siteConfig.footerLink4Text].map((link, idx) => (
+                        <li key={idx} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{t(link)}</li>
+                      ))
+                    )}
                  </ul>
               </div>
               <div className="space-y-8 md:space-y-16">
