@@ -656,7 +656,7 @@ export const supabaseService = {
   },
 
   async upsertCustomPage(p: CustomPage) {
-    console.log('Upserting custom page for slug:', p.slug);
+    console.log('Upserting custom page for slug:', p.slug, 'ID:', p.id);
     
     // Explicitly construct payload - ensure NO camelCase keys exist here
     const payload = {

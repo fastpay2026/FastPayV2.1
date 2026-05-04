@@ -14,22 +14,19 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
   const [selectedLang, setSelectedLang] = useState('ar');
   const languages = ['ar', 'en', 'fr', 'tr', 'zh', 'ku', 'ru'];
 
-  const legalPages = useMemo(() => {
-    console.log('LegalPagesManager processing pages:', pages);
-    return legalSlugs.map(slug => {
-      const existing = pages.find(p => p.slug?.trim().toLowerCase() === slug.trim().toLowerCase());
-      console.log('Mapping slug:', slug, 'Existing found:', !!existing);
-      return existing || {
-        id: `legal-${slug}`, // Consistent ID for legal pages
-        title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        slug,
-        content: { ar: '', en: '', fr: '', tr: '', zh: '', ku: '', ru: '' },
-        isActive: true,
-        showInNavbar: false,
-        showInFooter: true
-      };
-    });
-  }, [pages]);
+  const legalPages = useMemo(() => legalSlugs.map(slug => {
+    const existing = pages.find(p => p.slug === slug);
+    console.log('Mapping slug:', slug, 'Existing found:', !!existing);
+    return existing || {
+      id: `legal-${slug}`, // Consistent ID for legal pages
+      title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      slug,
+      content: { ar: '', en: '', fr: '', tr: '', zh: '', ku: '', ru: '' },
+      isActive: true,
+      showInNavbar: false,
+      showInFooter: true
+    };
+  }), [pages]);
 
   const [editingPage, setEditingPage] = useState<CustomPage>(legalPages[0]);
 
@@ -43,10 +40,16 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-        console.log('Attempting to save page slug:', editingPage.slug);
-        await supabaseService.upsertCustomPage(editingPage);
+        console.log('Attempting to save page slug:', editingPage.slug, 'ID:', editingPage.id);
         
-        // Update local state by replacing the entire array from the server
+        // Ensure that we don't send id if it's auto-generated dummy or invalid
+        // Based on the user requirement, let's keep it clean
+        await supabaseService.upsertCustomPage({
+            ...editingPage,
+            id: editingPage.id && editingPage.id.startsWith('legal-') ? undefined : editingPage.id
+        });
+        
+        // Refresh local state from the database
         const updatedPages = await supabaseService.getCustomPages();
         setPages(updatedPages);
         

@@ -266,6 +266,12 @@ const UserDashboard: React.FC<Props> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [dateTime, setDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setDateTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const bankingPhrases = [
     t('transfer_phrase_1'),
@@ -772,6 +778,7 @@ const UserDashboard: React.FC<Props> = ({
                 <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
                    <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-8 md:p-16 rounded-3xl md:rounded-[4rem] border border-sky-500/20 shadow-3xl text-center relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5"></div>
+                      <div className="text-white text-xs font-mono">{dateTime.toLocaleTimeString()}</div>
                        <p className="text-sky-400 font-black tracking-widest text-[10px] md:text-sm uppercase mb-4 md:mb-6 relative z-10">{t('available_sovereign_balance')}</p>
                       <h2 className="text-4xl sm:text-5xl md:text-8xl font-black font-mono tracking-tighter mb-8 md:mb-12 relative z-10">${user.balance.toLocaleString()}</h2>
                       <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 md:gap-6 relative z-10">
@@ -849,7 +856,7 @@ const UserDashboard: React.FC<Props> = ({
                                      {t('view_transfer_receipt')}
                                    </a>
                                  )}
-                                 <p className="text-[10px] text-slate-600 font-bold">{new Date(item.created_at).toLocaleDateString()}</p>
+                                 <p className="text-[10px] text-slate-600 font-bold">{new Date(item.created_at).toLocaleString()}</p>
                                </div>
                              ))}
                            </div>
@@ -859,7 +866,7 @@ const UserDashboard: React.FC<Props> = ({
                          <div className="space-y-4 max-h-[400px] md:max-h-[500px] overflow-y-auto custom-scrollbar">
                             {transactions.filter(t=>t.userId===user.id).slice(0, 10).map(t => (
                                <div key={t.id} className="flex justify-between items-center p-4 md:p-6 bg-white/5 rounded-2xl md:rounded-3xl border border-white/5">
-                                  <div><p className="font-bold text-white text-sm md:text-base">{t.relatedUser || t.type}{t.status === 'rejected' && <span className="text-red-500 text-[10px] block md:inline md:mr-2 font-black"> {t('operation_cancelled_msg')}</span>}</p><p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-black">{new Date(t.timestamp).toLocaleDateString()}</p></div>
+                                  <div><p className="font-bold text-white text-sm md:text-base">{t.relatedUser || t.type}{t.status === 'rejected' && <span className="text-red-500 text-[10px] block md:inline md:mr-2 font-black"> {t('operation_cancelled_msg')}</span>}</p><p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-black">{t.timestamp}</p></div>
                                   <p className={`text-xl md:text-2xl font-mono font-black ${t.amount < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{t.amount > 0 ? '+' : ''}${Math.abs(t.amount).toLocaleString()}</p>
                                </div>
                             ))}
