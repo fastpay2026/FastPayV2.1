@@ -136,16 +136,15 @@ const LandingPage: React.FC<Props> = ({
           </div>
           
           {/* Middle: Nav Links */}
-          <div className="hidden xl:flex gap-8 2xl:gap-12 text-slate-200 font-black text-[16px] 2xl:text-[18px] uppercase tracking-widest justify-center items-center flex-1 overflow-x-auto no-scrollbar px-2">
+          <div className="hidden xl:flex gap-12 2xl:gap-16 text-slate-200 font-black text-[18px] 2xl:text-[20px] uppercase tracking-widest justify-center items-center flex-1 overflow-x-auto no-scrollbar px-2">
             {[
               { label: t('nav_home'), id: 'home' },
-              ...pages.filter(p => p.isActive && p.showInNavbar).map(p => ({ label: p.title, id: p.slug, type: 'custom' })),
               { label: t('raffle'), id: 'raffle-ad' },
               { label: t('nav_gateway'), id: 'gateway-ad' },
               { label: t('nav_transfer'), id: 'salary-ad' },
               { label: t('nav_trading'), id: 'trading-ad' }
-            ].map((item: any, idx) => (
-              <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : item.type === 'custom' ? setCurrentPath(item.id) : scrollToSection(item.id)} className="hover:text-sky-400 transition-all relative py-3 group whitespace-nowrap flex-shrink-0">
+            ].map((item, idx) => (
+              <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : scrollToSection(item.id)} className="hover:text-sky-400 transition-all relative py-3 group whitespace-nowrap flex-shrink-0">
                 {item.label}
                 <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-sky-500 group-hover:w-full transition-all duration-500"></span>
               </button>
