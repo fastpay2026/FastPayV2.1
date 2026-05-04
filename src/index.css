@@ -7,15 +7,30 @@
 }
 
 /* Legal Documents Styling */
-.rich-text-container h1 { font-size: 2.5rem; font-weight: 900; color: white; margin-bottom: 2rem; margin-top: 3rem; }
-.rich-text-container h2 { font-size: 2rem; font-weight: 900; color: #0ea5e9; margin-bottom: 1.5rem; margin-top: 2.5rem; }
-.rich-text-container h3 { font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 1rem; margin-top: 2rem; }
-.rich-text-container p { font-size: 1.125rem; color: #cbd5e1; line-height: 1.75; margin-bottom: 1.5rem; }
-.rich-text-container ul { list-style-type: disc; list-style-position: inside; margin-bottom: 2rem; color: #cbd5e1; }
-.rich-text-container ol { list-style-type: decimal; list-style-position: inside; margin-bottom: 2rem; color: #cbd5e1; }
-.rich-text-container li { margin-bottom: 0.75rem; padding-left: 0.5rem; }
-.rich-text-container strong { color: white; font-weight: 700; }
-.rich-text-container blockquote { border-right: 4px solid #0ea5e9; padding-right: 1.5rem; padding-top: 0.5rem; padding-bottom: 0.5rem; font-style: italic; color: #94a3b8; background: rgba(255, 255, 255, 0.05); border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; margin-bottom: 2rem; }
+.rich-text-container {
+  text-align: justify;
+}
+.rich-text-container h1 { font-size: 3.5rem; font-weight: 900; color: white; margin-bottom: 2.5rem; margin-top: 4rem; text-align: center; }
+.rich-text-container h2 { font-size: 2.5rem; font-weight: 900; color: #0ea5e9; margin-bottom: 2rem; margin-top: 3.5rem; border-bottom: 2px solid rgba(14, 165, 233, 0.2); padding-bottom: 1rem; }
+.rich-text-container h3 { font-size: 2rem; font-weight: 700; color: white; margin-bottom: 1.5rem; margin-top: 3rem; }
+.rich-text-container h4 { font-size: 1.5rem; font-weight: 700; color: #94a3b8; margin-bottom: 1.25rem; margin-top: 2.5rem; }
+.rich-text-container p { font-size: 1.25rem; color: #cbd5e1; line-height: 2; margin-bottom: 2rem; }
+.rich-text-container ul { list-style-type: disc; list-style-position: outside; margin-right: 2.5rem; margin-bottom: 2.5rem; color: #cbd5e1; }
+.rich-text-container ol { list-style-type: decimal; list-style-position: outside; margin-right: 2.5rem; margin-bottom: 2.5rem; color: #cbd5e1; }
+.rich-text-container li { margin-bottom: 1rem; padding-right: 0.5rem; line-height: 1.8; }
+.rich-text-container strong { color: white; font-weight: 900; }
+.rich-text-container blockquote { border-right: 8px solid #0ea5e9; padding: 2rem; font-style: italic; color: #94a3b8; background: rgba(255, 255, 255, 0.03); border-radius: 1rem; margin-bottom: 3rem; font-size: 1.5rem; }
+
+/* Handling Quill Specific Classes */
+.rich-text-container .ql-size-small { font-size: 0.875rem; }
+.rich-text-container .ql-size-large { font-size: 1.5rem; }
+.rich-text-container .ql-size-huge { font-size: 2.5rem; }
+.rich-text-container .ql-align-center { text-align: center; }
+.rich-text-container .ql-align-right { text-align: right; }
+.rich-text-container .ql-align-left { text-align: left; }
+.rich-text-container .ql-align-justify { text-align: justify; }
+.rich-text-container .ql-direction-rtl { direction: rtl; }
+.rich-text-container .ql-direction-ltr { direction: ltr; }
 
 /* React Quill Customizations */
 .ql-toolbar.ql-snow { border: none !important; background: #f8fafc; border-bottom: 1px solid #e2e8f0 !important; }

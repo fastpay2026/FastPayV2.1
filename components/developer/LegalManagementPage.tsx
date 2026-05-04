@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import { CustomPage } from '../../types';
 import { supabaseService } from '../../supabaseService';
 
@@ -120,12 +120,15 @@ const LegalManagementPage: React.FC<Props> = ({ pages, setPages }) => {
                 className="h-[600px] text-black"
                 modules={{
                   toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
+                    [{ 'header': [1, 2, 3, 4, false] }],
+                    [{ 'size': ['small', false, 'large', 'huge'] }],
                     ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                     [{ 'direction': 'rtl' }],
-                    ['clean'],
-                    ['link']
+                    [{ 'align': [] }],
+                    ['link', 'image'],
+                    ['clean']
                   ],
                 }}
               />
