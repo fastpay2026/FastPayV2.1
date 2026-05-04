@@ -48,30 +48,8 @@ const App: React.FC = () => {
   });
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-  const [currentPath, setCurrentPath] = useState(() => {
-    const path = window.location.pathname.replace(/^\/pages\//, '').replace(/^\//, '');
-    return path || 'home';
-  });
+  const [currentPath, setCurrentPath] = useState('home');
   const { t, language } = useI18n();
-
-  // Update URL when currentPath changes
-  useEffect(() => {
-    if (currentPath === 'home') {
-      window.history.pushState({}, '', '/');
-    } else {
-      window.history.pushState({}, '', `/pages/${currentPath}`);
-    }
-  }, [currentPath]);
-
-  // Handle browser back/forward buttons
-  useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname.replace(/^\/pages\//, '').replace(/^\//, '');
-      setCurrentPath(path || 'home');
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
   
   // Server health check with retry
   useEffect(() => {
@@ -338,7 +316,6 @@ const App: React.FC = () => {
           supabaseService.getLandingServices(),
           supabaseService.getCustomPages()
         ]);
-        console.log('App: Loaded pages from DB:', dbPages);
 
         setTransactions(dbTrans || []);
         setNotifications(dbNotifs || []);

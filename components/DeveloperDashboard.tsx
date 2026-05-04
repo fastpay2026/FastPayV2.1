@@ -1,5 +1,5 @@
 
-import LegalPagesManager from './developer/LegalPagesManager';
+import LegalManagementPage from './developer/LegalManagementPage';
 import ContentManagement from './developer/ContentManagement';
 import LogoGenerator from '@/components/LogoGenerator';
 import LogoUploader from '@/components/LogoUploader';
@@ -87,7 +87,7 @@ const DeveloperDashboard: React.FC<Props> = ({
 }) => {
   console.log('[DeveloperDashboard] User prop:', user);
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'agent_lottery' | 'content' | 'legal' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator' | 'online_users' | 'activity_log' | 'spread_manager' | 'platform_profits' | 'charging_points'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'users' | 'withdrawals' | 'salary' | 'cards' | 'invest' | 'bots_army' | 'raffle' | 'agent_lottery' | 'content' | 'escrow' | 'verification' | 'ads' | 'gateway' | 'logo_generator' | 'online_users' | 'activity_log' | 'spread_manager' | 'platform_profits' | 'charging_points' | 'legal'>('home');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -178,14 +178,14 @@ const handleManualSync = async () => {
             { id: 'raffle', l: t('nav_raffle_mgmt'), i: '🎁', canDisable: true },
             { id: 'agent_lottery', l: 'إدارة قرعة الوكيل', i: '🎟️', canDisable: true },
             { id: 'gateway', l: t('secure_gateway'), i: '🛡️', canDisable: false },
-            { id: 'legal', l: 'الصفحات القانونية', i: '⚖️', canDisable: false },
             { id: 'content', l: t('nav_site_identity'), i: '⚙️', canDisable: false },
             { id: 'logo_generator', l: 'Logo Generator', i: '🎨', canDisable: false },
             { id: 'online_users', l: 'Online Users', i: '🟢', canDisable: false },
             { id: 'spread_manager', l: 'Spread Manager', i: '📈', canDisable: false },
             { id: 'platform_profits', l: 'Platform Profits', i: '💰', canDisable: false },
             { id: 'activity_log', l: 'Activity Log', i: '📜', canDisable: false },
-            { id: 'charging_points', l: 'نقاط الشحن', i: '⚡', canDisable: false }
+            { id: 'charging_points', l: 'نقاط الشحن', i: '⚡', canDisable: false },
+             { id: 'legal', l: 'الاتفاقيات القانونية', i: '⚖️', canDisable: false }
           ].map(tab => {
             const isDisabled = siteConfig.disabledServices?.includes(tab.id);
             return (
@@ -269,7 +269,6 @@ const handleManualSync = async () => {
           <ManagerLotterySetup />
         )}
         {activeTab === 'gateway' && <SecureGatewayManager user={user} accounts={accounts} onUpdateUser={onUpdateUser} addNotification={addNotification} />}
-        {activeTab === 'legal' && <LegalPagesManager pages={pages} setPages={setPages} />}
         {activeTab === 'content' && <SiteIdentity siteConfig={siteConfig} onUpdateConfig={onUpdateConfig} />}
         {activeTab === 'logo_generator' && (
           <div className="space-y-8">
@@ -282,6 +281,7 @@ const handleManualSync = async () => {
         {activeTab === 'platform_profits' && <PlatformEarnings />}
         {activeTab === 'activity_log' && <ActivityLog />}
         {activeTab === 'charging_points' && <ChargingPointsPage />}
+        {activeTab === 'legal' && <LegalManagementPage pages={pages} setPages={setPages} />}
       </main>
 
       <style>{`

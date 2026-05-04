@@ -108,19 +108,6 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-.dynamic-content-render h1 { @apply text-4xl md:text-6xl font-black text-white mb-8 border-r-8 border-sky-500 pr-6; }
-.dynamic-content-render h2 { @apply text-3xl md:text-5xl font-bold text-sky-400 mt-16 mb-8; }
-.dynamic-content-render h3 { @apply text-2xl md:text-4xl font-bold text-white mt-12 mb-6; }
-.dynamic-content-render p { @apply text-lg md:text-2xl text-slate-300 leading-relaxed mb-8; }
-.dynamic-content-render ul { @apply list-none space-y-4 mb-8; }
-.dynamic-content-render li { @apply flex items-start gap-4 text-lg md:text-2xl text-slate-300; }
-.dynamic-content-render li::before {
-  content: "";
-  @apply w-2 h-2 md:w-3 md:h-3 bg-sky-500 rounded-full mt-2 md:mt-3 flex-shrink-0 shadow-[0_0_10px_#0ea5e9];
-}
-.dynamic-content-render a { @apply text-sky-400 hover:text-sky-300 underline decoration-sky-500/30 underline-offset-4 transition-all; }
-.dynamic-content-render strong { @apply text-white font-black; }
-
 html[lang="ku"] body, html[lang="ku"] * {
   font-family: 'Vazirmatn', sans-serif !important;
 }

@@ -54,6 +54,24 @@ app.use(['/api/market', '/api/market/'], marketRouter(supabase));
 app.use(['/api/trading', '/api/trading/'], tradingRouter(supabase));
 app.use(['/api/debug', '/api/debug/'], diagnosticRouter(supabase, isSupabaseConfigured, { timestamp: Date.now() }));
 
+app.get('/api/legal/:slug', async (req, res) => {
+  const { slug } = req.params;
+  try {
+    const { data, error } = await supabase
+      .from('custom_pages')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: 'Page not found' });
+    res.json(data);
+  } catch (err) {
+    console.error('Error fetching legal page:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Static files and SPA
 if (process.env.NODE_ENV !== 'production') {
   const { createServer: createViteServer } = await import('vite');

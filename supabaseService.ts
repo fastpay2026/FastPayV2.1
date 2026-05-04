@@ -639,43 +639,26 @@ export const supabaseService = {
   // Custom Pages
   async getCustomPages(): Promise<CustomPage[]> {
     const { data, error } = await supabase.from('custom_pages').select('*');
-    if (error) {
-      console.error('Error fetching custom pages:', error);
-      throw error;
-    }
-    console.log('CustomPages fetched from Supabase:', data);
-    const pages = (data || []).map(p => ({
+    if (error) throw error;
+    return (data || []).map(p => ({
       ...p,
       isActive: p.is_active,
       showInNavbar: p.show_in_navbar,
-      showInFooter: p.show_in_footer,
-      content: typeof p.content === 'string' ? JSON.parse(p.content) : p.content
+      showInFooter: p.show_in_footer
     }));
-    console.log('Mapped CustomPages:', pages);
-    return pages;
   },
 
   async upsertCustomPage(p: CustomPage) {
-    console.log('Upserting custom page for slug:', p.slug, 'ID:', p.id);
-    
-    // Explicitly construct payload - ensure NO camelCase keys exist here
-    const payload = {
+    const { error } = await supabase.from('custom_pages').upsert({
+      id: p.id,
       title: p.title,
-      slug: p.slug, // For onConflict
-      content: typeof p.content === 'string' ? p.content : JSON.stringify(p.content),
-      is_active: !!p.isActive,
-      show_in_navbar: !!p.showInNavbar,
-      show_in_footer: !!p.showInFooter
-    };
-    
-    // Perform upsert by slug as the primary conflict constraint
-    const { error } = await supabase.from('custom_pages').upsert(payload, { onConflict: 'slug' });
-    
-    if (error) {
-       console.error('Error upserting custom page:', error);
-       throw error;
-    }
-    console.log('Successfully upserted custom page for slug:', p.slug);
+      slug: p.slug,
+      content: p.content,
+      is_active: p.isActive,
+      show_in_navbar: p.showInNavbar,
+      show_in_footer: p.showInFooter
+    }, { onConflict: 'id' });
+    if (error) throw error;
   },
 
   // Bulk Operations

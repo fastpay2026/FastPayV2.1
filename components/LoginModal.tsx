@@ -184,11 +184,22 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
             }
 
             if (data.user && !data.user.email_confirmed_at) {
-              await supabase.auth.signOut();
-              setResendEmail(user.email);
-              setError('Please verify your email address before logging in.');
-              setIsLoading(false);
-              return;
+              console.log('Checking if user can bypass email verification:', { 
+                role: user.role, 
+                username: user.username, 
+                confirmed: data.user.email_confirmed_at 
+              });
+              
+              if (user.role === 'ADMIN' || user.role === 'DEVELOPER') {
+                console.log('Admin/Developer bypass: allowing login despite unverified email.');
+                // Proceed, don't return
+              } else {
+                await supabase.auth.signOut();
+                setResendEmail(user.email);
+                setError('Please verify your email address before logging in.');
+                setIsLoading(false);
+                return;
+              }
             }
           }
         } catch (authErr) {
