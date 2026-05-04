@@ -14,19 +14,22 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
   const [selectedLang, setSelectedLang] = useState('ar');
   const languages = ['ar', 'en', 'fr', 'tr', 'zh', 'ku', 'ru'];
 
-  const legalPages = useMemo(() => legalSlugs.map(slug => {
-    const existing = pages.find(p => p.slug === slug);
-    console.log('Mapping slug:', slug, 'Existing found:', !!existing);
-    return existing || {
-      id: `legal-${slug}`, // Consistent ID for legal pages
-      title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-      slug,
-      content: { ar: '', en: '', fr: '', tr: '', zh: '', ku: '', ru: '' },
-      isActive: true,
-      showInNavbar: false,
-      showInFooter: true
-    };
-  }), [pages]);
+  const legalPages = useMemo(() => {
+    console.log('LegalPagesManager processing pages:', pages);
+    return legalSlugs.map(slug => {
+      const existing = pages.find(p => p.slug?.trim().toLowerCase() === slug.trim().toLowerCase());
+      console.log('Mapping slug:', slug, 'Existing found:', !!existing);
+      return existing || {
+        id: `legal-${slug}`, // Consistent ID for legal pages
+        title: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+        slug,
+        content: { ar: '', en: '', fr: '', tr: '', zh: '', ku: '', ru: '' },
+        isActive: true,
+        showInNavbar: false,
+        showInFooter: true
+      };
+    });
+  }, [pages]);
 
   const [editingPage, setEditingPage] = useState<CustomPage>(legalPages[0]);
 
@@ -43,8 +46,9 @@ const LegalPagesManager: React.FC<Props> = ({ pages, setPages }) => {
         console.log('Attempting to save page slug:', editingPage.slug);
         await supabaseService.upsertCustomPage(editingPage);
         
-        // Update local state by replacing the specific record
-        setPages(prev => prev.map(p => p.slug === editingPage.slug ? editingPage : p));
+        // Update local state by replacing the entire array from the server
+        const updatedPages = await supabaseService.getCustomPages();
+        setPages(updatedPages);
         
         alert('✅ تم حفظ التغييرات بنجاح في قاعدة البيانات');
     } catch (error) {

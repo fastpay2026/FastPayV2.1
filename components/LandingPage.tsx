@@ -379,10 +379,7 @@ const LandingPage: React.FC<Props> = ({
                  <h4 className="text-2xl md:text-4xl font-black text-white border-r-4 md:border-r-[10px] border-sky-500 pr-6 md:pr-10 tracking-tighter uppercase">{t('footer_links_title')}</h4>
                  <ul className="space-y-6 md:space-y-10 text-slate-400 font-bold text-lg md:text-2xl">
                     {uniquePages.filter(p=>p.isActive && p.showInFooter).map(p=>(
-                      <li key={p.id} onClick={()=>setCurrentPath(p.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full shadow-[0_0_10px_#0ea5e9]"></span>{p.title}</li>
-                    ))}
-                    {[siteConfig.footerLink1Text, siteConfig.footerLink2Text, siteConfig.footerLink3Text, siteConfig.footerLink4Text].map((link, idx) => (
-                      <li key={idx} className="hover:text-white transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-slate-700 rounded-full"></span>{t(link)}</li>
+                      <li key={p.slug} onClick={()=>setCurrentPath(p.slug)} className="hover:text-sky-400 transition-all cursor-pointer flex items-center gap-4 md:gap-6"><span className="w-2 md:w-3 h-2 md:h-3 bg-sky-500 rounded-full shadow-[0_0_10px_#0ea5e9]"></span>{p.title}</li>
                     ))}
                  </ul>
               </div>
