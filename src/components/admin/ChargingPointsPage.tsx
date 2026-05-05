@@ -20,6 +20,16 @@ function MapClickHandler({ setFormData }: { setFormData: React.Dispatch<React.Se
   return null;
 }
 
+function RecenterMap({ lat, lng }: { lat: string, lng: string }) {
+  const map = useMapEvents({});
+  useEffect(() => {
+    if (lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng))) {
+      map.setView([parseFloat(lat), parseFloat(lng)], map.getZoom());
+    }
+  }, [lat, lng, map]);
+  return null;
+}
+
 interface ChargingPoint {
   id: string;
   name: string;
@@ -83,14 +93,17 @@ export const ChargingPointsPage: React.FC = () => {
         <MapContainer center={[24.774265, 46.738586]} zoom={4} className="h-64 rounded-lg mb-4">
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <MapClickHandler setFormData={setFormData} />
-          {formData.lat && formData.lng && <Marker position={[parseFloat(formData.lat), parseFloat(formData.lng)]} />}
+          <RecenterMap lat={formData.lat} lng={formData.lng} />
+          {formData.lat && formData.lng && !isNaN(parseFloat(formData.lat)) && !isNaN(parseFloat(formData.lng)) && (
+            <Marker position={[parseFloat(formData.lat), parseFloat(formData.lng)]} />
+          )}
         </MapContainer>
         <form onSubmit={addPoint} className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input placeholder="اسم النقطة" className="bg-slate-700 p-2 rounded" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
           <input placeholder="الدولة" className="bg-slate-700 p-2 rounded" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} />
           <input placeholder="العنوان" className="bg-slate-700 p-2 rounded" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
-          <input readOnly placeholder="خط العرض" className="bg-slate-700/50 p-2 rounded cursor-not-allowed" value={formData.lat} />
-          <input readOnly placeholder="خط الطول" className="bg-slate-700/50 p-2 rounded cursor-not-allowed" value={formData.lng} />
+          <input placeholder="خط العرض" className="bg-slate-700 p-2 rounded" value={formData.lat} onChange={e => setFormData({...formData, lat: e.target.value})} />
+          <input placeholder="خط الطول" className="bg-slate-700 p-2 rounded" value={formData.lng} onChange={e => setFormData({...formData, lng: e.target.value})} />
           <button className="bg-blue-600 p-2 rounded font-bold hover:bg-blue-500">إضافة نقطة</button>
         </form>
       </div>
