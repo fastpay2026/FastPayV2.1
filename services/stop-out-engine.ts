@@ -1,9 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 
-let lastFetchUsersError = '';
-const lastFetchPositionsErrorMap = new Map<string, string>();
-const lastClosePositionErrorMap = new Map<string, string>();
-
 export const runStopOutEngine = (supabase: SupabaseClient) => {
   setInterval(async () => {
     console.log('[StopOutEngine] Checking for stop-outs...');
@@ -11,17 +7,8 @@ export const runStopOutEngine = (supabase: SupabaseClient) => {
     // 1. Fetch all users
     const { data: users, error: usersError } = await supabase.from('users').select('id, balance');
     if (usersError) {
-      const errorMsg = usersError.message || JSON.stringify(usersError);
-      if (errorMsg !== lastFetchUsersError) {
-        console.error('[StopOutEngine] Error fetching users:', errorMsg);
-        if (usersError.hint) {
-          console.error('[StopOutEngine] Help hint:', usersError.hint);
-        }
-        lastFetchUsersError = errorMsg;
-      }
+      console.error('[StopOutEngine] Error fetching users:', usersError);
       return;
-    } else {
-      lastFetchUsersError = ''; // Reset on success
     }
 
     for (const user of users) {
@@ -32,14 +19,8 @@ export const runStopOutEngine = (supabase: SupabaseClient) => {
         .eq('user_id', user.id);
       
       if (positionsError) {
-        const errorMsg = positionsError.message || JSON.stringify(positionsError);
-        if (lastFetchPositionsErrorMap.get(user.id) !== errorMsg) {
-          console.error('[StopOutEngine] Error fetching positions for user:', user.id, errorMsg);
-          lastFetchPositionsErrorMap.set(user.id, errorMsg);
-        }
+        console.error('[StopOutEngine] Error fetching positions for user:', user.id, positionsError);
         continue;
-      } else {
-        lastFetchPositionsErrorMap.delete(user.id);
       }
 
       if (positions.length === 0) continue;
@@ -60,14 +41,9 @@ export const runStopOutEngine = (supabase: SupabaseClient) => {
             .eq('id', position.id);
           
           if (deleteError) {
-            const errorMsg = deleteError.message || JSON.stringify(deleteError);
-            if (lastClosePositionErrorMap.get(position.id) !== errorMsg) {
-              console.error('[StopOutEngine] Error closing position:', position.id, errorMsg);
-              lastClosePositionErrorMap.set(position.id, errorMsg);
-            }
+            console.error('[StopOutEngine] Error closing position:', position.id, deleteError);
           } else {
             console.log('[StopOutEngine] Position closed:', position.id);
-            lastClosePositionErrorMap.delete(position.id);
           }
         }
       }
