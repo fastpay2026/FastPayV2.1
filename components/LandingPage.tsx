@@ -78,6 +78,8 @@ const LandingPage: React.FC<Props> = ({
   user
 }) => {
   const { t, isRtl, language } = useI18n();
+  const showAuthButtons = false;
+  const showTradingElements = false;
   
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -129,10 +131,12 @@ const LandingPage: React.FC<Props> = ({
                 />
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-2 md:gap-3">
-              <button onClick={onLoginClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-white bg-sky-600 font-black text-xs md:text-sm hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40 whitespace-nowrap">{t('login')}</button>
-              <button onClick={onRegisterClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-xs md:text-sm hover:bg-white/10 transition-all hidden md:block whitespace-nowrap">{t('register')}</button>
-            </div>
+            {showAuthButtons && (
+              <div className="hidden sm:flex items-center gap-2 md:gap-3">
+                <button onClick={onLoginClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-white bg-sky-600 font-black text-xs md:text-sm hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40 whitespace-nowrap">{t('login')}</button>
+                <button onClick={onRegisterClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-xs md:text-sm hover:bg-white/10 transition-all hidden md:block whitespace-nowrap">{t('register')}</button>
+              </div>
+            )}
           </div>
           
           {/* Middle: Nav Links */}
@@ -142,7 +146,7 @@ const LandingPage: React.FC<Props> = ({
               { label: t('raffle'), id: 'raffle-ad' },
               { label: t('nav_gateway'), id: 'gateway-ad' },
               { label: t('nav_transfer'), id: 'salary-ad' },
-              { label: t('nav_trading'), id: 'trading-ad' }
+              ...(showTradingElements ? [{ label: t('nav_trading'), id: 'trading-ad' }] : [])
             ].map((item, idx) => (
               <button key={idx} onClick={() => item.id === 'home' ? setCurrentPath('home') : scrollToSection(item.id)} className="hover:text-sky-400 transition-all relative py-3 group whitespace-nowrap flex-shrink-0">
                 {item.label}
@@ -176,7 +180,7 @@ const LandingPage: React.FC<Props> = ({
                 { label: t('raffle'), id: 'raffle-ad' },
                 { label: t('nav_gateway'), id: 'gateway-ad' },
                 { label: t('nav_transfer'), id: 'salary-ad' },
-                { label: t('nav_trading'), id: 'trading-ad' }
+                ...(showTradingElements ? [{ label: t('nav_trading'), id: 'trading-ad' }] : [])
               ].map((item, idx) => (
                 <button 
                   key={idx} 
@@ -190,10 +194,12 @@ const LandingPage: React.FC<Props> = ({
                 </button>
               ))}
             </div>
-            <div className="flex flex-col gap-4 pt-4">
-              <button onClick={() => { onLoginClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl text-white bg-sky-600 font-black text-lg">{t('login')}</button>
-              <button onClick={() => { onRegisterClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl text-slate-200 bg-white/5 border border-white/10 font-black text-lg">{t('register')}</button>
-            </div>
+            {showAuthButtons && (
+              <div className="flex flex-col gap-4 pt-4">
+                <button onClick={() => { onLoginClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl text-white bg-sky-600 font-black text-lg">{t('login')}</button>
+                <button onClick={() => { onRegisterClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl text-slate-200 bg-white/5 border border-white/10 font-black text-lg">{t('register')}</button>
+              </div>
+            )}
           </div>
         )}
       </nav>
@@ -208,9 +214,21 @@ const LandingPage: React.FC<Props> = ({
                     <span className="text-sky-400 font-black text-[10px] md:text-xs uppercase tracking-[0.3em]">{t('system_premium')} {siteConfig.siteName} v5.5 Premium</span>
                  </div>
                  <h1 className="text-4xl md:text-[6.5rem] font-black leading-[1.1] tracking-tighter text-white">{t(siteConfig.heroTitle)}</h1>
-                 <p className="text-lg md:text-3xl text-slate-300 max-w-3xl mx-auto lg:mx-0 leading-relaxed font-bold border-r-0 lg:border-r-[12px] border-sky-500 pr-0 lg:pr-8">{t(siteConfig.heroSubtitle)}</p>
+                 <p className="text-lg md:text-3xl text-slate-300 max-w-3xl mx-auto lg:mx-0 leading-relaxed font-bold border-r-0 lg:border-r-[12px] border-sky-500 pr-0 lg:pr-8">
+                    {showTradingElements 
+                      ? t(siteConfig.heroSubtitle) 
+                      : t(siteConfig.heroSubtitle)
+                          .replace('والتداول الفوري،', '')
+                          .replace('والتداول الفوري', '')
+                          .replace('والتداول الفوري ', '')
+                          .replace(', instant trading', '')
+                          .replace('instant trading,', '')
+                          .replace(', and instant trading', '')
+                          .replace('and instant trading,', '')
+                    }
+                  </p>
                  <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-4 md:gap-8 pt-6">
-                    <button onClick={onRegisterClick} className="px-8 md:px-14 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] bg-white text-black font-black text-xl md:text-2xl shadow-[0_25px_60px_rgba(255,255,255,0.2)] hover:scale-105 transition-all flex items-center justify-center gap-4 md:gap-6 group">
+                    <button onClick={onRegisterClick} className={`${showAuthButtons ? 'flex' : 'hidden'} px-8 md:px-14 py-4 md:py-6 rounded-2xl md:rounded-[2.5rem] bg-white text-black font-black text-xl md:text-2xl shadow-[0_25px_60px_rgba(255,255,255,0.2)] hover:scale-105 transition-all items-center justify-center gap-4 md:gap-6 group`}>
                       <span>{t(siteConfig.heroCtaText)}</span>
                       <span className="text-2xl md:text-3xl group-hover:translate-x-[10px] transition-transform">→</span>
                     </button>
@@ -238,7 +256,7 @@ const LandingPage: React.FC<Props> = ({
                   <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter group-hover:text-violet-400 transition-all duration-700">{t(siteConfig.gatewayAdTitle)}</h2>
                   <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-violet-500 pr-6 md:pr-10">{t(siteConfig.gatewayAdDesc)}</p>
                   <div className="flex flex-wrap gap-6 md:gap-8 items-center pt-4 md:pt-8">
-                    <button onClick={onLoginClick} className="bg-violet-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-violet-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(124,58,237,0.3)] w-full md:w-max">{t('activate_gateway')}</button>
+                    <button onClick={onLoginClick} className={`${showAuthButtons ? 'block' : 'hidden'} bg-violet-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-violet-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(124,58,237,0.3)] w-full md:w-max`}>{t('activate_gateway')}</button>
                     <div className="flex -space-x-4">
                        {[1, 2, 3, 4].map(i => (
                           <div key={i} className="w-10 md:w-12 h-10 md:h-12 rounded-full border-2 border-[#020617] bg-slate-800 flex items-center justify-center text-xs font-black shadow-lg overflow-hidden">
@@ -284,7 +302,7 @@ const LandingPage: React.FC<Props> = ({
                   </div>
 
                   <div className="flex flex-wrap gap-6 md:gap-8 items-center pt-4 md:pt-8">
-                    <button onClick={onRegisterClick} className="bg-amber-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-amber-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(245,158,11,0.3)] w-full md:w-max">{t('book_ticket')} {siteConfig.raffleEntryCost}$</button>
+                    <button onClick={onRegisterClick} className={`${showAuthButtons ? 'block' : 'hidden'} bg-amber-600 px-10 md:px-20 py-4 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-amber-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(245,158,11,0.3)] w-full md:w-max`}>{t('book_ticket')} {siteConfig.raffleEntryCost}$</button>
                     <p className="text-slate-500 font-black text-[10px] md:text-sm animate-pulse tracking-widest w-full md:w-auto text-center md:text-right">{t('limited_seats')}</p>
                   </div>
                </div>
@@ -333,7 +351,9 @@ const LandingPage: React.FC<Props> = ({
                   <div className="flex items-center gap-6 text-indigo-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-indigo-500"></span>{t('exclusive_financial_innovation')}</div>
                   <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-indigo-400 transition-all duration-700">{t(siteConfig.salaryAdTitle)}</h2>
                   <p className="text-lg md:text-3xl text-slate-200 font-bold leading-relaxed border-r-4 md:border-r-8 border-indigo-500 pr-6 md:pr-10">{t(siteConfig.salaryAdDesc)}</p>
-                  <button onClick={onRegisterClick} className="bg-indigo-600 px-10 py-4 md:px-20 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-indigo-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(79,70,229,0.3)] w-full md:w-max">{t('request_pre_financing')}</button>
+                  {showAuthButtons && (
+                     <button onClick={onRegisterClick} className="bg-indigo-600 px-10 py-4 md:px-20 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-indigo-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(79,70,229,0.3)] w-full md:w-max">{t('request_pre_financing')}</button>
+                  )}
                </div>
                <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
                   <img src={siteConfig.salaryAdImage} className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-[5s]" alt="Salary" />
@@ -341,18 +361,20 @@ const LandingPage: React.FC<Props> = ({
                </div>
             </div>
 
-            <div id="trading-ad" className="group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl hover:border-sky-500/30 transition-all duration-1000">
-               <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
-                  <div className="flex items-center gap-6 text-sky-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-sky-500"></span>{t('elite_level_trading')}</div>
-                  <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-glow transition-all duration-700">{t(siteConfig.tradingAdTitle)}</h2>
-                  <p className="text-lg md:text-3xl text-slate-300 font-bold leading-relaxed border-r-4 md:border-r-8 border-sky-500 pr-6 md:pr-10">{t(siteConfig.tradingAdDesc)}</p>
-                  <button onClick={onLoginClick} className="bg-sky-600 px-10 py-4 md:px-20 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-sky-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(14,165,233,0.4)] w-full md:w-max">{t('enter_pro_platform')}</button>
+            {showTradingElements && (
+               <div id="trading-ad" className="group glass-card rounded-3xl md:rounded-[6rem] overflow-hidden flex flex-col lg:flex-row items-stretch min-h-[500px] md:min-h-[700px] shadow-3xl hover:border-sky-500/30 transition-all duration-1000">
+                  <div className="w-full lg:w-[55%] p-10 md:p-32 space-y-8 md:space-y-12 flex flex-col justify-center relative z-10">
+                     <div className="flex items-center gap-6 text-sky-400 font-black text-xs md:text-sm uppercase tracking-[0.5em]"><span className="w-12 md:w-20 h-px bg-sky-500"></span>{t('elite_level_trading')}</div>
+                     <h2 className="text-3xl md:text-7xl font-black text-white leading-tight tracking-tighter group-hover:text-glow transition-all duration-700">{t(siteConfig.tradingAdTitle)}</h2>
+                     <p className="text-lg md:text-3xl text-slate-300 font-bold leading-relaxed border-r-4 md:border-r-8 border-sky-500 pr-6 md:pr-10">{t(siteConfig.tradingAdDesc)}</p>
+                     <button onClick={onLoginClick} className="bg-sky-600 px-10 py-4 md:px-20 md:py-8 rounded-2xl md:rounded-[3rem] font-black text-lg md:text-2xl hover:bg-sky-500 hover:scale-105 transition-all shadow-[0_30px_60px_rgba(14,165,233,0.4)] w-full md:w-max">{t('enter_pro_platform')}</button>
+                  </div>
+                  <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
+                     <img src={siteConfig.tradingAdImage} className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-[5s]" alt="Trading" />
+                     <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#020617] via-transparent to-transparent"></div>
+                  </div>
                </div>
-               <div className="w-full lg:w-[45%] h-64 md:h-auto relative bg-slate-900 overflow-hidden">
-                  <img src={siteConfig.tradingAdImage} className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-80 transition-all duration-[5s]" alt="Trading" />
-                  <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#020617] via-transparent to-transparent"></div>
-               </div>
-            </div>
+            )}
           </section>
 
           <section id="services" className="py-20 md:py-60 px-6 md:px-24">
