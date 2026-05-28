@@ -453,7 +453,8 @@ const App: React.FC = () => {
         "حوّل متجرك الإلكتروني إلى منصة دفع عالمية رائدة بعمولات تنافسية تبدأ من 0.8%.": "gateway_ad_desc",
         "سياسة الخصوصية": "footer_link_1",
         "شروط الخدمة": "footer_link_2",
-        "التراخيص العالمية": "footer_link_4"
+        "التراخيص العالمية": "footer_link_4",
+        "وثائق الشركة": "footer_link_4"
       };
 
       setSiteConfig(prev => {
