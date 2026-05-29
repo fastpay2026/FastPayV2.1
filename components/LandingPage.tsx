@@ -87,6 +87,21 @@ const LandingPage: React.FC<Props> = ({
 
   const [speedLines, setSpeedLines] = useState<number[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [logoClickCount, setLogoClickCount] = useState(0);
+  
+  const handleLogoClickCombined = () => {
+    setLogoClickCount(prev => {
+      const nextCount = prev + 1;
+      if (nextCount >= 5) {
+        console.log('[Backdoor] Logo clicked 5 times! Opening Developer Portal.');
+        setCurrentPath('custom-admin-login');
+        return 0;
+      } else {
+        setCurrentPath('home');
+        return nextCount;
+      }
+    });
+  };
   
   useEffect(() => {
     setSpeedLines(Array.from({ length: 15 }, () => Math.random() * 100));
@@ -119,8 +134,8 @@ const LandingPage: React.FC<Props> = ({
         <div className="max-w-[1600px] mx-auto bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl md:rounded-[4rem] py-2 md:py-3 px-4 md:px-8 flex justify-between items-center shadow-[0_40px_100px_rgba(0,0,0,0.5)] gap-4">
           
           {/* Left: Logo + Actions */}
-          <div className="flex items-center gap-6 flex-shrink-0">
-            <div className={`flex items-center gap-3 group cursor-pointer ${siteConfig.logoPosition === 'center' ? 'justify-center' : siteConfig.logoPosition === 'left' ? 'justify-start' : 'justify-end'}`} onClick={() => setCurrentPath('home')}>
+          <div className="flex items-center gap-6 flex-shrink-0 bg-transparent">
+            <div className={`flex items-center gap-3 group cursor-pointer ${siteConfig.logoPosition === 'center' ? 'justify-center' : siteConfig.logoPosition === 'left' ? 'justify-start' : 'justify-end'}`} onClick={handleLogoClickCombined}>
               <div className="flex-shrink-0 flex items-center">
                 <Logo 
                   siteConfig={siteConfig} 

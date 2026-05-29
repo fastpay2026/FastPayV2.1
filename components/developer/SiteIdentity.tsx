@@ -666,6 +666,29 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
                     </p>
                   </div>
                 )}
+
+                {/* Custom direct domain-specific help links */}
+                <div className="p-6 rounded-2xl bg-slate-950/60 border border-white/5 text-slate-300 space-y-4">
+                  <h5 className="text-sm font-black text-emerald-400 text-right">🔗 روابط الدخول المباشرة لاسم النطاق fastflow-group.uk :</h5>
+                  <p className="text-xs text-slate-400 text-right leading-relaxed">بإمكانك الدخول لوحة تحكم الأدمن مباشرة من خلال كتابة أحد الروابط السريعة التالية في المتصفح:</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 text-left font-mono text-xs">
+                    <div className="bg-black/50 p-3 rounded-xl border border-white/5 space-y-1">
+                      <span className="text-[10px] font-black text-sky-400 block text-right">رابط الهاش المباشر (موصى به - يعمل دائماً):</span>
+                      <p className="text-emerald-400 font-bold select-all break-all text-left">https://www.fastflow-group.uk/#admin</p>
+                      <p className="text-slate-500 font-bold text-right text-[9px] mt-1">كما يمكنك استخدام الهاش السري الخاص بك</p>
+                    </div>
+                    <div className="bg-black/50 p-3 rounded-xl border border-white/5 space-y-1">
+                      <span className="text-[10px] font-black text-sky-400 block text-right">رابط المسار المباشر (Direct Path):</span>
+                      <p className="text-emerald-400 font-bold select-all break-all text-left">https://www.fastflow-group.uk/admin</p>
+                      <p className="text-slate-500 font-bold text-right text-[9px] mt-1">أو عبر المسار المباشر: /control-panel</p>
+                    </div>
+                    <div className="bg-black/50 p-3 rounded-xl border border-white/5 space-y-1 md:col-span-2">
+                      <span className="text-[10px] font-black text-sky-400 block text-right">رابط رمز الاستعلام المباشر:</span>
+                      <p className="text-emerald-400 font-bold select-all break-all text-left">https://www.fastflow-group.uk/?admin=true</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Enabled Languages Setup Card */}

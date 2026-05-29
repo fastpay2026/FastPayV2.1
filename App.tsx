@@ -210,25 +210,68 @@ const App: React.FC = () => {
     accountsRef.current = accounts;
   }, [accounts]);
 
-  // Listen to hash change for custom admin path trigger
+  // Safety check: if they navigate to the admin portal or trigger a backdoor, force clear any existing user session
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.substring(1).trim().replace(/^\/+/, '');
+    if (currentPath === 'custom-admin-login' && currentUserId) {
+      console.log('[App] Admin route accessed with active user session. Logging out active user to reveal admin login screen.');
+      setCurrentUserId(null);
+      localStorage.removeItem('fp_v21_current_user_id');
+    }
+  }, [currentPath, currentUserId]);
+
+  // Listen to hash and custom path change for custom admin trigger
+  useEffect(() => {
+    const handleHashAndParams = () => {
+      const hash = window.location.hash.substring(1).trim().replace(/^\/+/, '').split('?')[0];
       const cleanCustomPath = siteConfig.adminCustomPath?.trim().replace(/^\/+/, '');
+      const searchParams = new URLSearchParams(window.location.search);
       
-      if (cleanCustomPath && hash === cleanCustomPath) {
-        console.log('[App] Secret admin path entered successfully:', hash);
+      const isCustomMatch = cleanCustomPath && hash === cleanCustomPath;
+      const isDefaultHashMatch = ['admin', 'control-panel', 'developer', 'fastflow-admin'].includes(hash.toLowerCase());
+      const isQueryMatch = searchParams.has('admin') || searchParams.has('control-panel');
+      const isPathMatch = ['/admin', '/control-panel'].includes(window.location.pathname.toLowerCase().replace(/\/$/, ''));
+
+      if (isCustomMatch || isDefaultHashMatch || isQueryMatch || isPathMatch) {
+        console.log('[App] Secret admin route matched successfully. Clearing active user session.');
+        
+        // Force clear user session so they aren't bounced to a regular dashboard
+        setCurrentUserId(null);
+        localStorage.removeItem('fp_v21_current_user_id');
+        
         setCurrentPath('custom-admin-login');
+        
+        // Clean up URL so user isn't stuck in a redirect loop on "Back" or Logout
+        try {
+          if (isQueryMatch) {
+            const newUrl = window.location.pathname + window.location.hash;
+            window.history.replaceState(null, '', newUrl || '/');
+          }
+          if (isDefaultHashMatch || isCustomMatch) {
+            window.location.hash = '';
+          }
+          if (isPathMatch) {
+            window.history.replaceState(null, '', '/');
+          }
+        } catch (e) {
+          console.warn('[App] URL cleaning non-blocking warning:', e);
+        }
       }
     };
     
-    // Check initial hash and bind listener
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('site_config_updated', handleHashChange);
+    // Check initial conditions and bind listeners
+    handleHashAndParams();
+    window.addEventListener('hashchange', handleHashAndParams);
+    window.addEventListener('popstate', handleHashAndParams);
+    window.addEventListener('site_config_updated', handleHashAndParams);
+    
+    // Periodically run check in case SPA navigates without firing state/hash listeners
+    const checkInterval = setInterval(handleHashAndParams, 1000);
+
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-      window.removeEventListener('site_config_updated', handleHashChange);
+      window.removeEventListener('hashchange', handleHashAndParams);
+      window.removeEventListener('popstate', handleHashAndParams);
+      window.removeEventListener('site_config_updated', handleHashAndParams);
+      clearInterval(checkInterval);
     };
   }, [siteConfig.adminCustomPath]);
   const [services, setServices] = useState<LandingService[]>([]);
