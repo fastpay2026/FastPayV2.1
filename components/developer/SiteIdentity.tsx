@@ -164,6 +164,7 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
     updatedConfig.hideAgentRole = !!tempConfig.hideAgentRole;
     updatedConfig.hideMerchantRole = !!tempConfig.hideMerchantRole;
     updatedConfig.hideUserRole = !!tempConfig.hideUserRole;
+    updatedConfig.hideRegisterOption = !!tempConfig.hideRegisterOption;
 
     onUpdateConfig(updatedConfig);
     alert('✅ تم تطبيق كافة تعديلات نصوص وصور الواجهة بنجاح وبكلا اللغتين!');
@@ -620,18 +621,23 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
               </div>
 
               {/* Auth Buttons Visibility Card */}
-              <div className="md:col-span-2 p-8 bg-slate-900/60 rounded-3xl border border-white/5 flex items-center justify-between gap-6 hover:border-red-500/30 transition-all">
+              <div className="md:col-span-2 p-8 bg-slate-900/60 rounded-3xl border border-white/5 flex items-center justify-between gap-6 hover:border-emerald-500/30 transition-all">
                 <div className="space-y-1">
-                  <h4 className="text-lg font-black text-red-400">👤 إخفاء أزرار تسجيل الدخول وإنشاء حساب</h4>
-                  <p className="text-xs text-slate-500">يقوم هذا الخيار بإخفاء أزرار تسجيل الدخول وإنشاء حساب من الواجهة الرئيسية وشريط التنقل للهواتف وأجهزة الكمبيوتر بشكل كامل.</p>
+                  <h4 className="text-lg font-black text-emerald-400">👤 أزرار تسجيل الدخول وإنشاء حساب بالرئيسية</h4>
+                  <p className="text-xs text-slate-500">يقوم هذا الخيار بإظهار أو إخفاء أزرار تسجيل الدخول وإنشاء حساب من الواجهة الرئيسية وشريط التنقل للهواتف وأجهزة الكمبيوتر بشكل كامل.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setTempConfig({ ...tempConfig, hideAuthButtons: !tempConfig.hideAuthButtons })}
-                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${tempConfig.hideAuthButtons ? 'bg-red-500' : 'bg-slate-700'}`}
-                >
-                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${tempConfig.hideAuthButtons ? 'translate-x-8' : 'translate-x-1'}`} />
-                </button>
+                <div className="flex items-center gap-4">
+                  <span className={`text-xs font-bold transition-colors ${!tempConfig.hideAuthButtons ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {!tempConfig.hideAuthButtons ? '✅ ظاهرة حالياً' : '👁️‍🗨️ مخفية حالياً'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setTempConfig({ ...tempConfig, hideAuthButtons: !tempConfig.hideAuthButtons })}
+                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${!tempConfig.hideAuthButtons ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${!tempConfig.hideAuthButtons ? 'translate-x-8' : 'translate-x-1'}`} />
+                  </button>
+                </div>
               </div>
 
               {/* Custom Admin Login Entrance URL Setup */}
@@ -812,6 +818,28 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
                   </div>
                 );
               })}
+
+              {/* Toggle Hiding Register Option/Button */}
+              <div className="p-8 bg-slate-900/60 rounded-3xl border border-white/5 flex items-center justify-between gap-6 hover:border-emerald-500/30 transition-all">
+                <div className="space-y-1">
+                  <h4 className="text-lg font-black text-emerald-400">⚡ خيار إنشاء حساب جديد داخل نافذة الدخول</h4>
+                  <p className="text-xs text-slate-500">تحكم بظهور أو إخفاء جملة وزر "إنشاء حساب جديد" (Create New Account) المعروضة أسفل قائمة بوابات تسجيل الدخول.</p>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <span className={`text-xs font-bold transition-colors ${!tempConfig.hideRegisterOption ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {!tempConfig.hideRegisterOption ? '✅ ظاهر حالياً' : '👁️‍عون مخفي حالياً'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setTempConfig({ ...tempConfig, hideRegisterOption: !tempConfig.hideRegisterOption })}
+                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${!tempConfig.hideRegisterOption ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${!tempConfig.hideRegisterOption ? 'translate-x-8' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+              </div>
+
             </div>
           </div>
         )}

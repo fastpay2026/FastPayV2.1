@@ -372,6 +372,7 @@ export interface SiteConfig {
   hideAgentRole?: boolean;
   hideMerchantRole?: boolean;
   hideUserRole?: boolean;
+  hideRegisterOption?: boolean;
   loginRoleDevTitle?: string;
   loginRoleDevDesc?: string;
   loginRoleDistTitle?: string;

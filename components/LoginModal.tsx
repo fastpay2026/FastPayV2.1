@@ -305,7 +305,7 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
                 ))}
               </div>
 
-               {!initialRole && onSwitchToRegister && (
+               {!initialRole && onSwitchToRegister && !siteConfig.hideRegisterOption && (
                 <div className="mt-8 md:mt-12 pt-6 md:pt-10 border-t border-white/5">
                   <p className="text-slate-500 font-bold mb-2 md:mb-4 text-sm">{t('no_account_yet')}</p>
                   <button onClick={onSwitchToRegister} className="text-sky-400 font-black text-lg md:text-xl hover:text-sky-300 transition-all inline-flex items-center gap-2">
