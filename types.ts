@@ -345,6 +345,25 @@ export interface SiteConfig {
   raffleEndDate: string;
   isTradingEnabled: boolean;
   disabledServices?: string[];
+  navHomeText?: string;
+  navRaffleText?: string;
+  navGatewayText?: string;
+  navTransferText?: string;
+  navTradingText?: string;
+  gatewayCtaText?: string;
+  raffleCtaText?: string;
+  salaryCtaText?: string;
+  tradingCtaText?: string;
+  rafflePrize1Title?: string;
+  rafflePrize1Desc?: string;
+  rafflePrize2Title?: string;
+  rafflePrize2Desc?: string;
+  hideHeroSection?: boolean;
+  hideRaffleSection?: boolean;
+  hideGatewaySection?: boolean;
+  hideSalarySection?: boolean;
+  hideTradingSection?: boolean;
+  hideServicesSection?: boolean;
 }
 
 export interface FXExchangeSettings {

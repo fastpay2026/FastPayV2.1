@@ -13,6 +13,25 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isRtl = useMemo(() => RTL_LANGUAGES.includes(language), [language]);
 
   const t = (key: string, replacements?: { [key: string]: string | number }) => {
+    if (!key) return '';
+    
+    // Check if the key itself is a JSON string containing localization
+    if (typeof key === 'string' && key.trim().startsWith('{') && key.trim().endsWith('}')) {
+      try {
+        const parsed = JSON.parse(key);
+        const translationValue = parsed[language] || parsed["ar"] || parsed["en"] || Object.values(parsed)[0] || key;
+        
+        if (!replacements) return translationValue;
+        let result = String(translationValue);
+        Object.keys(replacements).forEach((k) => {
+          result = result.replace(`\${${k}}`, String(replacements[k]));
+        });
+        return result;
+      } catch (e) {
+        // Fall back to standard key lookup
+      }
+    }
+
     const translation = translationsData[key]?.[language] || translationsData[key]?.["en"] || key;
     if (!replacements) return translation;
     
