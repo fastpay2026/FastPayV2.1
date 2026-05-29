@@ -10,7 +10,7 @@ interface Props {
 const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
   const { t } = useI18n();
   const [editingLang, setEditingLang] = useState<'ar' | 'en'>('ar');
-  const [activeSubTab, setActiveSubTab] = useState<'branding' | 'navigation' | 'hero' | 'ads_campaigns' | 'footer_services' | 'visibility'>('branding');
+  const [activeSubTab, setActiveSubTab] = useState<'branding' | 'navigation' | 'hero' | 'ads_campaigns' | 'footer_services' | 'visibility' | 'login_portal'>('branding');
   
   // Non-localized values and general settings
   const [tempConfig, setTempConfig] = useState<SiteConfig>(siteConfig);
@@ -30,7 +30,12 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
     'tradingAdTitle', 'tradingAdDesc', 'tradingCtaText',
     'footerAbout', 'footerLinksTitle', 'contactSectionTitle', 'galleryTitle',
     'navHomeText', 'navRaffleText', 'navGatewayText', 'navTransferText', 'navTradingText',
-    'footerLink1Text', 'footerLink2Text', 'footerLink4Text'
+    'footerLink1Text', 'footerLink2Text', 'footerLink4Text',
+    'loginRoleDevTitle', 'loginRoleDevDesc',
+    'loginRoleDistTitle', 'loginRoleDistDesc',
+    'loginRoleAgentTitle', 'loginRoleAgentDesc',
+    'loginRoleMerchantTitle', 'loginRoleMerchantDesc',
+    'loginRoleUserTitle', 'loginRoleUserDesc'
   ];
 
   type ValueMap = Record<string, { ar: string; en: string }>;
@@ -88,7 +93,17 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
           navTradingText: { ar: 'منصة التداول PRO', en: 'PRO Trading Platform' },
           footerLink1Text: { ar: 'سياسة الخصوصية وأمن المعلومات', en: 'Privacy & Cybersecurity Policy' },
           footerLink2Text: { ar: 'شروط الخدمة والسياسات العامة', en: 'Terms of Use & General Policies' },
-          footerLink4Text: { ar: 'وثائق الشركة والتراخيص', en: 'Company Documents' }
+          footerLink4Text: { ar: 'وثائق الشركة والتراخيص', en: 'Company Documents' },
+          loginRoleDevTitle: { ar: 'الإدارة التنفيذية', en: 'Executive Management' },
+          loginRoleDevDesc: { ar: 'إدارة الشبكة والسيولة المالية', en: 'Network & cash liquidity management' },
+          loginRoleDistTitle: { ar: 'منصة الموزعين', en: 'Distributors Platform' },
+          loginRoleDistDesc: { ar: 'عمليات الربط والمبيعات المباشرة', en: 'Integration operations & direct sales' },
+          loginRoleAgentTitle: { ar: 'Agent Portal', en: 'Agent Portal' },
+          loginRoleAgentDesc: { ar: 'Agent secure access portal', en: 'Agent secure access portal' },
+          loginRoleMerchantTitle: { ar: 'جناح التاجر', en: 'Merchant Suite' },
+          loginRoleMerchantDesc: { ar: 'إدارة الصفقات والاعتمادات المستندية', en: 'Deals management & digital letter of credits' },
+          loginRoleUserTitle: { ar: 'المحفظة الرقمية', en: 'Digital Wallet' },
+          loginRoleUserDesc: { ar: 'الحوالات والمدفوعات الشخصية', en: 'Personal money transfers & instant payments' }
         };
         initialTexts[key] = fallbacks[key] || { ar: rawVal, en: rawVal };
       }
@@ -144,6 +159,11 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
     updatedConfig.adminCustomPath = tempConfig.adminCustomPath || '';
     updatedConfig.hideAuthButtons = !!tempConfig.hideAuthButtons;
     updatedConfig.disabledLanguages = tempConfig.disabledLanguages || [];
+    updatedConfig.hideDevRole = !!tempConfig.hideDevRole;
+    updatedConfig.hideDistRole = !!tempConfig.hideDistRole;
+    updatedConfig.hideAgentRole = !!tempConfig.hideAgentRole;
+    updatedConfig.hideMerchantRole = !!tempConfig.hideMerchantRole;
+    updatedConfig.hideUserRole = !!tempConfig.hideUserRole;
 
     onUpdateConfig(updatedConfig);
     alert('✅ تم تطبيق كافة تعديلات نصوص وصور الواجهة بنجاح وبكلا اللغتين!');
@@ -192,7 +212,8 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
           { id: 'hero', label: 'القسم الترويجي الأول (Hero)', icon: '🚀' },
           { id: 'ads_campaigns', label: 'الحملات الإعلانية والصور', icon: '📢' },
           { id: 'footer_services', label: 'الخدمات وحواشي الفوتر', icon: '📦' },
-          { id: 'visibility', label: 'إظهار وإخفاء الأقسام والتبويبات', icon: '👁️' }
+          { id: 'visibility', label: 'إظهار وإخفاء الأقسام والتبويبات', icon: '👁️' },
+          { id: 'login_portal', label: 'بوابات وأزرار الدخول', icon: '👥' }
         ].map((subTab) => (
           <button
             key={subTab.id}
@@ -685,6 +706,112 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
                   })}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Login Portal Roles Setup Tab */}
+        {activeSubTab === 'login_portal' && (
+          <div className="space-y-8 animate-in fade-in duration-300">
+            <h3 className="text-2xl font-black border-r-8 border-sky-500 pr-5 uppercase tracking-widest text-sky-400">بوابات وأزرار الدخول للأنظمة</h3>
+            <p className="text-sm text-slate-400">من هنا يمكنك تعديل المسميات والوصف وتفعيل أو تعطيل (إخفاء) أي دور أو بوابة دخول من نافذة تسجيل الدخول الرئيسية.</p>
+            
+            <div className="space-y-8">
+              {[
+                {
+                  id: 'Dev',
+                  label: 'الإدارة التنفيذية (Executive)',
+                  color: 'border-sky-500/20',
+                  hideKey: 'hideDevRole',
+                  titleKey: 'loginRoleDevTitle',
+                  descKey: 'loginRoleDevDesc',
+                  icon: '⚡'
+                },
+                {
+                  id: 'Dist',
+                  label: 'منصة الموزعين (Distributor)',
+                  color: 'border-amber-500/20',
+                  hideKey: 'hideDistRole',
+                  titleKey: 'loginRoleDistTitle',
+                  descKey: 'loginRoleDistDesc',
+                  icon: '💼'
+                },
+                {
+                  id: 'Agent',
+                  label: 'بوابة الوكلاء (Agent Portal)',
+                  color: 'border-purple-500/20',
+                  hideKey: 'hideAgentRole',
+                  titleKey: 'loginRoleAgentTitle',
+                  descKey: 'loginRoleAgentDesc',
+                  icon: '🕵️'
+                },
+                {
+                  id: 'Merchant',
+                  label: 'جناح التاجر (Merchant Suit)',
+                  color: 'border-teal-500/20',
+                  hideKey: 'hideMerchantRole',
+                  titleKey: 'loginRoleMerchantTitle',
+                  descKey: 'loginRoleMerchantDesc',
+                  icon: '🏪'
+                },
+                {
+                  id: 'User',
+                  label: 'المحفظة الرقمية (Client Wallet)',
+                  color: 'border-emerald-500/20',
+                  hideKey: 'hideUserRole',
+                  titleKey: 'loginRoleUserTitle',
+                  descKey: 'loginRoleUserDesc',
+                  icon: '👤'
+                }
+              ].map((role) => {
+                const isHidden = !!(tempConfig as any)[role.hideKey];
+                return (
+                  <div key={role.id} className={`p-6 bg-slate-900/40 rounded-3xl border ${role.color} space-y-6 hover:border-sky-500/10 transition-all`}>
+                    <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{role.icon}</span>
+                        <h4 className="text-lg font-black text-white">{role.label}</h4>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs font-bold ${isHidden ? 'text-red-400' : 'text-emerald-400'}`}>
+                          {isHidden ? '👁️‍🗨️ مخفي حالياً' : '✅ نشط ومظاهر في النافذة'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setTempConfig({ ...tempConfig, [role.hideKey]: !isHidden })}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${!isHidden ? 'bg-sky-500' : 'bg-slate-700'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${!isHidden ? 'translate-x-[1.25rem]' : 'translate-x-[0.25rem]'}`} />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-500 uppercase mr-1">الاسم المعروض للزر ({editingLang.toUpperCase()})</label>
+                        <input
+                          type="text"
+                          value={getVal(role.titleKey)}
+                          onChange={e => handleTextChange(role.titleKey, e.target.value)}
+                          className="w-full p-4 bg-black/40 border border-white/10 rounded-xl font-bold outline-none focus:border-sky-500 transition-all text-sm text-white"
+                          placeholder="الاسم المخصص..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-500 uppercase mr-1">الوصف الفرعي المعروض للزر ({editingLang.toUpperCase()})</label>
+                        <input
+                          type="text"
+                          value={getVal(role.descKey)}
+                          onChange={e => handleTextChange(role.descKey, e.target.value)}
+                          className="w-full p-4 bg-black/40 border border-white/10 rounded-xl font-bold outline-none focus:border-sky-500 transition-all text-sm text-white"
+                          placeholder="الوصف المخصص..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

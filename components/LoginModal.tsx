@@ -282,12 +282,12 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
               
               <div className="space-y-3 md:space-y-4">
                 {[
-                  { r: 'DEVELOPER', label: t('executive_management'), icon: '⚡', color: 'from-sky-600 to-indigo-600', desc: t('network_management_desc') },
-                  { r: 'DISTRIBUTOR', label: t('distributor_platform'), icon: '💼', color: 'from-amber-500 to-orange-600', desc: t('distributor_ops_desc') },
-                  { r: 'AGENT', label: 'Agent Portal', icon: '🕵️', color: 'from-purple-500 to-pink-600', desc: 'Agent secure access portal' },
-                  { r: 'MERCHANT', label: t('merchant_suite'), icon: '🏪', color: 'from-teal-500 to-emerald-600', desc: t('merchant_deals_desc') },
-                  { r: 'USER', label: t('digital_wallet'), icon: '👤', color: 'from-emerald-500 to-teal-600', desc: t('personal_payments_desc') }
-                ].map((item) => (
+                  { r: 'DEVELOPER', label: siteConfig.loginRoleDevTitle ? t(siteConfig.loginRoleDevTitle) : t('executive_management'), icon: '⚡', color: 'from-sky-600 to-indigo-600', desc: siteConfig.loginRoleDevDesc ? t(siteConfig.loginRoleDevDesc) : t('network_management_desc'), hide: !!siteConfig.hideDevRole },
+                  { r: 'DISTRIBUTOR', label: siteConfig.loginRoleDistTitle ? t(siteConfig.loginRoleDistTitle) : t('distributor_platform'), icon: '💼', color: 'from-amber-500 to-orange-600', desc: siteConfig.loginRoleDistDesc ? t(siteConfig.loginRoleDistDesc) : t('distributor_ops_desc'), hide: !!siteConfig.hideDistRole },
+                  { r: 'AGENT', label: siteConfig.loginRoleAgentTitle ? t(siteConfig.loginRoleAgentTitle) : 'Agent Portal', icon: '🕵️', color: 'from-purple-500 to-pink-600', desc: siteConfig.loginRoleAgentDesc ? t(siteConfig.loginRoleAgentDesc) : 'Agent secure access portal', hide: !!siteConfig.hideAgentRole },
+                  { r: 'MERCHANT', label: siteConfig.loginRoleMerchantTitle ? t(siteConfig.loginRoleMerchantTitle) : t('merchant_suite'), icon: '🏪', color: 'from-teal-500 to-emerald-600', desc: siteConfig.loginRoleMerchantDesc ? t(siteConfig.loginRoleMerchantDesc) : t('merchant_deals_desc'), hide: !!siteConfig.hideMerchantRole },
+                  { r: 'USER', label: siteConfig.loginRoleUserTitle ? t(siteConfig.loginRoleUserTitle) : t('digital_wallet'), icon: '👤', color: 'from-emerald-500 to-teal-600', desc: siteConfig.loginRoleUserDesc ? t(siteConfig.loginRoleUserDesc) : t('personal_payments_desc'), hide: !!siteConfig.hideUserRole }
+                ].filter(item => !item.hide).map((item) => (
                   <button 
                     key={item.r} 
                     onClick={() => setSelectedRole(item.r as Role)} 

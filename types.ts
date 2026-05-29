@@ -367,6 +367,21 @@ export interface SiteConfig {
   adminCustomPath?: string;
   hideAuthButtons?: boolean;
   disabledLanguages?: string[];
+  hideDevRole?: boolean;
+  hideDistRole?: boolean;
+  hideAgentRole?: boolean;
+  hideMerchantRole?: boolean;
+  hideUserRole?: boolean;
+  loginRoleDevTitle?: string;
+  loginRoleDevDesc?: string;
+  loginRoleDistTitle?: string;
+  loginRoleDistDesc?: string;
+  loginRoleAgentTitle?: string;
+  loginRoleAgentDesc?: string;
+  loginRoleMerchantTitle?: string;
+  loginRoleMerchantDesc?: string;
+  loginRoleUserTitle?: string;
+  loginRoleUserDesc?: string;
 }
 
 export interface FXExchangeSettings {
