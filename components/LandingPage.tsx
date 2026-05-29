@@ -129,10 +129,12 @@ const LandingPage: React.FC<Props> = ({
                 />
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-2 md:gap-3">
-              <button onClick={onLoginClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-white bg-sky-600 font-black text-xs md:text-sm hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40 whitespace-nowrap">{t('login')}</button>
-              <button onClick={onRegisterClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-xs md:text-sm hover:bg-white/10 transition-all hidden md:block whitespace-nowrap">{t('register')}</button>
-            </div>
+            {!siteConfig.hideAuthButtons && (
+              <div className="hidden sm:flex items-center gap-2 md:gap-3">
+                <button onClick={onLoginClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-white bg-sky-600 font-black text-xs md:text-sm hover:bg-sky-500 transition-all shadow-2xl shadow-sky-900/40 whitespace-nowrap">{t('login')}</button>
+                <button onClick={onRegisterClick} className="px-4 md:px-5 py-1.5 rounded-3xl text-slate-200 bg-white/5 border border-white/10 font-black text-xs md:text-sm hover:bg-white/10 transition-all hidden md:block whitespace-nowrap">{t('register')}</button>
+              </div>
+            )}
           </div>
           
           {/* Middle: Nav Links */}
@@ -190,10 +192,12 @@ const LandingPage: React.FC<Props> = ({
                 </button>
               ))}
             </div>
-            <div className="flex flex-col gap-4 pt-4">
-              <button onClick={() => { onLoginClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl text-white bg-sky-600 font-black text-lg">{t('login')}</button>
-              <button onClick={() => { onRegisterClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl text-slate-200 bg-white/5 border border-white/10 font-black text-lg">{t('register')}</button>
-            </div>
+            {!siteConfig.hideAuthButtons && (
+              <div className="flex flex-col gap-4 pt-4">
+                <button onClick={() => { onLoginClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl text-white bg-sky-600 font-black text-lg">{t('login')}</button>
+                <button onClick={() => { onRegisterClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 rounded-2xl text-slate-200 bg-white/5 border border-white/10 font-black text-lg">{t('register')}</button>
+              </div>
+            )}
           </div>
         )}
       </nav>

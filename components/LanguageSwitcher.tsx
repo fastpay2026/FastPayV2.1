@@ -6,6 +6,39 @@ import { Languages } from 'lucide-react';
 const LanguageSwitcher: React.FC = () => {
   const { language, setLanguage, t } = useI18n();
 
+  const [disabledLanguages, setDisabledLanguages] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('fp_v21_site_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.disabledLanguages || [];
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    const handleStorageUpdate = () => {
+      try {
+        const saved = localStorage.getItem('fp_v21_site_config');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setDisabledLanguages(parsed.disabledLanguages || []);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    window.addEventListener('storage', handleStorageUpdate);
+    window.addEventListener('site_config_updated', handleStorageUpdate);
+    return () => {
+      window.removeEventListener('storage', handleStorageUpdate);
+      window.removeEventListener('site_config_updated', handleStorageUpdate);
+    };
+  }, []);
+
   const supportedLanguages: { code: Language; name: string; }[] = [
     { code: Language.EN, name: t('languageName_en') },
     { code: Language.AR, name: t('languageName_ar') },
@@ -14,7 +47,7 @@ const LanguageSwitcher: React.FC = () => {
     { code: Language.ZH, name: t('languageName_zh') },
     { code: Language.KU, name: t('languageName_ku') },
     { code: Language.RU, name: t('languageName_ru') },
-  ];
+  ].filter(lang => !disabledLanguages.includes(lang.code));
 
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);

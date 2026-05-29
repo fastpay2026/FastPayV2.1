@@ -364,6 +364,9 @@ export interface SiteConfig {
   hideSalarySection?: boolean;
   hideTradingSection?: boolean;
   hideServicesSection?: boolean;
+  adminCustomPath?: string;
+  hideAuthButtons?: boolean;
+  disabledLanguages?: string[];
 }
 
 export interface FXExchangeSettings {

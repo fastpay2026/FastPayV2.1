@@ -141,6 +141,9 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
     updatedConfig.hideSalarySection = !!tempConfig.hideSalarySection;
     updatedConfig.hideTradingSection = !!tempConfig.hideTradingSection;
     updatedConfig.hideServicesSection = !!tempConfig.hideServicesSection;
+    updatedConfig.adminCustomPath = tempConfig.adminCustomPath || '';
+    updatedConfig.hideAuthButtons = !!tempConfig.hideAuthButtons;
+    updatedConfig.disabledLanguages = tempConfig.disabledLanguages || [];
 
     onUpdateConfig(updatedConfig);
     alert('✅ تم تطبيق كافة تعديلات نصوص وصور الواجهة بنجاح وبكلا اللغتين!');
@@ -593,6 +596,94 @@ const SiteIdentity: React.FC<Props> = ({ siteConfig, onUpdateConfig }) => {
                 >
                   <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${!tempConfig.hideServicesSection ? 'translate-x-8' : 'translate-x-1'}`} />
                 </button>
+              </div>
+
+              {/* Auth Buttons Visibility Card */}
+              <div className="md:col-span-2 p-8 bg-slate-900/60 rounded-3xl border border-white/5 flex items-center justify-between gap-6 hover:border-red-500/30 transition-all">
+                <div className="space-y-1">
+                  <h4 className="text-lg font-black text-red-400">👤 إخفاء أزرار تسجيل الدخول وإنشاء حساب</h4>
+                  <p className="text-xs text-slate-500">يقوم هذا الخيار بإخفاء أزرار تسجيل الدخول وإنشاء حساب من الواجهة الرئيسية وشريط التنقل للهواتف وأجهزة الكمبيوتر بشكل كامل.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTempConfig({ ...tempConfig, hideAuthButtons: !tempConfig.hideAuthButtons })}
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${tempConfig.hideAuthButtons ? 'bg-red-500' : 'bg-slate-700'}`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${tempConfig.hideAuthButtons ? 'translate-x-8' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              {/* Custom Admin Login Entrance URL Setup */}
+              <div className="md:col-span-2 p-8 bg-slate-900/60 rounded-3xl border border-white/5 space-y-4 hover:border-sky-500/30 transition-all">
+                <div className="space-y-1">
+                  <h4 className="text-lg font-black text-white">🔐 بوابة دخول المدير المخصصة (عنوان URL السري)</h4>
+                  <p className="text-xs text-slate-400">حدد رابطًا سريًا ومخصصًا عبر الهاش (Hash) للدخول المباشر للوحة الإدارة التنفيذية، لحماية موقعك وتجنب تثبيت رابط الدخول أمام الزوار العاديين.</p>
+                </div>
+                <div className="flex flex-col md:flex-row gap-4 items-center">
+                  <div className="relative flex-1 w-full">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-sm select-none">#/</span>
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-6 py-4 bg-slate-950/80 border border-white/10 rounded-2xl outline-none focus:border-sky-500 text-white font-mono text-sm font-bold text-left"
+                      value={tempConfig.adminCustomPath || ''}
+                      onChange={(e) => setTempConfig({ ...tempConfig, adminCustomPath: e.target.value.trim().replace(/[^a-zA-Z0-9_-]/g, '') })}
+                      placeholder="admin-secure-portal"
+                    />
+                  </div>
+                </div>
+                {tempConfig.adminCustomPath && (
+                  <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/20 text-slate-300 space-y-2">
+                    <p className="text-xs font-bold font-mono text-sky-400 text-right">سوف تتمكن من الوصول إلى لوحة تحكم الإدارة العليا عبر هذا الرابط السري فقط:</p>
+                    <p className="text-xs selection:bg-sky-500/30 font-mono select-all break-all text-emerald-400 bg-black/40 p-3 rounded-lg border border-white/5 text-left">
+                      {window.location.origin}/#{tempConfig.adminCustomPath}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Enabled Languages Setup Card */}
+              <div className="md:col-span-2 p-8 bg-slate-900/60 rounded-3xl border border-white/5 space-y-4 hover:border-emerald-500/30 transition-all">
+                <div className="space-y-1">
+                  <h4 className="text-lg font-black text-emerald-400">🌐 اللغات المعروضة بالصفحة الرئيسية</h4>
+                  <p className="text-xs text-slate-500">اختر اللغات التي ترغب في إظهارها في شريط اختيار اللغات بالصفحة الرئيسية. اللغات غير المحددة سيتم إخفاؤها تماماً من زوار الموقع.</p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                  {[
+                    { code: 'ar', label: 'العربية (AR)' },
+                    { code: 'en', label: 'English (EN)' },
+                    { code: 'fr', label: 'Français (FR)' },
+                    { code: 'tr', label: 'Türkçe (TR)' },
+                    { code: 'zh', label: '中文 (ZH)' },
+                    { code: 'ku', label: 'Kurdî (KU)' },
+                    { code: 'ru', label: 'Русский (RU)' }
+                  ].map((lang) => {
+                    const isDisabled = (tempConfig.disabledLanguages || []).includes(lang.code);
+                    return (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => {
+                          const currentDisabled = tempConfig.disabledLanguages || [];
+                          let nextDisabled = [];
+                          if (isDisabled) {
+                            nextDisabled = currentDisabled.filter(c => c !== lang.code);
+                          } else {
+                            nextDisabled = [...currentDisabled, lang.code];
+                          }
+                          setTempConfig({ ...tempConfig, disabledLanguages: nextDisabled });
+                        }}
+                        className={`p-4 rounded-xl border font-bold text-xs flex items-center justify-between gap-3 transition-all ${
+                          !isDisabled 
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                            : 'bg-slate-950/40 border-white/5 text-slate-500 hover:border-white/10 hover:text-slate-400'
+                        }`}
+                      >
+                        <span>{lang.label}</span>
+                        <span className="text-lg">{!isDisabled ? '👁️' : '🙈'}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

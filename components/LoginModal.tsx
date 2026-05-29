@@ -9,13 +9,14 @@ interface Props {
   onClose: () => void;
   onLogin: (user: User) => void;
   accounts: User[];
-  onSwitchToRegister: () => void;
+  onSwitchToRegister?: () => void;
   siteConfig: SiteConfig;
+  initialRole?: Role;
 }
 
-const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToRegister, siteConfig }) => {
+const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToRegister, siteConfig, initialRole }) => {
   const { t } = useI18n();
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(initialRole || null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -113,8 +114,12 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
   };
 
   const handleBack = () => {
-    setSelectedRole(null);
-    setError('');
+    if (initialRole) {
+      onClose();
+    } else {
+      setSelectedRole(null);
+      setError('');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -300,13 +305,15 @@ const LoginModal: React.FC<Props> = ({ onClose, onLogin, accounts, onSwitchToReg
                 ))}
               </div>
 
-              <div className="mt-8 md:mt-12 pt-6 md:pt-10 border-t border-white/5">
-                <p className="text-slate-500 font-bold mb-2 md:mb-4 text-sm">{t('no_account_yet')}</p>
-                <button onClick={onSwitchToRegister} className="text-sky-400 font-black text-lg md:text-xl hover:text-sky-300 transition-all inline-flex items-center gap-2">
-                   <span>{t('create_new_account')}</span>
-                   <span className="text-xl md:text-2xl">⚡</span>
-                </button>
-              </div>
+               {!initialRole && onSwitchToRegister && (
+                <div className="mt-8 md:mt-12 pt-6 md:pt-10 border-t border-white/5">
+                  <p className="text-slate-500 font-bold mb-2 md:mb-4 text-sm">{t('no_account_yet')}</p>
+                  <button onClick={onSwitchToRegister} className="text-sky-400 font-black text-lg md:text-xl hover:text-sky-300 transition-all inline-flex items-center gap-2">
+                     <span>{t('create_new_account')}</span>
+                     <span className="text-xl md:text-2xl">⚡</span>
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8 text-right animate-in slide-in-from-left duration-500 pt-8 md:pt-0">

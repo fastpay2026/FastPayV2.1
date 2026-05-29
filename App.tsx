@@ -209,6 +209,28 @@ const App: React.FC = () => {
   useEffect(() => {
     accountsRef.current = accounts;
   }, [accounts]);
+
+  // Listen to hash change for custom admin path trigger
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1).trim().replace(/^\/+/, '');
+      const cleanCustomPath = siteConfig.adminCustomPath?.trim().replace(/^\/+/, '');
+      
+      if (cleanCustomPath && hash === cleanCustomPath) {
+        console.log('[App] Secret admin path entered successfully:', hash);
+        setCurrentPath('custom-admin-login');
+      }
+    };
+    
+    // Check initial hash and bind listener
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('site_config_updated', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('site_config_updated', handleHashChange);
+    };
+  }, [siteConfig.adminCustomPath]);
   const [services, setServices] = useState<LandingService[]>([]);
   const [pages, setPages] = useState<CustomPage[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -421,6 +443,8 @@ const App: React.FC = () => {
         console.error("Site config sync error:", err);
       }); 
     }
+    localStorage.setItem('fp_v21_site_config', JSON.stringify(siteConfig));
+    window.dispatchEvent(new Event('site_config_updated'));
   }, [siteConfig]);
 
   // Cleanup siteConfig to use keys for default values (migration)
@@ -634,7 +658,7 @@ const App: React.FC = () => {
           ))}
         </div>
 
-        {currentUser ? (
+         {currentUser ? (
           renderDashboard()
         ) : currentPath === 'agent-login' ? (
           <AgentLoginPortal 
@@ -642,6 +666,43 @@ const App: React.FC = () => {
             accounts={accounts} 
             siteConfig={siteConfig} 
           />
+        ) : currentPath === 'custom-admin-login' ? (
+          <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative overflow-hidden" dir="rtl">
+            <div className="absolute inset-0 z-0 bg-mesh opacity-30"></div>
+            <div className="glass-card w-full max-w-lg p-12 rounded-[2.5rem] md:rounded-[3.5rem] border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative z-10 space-y-8 animate-in fade-in zoom-in-95 duration-500">
+              <div className="text-center space-y-4">
+                <div className="w-24 h-24 bg-sky-500/10 border border-sky-500/20 rounded-full flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(14,165,233,0.2)]">
+                  <span className="text-4xl">🛡️</span>
+                </div>
+                <h3 className="text-xl md:text-3xl font-black text-white tracking-widest">{t('developer_dashboard') || 'بوابة الإدارة التنفيذية العامة'}</h3>
+                <p className="text-xs text-slate-400 font-bold">بوابة الوصول الخاصة بمدير العمليات في FastFlow Group</p>
+              </div>
+              
+              <LoginModal 
+                onClose={() => {
+                  setCurrentPath('home');
+                  window.location.hash = ''; // Clear hash on close
+                }} 
+                onLogin={(u) => { 
+                  setCurrentUserId(u.id); 
+                  setCurrentPath('home'); 
+                  window.location.hash = ''; // Clear hash on success
+                }} 
+                accounts={accounts} 
+                siteConfig={siteConfig}
+                initialRole="DEVELOPER"
+              />
+              
+              <div className="text-center pt-4">
+                <button onClick={() => {
+                  setCurrentPath('home');
+                  window.location.hash = '';
+                }} className="text-sm text-slate-400 hover:text-white font-bold transition-all">
+                  ← {t('back_to_home') || 'الرجوع للرئيسية'}
+                </button>
+              </div>
+            </div>
+          </div>
         ) : (
           <>
             <LandingPage siteConfig={siteConfig} services={services} pages={pages} currentPath={currentPath} setCurrentPath={setCurrentPath} onLoginClick={() => setIsLoginModalOpen(true)} onRegisterClick={() => setIsRegisterModalOpen(true)} user={null} />
